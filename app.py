@@ -81,10 +81,12 @@ def main():
     # 3. Pass #1: Identify visits/timepoints
     st.info("Pass #1: Identifying visits & timepoints...")
     visit_results = []
+    progress_bar = st.progress(0)
     for i, chunk in enumerate(chunks):
-        st.write(f"Analyzing chunk {i+1}/{len(chunks)} for visits/timepoints...")
+        progress_bar.progress((i + 1) / len(chunks))
         chunk_visits = extractor.identify_visits_and_timepoints(chunk, temperature=0.2)
         visit_results.extend(chunk_visits)
+    progress_bar.empty()
 
     # Consolidate visits/timepoints
     unique_visits = unify_visits(visit_results)
@@ -95,7 +97,9 @@ def main():
     st.info("Pass #2: Identifying variables & data types...")
     final_crfs = []
     all_variables = set()
-    for vt in unique_visits:
+    progress_bar = st.progress(0)
+    for i, vt in enumerate(unique_visits):
+        progress_bar.progress((i + 1) / len(unique_visits))
         vars_for_visit = extractor.identify_variables_and_types(
             protocol_text,
             vt["visit_name"],
@@ -112,6 +116,7 @@ def main():
             "timepoint": vt["timepoint"],
             "variables": vars_for_visit
         })
+    progress_bar.empty()
 
     st.write("**Variables & data types extracted:**")
     st.json(final_crfs)
@@ -467,6 +472,5 @@ class CRFExtractor:
                 self.logger.error("No JSON snippet found in the response.")
                 return [] if expect_list else {}
 
-# Ensure the script runs only when executed directly
 if __name__ == "__main__":
     main()

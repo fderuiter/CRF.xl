@@ -2,3 +2,4 @@ Py2PDF
 openai
 streamlit
 pandas
+pdfminer
