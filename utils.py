@@ -4,6 +4,7 @@ import logging
 from typing import List, Dict, Any, Union
 import pandas as pd
 from openai import OpenAI, AuthenticationError, OpenAIError
+import streamlit as st
 
 logging.basicConfig(
     level=logging.INFO,
@@ -179,3 +180,18 @@ def unify_visits(visit_results: List[Dict[str, str]]) -> List[Dict[str, str]]:
                 "timepoint": vt.get("timepoint", "")
             })
     return unified
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def validate_api_key(api_key: str) -> bool:
+    """Cached API key validation to avoid repeated API calls"""
+    if not api_key:
+        return False
+    try:
+        client = OpenAI(api_key=api_key)
+        client.models.list()
+        return True
+    except AuthenticationError:
+        return False
+    except OpenAIError as e:
+        logging.error(f"Error validating API key: {str(e)}")
+        return False

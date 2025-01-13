@@ -2,9 +2,10 @@ import json
 import re
 import logging
 from typing import Any, Dict, List, Union
-
+import streamlit as st
 import PyPDF2
 from openai import OpenAI
+from io import BytesIO
 
 class CRFExtractor:
     """
@@ -27,12 +28,19 @@ class CRFExtractor:
         """
         return OpenAI(api_key=self.api_key)
 
-    def extract_text_from_pdf(self, pdf_file: str) -> str:
+    def extract_text_from_pdf(self, pdf_content: Union[str, bytes]) -> str:
         """
         Converts the PDF protocol into a single string of text.
+        Works with both file paths and byte content.
         """
         self.logger.info("Extracting text from PDF...")
-        reader = PyPDF2.PdfReader(pdf_file)
+        
+        # Handle bytes input (from Streamlit uploader)
+        if isinstance(pdf_content, bytes):
+            reader = PyPDF2.PdfReader(BytesIO(pdf_content))
+        else:
+            reader = PyPDF2.PdfReader(pdf_content)
+        
         pages = len(reader.pages)
         self.logger.info(f"Found {pages} pages in PDF.")
         all_text = []
@@ -296,3 +304,41 @@ class CRFExtractor:
         else:
             self.logger.error("No JSON snippet found in the response.")
             return [] if expect_list else {}
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def extract_text_from_pdf(self, pdf_content: Union[str, bytes]) -> str:
+    """
+    Cached PDF text extraction
+    """
+    self.logger.info("Cache MISS - Running PDF extraction") 
+    reader = PyPDF2.PdfReader(BytesIO(pdf_content))
+    pages = len(reader.pages)
+    all_text = []
+    
+    for i in range(pages):
+        page_text = reader.pages[i].extract_text()
+        if page_text:
+            all_text.append(page_text)
+
+    return "\n".join(all_text)
+
+@st.cache_data(ttl=3600)
+def extract_crf_structure(self, protocol_text: str, temperature: float = 0.0) -> Dict[str, Any]:
+    """Cached CRF structure extraction"""
+    return self._call_llm_json(
+        system_prompt=self._get_crf_system_prompt(),
+        user_prompt=f"Extract from:\n{protocol_text}",
+        temperature=temperature,
+        expect_list=False
+    )
+
+@st.cache_data(ttl=3600)
+def extract_inclusion_exclusion(self, protocol_text: str, temperature: float = 0.0) -> Dict[str, Any]:
+    """Cached inclusion/exclusion criteria extraction"""
+    return self._call_llm_json(
+        system_prompt=self._get_inclusion_exclusion_prompt(),
+        user_prompt=f"Extract from:\n{protocol_text}",
+        temperature=temperature,
+        expect_list=False
+    )
+    

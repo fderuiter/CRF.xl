@@ -129,22 +129,43 @@ def main():
         if not validate_api_key(api_key):
             st.error("Invalid API key. Please enter a valid OpenAI API key.")
             return
-
+    
     st.success("API key is valid.")
     extractor = CRFExtractor(api_key)
+    
+    # Cache management
+    if st.button("Show Cache Info"):
+        cache_entries = {}
+        
+        # Get session state info which includes cache keys
+        cache_entries["Session State Keys"] = list(st.session_state.keys())
+        
+        # Show cache info
+        cache_entries["Cache Status"] = {
+            "Cache Data Keys": [key for key in st.session_state.keys() if key.startswith("cache")]
+        }
+        
+        # Display the cache information
+        st.subheader("Cache Information")
+        st.json(cache_entries)
+        
+        # Add cache clearing option
+        if st.button("Clear Cache"):
+            st.cache_data.clear()
+            st.success("Cache cleared!")
 
     # 2. Upload PDF
     uploaded_file = st.file_uploader("Upload Protocol PDF", type=["pdf"], key="pdf_upload")
     if not uploaded_file:
-        st.warning("Please upload a protocol PDF to continue.")
+        st.warning("Please upload a PDF file to proceed.")
         return
-
-    # 3. Extract text & chunk
+        
+    # 3. Extract text & chunk (using cached functions)
     st.info("Extracting PDF text & chunking")
     with st.spinner("Processing PDF..."):
-        protocol_text = extractor.extract_text_from_pdf(uploaded_file)
-        # chunk_text now defaults to 4000 chars
-        chunks = extractor.chunk_text(protocol_text)  
+        pdf_content = uploaded_file.read()  # Read bytes for caching
+        protocol_text = extractor.extract_text_from_pdf(pdf_content)
+        chunks = extractor.chunk_text(protocol_text)
     st.write(f"**Created {len(chunks)} text chunk(s).**")
 
     # 4. Single-Pass CRF extraction per chunk
