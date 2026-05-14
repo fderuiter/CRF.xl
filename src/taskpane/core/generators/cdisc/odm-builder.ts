@@ -87,7 +87,7 @@ export function generateOdmXml(study: StudyDesign): string {
             group.items.forEach(item => {
                 if (processedItems.has(item.itemOid)) return;
                 processedItems.add(item.itemOid);
-                xml += renderItemDef(item, metadata.defaultLanguage);
+                xml += renderItemDef(item);
             });
         });
     });
@@ -118,7 +118,7 @@ export function generateOdmXml(study: StudyDesign): string {
 /**
  * Renders an <ItemDef> block with clinical attributes and SDTM Aliases.
  */
-function renderItemDef(item: CrfItem, defaultLang: string): string {
+function renderItemDef(item: CrfItem): string {
     const odmType = mapDataTypeToOdm(item.dataType);
     let output = `
       <ItemDef OID="${item.itemOid}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
