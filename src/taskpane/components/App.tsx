@@ -17,7 +17,7 @@ import { MatrixView } from './views/MatrixView';
 import { AuthoringView } from './views/AuthoringView';
 import { DictionarySidecar } from './views/DictionarySidecar';
 
-export const App: React.FC = () => {
+export const App: React.FC<{ title?: string }> = () => {
     // 1. Telemetry State
     const { activeSheet, isCodelistActive } = useExcelTelemetry();
 

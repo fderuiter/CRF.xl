@@ -40,7 +40,7 @@ export function validateStudyDesign(study: StudyDesign, activeSheetFilter?: stri
                 }
 
                 // Check Codelist References
-                if (item.dataType === 'codelist' || item.codelistId) {
+                if (item.dataType === "Codelist" || item.codelistId) {
                     if (!item.codelistId) {
                         issues.push({ level: 'Error', message: `Type is Codelist, but ID is blank.`, location: `${sheet} > ${item.itemOid || 'Row '+row}`, rowIndex: row, sheetName: sheet });
                     } else if (!study.codelists[item.codelistId]) {
