@@ -87,6 +87,7 @@ export async function navigateToSource(sheetName: string, rowIndex: number): Pro
     return await Excel.run(async (context) => {
         const sheet = context.workbook.worksheets.getItem(sheetName);
         sheet.activate();
+        // Offset by 1 because data rows start after header
         sheet.getRangeByIndexes(rowIndex, 0, 1, 1).select();
         await context.sync();
     });

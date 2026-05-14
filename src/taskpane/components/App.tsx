@@ -13,60 +13,108 @@ export const App: React.FC = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState("Ready");
 
-    const handleAction = async (action: () => Promise<any>, successMsg: string) => {
-        setIsProcessing(true);
-        setStatus("Processing...");
-        try {
-            await action();
-            setStatus(successMsg);
-        } catch (e) {
-            setStatus("Action failed");
-            setIssues([{ level: 'Error', message: e instanceof Error ? e.message : "Unknown error" }]);
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
     const runAnalysis = async () => {
         setIsProcessing(true);
-        setStatus("Analyzing...");
+        setStatus("Analyzing workbook...");
         try {
             const study = await parseExcelToStudyDesign();
             const valIssues = validateStudyDesign(study);
             setIssues(valIssues);
-            setStatus(valIssues.some(i => i.level === 'Error') ? "Errors found" : "Validated");
+            const hasErrors = valIssues.some(i => i.level === 'Error');
+            setStatus(hasErrors ? "Issues found" : "Specification clean");
             return study;
         } catch (e) {
-            setIssues([{ level: 'Error', message: "Parsing failed" }]);
+            const msg = e instanceof Error ? e.message : "Parsing failed";
+            setIssues([{ level: 'Error', message: msg }]);
+            setStatus("Analysis failed");
             return null;
         } finally {
             setIsProcessing(false);
         }
     };
 
+    const handleInit = async () => {
+        setIsProcessing(true);
+        setStatus("Initializing...");
+        try {
+            await initializeWorkbook();
+            setStatus("Template initialized");
+            setIssues([]);
+        } catch (e) {
+            setStatus("Initialization failed");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleDocx = async () => {
+        const study = await runAnalysis();
+        if (study) {
+            setIsProcessing(true);
+            setStatus("Generating Paper CRF...");
+            try {
+                await generateDocx(study);
+                setStatus("Word document ready");
+            } catch (e) {
+                setStatus("Word export failed");
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+    };
+
+    const handleOdm = async () => {
+        const study = await runAnalysis();
+        if (study) {
+            setIsProcessing(true);
+            setStatus("Generating ODM XML...");
+            try {
+                const xml = generateOdmXml(study);
+                const blob = new Blob([xml], { type: 'application/xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${study.metadata.protocolId}_ODM_v${study.metadata.version}.xml`;
+                a.click();
+                URL.revokeObjectURL(url);
+                setStatus("ODM exported");
+            } catch (e) {
+                setStatus("ODM export failed");
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+    };
+
     return (
-        <div className="flex flex-col h-screen bg-slate-50 font-sans">
-            <header className="p-4 bg-white border-b flex justify-between items-center">
-                <h1 className="text-xl font-black text-blue-900">CRF.xl</h1>
-                <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 rounded text-slate-500 uppercase tracking-widest">{status}</span>
+        <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
+            <header className="p-4 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center text-white font-black">C</div>
+                    <div>
+                        <h1 className="text-lg font-black text-blue-900 leading-none">CRF.xl</h1>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Clinical Engine</p>
+                    </div>
+                </div>
+                <div className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                    {status}
+                </div>
             </header>
-            <main className="p-4 flex flex-col gap-4 overflow-hidden">
+            
+            <main className="flex-grow flex flex-col p-4 gap-4 overflow-hidden">
                 <ControlPanel 
-                    onInit={() => handleAction(initializeWorkbook, "Template created")}
-                    onDocx={async () => { const s = await runAnalysis(); if (s) await generateDocx(s); }}
-                    onOdm={async () => { 
-                        const s = await runAnalysis(); 
-                        if (s) {
-                            const xml = generateOdmXml(s);
-                            const blob = new Blob([xml], { type: 'text/xml' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a'); a.href = url; a.download = "study.xml"; a.click();
-                        }
-                    }}
+                    onInit={handleInit}
+                    onDocx={handleDocx}
+                    onOdm={handleOdm}
                     isProcessing={isProcessing}
                 />
-                <ValidationLog issues={issues} onNavigate={(i) => navigateToSource("Items", i.rowIndex)} />
+                <ValidationLog 
+                    issues={issues} 
+                    onNavigate={(i) => i.rowIndex !== undefined && navigateToSource("Items", i.rowIndex)} 
+                />
             </main>
         </div>
     );
 };
+
+export default App;

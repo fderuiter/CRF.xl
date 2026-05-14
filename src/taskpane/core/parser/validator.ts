@@ -20,7 +20,7 @@ export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
                             level: 'Error',
                             message: `Item references missing Codelist '${item.codelistId}'`,
                             location: `${form.formName} > ${item.name}`,
-                            rowIndex: (item as any)._sourceRowIndex
+                            rowIndex: (item as any).rowIndex
                         });
                     }
                 }
@@ -31,7 +31,7 @@ export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
                         level: 'Warning',
                         message: 'SAS Label exceeds 40 character limit.',
                         location: `${form.formName} > ${item.name}`,
-                        rowIndex: (item as any)._sourceRowIndex
+                        rowIndex: (item as any).rowIndex
                     });
                 }
             });

@@ -1,5 +1,5 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
-import { StudyDesign, DataType } from "../../types";
+import { StudyDesign } from "../../types";
 
 export async function generateDocx(study: StudyDesign): Promise<void> {
     const children: any[] = [];
