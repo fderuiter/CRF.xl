@@ -31,7 +31,7 @@ export function useExcelTelemetry() {
                     });
 
                     // Listener 2: Cell Selection Changed (Trigger for Sidecar)
-                    selectionChangedHandler = workbook.onSelectionChanged.add(async (event) => {
+                    selectionChangedHandler = workbook.onSelectionChanged.add(async () => {
                         await Excel.run(async (ctx) => {
                             const range = ctx.workbook.getSelectedRange();
                             range.load(["columnIndex", "worksheet/name"]);
