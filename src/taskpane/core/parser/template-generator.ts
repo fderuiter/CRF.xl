@@ -3,6 +3,7 @@
  * template-generator.ts
  * ============================================================================
  * Utility to scaffold a blank, formatted Excel workbook with environmental defaults.
+ * Now includes Excel Data Validation (Dropdowns) to prevent specification errors.
  */
 
 /* global Office, Excel */
@@ -65,11 +66,36 @@ export async function initializeWorkbook(): Promise<void> {
                 dataRange.values = config.data;
             }
 
+            // --- MVP Feature: Excel Data Validation ---
+            if (config.name === "Items") {
+                // Add dropdown for 'Variable Type' (Column E / index 4)
+                const typeCol = sheet.getRange("E2:E1000").dataValidation;
+                typeCol.rule = { list: { inCellDropDown: true, source: "Text,Integer,Float,Date,Time,Datetime,PartialDate,Boolean,Codelist,File" }};
+                
+                // Add dropdown for 'Required Field' (Column H / index 7)
+                const reqCol = sheet.getRange("H2:H1000").dataValidation;
+                reqCol.rule = { list: { inCellDropDown: true, source: "Yes,No" }};
+            }
+
             headerRange.format.autofitColumns();
             sheet.freezePanes.freezeRows(1);
         }
 
         sheets.getItem("Metadata").activate();
+        await context.sync();
+    });
+}
+
+/**
+ * MVP Feature: Navigation helper to jump to a specific cell in Excel.
+ */
+export async function navigateToSource(sheetName: string, rowIndex?: number): Promise<void> {
+    return await Excel.run(async (context) => {
+        const sheet = context.workbook.worksheets.getItem(sheetName);
+        sheet.activate();
+        if (rowIndex !== undefined) {
+            sheet.getRangeByIndexes(rowIndex, 0, 1, 1).select();
+        }
         await context.sync();
     });
 }
