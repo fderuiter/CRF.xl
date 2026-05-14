@@ -20,8 +20,9 @@ export const App: React.FC = () => {
         setStatusMessage("Initializing clinical template...");
         try {
             await initializeWorkbook();
-            setStatusMessage("Workbook initialized successfully.");
+            setStatusMessage("Workbook initialized with env defaults.");
         } catch (error) {
+            console.error(error);
             setStatusMessage("Initialization failed.");
         } finally {
             setIsProcessing(false);
