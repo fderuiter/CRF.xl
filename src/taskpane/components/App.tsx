@@ -42,12 +42,12 @@ export const App: React.FC = () => {
         finally { setIsProcessing(false); }
     };
 
-    const performAnalysis = async (): Promise<StudyDesign | null> => {
+    const performAnalysis = async (sheetFilter?: string): Promise<StudyDesign | null> => {
         setIsProcessing(true); setStatus("Analyzing workbook...");
         try {
             const freshStudy = await parseExcelToStudyDesign();
             setStudy(freshStudy);
-            const validationIssues = validateStudyDesign(freshStudy);
+            const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
             setIssues(validationIssues);
             setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
             return freshStudy;
@@ -88,7 +88,7 @@ export const App: React.FC = () => {
         }
         if (!activeSheet.startsWith("_")) {
             // It's a CRF Authoring Sheet
-            return <AuthoringView sheetName={activeSheet} onValidate={performAnalysis} isProcessing={isProcessing} />;
+            return <AuthoringView sheetName={activeSheet} onValidate={() => performAnalysis(activeSheet)} isProcessing={isProcessing} />;
         }
         return null;
     };
