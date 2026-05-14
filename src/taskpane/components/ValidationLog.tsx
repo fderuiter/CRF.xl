@@ -21,7 +21,7 @@ export const ValidationLog: React.FC<ValidationLogProps> = ({ issues, isProcessi
             <div className="flex-grow bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 bg-blue-50 text-blue-300 rounded-full flex items-center justify-center mb-4 text-3xl font-black">✓</div>
                 <h3 className="text-slate-800 font-bold mb-1 text-sm">Clean Specification</h3>
-                <p className="text-slate-400 text-[10px] max-w-[200px] leading-tight">Referential integrity verified across all clinical sheets.</p>
+                <p className="text-slate-400 text-[10px] max-w-[200px] leading-tight text-center">Referential integrity verified across all clinical sheets. Ready for export.</p>
             </div>
         );
     }
@@ -31,13 +31,30 @@ export const ValidationLog: React.FC<ValidationLogProps> = ({ issues, isProcessi
 
     return (
         <div className="flex-grow flex flex-col gap-4 overflow-hidden">
-            <div className="flex-grow overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+            {/* Summary Bar */}
+            <div className="flex gap-2 mb-1 px-1">
+                <div className="flex-1 bg-white border border-slate-200 p-2 rounded-xl flex items-center justify-between">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Status</span>
+                    <div className="flex gap-3">
+                        <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                            <span className="text-[10px] font-bold text-slate-700">{errors.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                            <span className="text-[10px] font-bold text-slate-700">{warnings.length}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-grow overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                 {/* Errors Section */}
                 {errors.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-2 mb-2 px-1">
+                        <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm py-1 mb-2">
                             <span className="text-[9px] font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                Critical Errors ({errors.length})
+                                Critical Blockers
                             </span>
                         </div>
                         <div className="space-y-2">
@@ -51,9 +68,9 @@ export const ValidationLog: React.FC<ValidationLogProps> = ({ issues, isProcessi
                 {/* Warnings Section */}
                 {warnings.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-2 mb-2 px-1">
+                        <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm py-1 mb-2">
                             <span className="text-[9px] font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                Quality Warnings ({warnings.length})
+                                Quality Warnings
                             </span>
                         </div>
                         <div className="space-y-2">
@@ -71,8 +88,11 @@ export const ValidationLog: React.FC<ValidationLogProps> = ({ issues, isProcessi
 const IssueCard: React.FC<{ issue: ValidationIssue }> = ({ issue }) => {
     const isError = issue.level === 'Error';
     
+    // Split location by delimiter if present to create breadcrumbs
+    const breadcrumbs = issue.location?.split(' > ') || [];
+
     return (
-        <div className={`p-3 rounded-xl border-l-4 transition-all shadow-sm ${
+        <div className={`p-3 rounded-xl border-l-4 transition-all shadow-sm group ${
             isError ? 'bg-white border-red-500 hover:bg-red-50/30' : 'bg-white border-amber-500 hover:bg-amber-50/30'
         }`}>
             <div className="flex justify-between items-start mb-1 gap-2">
@@ -82,14 +102,22 @@ const IssueCard: React.FC<{ issue: ValidationIssue }> = ({ issue }) => {
             </div>
             
             {issue.location && (
-                <div className="flex items-center gap-1.5 mt-2 opacity-60">
-                    <svg className="w-2.5 h-2.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest truncate max-w-full">
-                        {issue.location}
-                    </span>
+                <div className="flex flex-wrap items-center gap-1 mt-2">
+                    {breadcrumbs.map((crumb, i) => (
+                        <React.Fragment key={i}>
+                            {i > 0 && (
+                                <span className="text-[8px] text-slate-300 font-bold">/</span>
+                            )}
+                            <div className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                                {i === 0 && (
+                                    <svg className="w-2 h-2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                                )}
+                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                                    {crumb}
+                                </span>
+                            </div>
+                        </React.Fragment>
+                    ))}
                 </div>
             )}
         </div>

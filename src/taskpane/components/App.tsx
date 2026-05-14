@@ -79,7 +79,7 @@ export const App: React.FC = () => {
     return (
         <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
             {/* Header Area */}
-            <header className="p-4 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between">
+            <header className="p-4 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl flex items-center justify-center text-white font-black shadow-lg">
                         C
@@ -117,7 +117,7 @@ export const App: React.FC = () => {
                 ))}
             </div>
             
-            <main className="flex-grow flex flex-col p-4 gap-4 overflow-hidden">
+            <main className="flex-grow flex flex-col p-4 gap-4 overflow-hidden relative">
                 <ControlPanel 
                     onGenerateDocx={handleDocxFlow} 
                     onExportOdm={handleOdmFlow}
