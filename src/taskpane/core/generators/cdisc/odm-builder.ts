@@ -1,7 +1,8 @@
 import { 
     StudyDesign, 
     DataType, 
-    TranslatedText 
+    TranslatedText,
+    QuerySeverity
 } from "../../types";
 
 /**
@@ -32,7 +33,7 @@ export function generateOdmXml(study: StudyDesign): string {
       <Protocol>`;
     study.events.forEach(event => {
         xml += `
-        <StudyEventRef StudyEventOID="${event.eventOid}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
+        <StudyEventRef StudyEventOID="${event.eventOid}" OrderNumber="${event.orderNumber}" Mandatory="Yes"${event.showIf ? ` CollectionExceptionConditionOID="COND.${event.eventOid}"` : ''}/>`;
     });
     xml += `
       </Protocol>`;
@@ -43,7 +44,7 @@ export function generateOdmXml(study: StudyDesign): string {
       <StudyEventDef OID="${event.eventOid}" Name="${event.eventName}" Type="${event.eventType}" Repeating="No">`;
         event.forms.forEach(fRef => {
             xml += `
-        <FormRef FormOID="${fRef.formOid}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? 'Yes' : 'No'}"/>`;
+        <FormRef FormOID="${fRef.formOid}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? 'Yes' : 'No'}"${fRef.showIf ? ` CollectionExceptionConditionOID="COND.${fRef.formOid}"` : ''}/>`;
         });
         xml += `
       </StudyEventDef>`;
@@ -55,7 +56,7 @@ export function generateOdmXml(study: StudyDesign): string {
       <FormDef OID="${form.formOid}" Name="${form.formName}" Repeating="${form.repeating ? 'Yes' : 'No'}">`;
         form.itemGroups.forEach(group => {
             xml += `
-        <ItemGroupRef ItemGroupOID="${group.groupOid}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
+        <ItemGroupRef ItemGroupOID="${group.groupOid}" OrderNumber="${group.orderNumber}" Mandatory="Yes"${group.showIf ? ` CollectionExceptionConditionOID="COND.${group.groupOid}"` : ''}/>`;
         });
         xml += `
       </FormDef>`;
@@ -68,7 +69,7 @@ export function generateOdmXml(study: StudyDesign): string {
       <ItemGroupDef OID="${group.groupOid}" Name="${group.name}" Repeating="${group.repeating ? 'Yes' : 'No'}">`;
             group.items.forEach(item => {
                 xml += `
-        <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? 'Yes' : 'No'}"/>`;
+        <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? 'Yes' : 'No'}"${item.showIf ? ` CollectionExceptionConditionOID="COND.${item.itemOid}"` : ''}/>`;
             });
             xml += `
       </ItemGroupDef>`;
@@ -91,6 +92,23 @@ export function generateOdmXml(study: StudyDesign): string {
                 if (item.codelistId) {
                     xml += `
         <CodeListRef CodeListOID="${item.codelistId}"/>`;
+                }
+
+                // Sophisticated Edit Check: RangeChecks
+                if (item.validation.rangeChecks && item.validation.rangeChecks.length > 0) {
+                    item.validation.rangeChecks.forEach((check, idx) => {
+                        const softHard = check.severity === QuerySeverity.HARD_ERROR ? 'Hard' : 'Soft';
+                        xml += `
+        <RangeCheck Comparator="${mapComparator(check.comparator)}" SoftHard="${softHard}">
+          <CheckValue>${check.value}</CheckValue>${check.errorMessage ? renderTranslatedText("ErrorMessage", check.errorMessage, metadata.defaultLanguage) : ''}
+        </RangeCheck>`;
+                    });
+                }
+
+                // Derivations: MethodRef
+                if (item.derivation) {
+                    xml += `
+        <MethodRef MethodOID="MT.${item.itemOid}"/>`;
                 }
                 
                 // SDTM Alias mapping
@@ -121,6 +139,12 @@ export function generateOdmXml(study: StudyDesign): string {
       </CodeList>`;
     });
 
+    // 7. Sophisticated Condition Definitions (Branching Logic)
+    xml += renderConditionDefs(study);
+
+    // 8. Sophisticated Method Definitions (Derivations)
+    xml += renderMethodDefs(study);
+
     xml += `
     </MetaDataVersion>
   </Study>
@@ -144,12 +168,75 @@ function mapDataTypeToOdm(type: DataType): string {
 }
 
 /**
- * Helper to render localized ODM tags (Question, Decode).
+ * Maps standard comparators to ODM specific ones.
+ */
+function mapComparator(comp: string): string {
+    const map: Record<string, string> = {
+        '==': 'EQ', '!=': 'NE', '<': 'LT', '<=': 'LE', '>': 'GT', '>=': 'GE'
+    };
+    return map[comp] || 'EQ';
+}
+
+/**
+ * Renders all unique ConditionDef elements for the metadata.
+ */
+function renderConditionDefs(study: StudyDesign): string {
+    let output = "";
+    const processed = new Set<string>();
+
+    const checkAndRender = (oid: string, logic: string) => {
+        if (processed.has(oid)) return;
+        processed.add(oid);
+        output += `
+      <ConditionDef OID="COND.${oid}" Name="Condition for ${oid}">
+        <Description>
+          <TranslatedText xml:lang="en">Logic: ${logic}</TranslatedText>
+        </Description>
+        <FormalExpression Context="ExpressionEngine">${logic}</FormalExpression>
+      </ConditionDef>`;
+    };
+
+    study.events.forEach(e => e.showIf && checkAndRender(e.eventOid, e.showIf));
+    Object.values(study.forms).forEach(f => {
+        if (f.formOid && (f as any).showIf) checkAndRender(f.formOid, (f as any).showIf);
+        f.itemGroups.forEach(g => {
+            if (g.showIf) checkAndRender(g.groupOid, g.showIf);
+            g.items.forEach(i => i.showIf && checkAndRender(i.itemOid, i.showIf));
+        });
+    });
+
+    return output;
+}
+
+/**
+ * Renders MethodDef elements for computed fields.
+ */
+function renderMethodDefs(study: StudyDesign): string {
+    let output = "";
+    Object.values(study.forms).forEach(f => {
+        f.itemGroups.forEach(g => {
+            g.items.forEach(i => {
+                if (i.derivation) {
+                    output += `
+      <MethodDef OID="MT.${i.itemOid}" Name="Derivation for ${i.itemOid}" Type="Computation">
+        <Description>
+          <TranslatedText xml:lang="en">Calculation: ${i.derivation.expression}</TranslatedText>
+        </Description>
+        <FormalExpression Context="ExpressionEngine">${i.derivation.expression}</FormalExpression>
+      </MethodDef>`;
+                }
+            });
+        });
+    });
+    return output;
+}
+
+/**
+ * Helper to render localized ODM tags (Question, Decode, ErrorMessage).
  */
 function renderTranslatedText(tag: string, text: TranslatedText, defaultLang: string): string {
     let output = "";
     Object.entries(text).forEach(([lang, val]) => {
-        // Sanitize XML entities
         const cleanVal = val.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         output += `
         <${tag}>
