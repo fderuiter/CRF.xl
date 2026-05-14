@@ -7,9 +7,19 @@ export function generateOdmXml(study: StudyDesign): string {
   <Study OID="${meta.protocolId}">
     <GlobalVariables><StudyName>${meta.studyName}</StudyName><ProtocolName>${meta.protocolId}</ProtocolName></GlobalVariables>
     <MetaDataVersion OID="V1" Name="Version 1">
-`;
+      <Protocol>`;
 
-    // ODM Entity mapping loop
+    study.events.forEach(e => {
+        xml += `        <StudyEventRef StudyEventOID="${e.eventOid}" OrderNumber="${e.orderNumber}" Mandatory="Yes"/>\n`;
+    });
+    xml += `      </Protocol>\n`;
+
+    study.events.forEach(e => {
+        xml += `      <StudyEventDef OID="${e.eventOid}" Name="${e.eventName}" Repeating="No" Type="Scheduled">\n`;
+        e.forms.forEach(f => xml += `        <FormRef FormOID="${f.formOid}" Mandatory="Yes" OrderNumber="${f.orderNumber}"/>\n`);
+        xml += `      </StudyEventDef>\n`;
+    });
+
     Object.values(study.forms).forEach(f => {
         xml += `      <FormDef OID="${f.formOid}" Name="${f.formName}" Repeating="No">\n`;
         f.itemGroups.forEach(g => {

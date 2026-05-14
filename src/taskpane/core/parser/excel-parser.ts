@@ -1,6 +1,6 @@
 /* global Excel */
 import { 
-    StudyDesign, DataType, CrfItem, CrfForm, StudyEvent, Codelist, PaperLayoutFormat, RangeValueType 
+    StudyDesign, DataType, CrfItem, CrfForm, StudyEvent, EventType 
 } from '../types';
 
 export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
@@ -18,7 +18,7 @@ export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
         const clSheet = sheets.getItemOrNullObject("Codelists");
         await context.sync();
 
-        // 1. Metadata Mapping
+        // 1. Metadata
         if (!metaSheet.isNullObject) {
             const range = metaSheet.getUsedRange();
             range.load("values");
@@ -31,7 +31,7 @@ export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
             }
         }
 
-        // 2. Codelist Aggregator (Multi-row support)
+        // 2. Codelists (Multi-row Aggregator)
         if (!clSheet.isNullObject) {
             const range = clSheet.getUsedRange();
             range.load("values");
@@ -51,7 +51,7 @@ export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
             }
         }
 
-        // 3. Form Scaffolding
+        // 3. Forms
         if (!formSheet.isNullObject) {
             const range = formSheet.getUsedRange();
             range.load("values");
@@ -69,7 +69,7 @@ export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
             }
         }
 
-        // 4. Item Assembly & Script Capture
+        // 4. Items
         if (!itemSheet.isNullObject) {
             const range = itemSheet.getUsedRange();
             range.load("values");
@@ -87,9 +87,35 @@ export async function parseExcelToStudyDesign(): Promise<StudyDesign> {
                             group = { groupOid: gOid, name: gOid, repeating: false, orderNumber: form.itemGroups.length + 1, items: [] };
                             form.itemGroups.push(group);
                         }
-                        (item as any).rowIndex = i; // Tracking for navigation
+                        (item as any).rowIndex = i;
                         group.items.push(item as CrfItem);
                     }
+                }
+            }
+        }
+
+        // 5. Events
+        if (!eventSheet.isNullObject) {
+            const range = eventSheet.getUsedRange();
+            range.load("values");
+            await context.sync();
+            const vals = range.values;
+            if (vals) {
+                for (let i = 1; i < vals.length; i++) {
+                    const [id, name, seq, logic, formsCsv] = vals[i];
+                    if (!id) continue;
+                    study.events.push({
+                        eventOid: id,
+                        eventName: name,
+                        eventType: EventType.SCHEDULED,
+                        orderNumber: Number(seq),
+                        showIf: logic ? String(logic) : undefined,
+                        forms: String(formsCsv).split(',').map((fOid, idx) => ({
+                            formOid: fOid.trim(),
+                            orderNumber: idx + 1,
+                            mandatory: true
+                        }))
+                    });
                 }
             }
         }
@@ -112,7 +138,7 @@ function mapRowToItem(headers: string[], row: any[]): Partial<CrfItem> {
         if (clean === 'sequence') item.orderNumber = Number(val);
         if (clean === 'show if') item.showIf = val.toString();
         if (clean === 'sas label') item.sdtmMapping.sasLabel = val;
-        if (clean === 'catalog') item.codelistId = val;
+        if (clean === 'catalog' || clean === 'codelist id') item.codelistId = val;
     });
     return item;
 }

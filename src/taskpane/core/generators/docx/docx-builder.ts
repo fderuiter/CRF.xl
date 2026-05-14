@@ -4,28 +4,33 @@ import { StudyDesign } from "../../types";
 export async function generateDocx(study: StudyDesign): Promise<void> {
     const children: any[] = [];
 
-    // Global Header
+    // Protocol Header
     children.push(new Paragraph({ text: study.metadata.studyName, heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }));
-    children.push(new Paragraph({ text: `Protocol: ${study.metadata.protocolId} | Version: ${study.metadata.version}`, alignment: AlignmentType.CENTER }));
+    children.push(new Paragraph({ text: `ID: ${study.metadata.protocolId} | v${study.metadata.version}`, alignment: AlignmentType.CENTER, spacing: { after: 400 } }));
 
-    Object.values(study.forms).forEach(form => {
-        children.push(new Paragraph({ text: `\n${form.formName}`, heading: HeadingLevel.HEADING_2, pageBreakBefore: true }));
-        children.push(new Paragraph({ text: "Subject ID: [ _ _ _ _ _ ]        Visit Date: [ _ _ / _ _ _ / _ _ _ _ ]", alignment: AlignmentType.RIGHT }));
+    study.events.forEach(event => {
+        event.forms.forEach(fRef => {
+            const form = study.forms[fRef.formOid];
+            if (!form) return;
 
-        form.itemGroups.forEach(group => {
-            group.items.forEach(item => {
-                children.push(new Paragraph({ 
-                    children: [
-                        new TextRun({ text: `${item.label["en-US"] || item.name}: `, size: 24 }),
-                        new TextRun({ text: " ____________________________", bold: true })
-                    ],
-                    spacing: { before: 200 }
-                }));
+            children.push(new Paragraph({ text: `\n${form.formName}`, heading: HeadingLevel.HEADING_2, pageBreakBefore: true }));
+            children.push(new Paragraph({ text: `Visit: ${event.eventName}`, alignment: AlignmentType.RIGHT }));
+            children.push(new Paragraph({ text: "Subject ID: [ _ _ _ _ _ ]        Date: [ _ _ / _ _ _ / _ _ _ _ ]", alignment: AlignmentType.RIGHT, spacing: { after: 200 } }));
+
+            form.itemGroups.forEach(group => {
+                group.items.forEach(item => {
+                    children.push(new Paragraph({ 
+                        children: [
+                            new TextRun({ text: `${item.label["en-US"] || item.name}: `, size: 24 }),
+                            new TextRun({ text: " ____________________________", bold: true })
+                        ],
+                        spacing: { before: 150 }
+                    }));
+                });
             });
-        });
 
-        // Signature Footer
-        children.push(new Paragraph({ text: "\n\nInvestigator Signature: ______________________  Date: __________", alignment: AlignmentType.RIGHT }));
+            children.push(new Paragraph({ text: "\n\nInvestigator Signature: ______________________  Date: __________", alignment: AlignmentType.RIGHT }));
+        });
     });
 
     const doc = new Document({ sections: [{ children }] });
@@ -33,6 +38,7 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${study.metadata.protocolId}_CRF.docx`;
+    a.download = `${study.metadata.protocolId}_Paper_CRF.docx`;
     a.click();
+    URL.revokeObjectURL(url);
 }

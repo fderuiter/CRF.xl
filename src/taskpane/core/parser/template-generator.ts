@@ -31,8 +31,8 @@ export async function initializeWorkbook(): Promise<void> {
             },
             { 
                 name: "Items", 
-                headers: ["Form", "Page", "Variable Name", "Label", "Variable Type", "Sequence", "SAS Label", "Required Field", "Minimum Value", "Maximum Value", "Show If", "Derivation", "Dependencies", "Required If", "Validation Script"],
-                data: [["SCREENING_FORM", "Demographics", "BRTHDT", "Date of Birth", "Date", "1", "BRTHDT", "Yes", "", "", "", "", "", "", ""]]
+                headers: ["Form", "Page", "Variable Name", "Label", "Variable Type", "Sequence", "SAS Label", "Required Field", "Minimum Value", "Maximum Value", "Show If", "Derivation", "Dependencies", "Required If", "Validation Script", "Catalog"],
+                data: [["SCREENING_FORM", "Demographics", "BRTHDT", "Date of Birth", "Date", "1", "BRTHDT", "Yes", "", "", "", "", "", "", "", ""]]
             },
             { 
                 name: "Codelists", 
@@ -87,7 +87,6 @@ export async function navigateToSource(sheetName: string, rowIndex: number): Pro
     return await Excel.run(async (context) => {
         const sheet = context.workbook.worksheets.getItem(sheetName);
         sheet.activate();
-        // Offset by 1 because data rows start after header
         sheet.getRangeByIndexes(rowIndex, 0, 1, 1).select();
         await context.sync();
     });
