@@ -4,7 +4,7 @@ import {
     TranslatedText,
     CrfItem,
     EventType
-} from "../../types";
+} from "../../types/index";
 
 /**
  * Main entry point for CDISC ODM v1.3.2 Metadata generation.
@@ -166,7 +166,7 @@ function mapDataTypeToOdm(type: DataType): string {
 function renderTranslatedText(text: TranslatedText, defaultLang: string): string {
     let output = "";
     Object.entries(text).forEach(([lang, val]) => {
-        output += `<TranslatedText xml:lang="${lang}">${escapeXml(val)}</TranslatedText>`;
+        output += `<TranslatedText xml:lang="${lang}">${escapeXml(val as string)}</TranslatedText>`;
     });
     return output;
 }

@@ -7,13 +7,13 @@ import { parseExcelToStudyDesign } from '../core/parser/excel-parser';
 import { generateDocx } from '../core/generators/docx/docx-builder';
 import { generateOdmXml } from '../core/generators/cdisc/odm-builder';
 import { initializeWorkbook, navigateToSource } from '../core/parser/template-generator';
-import { StudyDesign } from '../core/types';
+import { StudyDesign } from '../core/types/index';
 
 /**
  * App: The Clinical Metadata Orchestrator
  * Ensures the "Golden Path": Initialize -> Author -> Analyze -> Validate -> Export.
  */
-export const App: React.FC = () => {
+export const App: React.FC<{ title?: string }> = ({ title }) => {
     const [study, setStudy] = useState<StudyDesign | null>(null);
     const [issues, setIssues] = useState<ValidationIssue[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

@@ -23,7 +23,7 @@ import {
     PageLayout,
     GroupLayout,
     TranslatedText
-} from "../../types";
+} from "../../types/index";
 
 /**
  * Main entry point for the Paper CRF Generation.
@@ -99,7 +99,7 @@ function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfFo
             text: `FORM: ${form.formName}`,
             heading: HeadingLevel.HEADING_2,
             spacing: { before: 200, after: 400 },
-            border: { bottom: { color: "000000", space: 1, value: BorderStyle.SINGLE, size: 6 } }
+            border: { bottom: { color: "000000", space: 1, style: BorderStyle.SINGLE, size: 6 } }
         })
     ];
 }
@@ -157,7 +157,7 @@ function renderPhysicalItem(item: CrfItem, study: StudyDesign): any[] {
     if (item.instructions) {
         children.push(new Paragraph({
             children: [new TextRun({ text: `Instruction: ${getTranslation(item.instructions, lang)}`, italics: true, size: 18, color: "555555" })],
-            spacing: { after: 100, left: 400 }
+            spacing: { after: 100 }, indent: { left: 400 }
         }));
     }
 
