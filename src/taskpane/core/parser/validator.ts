@@ -4,15 +4,13 @@ export interface ValidationIssue {
     level: 'Error' | 'Warning';
     message: string;
     location?: string;
+    rowIndex?: number;
 }
 
-/**
- * Performs referential integrity and business rule validation on the parsed study.
- */
 export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    // 1. Check Codelist References
+    // Check Codelist References
     Object.values(study.forms).forEach(form => {
         form.itemGroups.forEach(group => {
             group.items.forEach(item => {
@@ -20,8 +18,9 @@ export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
                     if (!study.codelists[item.codelistId]) {
                         issues.push({
                             level: 'Error',
-                            message: `Item '${item.name}' references missing Codelist ID: ${item.codelistId}`,
-                            location: `Form: ${form.formName} > Group: ${group.name}`
+                            message: `Missing Codelist '${item.codelistId}' referenced by ${item.name}`,
+                            location: `${form.formName} > ${item.name}`,
+                            rowIndex: (item as any).rowIndex
                         });
                     }
                 }
@@ -29,14 +28,10 @@ export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
         });
     });
 
-    // 2. Check Event/Form Sequencing
+    // Check Empty Events
     study.events.forEach(event => {
         if (event.forms.length === 0) {
-            issues.push({
-                level: 'Warning',
-                message: `Event '${event.eventName}' has no forms assigned.`,
-                location: `Event: ${event.eventOid}`
-            });
+            issues.push({ level: 'Warning', message: `Event '${event.eventName}' has no forms assigned.` });
         }
     });
 
