@@ -1,6 +1,6 @@
-CRF.xl: Operational Quality & Reliability Specification
+# CRF.xl: Operational Quality & Reliability Specification
 
-1. Performance Benchmarks
+## 1. Performance Benchmarks
 
 Small Study (50 Items): Analysis must complete in < 2 seconds.
 
@@ -10,7 +10,7 @@ Large Study (2000+ Items): Analysis must complete in < 15 seconds without freezi
 
 Export Latency: Document generation for a 20-page CRF must complete in < 10 seconds.
 
-2. Error Handling & Resilience
+## 2. Error Handling & Resilience
 
 Network Resilience: Verify that the Add-in functions correctly in "Airplane Mode" (Offline) once loaded.
 
@@ -18,7 +18,7 @@ File Permissions: Test behavior when the user attempts to generate a document bu
 
 Data Corruption: Verify the system handles rows with junk data or infinite recursion in derivation dependencies gracefully.
 
-3. Security & Privacy
+## 3. Security & Privacy
 
 PHI Protection: Verify that items marked isPHI: true trigger a warning if they are about to be exported to a non-blinded file format.
 

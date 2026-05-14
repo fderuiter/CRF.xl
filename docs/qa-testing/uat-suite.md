@@ -1,6 +1,6 @@
-CRF.xl: User Acceptance Testing (UAT) Suite
+# CRF.xl: User Acceptance Testing (UAT) Suite
 
-1. Scenario 1: New Study Initialization
+## 1. Scenario 1: New Study Initialization
 
 User Action: Clicks "Initialize Workbook" on a fresh Excel file.
 
@@ -12,7 +12,7 @@ Column dropdowns work in the Items sheet.
 
 Metadata is pre-populated from the filename.
 
-2. Scenario 2: Authoring with Branching Logic
+## 2. Scenario 2: Authoring with Branching Logic
 
 User Action:
 
@@ -30,7 +30,7 @@ ODM XML contains the <ConditionDef> for the branching logic.
 
 Word Doc renders the skip instruction correctly.
 
-3. Scenario 3: Resolving Integrity Errors
+## 3. Scenario 3: Resolving Integrity Errors
 
 User Action:
 
@@ -50,7 +50,7 @@ Excel focuses the correct row.
 
 User fixes the ID, re-runs, and error disappears.
 
-4. Scenario 4: Final Metadata Export
+## 4. Scenario 4: Final Metadata Export
 
 User Action: Runs full analysis and exports ODM XML.
 
