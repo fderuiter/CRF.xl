@@ -10,29 +10,32 @@ export interface ValidationIssue {
 export function validateStudyDesign(study: StudyDesign): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    // Check Codelist References
     Object.values(study.forms).forEach(form => {
         form.itemGroups.forEach(group => {
             group.items.forEach(item => {
+                // 1. Referential Integrity (Codelists)
                 if (item.dataType === 'Codelist' && item.codelistId) {
                     if (!study.codelists[item.codelistId]) {
                         issues.push({
                             level: 'Error',
-                            message: `Missing Codelist '${item.codelistId}' referenced by ${item.name}`,
+                            message: `Item references missing Codelist '${item.codelistId}'`,
                             location: `${form.formName} > ${item.name}`,
-                            rowIndex: (item as any).rowIndex
+                            rowIndex: (item as any)._sourceRowIndex
                         });
                     }
                 }
+
+                // 2. SAS Constraints (Regulatory)
+                if (item.sdtmMapping?.sasLabel && item.sdtmMapping.sasLabel.length > 40) {
+                    issues.push({
+                        level: 'Warning',
+                        message: 'SAS Label exceeds 40 character limit.',
+                        location: `${form.formName} > ${item.name}`,
+                        rowIndex: (item as any)._sourceRowIndex
+                    });
+                }
             });
         });
-    });
-
-    // Check Empty Events
-    study.events.forEach(event => {
-        if (event.forms.length === 0) {
-            issues.push({ level: 'Warning', message: `Event '${event.eventName}' has no forms assigned.` });
-        }
     });
 
     return issues;

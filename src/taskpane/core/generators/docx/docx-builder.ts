@@ -1,5 +1,5 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
-import { StudyDesign } from "../../types";
+import { StudyDesign, DataType } from "../../types";
 
 export async function generateDocx(study: StudyDesign): Promise<void> {
     const children: any[] = [];
@@ -8,29 +8,24 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
     children.push(new Paragraph({ text: study.metadata.studyName, heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }));
     children.push(new Paragraph({ text: `Protocol: ${study.metadata.protocolId} | Version: ${study.metadata.version}`, alignment: AlignmentType.CENTER }));
 
-    study.events.forEach(event => {
-        event.forms.forEach(fRef => {
-            const form = study.forms[fRef.formOid];
-            if (!form) return;
+    Object.values(study.forms).forEach(form => {
+        children.push(new Paragraph({ text: `\n${form.formName}`, heading: HeadingLevel.HEADING_2, pageBreakBefore: true }));
+        children.push(new Paragraph({ text: "Subject ID: [ _ _ _ _ _ ]        Visit Date: [ _ _ / _ _ _ / _ _ _ _ ]", alignment: AlignmentType.RIGHT }));
 
-            children.push(new Paragraph({ text: `\n${form.formName}`, heading: HeadingLevel.HEADING_2, pageBreakBefore: true }));
-            children.push(new Paragraph({ text: "Subject ID: [ _ _ _ _ _ ]        Date of Visit: [ _ _ / _ _ _ / _ _ _ _ ]", alignment: AlignmentType.RIGHT }));
-
-            form.itemGroups.forEach(group => {
-                group.items.forEach(item => {
-                    children.push(new Paragraph({ 
-                        children: [
-                            new TextRun({ text: `${item.label["en-US"] || item.name}: `, size: 24 }),
-                            new TextRun({ text: " ____________________________", bold: true })
-                        ],
-                        spacing: { before: 200 }
-                    }));
-                });
+        form.itemGroups.forEach(group => {
+            group.items.forEach(item => {
+                children.push(new Paragraph({ 
+                    children: [
+                        new TextRun({ text: `${item.label["en-US"] || item.name}: `, size: 24 }),
+                        new TextRun({ text: " ____________________________", bold: true })
+                    ],
+                    spacing: { before: 200 }
+                }));
             });
-
-            // Sign-off block
-            children.push(new Paragraph({ text: "\n\nInvestigator Signature: ______________________  Date: __________", alignment: AlignmentType.RIGHT }));
         });
+
+        // Signature Footer
+        children.push(new Paragraph({ text: "\n\nInvestigator Signature: ______________________  Date: __________", alignment: AlignmentType.RIGHT }));
     });
 
     const doc = new Document({ sections: [{ children }] });

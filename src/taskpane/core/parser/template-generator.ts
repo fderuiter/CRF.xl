@@ -1,17 +1,14 @@
-/**
- * ============================================================================
- * template-generator.ts
- * ============================================================================
- * Utility to scaffold a blank, formatted Excel workbook with environmental defaults.
- * Now includes Excel Data Validation (Dropdowns) to prevent specification errors.
- */
-
 /* global Office, Excel */
 
+/**
+ * Scaffolds the workbook with clinical metadata sheets, environmental defaults,
+ * and native Excel Data Validation to prevent user error.
+ */
 export async function initializeWorkbook(): Promise<void> {
     return await Excel.run(async (context) => {
         const sheets = context.workbook.worksheets;
         
+        // 1. Detect Environment Data
         const envLanguage = Office.context.displayLanguage || "en-US";
         const docUrl = Office.context.document.url;
         const fileName = docUrl ? docUrl.split('/').pop()?.split('.')[0] : "PROT-XXXX";
@@ -30,7 +27,7 @@ export async function initializeWorkbook(): Promise<void> {
             { 
                 name: "Forms", 
                 headers: ["Form ID", "Form Name", "Sequence", "Repeating", "Show If"],
-                data: [["SCREENING_FORM", "Screening & Eligibility", "1", "No", ""]] 
+                data: [["SCREENING_FORM", "Screening Form", "1", "No", ""]] 
             },
             { 
                 name: "Items", 
@@ -66,13 +63,10 @@ export async function initializeWorkbook(): Promise<void> {
                 dataRange.values = config.data;
             }
 
-            // --- MVP Feature: Excel Data Validation ---
+            // Apply Data Validation (Dropdowns) to the Items sheet
             if (config.name === "Items") {
-                // Add dropdown for 'Variable Type' (Column E / index 4)
                 const typeCol = sheet.getRange("E2:E1000").dataValidation;
-                typeCol.rule = { list: { inCellDropDown: true, source: "Text,Integer,Float,Date,Time,Datetime,PartialDate,Boolean,Codelist,File" }};
-                
-                // Add dropdown for 'Required Field' (Column H / index 7)
+                typeCol.rule = { list: { inCellDropDown: true, source: "Text,Integer,Float,Date,Time,Datetime,Boolean,Codelist,File" }};
                 const reqCol = sheet.getRange("H2:H1000").dataValidation;
                 reqCol.rule = { list: { inCellDropDown: true, source: "Yes,No" }};
             }
@@ -87,15 +81,13 @@ export async function initializeWorkbook(): Promise<void> {
 }
 
 /**
- * MVP Feature: Navigation helper to jump to a specific cell in Excel.
+ * Utility to jump focus to a specific cell in Excel.
  */
-export async function navigateToSource(sheetName: string, rowIndex?: number): Promise<void> {
+export async function navigateToSource(sheetName: string, rowIndex: number): Promise<void> {
     return await Excel.run(async (context) => {
         const sheet = context.workbook.worksheets.getItem(sheetName);
         sheet.activate();
-        if (rowIndex !== undefined) {
-            sheet.getRangeByIndexes(rowIndex, 0, 1, 1).select();
-        }
+        sheet.getRangeByIndexes(rowIndex, 0, 1, 1).select();
         await context.sync();
     });
 }

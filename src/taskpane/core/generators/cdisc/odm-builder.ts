@@ -9,17 +9,12 @@ export function generateOdmXml(study: StudyDesign): string {
     <MetaDataVersion OID="V1" Name="Version 1">
 `;
 
-    // StudyEventDefs
-    study.events.forEach(e => {
-        xml += `      <StudyEventDef OID="${e.eventOid}" Name="${e.eventName}" Repeating="No" Type="Scheduled">\n`;
-        e.forms.forEach(f => xml += `        <FormRef FormOID="${f.formOid}" Mandatory="Yes" OrderNumber="${f.orderNumber}"/>\n`);
-        xml += `      </StudyEventDef>\n`;
-    });
-
-    // FormDefs
+    // ODM Entity mapping loop
     Object.values(study.forms).forEach(f => {
         xml += `      <FormDef OID="${f.formOid}" Name="${f.formName}" Repeating="No">\n`;
-        f.itemGroups.forEach(g => xml += `        <ItemGroupRef ItemGroupOID="${g.groupOid}" Mandatory="Yes" OrderNumber="${g.orderNumber}"/>\n`);
+        f.itemGroups.forEach(g => {
+            xml += `        <ItemGroupRef ItemGroupOID="${g.groupOid}" Mandatory="Yes" OrderNumber="${g.orderNumber}"/>\n`;
+        });
         xml += `      </FormDef>\n`;
     });
 
