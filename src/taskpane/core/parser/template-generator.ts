@@ -2,9 +2,7 @@
  * ============================================================================
  * template-generator.ts
  * ============================================================================
- * Utility to scaffold a blank, formatted Excel workbook with the 
- * specific headers required by the CRF.xl Parser.
- * Refined to automatically populate metadata from the user environment.
+ * Utility to scaffold a blank, formatted Excel workbook with environmental defaults.
  */
 
 /* global Office, Excel */
@@ -13,11 +11,7 @@ export async function initializeWorkbook(): Promise<void> {
     return await Excel.run(async (context) => {
         const sheets = context.workbook.worksheets;
         
-        // 1. Detect Environment Data
-        // Use Office.context to get the user's display language
         const envLanguage = Office.context.displayLanguage || "en-US";
-        
-        // Attempt to infer a Protocol ID from the document name
         const docUrl = Office.context.document.url;
         const fileName = docUrl ? docUrl.split('/').pop()?.split('.')[0] : "PROT-XXXX";
 
@@ -59,7 +53,6 @@ export async function initializeWorkbook(): Promise<void> {
                 sheet.getUsedRange().clear();
             }
 
-            // 2. Add and Format Headers
             const headerRange = sheet.getRangeByIndexes(0, 0, 1, config.headers.length);
             headerRange.values = [config.headers];
             
@@ -67,7 +60,6 @@ export async function initializeWorkbook(): Promise<void> {
             headerRange.format.font.color = "white";
             headerRange.format.font.bold = true;
             
-            // 3. Populate Initial Environmental Data
             if (config.data) {
                 const dataRange = sheet.getRangeByIndexes(1, 0, config.data.length, config.headers.length);
                 dataRange.values = config.data;
@@ -77,7 +69,6 @@ export async function initializeWorkbook(): Promise<void> {
             sheet.freezePanes.freezeRows(1);
         }
 
-        // Activate the Metadata sheet to start
         sheets.getItem("Metadata").activate();
         await context.sync();
     });
