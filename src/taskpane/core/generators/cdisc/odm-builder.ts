@@ -100,7 +100,7 @@ export function generateOdmXml(study: StudyDesign): string {
         cl.items.forEach(clItem => {
             xml += `
         <CodeListItem CodedValue="${escapeXml(clItem.codedValue)}">
-          <Decode>${renderTranslatedText(clItem.decodedText, metadata.defaultLanguage)}</Decode>
+          <Decode>${renderTranslatedText(clItem.decodedText)}</Decode>
         </CodeListItem>`;
         });
         xml += `
@@ -128,7 +128,7 @@ function renderItemDef(item: CrfItem, defaultLang: string): string {
     }
     
     output += `>
-        <Question>${renderTranslatedText(item.label, defaultLang)}</Question>`;
+        <Question>${renderTranslatedText(item.label)}</Question>`;
 
     if (item.codelistId) {
         output += `
@@ -163,7 +163,7 @@ function mapDataTypeToOdm(type: DataType): string {
 /**
  * Helper to render localized ODM TranslatedText tags.
  */
-function renderTranslatedText(text: TranslatedText, defaultLang: string): string {
+function renderTranslatedText(text: TranslatedText): string {
     let output = "";
     Object.entries(text).forEach(([lang, val]) => {
         output += `<TranslatedText xml:lang="${lang}">${escapeXml(val as string)}</TranslatedText>`;

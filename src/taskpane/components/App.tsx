@@ -13,7 +13,7 @@ import { StudyDesign } from '../core/types/index';
  * App: The Clinical Metadata Orchestrator
  * Ensures the "Golden Path": Initialize -> Author -> Analyze -> Validate -> Export.
  */
-export const App: React.FC<{ title?: string }> = ({ title }) => {
+export const App: React.FC<{ title?: string }> = () => {
     const [study, setStudy] = useState<StudyDesign | null>(null);
     const [issues, setIssues] = useState<ValidationIssue[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

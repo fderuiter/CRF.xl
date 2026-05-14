@@ -267,12 +267,7 @@ function renderInvestigatorSignature(form: CrfForm): any[] {
             ],
             alignment: AlignmentType.RIGHT,
         }),
-        new Paragraph({
-            text: `By signing, I confirm that I have reviewed the data on this form (${form.formOid}) and it is complete and accurate.`,
-            size: 16,
-            color: "888888",
-            alignment: AlignmentType.RIGHT,
-        })
+        new Paragraph({ children: [ new TextRun({ text: `By signing, I confirm that I have reviewed the data on this form (${form.formOid}) and it is complete and accurate.`, size: 16, color: "888888" }) ], alignment: AlignmentType.RIGHT })
     ];
 }
 
