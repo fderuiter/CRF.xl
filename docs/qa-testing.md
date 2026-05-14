@@ -1,6 +1,6 @@
-CRF.xl: Quality Assurance & Testing Requirements
+# CRF.xl: Quality Assurance & Testing Requirements
 
-1. Unit Testing (Logic Verification)
+## 1. Unit Testing (Logic Verification)
 
 Goal: Ensure the core TypeScript engine handles data transformations correctly.
 
@@ -10,7 +10,7 @@ Codelist Grouping: Test the parser with a 10-row codelist to ensure it generates
 
 XML Sanitization: Ensure special characters (&, <, >) in Excel labels are escaped to prevent XML corruption.
 
-2. Integration Testing (Office.js & Navigation)
+## 2. Integration Testing (Office.js & Navigation)
 
 Goal: Ensure the Add-in communicates reliably with the Excel environment.
 
@@ -20,7 +20,7 @@ Navigation Precision: Verify that clicking "Go to Source" on a validation error 
 
 Data Validation: Confirm that the "Initialize" function correctly applies dropdown menus to the specified columns.
 
-3. System Testing (End-to-End)
+## 3. System Testing (End-to-End)
 
 Goal: Validate the final output against industry standards.
 
@@ -44,39 +44,15 @@ Test with a "Large Study" (500+ items).
 
 Measure parsing time; target is < 3 seconds to prevent UI freezing.
 
-4. Regression Test Cases
+## 4. Regression Test Cases
 
-ID
-
-Title
-
-Expected Result
-
-TC-01
-
-Re-Initialization
-
-Running 'Initialize' on an existing workbook clears data but preserves sheet names.
-
-TC-02
-
-Cross-Sheet Ref
-
-Item 'A' on Form 'B' references Codelist 'C'. Parser connects them successfully.
-
-TC-03
-
-Export Blocking
-
-'Export' buttons remain disabled if a 'Critical Error' is active in the log.
-
-TC-04
-
-Logic Capture
-
-A Show If script with $ or complex syntax is preserved exactly in the XML.
-
-5. User Acceptance Criteria (UAC)
+| ID | Title | Expected Result |
+|---|---|---|
+| TC-01 | Re-Initialization | Running 'Initialize' on an existing workbook clears data but preserves sheet names. |
+| TC-02 | Cross-Sheet Ref | Item 'A' on Form 'B' references Codelist 'C'. Parser connects them successfully. |
+| TC-03 | Export Blocking | 'Export' buttons remain disabled if a 'Critical Error' is active in the log. |
+| TC-04 | Logic Capture | A Show If script with $ or complex syntax is preserved exactly in the XML. |
+## 5. User Acceptance Criteria (UAC)
 
 I can generate a usable Paper CRF in under 30 seconds.
 

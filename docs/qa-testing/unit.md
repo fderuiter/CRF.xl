@@ -1,60 +1,19 @@
-CRF.xl: Unit Testing Specification
+# CRF.xl: Unit Testing Specification
 
-1. Core Logic & Data Transformation
+## 1. Core Logic & Data Transformation
 
 Objective: Verify that the TypeScript core correctly processes metadata independent of the Excel UI layer.
 
-1.1 Type Casting & Coercion (The "Parser" Pass)
+### 1.1 Type Casting & Coercion (The "Parser" Pass)
 
-Scenario
-
-Excel Input
-
-Expected TS Property
-
-Data Type
-
-Boolean True
-
-"Yes", "TRUE", "1"
-
-true
-
-boolean
-
-Boolean False
-
-"No", "FALSE", "0"
-
-false
-
-boolean
-
-Integer Casting
-
-"01.0", "42"
-
-1, 42
-
-number (Int)
-
-Float Casting
-
-"98.60"
-
-98.6
-
-number (Float)
-
-Empty Handling
-
-null or ""
-
-undefined
-
-N/A
-
-1.2 Clinical Logic Aggregation
+| Scenario | Excel Input | Expected TS Property | Data Type |
+|---|---|---|---|
+| Boolean True | "Yes", "TRUE", "1" | true | boolean |
+| Boolean False | "No", "FALSE", "0" | false | boolean |
+| Integer Casting | "01.0", "42" | 1, 42 | number (Int) |
+| Float Casting | "98.60" | 98.6 | number (Float) |
+| Empty Handling | null or "" | undefined | N/A |
+### 1.2 Clinical Logic Aggregation
 
 Codelist Grouping Heuristics:
 
@@ -68,7 +27,7 @@ Test: Item WT references Form VS and Group VITALS.
 
 Success: The VS Form object contains a VITALS Group object, which in turn contains the WT Item object.
 
-1.3 String Sanitization & Clinical Bounds
+### 1.3 String Sanitization & Clinical Bounds
 
 XML Escaping: Verify that labels containing &, <, or > are transformed (e.g., & becomes &amp;) to prevent XML parser crashes.
 
@@ -78,7 +37,7 @@ sasFieldName: Must fail validation if > 8 characters.
 
 sasLabel: Must trigger a warning if > 40 characters.
 
-2. Validation Engine Rules
+## 2. Validation Engine Rules
 
 Objective: Verify referential integrity checks.
 

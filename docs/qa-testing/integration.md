@@ -1,10 +1,10 @@
-CRF.xl: Integration Testing Specification
+# CRF.xl: Integration Testing Specification
 
-1. Office.js & Excel Host Synchronization
+## 1. Office.js & Excel Host Synchronization
 
 Objective: Ensure stable, bi-directional communication between the React Task Pane and the Excel Host.
 
-1.1 Excel Environment Synchronization
+### 1.1 Excel Environment Synchronization
 
 Sheet Discovery:
 
@@ -24,7 +24,7 @@ Test: Hide the Metadata sheet.
 
 Expected: Office.js should still successfully extract values from hidden worksheets.
 
-1.2 Navigation Heuristics ("Go to Source")
+### 1.2 Navigation Heuristics ("Go to Source")
 
 Index Accuracy:
 
@@ -38,7 +38,7 @@ Test: Filter the Items sheet so row 50 is hidden, then click "Inspect".
 
 Expected: Excel should clear filters or specifically reveal and select the hidden target row.
 
-2. UI-to-Core Communication
+## 2. UI-to-Core Communication
 
 Status Orchestration: Verify that App.tsx correctly transitions from Ready -> Analyzing -> Validated/Error states.
 
