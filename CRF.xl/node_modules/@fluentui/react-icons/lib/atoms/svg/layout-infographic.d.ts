@@ -1,0 +1,13 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+export declare const LayoutInfographicFilled: FluentIcon;
+export declare const LayoutInfographicRegular: FluentIcon;
+export declare const LayoutInfographic16Regular: FluentIcon;
+export declare const LayoutInfographic16Filled: FluentIcon;
+export declare const LayoutInfographic20Regular: FluentIcon;
+export declare const LayoutInfographic20Filled: FluentIcon;
+export declare const LayoutInfographic24Regular: FluentIcon;
+export declare const LayoutInfographic24Filled: FluentIcon;
+export declare const LayoutInfographic28Regular: FluentIcon;
+export declare const LayoutInfographic28Filled: FluentIcon;
+export declare const LayoutInfographic32Regular: FluentIcon;
+export declare const LayoutInfographic32Filled: FluentIcon;

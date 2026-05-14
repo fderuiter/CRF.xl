@@ -1,0 +1,15 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DeskMultiple28Filled = exports.DeskMultiple28Regular = exports.DeskMultiple24Filled = exports.DeskMultiple24Regular = exports.DeskMultiple20Filled = exports.DeskMultiple20Regular = exports.DeskMultiple16Filled = exports.DeskMultiple16Regular = exports.DeskMultipleRegular = exports.DeskMultipleFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.DeskMultipleFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleFilled", "", 2, undefined));
+exports.DeskMultipleRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleRegular", "", 2, undefined));
+exports.DeskMultiple16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple16Regular", "󰰙", 1, 16));
+exports.DeskMultiple16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple16Filled", "󰲖", 0, 16));
+exports.DeskMultiple20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple20Regular", "󰠻", 1, 20));
+exports.DeskMultiple20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple20Filled", "󰢸", 0, 20));
+exports.DeskMultiple24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple24Regular", "󰠼", 1, 24));
+exports.DeskMultiple24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple24Filled", "󰢹", 0, 24));
+exports.DeskMultiple28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple28Regular", "󰰚", 1, 28));
+exports.DeskMultiple28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultiple28Filled", "󰲗", 0, 28));

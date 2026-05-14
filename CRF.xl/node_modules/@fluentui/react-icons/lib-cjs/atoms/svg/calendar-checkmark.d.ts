@@ -1,0 +1,22 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CalendarCheckmarkColor: FluentIcon;
+export declare const CalendarCheckmarkFilled: FluentIcon;
+export declare const CalendarCheckmarkRegular: FluentIcon;
+export declare const CalendarCheckmark16Regular: FluentIcon;
+export declare const CalendarCheckmark16Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CalendarCheckmark16Color: FluentIcon;
+export declare const CalendarCheckmark20Regular: FluentIcon;
+export declare const CalendarCheckmark20Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CalendarCheckmark20Color: FluentIcon;
+export declare const CalendarCheckmark24Regular: FluentIcon;
+export declare const CalendarCheckmark24Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CalendarCheckmark24Color: FluentIcon;
+export declare const CalendarCheckmark28Regular: FluentIcon;
+export declare const CalendarCheckmark28Filled: FluentIcon;
+export declare const CalendarCheckmark32Regular: FluentIcon;
+export declare const CalendarCheckmark32Filled: FluentIcon;
+export declare const CalendarCheckmark32Light: FluentIcon;

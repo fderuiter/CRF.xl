@@ -1,0 +1,13 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DeskMultipleCheckmark28Filled = exports.DeskMultipleCheckmark28Regular = exports.DeskMultipleCheckmark24Filled = exports.DeskMultipleCheckmark24Regular = exports.DeskMultipleCheckmark20Filled = exports.DeskMultipleCheckmark20Regular = exports.DeskMultipleCheckmarkRegular = exports.DeskMultipleCheckmarkFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.DeskMultipleCheckmarkFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmarkFilled", "", 2, undefined));
+exports.DeskMultipleCheckmarkRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmarkRegular", "", 2, undefined));
+exports.DeskMultipleCheckmark20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark20Regular", "󰰛", 1, 20));
+exports.DeskMultipleCheckmark20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark20Filled", "󰲘", 0, 20));
+exports.DeskMultipleCheckmark24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark24Regular", "󰰜", 1, 24));
+exports.DeskMultipleCheckmark24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark24Filled", "󰲙", 0, 24));
+exports.DeskMultipleCheckmark28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark28Regular", "󰰝", 1, 28));
+exports.DeskMultipleCheckmark28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskMultipleCheckmark28Filled", "󰲚", 0, 28));

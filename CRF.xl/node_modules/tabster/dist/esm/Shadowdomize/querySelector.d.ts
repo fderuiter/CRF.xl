@@ -1,0 +1,8 @@
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+export declare function querySelectorAll(node: ParentNode, selector: string): Element[];
+export declare function querySelector(node: ParentNode, selector: string): Element | null;
+export declare function getElementById(doc: Document, id: string): HTMLElement | null;
+//# sourceMappingURL=querySelector.d.ts.map

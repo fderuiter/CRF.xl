@@ -1,0 +1,10 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const DeskMultipleCheckmarkFilled = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmarkFilled", "", 2, undefined));
+export const DeskMultipleCheckmarkRegular = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmarkRegular", "", 2, undefined));
+export const DeskMultipleCheckmark20Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark20Regular", "󰰛", 1, 20));
+export const DeskMultipleCheckmark20Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark20Filled", "󰲘", 0, 20));
+export const DeskMultipleCheckmark24Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark24Regular", "󰰜", 1, 24));
+export const DeskMultipleCheckmark24Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark24Filled", "󰲙", 0, 24));
+export const DeskMultipleCheckmark28Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark28Regular", "󰰝", 1, 28));
+export const DeskMultipleCheckmark28Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleCheckmark28Filled", "󰲚", 0, 28));

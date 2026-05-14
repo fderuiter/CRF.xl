@@ -1,0 +1,18 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const ArrowFlowDiagonalUpRightFilled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRightFilled", "", 2, undefined, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRightRegular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRightRegular", "", 2, undefined, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight12Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight12Regular", "󰝅", 1, 12, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight12Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight12Filled", "󰟂", 0, 12, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight16Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight16Regular", "󰆸", 1, 16, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight16Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight16Filled", "󰆸", 0, 16, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight20Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight20Regular", "󰆹", 1, 20, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight20Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight20Filled", "󰆹", 0, 20, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight24Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight24Regular", "󰆺", 1, 24, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight24Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight24Filled", "󰆺", 0, 24, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight28Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight28Regular", "󰝆", 1, 28, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight28Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight28Filled", "󰟃", 0, 28, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight32Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight32Regular", "󰆻", 1, 32, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight32Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight32Filled", "󰆻", 0, 32, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight48Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight48Regular", "󰝇", 1, 48, { flipInRtl: true }));
+export const ArrowFlowDiagonalUpRight48Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowFlowDiagonalUpRight48Filled", "󰟄", 0, 48, { flipInRtl: true }));

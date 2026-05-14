@@ -1,0 +1,38 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    DialogContext: function() {
+        return DialogContext;
+    },
+    DialogProvider: function() {
+        return DialogProvider;
+    },
+    useDialogContext_unstable: function() {
+        return useDialogContext_unstable;
+    }
+});
+const _reactcontextselector = require("@fluentui/react-context-selector");
+const defaultContextValue = {
+    open: false,
+    inertTrapFocus: false,
+    modalType: 'modal',
+    isNestedDialog: false,
+    unmountOnClose: true,
+    dialogRef: {
+        current: null
+    },
+    requestOpenChange () {
+    /* noop */ }
+};
+const DialogContext = (0, _reactcontextselector.createContext)(undefined);
+const DialogProvider = DialogContext.Provider;
+const useDialogContext_unstable = (selector)=>(0, _reactcontextselector.useContextSelector)(DialogContext, (ctx = defaultContextValue)=>selector(ctx));

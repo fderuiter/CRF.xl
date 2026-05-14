@@ -1,0 +1,15 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DeskCheckmark28Filled = exports.DeskCheckmark28Regular = exports.DeskCheckmark24Filled = exports.DeskCheckmark24Regular = exports.DeskCheckmark20Filled = exports.DeskCheckmark20Regular = exports.DeskCheckmark16Filled = exports.DeskCheckmark16Regular = exports.DeskCheckmarkRegular = exports.DeskCheckmarkFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.DeskCheckmarkFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmarkFilled", "", 2, undefined));
+exports.DeskCheckmarkRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmarkRegular", "", 2, undefined));
+exports.DeskCheckmark16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark16Regular", "󰰕", 1, 16));
+exports.DeskCheckmark16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark16Filled", "󰲒", 0, 16));
+exports.DeskCheckmark20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark20Regular", "󰰖", 1, 20));
+exports.DeskCheckmark20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark20Filled", "󰲓", 0, 20));
+exports.DeskCheckmark24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark24Regular", "󰰗", 1, 24));
+exports.DeskCheckmark24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark24Filled", "󰲔", 0, 24));
+exports.DeskCheckmark28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark28Regular", "󰰘", 1, 28));
+exports.DeskCheckmark28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DeskCheckmark28Filled", "󰲕", 0, 28));

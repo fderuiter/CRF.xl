@@ -1,0 +1,16 @@
+import type { FluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export declare const VipFilled: FluentFontIcon;
+export declare const VipRegular: FluentFontIcon;
+export declare const Vip16Regular: FluentFontIcon;
+export declare const Vip16Filled: FluentFontIcon;
+export declare const Vip20Regular: FluentFontIcon;
+export declare const Vip20Filled: FluentFontIcon;
+export declare const Vip24Regular: FluentFontIcon;
+export declare const Vip24Filled: FluentFontIcon;
+export declare const Vip28Regular: FluentFontIcon;
+export declare const Vip28Filled: FluentFontIcon;
+export declare const Vip32Regular: FluentFontIcon;
+export declare const Vip32Filled: FluentFontIcon;
+export declare const Vip32Light: FluentFontIcon;
+export declare const Vip48Regular: FluentFontIcon;
+export declare const Vip48Filled: FluentFontIcon;

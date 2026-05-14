@@ -1,0 +1,16 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const DocumentWordFilled = ( /*#__PURE__*/createFluentFontIcon("DocumentWordFilled", "", 2, undefined));
+export const DocumentWordRegular = ( /*#__PURE__*/createFluentFontIcon("DocumentWordRegular", "", 2, undefined));
+export const DocumentWord16Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord16Regular", "󰰠", 1, 16));
+export const DocumentWord16Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord16Filled", "󰲝", 0, 16));
+export const DocumentWord20Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord20Regular", "󰰡", 1, 20));
+export const DocumentWord20Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord20Filled", "󰲞", 0, 20));
+export const DocumentWord24Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord24Regular", "󰰢", 1, 24));
+export const DocumentWord24Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord24Filled", "󰲟", 0, 24));
+export const DocumentWord28Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord28Regular", "󰰣", 1, 28));
+export const DocumentWord28Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord28Filled", "󰲠", 0, 28));
+export const DocumentWord32Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord32Regular", "󰰤", 1, 32));
+export const DocumentWord32Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord32Filled", "󰲡", 0, 32));
+export const DocumentWord48Regular = ( /*#__PURE__*/createFluentFontIcon("DocumentWord48Regular", "󰰥", 1, 48));
+export const DocumentWord48Filled = ( /*#__PURE__*/createFluentFontIcon("DocumentWord48Filled", "󰲢", 0, 48));

@@ -1,0 +1,12 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const DeskMultipleFilled = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleFilled", "", 2, undefined));
+export const DeskMultipleRegular = ( /*#__PURE__*/createFluentFontIcon("DeskMultipleRegular", "", 2, undefined));
+export const DeskMultiple16Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple16Regular", "󰰙", 1, 16));
+export const DeskMultiple16Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple16Filled", "󰲖", 0, 16));
+export const DeskMultiple20Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple20Regular", "󰠻", 1, 20));
+export const DeskMultiple20Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple20Filled", "󰢸", 0, 20));
+export const DeskMultiple24Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple24Regular", "󰠼", 1, 24));
+export const DeskMultiple24Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple24Filled", "󰢹", 0, 24));
+export const DeskMultiple28Regular = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple28Regular", "󰰚", 1, 28));
+export const DeskMultiple28Filled = ( /*#__PURE__*/createFluentFontIcon("DeskMultiple28Filled", "󰲗", 0, 28));

@@ -1,0 +1,10 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const CardUiInfoFilled = ( /*#__PURE__*/createFluentFontIcon("CardUiInfoFilled", "", 2, undefined));
+export const CardUiInfoRegular = ( /*#__PURE__*/createFluentFontIcon("CardUiInfoRegular", "", 2, undefined));
+export const CardUiInfo16Regular = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo16Regular", "󰯹", 1, 16));
+export const CardUiInfo16Filled = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo16Filled", "󰱶", 0, 16));
+export const CardUiInfo20Regular = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo20Regular", "󰯺", 1, 20));
+export const CardUiInfo20Filled = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo20Filled", "󰱷", 0, 20));
+export const CardUiInfo24Regular = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo24Regular", "󰯻", 1, 24));
+export const CardUiInfo24Filled = ( /*#__PURE__*/createFluentFontIcon("CardUiInfo24Filled", "󰱸", 0, 24));

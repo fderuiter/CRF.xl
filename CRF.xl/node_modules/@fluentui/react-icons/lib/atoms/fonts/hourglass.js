@@ -1,0 +1,12 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const HourglassFilled = ( /*#__PURE__*/createFluentFontIcon("HourglassFilled", "", 2, undefined));
+export const HourglassRegular = ( /*#__PURE__*/createFluentFontIcon("HourglassRegular", "", 2, undefined));
+export const Hourglass12Regular = ( /*#__PURE__*/createFluentFontIcon("Hourglass12Regular", "󰰦", 1, 12));
+export const Hourglass12Filled = ( /*#__PURE__*/createFluentFontIcon("Hourglass12Filled", "󰲣", 0, 12));
+export const Hourglass16Regular = ( /*#__PURE__*/createFluentFontIcon("Hourglass16Regular", "", 1, 16));
+export const Hourglass16Filled = ( /*#__PURE__*/createFluentFontIcon("Hourglass16Filled", "", 0, 16));
+export const Hourglass20Regular = ( /*#__PURE__*/createFluentFontIcon("Hourglass20Regular", "", 1, 20));
+export const Hourglass20Filled = ( /*#__PURE__*/createFluentFontIcon("Hourglass20Filled", "", 0, 20));
+export const Hourglass24Regular = ( /*#__PURE__*/createFluentFontIcon("Hourglass24Regular", "", 1, 24));
+export const Hourglass24Filled = ( /*#__PURE__*/createFluentFontIcon("Hourglass24Filled", "", 0, 24));

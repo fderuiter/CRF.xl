@@ -1,0 +1,15 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+export declare const MicrophoneChatFilled: FluentIcon;
+export declare const MicrophoneChatRegular: FluentIcon;
+export declare const MicrophoneChat16Regular: FluentIcon;
+export declare const MicrophoneChat16Filled: FluentIcon;
+export declare const MicrophoneChat20Regular: FluentIcon;
+export declare const MicrophoneChat20Filled: FluentIcon;
+export declare const MicrophoneChat24Regular: FluentIcon;
+export declare const MicrophoneChat24Filled: FluentIcon;
+export declare const MicrophoneChat28Regular: FluentIcon;
+export declare const MicrophoneChat28Filled: FluentIcon;
+export declare const MicrophoneChat32Regular: FluentIcon;
+export declare const MicrophoneChat32Filled: FluentIcon;
+export declare const MicrophoneChat48Regular: FluentIcon;
+export declare const MicrophoneChat48Filled: FluentIcon;

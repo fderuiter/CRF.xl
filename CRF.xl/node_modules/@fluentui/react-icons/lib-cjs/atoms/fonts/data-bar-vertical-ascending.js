@@ -1,0 +1,15 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DataBarVerticalAscending28Filled = exports.DataBarVerticalAscending28Regular = exports.DataBarVerticalAscending24Filled = exports.DataBarVerticalAscending24Regular = exports.DataBarVerticalAscending20Filled = exports.DataBarVerticalAscending20Regular = exports.DataBarVerticalAscending16Filled = exports.DataBarVerticalAscending16Regular = exports.DataBarVerticalAscendingRegular = exports.DataBarVerticalAscendingFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.DataBarVerticalAscendingFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscendingFilled", "", 2, undefined));
+exports.DataBarVerticalAscendingRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscendingRegular", "", 2, undefined));
+exports.DataBarVerticalAscending16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending16Regular", "", 1, 16));
+exports.DataBarVerticalAscending16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending16Filled", "", 0, 16));
+exports.DataBarVerticalAscending20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending20Regular", "󰐯", 1, 20));
+exports.DataBarVerticalAscending20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending20Filled", "󰑂", 0, 20));
+exports.DataBarVerticalAscending24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending24Regular", "󰐰", 1, 24));
+exports.DataBarVerticalAscending24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending24Filled", "󰑃", 0, 24));
+exports.DataBarVerticalAscending28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending28Regular", "󰯤", 1, 28));
+exports.DataBarVerticalAscending28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("DataBarVerticalAscending28Filled", "󰱡", 0, 28));

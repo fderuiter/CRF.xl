@@ -1,0 +1,16 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+export declare const VipFilled: FluentIcon;
+export declare const VipRegular: FluentIcon;
+export declare const Vip16Regular: FluentIcon;
+export declare const Vip16Filled: FluentIcon;
+export declare const Vip20Regular: FluentIcon;
+export declare const Vip20Filled: FluentIcon;
+export declare const Vip24Regular: FluentIcon;
+export declare const Vip24Filled: FluentIcon;
+export declare const Vip28Regular: FluentIcon;
+export declare const Vip28Filled: FluentIcon;
+export declare const Vip32Regular: FluentIcon;
+export declare const Vip32Filled: FluentIcon;
+export declare const Vip32Light: FluentIcon;
+export declare const Vip48Regular: FluentIcon;
+export declare const Vip48Filled: FluentIcon;

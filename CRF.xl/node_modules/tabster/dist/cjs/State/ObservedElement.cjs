@@ -1,0 +1,441 @@
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */ "use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "ObservedElementAPI", {
+    enumerable: true,
+    get: function() {
+        return ObservedElementAPI;
+    }
+});
+const _Instance = require("../Instance.cjs");
+const _Consts = require("../Consts.cjs");
+const _Utils = require("../Utils.cjs");
+const _Subscribable = require("./Subscribable.cjs");
+const _conditionCheckTimeout = 100;
+class ObservedElementAPI extends _Subscribable.Subscribable {
+    _win;
+    _tabster;
+    _waiting = {};
+    _lastRequestFocusId = 0;
+    _observedById = {};
+    _observedByName = {};
+    _currentRequest;
+    _currentRequestTimestamp = 0;
+    onObservedElementChange;
+    constructor(tabster){
+        super();
+        this._tabster = tabster;
+        this._win = tabster.getWindow;
+        tabster.queueInit(()=>{
+            this._tabster.focusedElement.subscribe(this._onFocus);
+        });
+    }
+    dispose() {
+        this._tabster.focusedElement.unsubscribe(this._onFocus);
+        for (const key of Object.keys(this._waiting)){
+            this._rejectWaiting(key);
+        }
+        this._observedById = {};
+        this._observedByName = {};
+        this.onObservedElementChange = undefined;
+    }
+    _onFocus = (e)=>{
+        if (e) {
+            const current = this._currentRequest;
+            if (current) {
+                const delta = Date.now() - this._currentRequestTimestamp;
+                const settleTime = 300;
+                if (delta >= settleTime) {
+                    // Giving some time for the focus to settle before
+                    // automatically cancelling the current request on focus change.
+                    delete this._currentRequest;
+                    // Provide callback to access focused element using WeakRef to avoid memory leaks
+                    const elementRef = new WeakRef(e);
+                    current.diagnostics.getCancelTriggeringElement = ()=>elementRef.deref() ?? null;
+                    current.diagnostics.reason = _Consts.ObservedElementFailureReasons.CanceledFocusChange;
+                    current.cancel();
+                }
+            }
+        }
+    };
+    _rejectWaiting(key, shouldResolve) {
+        const w = this._waiting[key];
+        if (w) {
+            const win = this._win();
+            if (w.timer) {
+                win.clearTimeout(w.timer);
+            }
+            if (w.conditionTimer) {
+                win.clearTimeout(w.conditionTimer);
+            }
+            if (!shouldResolve && w.reject) {
+                w.reject();
+            } else if (shouldResolve && w.resolve) {
+                w.resolve(null);
+            }
+            delete this._waiting[key];
+        }
+    }
+    _populateTimeoutDiagnostics(request, observedName, timeout, startTime) {
+        const elementInDOM = this.getElement(observedName);
+        const inDOM = !!elementInDOM;
+        let isAccessible;
+        let isFocusable;
+        let reason;
+        if (!elementInDOM) {
+            reason = _Consts.ObservedElementFailureReasons.TimeoutElementNotInDOM;
+        } else {
+            isAccessible = this._tabster.focusable.isAccessible(elementInDOM);
+            isFocusable = this._tabster.focusable.isFocusable(elementInDOM, true);
+            if (!isAccessible) {
+                reason = _Consts.ObservedElementFailureReasons.TimeoutElementNotAccessible;
+            } else if (!isFocusable) {
+                reason = _Consts.ObservedElementFailureReasons.TimeoutElementNotFocusable;
+            } else {
+                reason = _Consts.ObservedElementFailureReasons.TimeoutElementNotReady;
+            }
+        }
+        request.diagnostics.reason = reason;
+        request.diagnostics.waitForElementDuration = Date.now() - startTime;
+        request.diagnostics.targetState = {
+            inDOM,
+            isAccessible,
+            isFocusable
+        };
+    }
+    _isObservedNamesUpdated(cur, prev) {
+        if (!prev || cur.length !== prev.length) {
+            return true;
+        }
+        for(let i = 0; i < cur.length; ++i){
+            if (cur[i] !== prev[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+    _notifyObservedElementChange(element, observedNames, prevNames, isNewElement) {
+        if (!this.onObservedElementChange) {
+            return;
+        }
+        const addedNames = observedNames.filter((name)=>!prevNames || !prevNames.includes(name));
+        const removedNames = prevNames ? prevNames.filter((name)=>!observedNames.includes(name)) : [];
+        if (isNewElement) {
+            // Brand new element added
+            this.onObservedElementChange({
+                element,
+                type: "added",
+                names: observedNames,
+                addedNames: observedNames
+            });
+        } else if (addedNames.length > 0 || removedNames.length > 0) {
+            // Existing element with names updated
+            this.onObservedElementChange({
+                element,
+                type: "updated",
+                names: observedNames,
+                addedNames: addedNames.length > 0 ? addedNames : undefined,
+                removedNames: removedNames.length > 0 ? removedNames : undefined
+            });
+        }
+    }
+    /**
+     * Returns all registered observed names with their respective elements and full names arrays
+     *
+     * @returns Map<string, Array<{ element: HTMLElement; names: string[] }>> A map where keys are observed names
+     * and values are arrays of objects containing the element and its complete names array (in the order they were defined)
+     */ getAllObservedElements() {
+        const result = new Map();
+        for (const name of Object.keys(this._observedByName)){
+            const elementsWithNames = [];
+            const observed = this._observedByName[name];
+            for (const uid of Object.keys(observed)){
+                const el = observed[uid].element.get();
+                if (el) {
+                    const info = this._observedById[uid];
+                    elementsWithNames.push({
+                        element: el,
+                        names: info?.prevNames || []
+                    });
+                }
+            }
+            if (elementsWithNames.length > 0) {
+                result.set(name, elementsWithNames);
+            }
+        }
+        return result;
+    }
+    /**
+     * Returns existing element by observed name
+     *
+     * @param observedName An observed name
+     * @param accessibility Optionally, return only if the element is accessible or focusable
+     * @returns HTMLElement | null
+     */ getElement(observedName, accessibility) {
+        const o = this._observedByName[observedName];
+        if (o) {
+            for (const uid of Object.keys(o)){
+                let el = o[uid].element.get() || null;
+                if (el) {
+                    if (accessibility === _Consts.ObservedElementAccessibilities.Accessible && !this._tabster.focusable.isAccessible(el) || accessibility === _Consts.ObservedElementAccessibilities.Focusable && !this._tabster.focusable.isFocusable(el, true)) {
+                        el = null;
+                    }
+                } else {
+                    delete o[uid];
+                    delete this._observedById[uid];
+                }
+                return el;
+            }
+        }
+        return null;
+    }
+    /**
+     * Waits for the element to appear in the DOM and returns it.
+     *
+     * @param observedName An observed name
+     * @param timeout Wait no longer than this timeout
+     * @param accessibility Optionally, wait for the element to also become accessible or focusable before returning it
+     * @returns Promise<HTMLElement | null>
+     */ waitElement(observedName, timeout, accessibility) {
+        const startTime = Date.now();
+        const el = this.getElement(observedName, accessibility);
+        if (el) {
+            return {
+                result: Promise.resolve(el),
+                cancel: ()=>{
+                /**/ },
+                status: _Consts.ObservedElementRequestStatuses.Succeeded,
+                diagnostics: {
+                    waitForElementDuration: Date.now() - startTime
+                }
+            };
+        }
+        let prefix;
+        if (accessibility === _Consts.ObservedElementAccessibilities.Accessible) {
+            prefix = "a";
+        } else if (accessibility === _Consts.ObservedElementAccessibilities.Focusable) {
+            prefix = "f";
+        } else {
+            prefix = "_";
+        }
+        const key = prefix + observedName;
+        let w = this._waiting[key];
+        if (w && w.request) {
+            return w.request;
+        }
+        w = this._waiting[key] = {
+            timer: this._win().setTimeout(()=>{
+                if (w.conditionTimer) {
+                    this._win().clearTimeout(w.conditionTimer);
+                }
+                delete this._waiting[key];
+                if (w.request) {
+                    w.request.status = _Consts.ObservedElementRequestStatuses.TimedOut;
+                    this._populateTimeoutDiagnostics(w.request, observedName, timeout, startTime);
+                }
+                if (w.resolve) {
+                    w.resolve(null);
+                }
+            }, timeout)
+        };
+        const promise = new Promise((resolve, reject)=>{
+            w.resolve = resolve;
+            w.reject = reject;
+        }).catch(()=>{
+            // Ignore the error, it is expected to be rejected when the request is canceled.
+            return null;
+        });
+        const request = {
+            result: promise,
+            cancel: ()=>{
+                if (request.status === _Consts.ObservedElementRequestStatuses.Waiting) {
+                    // cancel() function is callable by user, someone might call it after request is finished,
+                    // we are making sure that status of a finished request is not overriden.
+                    request.status = _Consts.ObservedElementRequestStatuses.Canceled;
+                    request.diagnostics.waitForElementDuration = Date.now() - startTime;
+                }
+                this._rejectWaiting(key, true);
+            },
+            status: _Consts.ObservedElementRequestStatuses.Waiting,
+            diagnostics: {}
+        };
+        w.request = request;
+        if (accessibility && this.getElement(observedName)) {
+            // If the observed element is alread in DOM, but not accessible yet,
+            // we need to run the wait logic.
+            this._waitConditional(observedName);
+        }
+        return request;
+    }
+    requestFocus(observedName, timeout, options = {}) {
+        const requestId = ++this._lastRequestFocusId;
+        const currentRequestFocus = this._currentRequest;
+        if (currentRequestFocus) {
+            currentRequestFocus.diagnostics.reason = _Consts.ObservedElementFailureReasons.SupersededByNewRequest;
+            currentRequestFocus.cancel();
+        }
+        const request = this.waitElement(observedName, timeout, _Consts.ObservedElementAccessibilities.Focusable);
+        this._currentRequest = request;
+        this._currentRequestTimestamp = Date.now();
+        const ret = {
+            result: request.result.then((element)=>{
+                if (this._lastRequestFocusId !== requestId) {
+                    request.diagnostics.reason = _Consts.ObservedElementFailureReasons.SupersededByNewRequest;
+                    return false;
+                }
+                if (!element) {
+                    // Element was not found - reason should already be set by timeout or cancellation
+                    // If not set, default to timeout reason
+                    if (request.diagnostics.reason === undefined) {
+                        request.diagnostics.reason = _Consts.ObservedElementFailureReasons.TimeoutElementNotInDOM;
+                    }
+                    return false;
+                }
+                const focusResult = this._tabster.focusedElement.focus(element, true, undefined, options.preventScroll);
+                if (!focusResult) {
+                    // Focus call failed
+                    request.diagnostics.reason = _Consts.ObservedElementFailureReasons.FocusCallFailed;
+                }
+                return focusResult;
+            }),
+            cancel: ()=>{
+                request.cancel();
+            },
+            status: request.status,
+            diagnostics: request.diagnostics
+        };
+        request.result.finally(()=>{
+            if (this._currentRequest === request) {
+                delete this._currentRequest;
+            }
+            ret.status = request.status;
+        });
+        return ret;
+    }
+    onObservedElementUpdate = (element)=>{
+        const observed = (0, _Instance.getTabsterOnElement)(this._tabster, element)?.observed;
+        const uid = (0, _Utils.getElementUId)(this._win, element);
+        let info = this._observedById[uid];
+        if (observed && (0, _Utils.documentContains)(element.ownerDocument, element)) {
+            const isNewElement = !info;
+            if (!info) {
+                info = this._observedById[uid] = {
+                    element: new _Utils.WeakHTMLElement(element)
+                };
+            }
+            observed.names.sort();
+            const observedNames = observed.names;
+            const prevNames = info.prevNames; // prevNames are already sorted
+            if (this._isObservedNamesUpdated(observedNames, prevNames)) {
+                if (prevNames) {
+                    prevNames.forEach((prevName)=>{
+                        const obn = this._observedByName[prevName];
+                        if (obn && obn[uid]) {
+                            if (Object.keys(obn).length > 1) {
+                                delete obn[uid];
+                            } else {
+                                delete this._observedByName[prevName];
+                            }
+                        }
+                    });
+                }
+                info.prevNames = observedNames;
+                this._notifyObservedElementChange(element, observedNames, prevNames, isNewElement);
+            }
+            observedNames.forEach((observedName)=>{
+                let obn = this._observedByName[observedName];
+                if (!obn) {
+                    obn = this._observedByName[observedName] = {};
+                }
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                obn[uid] = info;
+                this._waitConditional(observedName);
+            });
+        } else if (info) {
+            const prevNames = info.prevNames;
+            if (prevNames) {
+                prevNames.forEach((prevName)=>{
+                    const obn = this._observedByName[prevName];
+                    if (obn && obn[uid]) {
+                        if (Object.keys(obn).length > 1) {
+                            delete obn[uid];
+                        } else {
+                            delete this._observedByName[prevName];
+                        }
+                    }
+                });
+                this.onObservedElementChange?.({
+                    element,
+                    type: "removed",
+                    names: [],
+                    removedNames: prevNames
+                });
+            }
+            delete this._observedById[uid];
+        }
+    };
+    _waitConditional(observedName) {
+        const waitingElementKey = "_" + observedName;
+        const waitingAccessibleElementKey = "a" + observedName;
+        const waitingFocusableElementKey = "f" + observedName;
+        const waitingElement = this._waiting[waitingElementKey];
+        const waitingAccessibleElement = this._waiting[waitingAccessibleElementKey];
+        const waitingFocusableElement = this._waiting[waitingFocusableElementKey];
+        const win = this._win();
+        const resolve = (element, key, waiting, accessibility)=>{
+            const observed = (0, _Instance.getTabsterOnElement)(this._tabster, element)?.observed;
+            if (!observed || !observed.names.includes(observedName)) {
+                return;
+            }
+            if (waiting.timer) {
+                win.clearTimeout(waiting.timer);
+            }
+            delete this._waiting[key];
+            if (waiting.request) {
+                waiting.request.status = _Consts.ObservedElementRequestStatuses.Succeeded;
+            }
+            if (waiting.resolve) {
+                waiting.resolve(element);
+            }
+            this.trigger(element, {
+                names: [
+                    observedName
+                ],
+                details: observed.details,
+                accessibility
+            });
+        };
+        if (waitingElement) {
+            const element = this.getElement(observedName);
+            if (element && (0, _Utils.documentContains)(element.ownerDocument, element)) {
+                resolve(element, waitingElementKey, waitingElement, _Consts.ObservedElementAccessibilities.Any);
+            }
+        }
+        if (waitingAccessibleElement && !waitingAccessibleElement.conditionTimer) {
+            const resolveAccessible = ()=>{
+                const element = this.getElement(observedName);
+                if (element && (0, _Utils.documentContains)(element.ownerDocument, element) && this._tabster.focusable.isAccessible(element)) {
+                    resolve(element, waitingAccessibleElementKey, waitingAccessibleElement, _Consts.ObservedElementAccessibilities.Accessible);
+                } else {
+                    waitingAccessibleElement.conditionTimer = win.setTimeout(resolveAccessible, _conditionCheckTimeout);
+                }
+            };
+            resolveAccessible();
+        }
+        if (waitingFocusableElement && !waitingFocusableElement.conditionTimer) {
+            const resolveFocusable = ()=>{
+                const element = this.getElement(observedName);
+                if (element && (0, _Utils.documentContains)(element.ownerDocument, element) && this._tabster.focusable.isFocusable(element, true)) {
+                    resolve(element, waitingFocusableElementKey, waitingFocusableElement, _Consts.ObservedElementAccessibilities.Focusable);
+                } else {
+                    waitingFocusableElement.conditionTimer = win.setTimeout(resolveFocusable, _conditionCheckTimeout);
+                }
+            };
+            resolveFocusable();
+        }
+    }
+} //# sourceMappingURL=ObservedElement.js.map

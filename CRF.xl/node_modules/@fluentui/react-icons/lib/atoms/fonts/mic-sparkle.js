@@ -1,0 +1,16 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const MicSparkleFilled = ( /*#__PURE__*/createFluentFontIcon("MicSparkleFilled", "", 2, undefined));
+export const MicSparkleRegular = ( /*#__PURE__*/createFluentFontIcon("MicSparkleRegular", "", 2, undefined));
+export const MicSparkle16Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle16Regular", "", 1, 16));
+export const MicSparkle16Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle16Filled", "", 0, 16));
+export const MicSparkle20Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle20Regular", "", 1, 20));
+export const MicSparkle20Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle20Filled", "", 0, 20));
+export const MicSparkle24Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle24Regular", "", 1, 24));
+export const MicSparkle24Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle24Filled", "", 0, 24));
+export const MicSparkle28Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle28Regular", "󰯨", 1, 28));
+export const MicSparkle28Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle28Filled", "󰱥", 0, 28));
+export const MicSparkle32Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle32Regular", "󰯩", 1, 32));
+export const MicSparkle32Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle32Filled", "󰱦", 0, 32));
+export const MicSparkle48Regular = ( /*#__PURE__*/createFluentFontIcon("MicSparkle48Regular", "󰯪", 1, 48));
+export const MicSparkle48Filled = ( /*#__PURE__*/createFluentFontIcon("MicSparkle48Filled", "󰱧", 0, 48));

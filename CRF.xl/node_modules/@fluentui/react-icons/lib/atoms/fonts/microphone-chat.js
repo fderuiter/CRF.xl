@@ -1,0 +1,16 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const MicrophoneChatFilled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChatFilled", "", 2, undefined));
+export const MicrophoneChatRegular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChatRegular", "", 2, undefined));
+export const MicrophoneChat16Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat16Regular", "󰯫", 1, 16));
+export const MicrophoneChat16Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat16Filled", "󰱨", 0, 16));
+export const MicrophoneChat20Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat20Regular", "󰯬", 1, 20));
+export const MicrophoneChat20Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat20Filled", "󰱩", 0, 20));
+export const MicrophoneChat24Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat24Regular", "󰯭", 1, 24));
+export const MicrophoneChat24Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat24Filled", "󰱪", 0, 24));
+export const MicrophoneChat28Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat28Regular", "󰯮", 1, 28));
+export const MicrophoneChat28Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat28Filled", "󰱫", 0, 28));
+export const MicrophoneChat32Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat32Regular", "󰯯", 1, 32));
+export const MicrophoneChat32Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat32Filled", "󰱬", 0, 32));
+export const MicrophoneChat48Regular = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat48Regular", "󰯰", 1, 48));
+export const MicrophoneChat48Filled = ( /*#__PURE__*/createFluentFontIcon("MicrophoneChat48Filled", "󰱭", 0, 48));

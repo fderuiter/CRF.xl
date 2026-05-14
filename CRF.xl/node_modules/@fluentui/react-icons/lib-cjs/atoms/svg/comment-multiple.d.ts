@@ -1,0 +1,25 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultipleColor: FluentIcon;
+export declare const CommentMultipleFilled: FluentIcon;
+export declare const CommentMultipleRegular: FluentIcon;
+export declare const CommentMultiple16Regular: FluentIcon;
+export declare const CommentMultiple16Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultiple16Color: FluentIcon;
+export declare const CommentMultiple20Regular: FluentIcon;
+export declare const CommentMultiple20Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultiple20Color: FluentIcon;
+export declare const CommentMultiple24Regular: FluentIcon;
+export declare const CommentMultiple24Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultiple24Color: FluentIcon;
+export declare const CommentMultiple28Regular: FluentIcon;
+export declare const CommentMultiple28Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultiple28Color: FluentIcon;
+export declare const CommentMultiple32Regular: FluentIcon;
+export declare const CommentMultiple32Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const CommentMultiple32Color: FluentIcon;

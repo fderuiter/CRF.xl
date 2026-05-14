@@ -1,0 +1,36 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useColorPicker_unstable", {
+    enumerable: true,
+    get: function() {
+        return useColorPicker_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const useColorPicker_unstable = (props, ref)=>{
+    const { color, onColorChange, shape, ...rest } = props;
+    const requestChange = (0, _reactutilities.useEventCallback)((event, data)=>{
+        onColorChange === null || onColorChange === void 0 ? void 0 : onColorChange(event, {
+            type: 'change',
+            event,
+            color: data.color
+        });
+    });
+    return {
+        components: {
+            root: 'div'
+        },
+        root: _reactutilities.slot.always((0, _reactutilities.getIntrinsicElementProps)('div', {
+            ref,
+            ...rest
+        }), {
+            elementType: 'div'
+        }),
+        color,
+        requestChange,
+        shape
+    };
+};

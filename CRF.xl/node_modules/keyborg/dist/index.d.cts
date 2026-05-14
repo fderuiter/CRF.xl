@@ -1,0 +1,71 @@
+//#region src/Keyborg.d.mts
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+interface KeyborgProps {
+  triggerKeys?: number[];
+  dismissKeys?: number[];
+}
+type KeyborgCallback = (isNavigatingWithKeyboard: boolean) => void;
+/**
+ * Used to determine the keyboard navigation state.
+ */
+interface Keyborg {
+  /**
+   * @returns Whether the user is navigating with keyboard
+   */
+  isNavigatingWithKeyboard(): boolean;
+  /**
+   * @param callback - Called when the keyboard navigation state changes
+   */
+  subscribe(callback: KeyborgCallback): void;
+  /**
+   * @param callback - Registered with subscribe
+   */
+  unsubscribe(callback: KeyborgCallback): void;
+  /**
+   * Manually set the keyboard navigation state
+   */
+  setVal(isNavigatingWithKeyboard: boolean): void;
+}
+declare function createKeyborg(win: Window, props?: KeyborgProps): Keyborg;
+declare function disposeKeyborg(instance: Keyborg): void;
+//#endregion
+//#region src/FocusEvent.d.mts
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+declare const KEYBORG_FOCUSIN = "keyborg:focusin";
+declare const KEYBORG_FOCUSOUT = "keyborg:focusout";
+interface KeyborgFocusInEventDetails {
+  relatedTarget?: HTMLElement;
+  isFocusedProgrammatically?: boolean;
+  originalEvent?: FocusEvent;
+}
+interface KeyborgFocusInEvent extends CustomEvent<KeyborgFocusInEventDetails> {
+  /**
+   * @deprecated - used `event.detail`
+   */
+  details?: KeyborgFocusInEventDetails;
+}
+interface KeyborgFocusOutEventDetails {
+  originalEvent: FocusEvent;
+}
+type KeyborgFocusOutEvent = CustomEvent<KeyborgFocusOutEventDetails>;
+/**
+ * Guarantees that the native `focus` will be used
+ */
+declare function nativeFocus(element: HTMLElement): void;
+/**
+ * @param win The window that stores keyborg focus events
+ * @returns The last element focused with element.focus()
+ */
+declare function getLastFocusedProgrammatically(win: Window): HTMLElement | null | undefined;
+//#endregion
+//#region src/index.d.mts
+declare const version: string | undefined;
+//#endregion
+export { KEYBORG_FOCUSIN, KEYBORG_FOCUSOUT, type Keyborg, type KeyborgCallback, type KeyborgFocusInEvent, type KeyborgFocusInEventDetails, type KeyborgFocusOutEvent, type KeyborgFocusOutEventDetails, createKeyborg, disposeKeyborg, getLastFocusedProgrammatically, nativeFocus, version };
+//# sourceMappingURL=index.d.cts.map

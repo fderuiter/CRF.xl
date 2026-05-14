@@ -1,0 +1,10 @@
+'use client';
+import { useToastTrigger_unstable } from './useToastTrigger';
+import { renderToastTrigger_unstable } from './renderToastTrigger';
+/**
+ * ToastTrigger component
+ */ export const ToastTrigger = (props)=>{
+    const state = useToastTrigger_unstable(props);
+    return renderToastTrigger_unstable(state);
+};
+ToastTrigger.displayName = 'ToastTrigger';

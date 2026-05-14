@@ -1,0 +1,23 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const DocumentFolderColor: FluentIcon;
+export declare const DocumentFolderFilled: FluentIcon;
+export declare const DocumentFolderRegular: FluentIcon;
+export declare const DocumentFolder16Regular: FluentIcon;
+export declare const DocumentFolder16Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const DocumentFolder16Color: FluentIcon;
+export declare const DocumentFolder20Regular: FluentIcon;
+export declare const DocumentFolder20Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const DocumentFolder20Color: FluentIcon;
+export declare const DocumentFolder24Regular: FluentIcon;
+export declare const DocumentFolder24Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const DocumentFolder24Color: FluentIcon;
+export declare const DocumentFolder28Regular: FluentIcon;
+export declare const DocumentFolder28Filled: FluentIcon;
+export declare const DocumentFolder32Regular: FluentIcon;
+export declare const DocumentFolder32Filled: FluentIcon;
+export declare const DocumentFolder48Regular: FluentIcon;
+export declare const DocumentFolder48Filled: FluentIcon;

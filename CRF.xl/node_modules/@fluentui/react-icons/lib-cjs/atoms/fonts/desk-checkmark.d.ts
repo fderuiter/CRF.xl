@@ -1,0 +1,11 @@
+import type { FluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export declare const DeskCheckmarkFilled: FluentFontIcon;
+export declare const DeskCheckmarkRegular: FluentFontIcon;
+export declare const DeskCheckmark16Regular: FluentFontIcon;
+export declare const DeskCheckmark16Filled: FluentFontIcon;
+export declare const DeskCheckmark20Regular: FluentFontIcon;
+export declare const DeskCheckmark20Filled: FluentFontIcon;
+export declare const DeskCheckmark24Regular: FluentFontIcon;
+export declare const DeskCheckmark24Filled: FluentFontIcon;
+export declare const DeskCheckmark28Regular: FluentFontIcon;
+export declare const DeskCheckmark28Filled: FluentFontIcon;

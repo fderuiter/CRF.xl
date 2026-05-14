@@ -1,0 +1,19 @@
+/**
+ * Finds and swaps a provided key for it's right to left format.
+ *
+ * @internal
+ */ export const getRTLSafeKey = (key, dir)=>{
+    if (dir === 'rtl') {
+        switch(key){
+            case 'ArrowLeft':
+                {
+                    return 'ArrowRight';
+                }
+            case 'ArrowRight':
+                {
+                    return 'ArrowLeft';
+                }
+        }
+    }
+    return key;
+};

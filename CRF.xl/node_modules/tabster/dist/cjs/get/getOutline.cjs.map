@@ -1,0 +1,1 @@
+{"version":3,"file":"getOutline.js","sources":["../../../src/get/getOutline.ts"],"sourceRoot":"","names":[],"mappings":"AAAA;;;GAGG;;;;;;;;;;yBAEwB,eAAe,CAAC;AAGrC,SAAU,UAAU,CAAC,OAAsB;IAC7C,MAAM,WAAW,GAAG,OAAO,CAAC,IAAI,CAAC;IAEjC,IAAI,CAAC,WAAW,CAAC,OAAO,EAAE,CAAC;QACvB,WAAW,CAAC,OAAO,GAAG,IAAI,mBAAU,CAAC,WAAW,CAAC,CAAC;IACtD,CAAC;IAED,OAAO,WAAW,CAAC,OAAO,CAAC;AAC/B,CAAC"}

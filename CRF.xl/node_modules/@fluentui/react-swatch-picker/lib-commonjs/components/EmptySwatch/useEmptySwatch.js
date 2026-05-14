@@ -1,0 +1,38 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useEmptySwatch_unstable", {
+    enumerable: true,
+    get: function() {
+        return useEmptySwatch_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const _swatchPicker = require("../../contexts/swatchPicker");
+const useEmptySwatch_unstable = (props, ref)=>{
+    const { size, shape, ...rest } = props;
+    const _size = (0, _swatchPicker.useSwatchPickerContextValue_unstable)((ctx)=>ctx.size);
+    const _shape = (0, _swatchPicker.useSwatchPickerContextValue_unstable)((ctx)=>ctx.shape);
+    const isGrid = (0, _swatchPicker.useSwatchPickerContextValue_unstable)((ctx)=>ctx.isGrid);
+    const role = isGrid ? 'gridcell' : 'radio';
+    const a11yProps = isGrid ? {} : {
+        'aria-checked': false
+    };
+    return {
+        components: {
+            root: 'button'
+        },
+        root: _reactutilities.slot.always((0, _reactutilities.getIntrinsicElementProps)('button', {
+            ref,
+            role,
+            ...a11yProps,
+            ...rest
+        }), {
+            elementType: 'button'
+        }),
+        size: size !== null && size !== void 0 ? size : _size,
+        shape: shape !== null && shape !== void 0 ? shape : _shape
+    };
+};

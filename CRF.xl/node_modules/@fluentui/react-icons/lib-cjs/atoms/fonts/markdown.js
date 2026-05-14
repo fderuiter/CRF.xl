@@ -1,0 +1,15 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Markdown28Filled = exports.Markdown28Regular = exports.Markdown24Filled = exports.Markdown24Regular = exports.Markdown20Filled = exports.Markdown20Regular = exports.Markdown16Filled = exports.Markdown16Regular = exports.MarkdownRegular = exports.MarkdownFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.MarkdownFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("MarkdownFilled", "", 2, undefined));
+exports.MarkdownRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("MarkdownRegular", "", 2, undefined));
+exports.Markdown16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown16Regular", "󰰪", 1, 16));
+exports.Markdown16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown16Filled", "󰲧", 0, 16));
+exports.Markdown20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown20Regular", "", 1, 20));
+exports.Markdown20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown20Filled", "", 0, 20));
+exports.Markdown24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown24Regular", "󰭫", 1, 24));
+exports.Markdown24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown24Filled", "󰯩", 0, 24));
+exports.Markdown28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown28Regular", "󰰫", 1, 28));
+exports.Markdown28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("Markdown28Filled", "󰲨", 0, 28));

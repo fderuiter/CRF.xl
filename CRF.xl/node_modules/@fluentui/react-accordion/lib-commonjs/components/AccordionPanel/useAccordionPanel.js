@@ -1,0 +1,76 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    useAccordionPanelBase_unstable: function() {
+        return useAccordionPanelBase_unstable;
+    },
+    useAccordionPanel_unstable: function() {
+        return useAccordionPanel_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const _reacttabster = require("@fluentui/react-tabster");
+const _reactmotion = require("@fluentui/react-motion");
+const _reactmotioncomponentspreview = require("@fluentui/react-motion-components-preview");
+const _accordion = require("../../contexts/accordion");
+const _accordionItem = require("../../contexts/accordionItem");
+const useAccordionPanel_unstable = (props, ref)=>{
+    const { collapseMotion, ...baseProps } = props;
+    const state = useAccordionPanelBase_unstable(baseProps, ref);
+    const focusableProps = (0, _reacttabster.useTabsterAttributes)({
+        focusable: {
+            excludeFromMover: true
+        }
+    });
+    const navigation = (0, _accordion.useAccordionContext_unstable)((ctx)=>ctx.navigation);
+    return {
+        ...state,
+        components: {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            ...state.components,
+            collapseMotion: _reactmotioncomponentspreview.Collapse
+        },
+        root: {
+            ...state.root,
+            ...navigation && focusableProps
+        },
+        collapseMotion: (0, _reactmotion.presenceMotionSlot)(props.collapseMotion, {
+            elementType: _reactmotioncomponentspreview.Collapse,
+            defaultProps: {
+                visible: state.open,
+                unmountOnExit: true
+            }
+        })
+    };
+};
+const useAccordionPanelBase_unstable = (props, ref)=>{
+    const { open } = (0, _accordionItem.useAccordionItemContext_unstable)();
+    return {
+        open,
+        components: {
+            root: 'div'
+        },
+        root: _reactutilities.slot.always({
+            ref: ref,
+            ...props,
+            // Prevent keyboard focus from entering the panel while it is closed/collapsing.
+            // tabIndex: -1 prevents the panel itself from being focused, and inert prevents
+            // all focusable descendants from being reachable via keyboard navigation.
+            ...open ? {} : {
+                tabIndex: -1,
+                inert: true
+            }
+        }, {
+            elementType: 'div'
+        })
+    };
+};

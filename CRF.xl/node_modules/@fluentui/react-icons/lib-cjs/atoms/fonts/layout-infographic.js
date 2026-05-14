@@ -1,0 +1,17 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LayoutInfographic32Filled = exports.LayoutInfographic32Regular = exports.LayoutInfographic28Filled = exports.LayoutInfographic28Regular = exports.LayoutInfographic24Filled = exports.LayoutInfographic24Regular = exports.LayoutInfographic20Filled = exports.LayoutInfographic20Regular = exports.LayoutInfographic16Filled = exports.LayoutInfographic16Regular = exports.LayoutInfographicRegular = exports.LayoutInfographicFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.LayoutInfographicFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographicFilled", "", 2, undefined));
+exports.LayoutInfographicRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographicRegular", "", 2, undefined));
+exports.LayoutInfographic16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic16Regular", "󰯽", 1, 16));
+exports.LayoutInfographic16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic16Filled", "󰱺", 0, 16));
+exports.LayoutInfographic20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic20Regular", "󰯾", 1, 20));
+exports.LayoutInfographic20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic20Filled", "󰱻", 0, 20));
+exports.LayoutInfographic24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic24Regular", "󰯿", 1, 24));
+exports.LayoutInfographic24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic24Filled", "󰱼", 0, 24));
+exports.LayoutInfographic28Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic28Regular", "󰰀", 1, 28));
+exports.LayoutInfographic28Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic28Filled", "󰱽", 0, 28));
+exports.LayoutInfographic32Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic32Regular", "󰰁", 1, 32));
+exports.LayoutInfographic32Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("LayoutInfographic32Filled", "󰱾", 0, 32));

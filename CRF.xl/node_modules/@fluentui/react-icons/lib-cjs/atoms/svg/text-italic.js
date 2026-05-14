@@ -1,0 +1,15 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TextItalic28Filled = exports.TextItalic28Regular = exports.TextItalic24Filled = exports.TextItalic24Regular = exports.TextItalic20Filled = exports.TextItalic20Regular = exports.TextItalic16Filled = exports.TextItalic16Regular = exports.TextItalicRegular = exports.TextItalicFilled = void 0;
+const createFluentIcon_1 = require("../../utils/createFluentIcon");
+exports.TextItalicFilled = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalicFilled', "1em", ["M8 3.25c0-.41.34-.75.75-.75h7.5a.75.75 0 0 1 0 1.5h-3.23L8.59 15.5h2.66a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3.23L11.41 4H8.75A.75.75 0 0 1 8 3.25Z"]));
+exports.TextItalicRegular = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalicRegular', "1em", ["M16 3a.5.5 0 0 1 0 1h-3.16L8.23 16h3.27a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1h3.16l4.61-12H8.5a.5.5 0 0 1 0-1H16Z"]));
+exports.TextItalic16Regular = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic16Regular', "16", ["M13 2H7a.5.5 0 0 0 0 1h2.47L5.66 13H3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H6.73l3.81-10H13a.5.5 0 0 0 0-1Z"]));
+exports.TextItalic16Filled = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic16Filled', "16", ["M12.8 2H7a.75.75 0 0 0 0 1.5H9l-3.43 9H3.2a.75.75 0 0 0 0 1.5H9a.75.75 0 0 0 0-1.5H7.19l3.43-9h2.18a.75.75 0 0 0 0-1.5Z"]));
+exports.TextItalic20Regular = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic20Regular', "20", ["M16 3a.5.5 0 0 1 0 1h-3.16L8.23 16h3.27a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1h3.16l4.61-12H8.5a.5.5 0 0 1 0-1H16Z"]));
+exports.TextItalic20Filled = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic20Filled', "20", ["M8 3.25c0-.41.34-.75.75-.75h7.5a.75.75 0 0 1 0 1.5h-3.23L8.59 15.5h2.66a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3.23L11.41 4H8.75A.75.75 0 0 1 8 3.25Z"]));
+exports.TextItalic24Regular = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic24Regular', "24", ["M18.75 4a.75.75 0 0 1 0 1.5h-3.48l-4.93 13h3.41a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5h3.48l4.93-13h-3.41a.75.75 0 0 1 0-1.5h8.5Z"]));
+exports.TextItalic24Filled = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic24Filled', "24", ["M19 4a1 1 0 1 1 0 2h-3.56l-4.55 12H14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2h3.75L13.3 6H10a1 1 0 0 1 0-2h9Z"]));
+exports.TextItalic28Regular = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic28Regular', "28", ["M22.25 4a.75.75 0 0 1 0 1.5h-4.23l-6.43 17h4.66a.75.75 0 0 1 0 1.5H5.75a.75.75 0 0 1 0-1.5h4.23l6.43-17h-4.66a.75.75 0 0 1 0-1.5h10.5Z"]));
+exports.TextItalic28Filled = ( /*#__PURE__*/createFluentIcon_1.createFluentIcon('TextItalic28Filled', "28", ["M22 4a1 1 0 0 1 0 2h-3.8l-6.25 16.5H16a1 1 0 0 1 0 2H6a1 1 0 1 1 0-2h3.8L16.06 6H12a1 1 0 1 1 0-2h10Z"]));

@@ -1,0 +1,10 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const DataBarVerticalAddFilled = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAddFilled", "", 2, undefined));
+export const DataBarVerticalAddRegular = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAddRegular", "", 2, undefined));
+export const DataBarVerticalAdd20Regular = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd20Regular", "", 1, 20));
+export const DataBarVerticalAdd20Filled = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd20Filled", "", 0, 20));
+export const DataBarVerticalAdd24Regular = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd24Regular", "", 1, 24));
+export const DataBarVerticalAdd24Filled = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd24Filled", "", 0, 24));
+export const DataBarVerticalAdd28Regular = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd28Regular", "󰯣", 1, 28));
+export const DataBarVerticalAdd28Filled = ( /*#__PURE__*/createFluentFontIcon("DataBarVerticalAdd28Filled", "󰱠", 0, 28));

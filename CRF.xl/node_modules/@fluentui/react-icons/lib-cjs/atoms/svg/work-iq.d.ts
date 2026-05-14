@@ -1,0 +1,15 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+export declare const WorkIqFilled: FluentIcon;
+export declare const WorkIqRegular: FluentIcon;
+export declare const WorkIq16Regular: FluentIcon;
+export declare const WorkIq16Filled: FluentIcon;
+export declare const WorkIq20Regular: FluentIcon;
+export declare const WorkIq20Filled: FluentIcon;
+export declare const WorkIq24Regular: FluentIcon;
+export declare const WorkIq24Filled: FluentIcon;
+export declare const WorkIq28Regular: FluentIcon;
+export declare const WorkIq28Filled: FluentIcon;
+export declare const WorkIq32Regular: FluentIcon;
+export declare const WorkIq32Filled: FluentIcon;
+export declare const WorkIq48Regular: FluentIcon;
+export declare const WorkIq48Filled: FluentIcon;

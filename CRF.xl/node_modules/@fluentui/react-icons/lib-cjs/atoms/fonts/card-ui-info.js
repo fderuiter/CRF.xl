@@ -1,0 +1,13 @@
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CardUiInfo24Filled = exports.CardUiInfo24Regular = exports.CardUiInfo20Filled = exports.CardUiInfo20Regular = exports.CardUiInfo16Filled = exports.CardUiInfo16Regular = exports.CardUiInfoRegular = exports.CardUiInfoFilled = void 0;
+const createFluentFontIcon_1 = require("../../utils/fonts/createFluentFontIcon");
+exports.CardUiInfoFilled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfoFilled", "", 2, undefined));
+exports.CardUiInfoRegular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfoRegular", "", 2, undefined));
+exports.CardUiInfo16Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo16Regular", "󰯹", 1, 16));
+exports.CardUiInfo16Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo16Filled", "󰱶", 0, 16));
+exports.CardUiInfo20Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo20Regular", "󰯺", 1, 20));
+exports.CardUiInfo20Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo20Filled", "󰱷", 0, 20));
+exports.CardUiInfo24Regular = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo24Regular", "󰯻", 1, 24));
+exports.CardUiInfo24Filled = ( /*#__PURE__*/createFluentFontIcon_1.createFluentFontIcon("CardUiInfo24Filled", "󰱸", 0, 24));

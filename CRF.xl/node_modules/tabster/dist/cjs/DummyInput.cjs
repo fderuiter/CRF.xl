@@ -1,0 +1,698 @@
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */ "use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: Object.getOwnPropertyDescriptor(all, name).get
+    });
+}
+_export(exports, {
+    get DummyInput () {
+        return DummyInput;
+    },
+    get DummyInputManager () {
+        return DummyInputManager;
+    },
+    get DummyInputManagerPriorities () {
+        return DummyInputManagerPriorities;
+    },
+    get DummyInputObserver () {
+        return DummyInputObserver;
+    },
+    get getDummyInputContainer () {
+        return getDummyInputContainer;
+    }
+});
+const _keyborg = require("keyborg");
+const _Consts = require("./Consts.cjs");
+const _Events = require("./Events.cjs");
+const _DOMAPI = require("./DOMAPI.cjs");
+const _Utils = require("./Utils.cjs");
+const _updateDummyInputsTimeout = 100;
+class DummyInput {
+    _isPhantom;
+    _fixedTarget;
+    _disposeTimer;
+    _clearDisposeTimeout;
+    input;
+    useDefaultAction;
+    isFirst;
+    isOutside;
+    /** Called when the input is focused */ onFocusIn;
+    /** Called when the input is blurred */ onFocusOut;
+    constructor(getWindow, isOutside, props, element, fixedTarget){
+        const win = getWindow();
+        const input = win.document.createElement("i");
+        input.tabIndex = 0;
+        input.setAttribute("role", "none");
+        input.setAttribute(_Consts.TABSTER_DUMMY_INPUT_ATTRIBUTE_NAME, "");
+        input.setAttribute("aria-hidden", "true");
+        const style = input.style;
+        style.position = "fixed";
+        style.width = style.height = "1px";
+        style.opacity = "0.001";
+        style.zIndex = "-1";
+        style.setProperty("content-visibility", "hidden");
+        (0, _Utils.makeFocusIgnored)(input);
+        this.input = input;
+        this.isFirst = props.isFirst;
+        this.isOutside = isOutside;
+        this._isPhantom = props.isPhantom ?? false;
+        this._fixedTarget = fixedTarget;
+        input.addEventListener("focusin", this._focusIn);
+        input.addEventListener("focusout", this._focusOut);
+        input.__tabsterDummyContainer = element;
+        if (this._isPhantom) {
+            this._disposeTimer = win.setTimeout(()=>{
+                delete this._disposeTimer;
+                this.dispose();
+            }, 0);
+            this._clearDisposeTimeout = ()=>{
+                if (this._disposeTimer) {
+                    win.clearTimeout(this._disposeTimer);
+                    delete this._disposeTimer;
+                }
+                delete this._clearDisposeTimeout;
+            };
+        }
+    }
+    dispose() {
+        if (this._clearDisposeTimeout) {
+            this._clearDisposeTimeout();
+        }
+        const input = this.input;
+        if (!input) {
+            return;
+        }
+        delete this._fixedTarget;
+        delete this.onFocusIn;
+        delete this.onFocusOut;
+        delete this.input;
+        input.removeEventListener("focusin", this._focusIn);
+        input.removeEventListener("focusout", this._focusOut);
+        delete input.__tabsterDummyContainer;
+        _DOMAPI.dom.getParentNode(input)?.removeChild(input);
+    }
+    setTopLeft(top, left) {
+        const style = this.input?.style;
+        if (style) {
+            style.top = `${top}px`;
+            style.left = `${left}px`;
+        }
+    }
+    _isBackward(isIn, current, previous) {
+        return isIn && !previous ? !this.isFirst : !!(previous && current.compareDocumentPosition(previous) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }
+    _focusIn = (e)=>{
+        if (this._fixedTarget) {
+            const target = this._fixedTarget.get();
+            if (target) {
+                (0, _keyborg.nativeFocus)(target);
+            }
+            return;
+        }
+        const input = this.input;
+        if (this.onFocusIn && input) {
+            const relatedTarget = e.relatedTarget;
+            this.onFocusIn(this, this._isBackward(true, input, relatedTarget), relatedTarget);
+        }
+    };
+    _focusOut = (e)=>{
+        if (this._fixedTarget) {
+            return;
+        }
+        this.useDefaultAction = false;
+        const input = this.input;
+        if (this.onFocusOut && input) {
+            const relatedTarget = e.relatedTarget;
+            this.onFocusOut(this, this._isBackward(false, input, relatedTarget), relatedTarget);
+        }
+    };
+}
+const DummyInputManagerPriorities = {
+    Root: 1,
+    Modalizer: 2,
+    Mover: 3,
+    Groupper: 4
+};
+class DummyInputManager {
+    _instance;
+    _onFocusIn;
+    _onFocusOut;
+    _element;
+    constructor(tabster, element, priority, sys, outsideByDefault, callForDefaultAction){
+        this._element = element;
+        this._instance = new DummyInputManagerCore(tabster, element, this, priority, sys, outsideByDefault, callForDefaultAction);
+    }
+    _setHandlers(onFocusIn, onFocusOut) {
+        this._onFocusIn = onFocusIn;
+        this._onFocusOut = onFocusOut;
+    }
+    moveOut(backwards) {
+        this._instance?.moveOut(backwards);
+    }
+    moveOutWithDefaultAction(backwards, relatedEvent) {
+        this._instance?.moveOutWithDefaultAction(backwards, relatedEvent);
+    }
+    getHandler(isIn) {
+        return isIn ? this._onFocusIn : this._onFocusOut;
+    }
+    setTabbable(tabbable) {
+        this._instance?.setTabbable(this, tabbable);
+    }
+    dispose() {
+        if (this._instance) {
+            this._instance.dispose(this);
+            delete this._instance;
+        }
+        delete this._onFocusIn;
+        delete this._onFocusOut;
+    }
+    static moveWithPhantomDummy(tabster, element, moveOutOfElement, isBackward, relatedEvent // The event that triggered the move.
+    ) {
+        // Phantom dummy is a hack to use browser's default action to move
+        // focus from a specific point in the application to the next/previous
+        // element. Default action is needed because next focusable element
+        // is not always available to focus directly (for example, next focusable
+        // is inside isolated iframe) or for uncontrolled areas we want to make
+        // sure that something that controls it takes care of the focusing.
+        // It works in a way that during the Tab key handling, we create a dummy
+        // input element, place it to the specific place in the DOM and focus it,
+        // then the default action of the Tab press will move focus from our dummy
+        // input. And we remove it from the DOM right after that.
+        const dummy = new DummyInput(tabster.getWindow, true, {
+            isPhantom: true,
+            isFirst: true
+        });
+        const input = dummy.input;
+        if (input) {
+            let parent;
+            let insertBefore;
+            // Let's say we have a following DOM structure:
+            // <div>
+            //   <button>Button1</button>
+            //   <div id="uncontrolled" data-tabster={uncontrolled: {}}>
+            //     <button>Button2</button>
+            //     <button>Button3</button>
+            //   </div>
+            //   <button>Button4</button>
+            // </div>
+            //
+            // We pass the "uncontrolled" div as the element to move to or out of.
+            //
+            // When we pass moveOutOfElement=true and isBackward=false,
+            // the phantom dummy input will be inserted before Button4.
+            //
+            // When we pass moveOutOfElement=true and isBackward=true, there are
+            // two cases. If the uncontrolled element is focusable (has tabindex=0),
+            // the phantom dummy input will be inserted after Button1. If the
+            // uncontrolled element is not focusable, the phantom dummy input will be
+            // inserted before Button2.
+            //
+            // When we pass moveOutOfElement=false and isBackward=false, the
+            // phantom dummy input will be inserted after Button1.
+            //
+            // When we pass moveOutOfElement=false and isBackward=true, the phantom
+            // dummy input will be inserted before Button4.
+            //
+            // And we have a corner case for <body> and we make sure that the inserted
+            // dummy is inserted properly when there are existing permanent dummies.
+            if (element.tagName === "BODY") {
+                // We cannot insert elements outside of BODY.
+                parent = element;
+                insertBefore = moveOutOfElement && isBackward || !moveOutOfElement && !isBackward ? _DOMAPI.dom.getFirstElementChild(element) : null;
+            } else {
+                if (moveOutOfElement && (!isBackward || isBackward && !tabster.focusable.isFocusable(element, false, true, true))) {
+                    parent = element;
+                    insertBefore = isBackward ? element.firstElementChild : null;
+                } else {
+                    parent = _DOMAPI.dom.getParentElement(element);
+                    insertBefore = moveOutOfElement && isBackward || !moveOutOfElement && !isBackward ? element : _DOMAPI.dom.getNextElementSibling(element);
+                }
+                let potentialDummy;
+                let dummyFor;
+                do {
+                    // This is a safety pillow for the cases when someone, combines
+                    // groupper with uncontrolled on the same node. Which is technically
+                    // not correct, but moving into the container element via its dummy
+                    // input would produce a correct behaviour in uncontrolled mode.
+                    potentialDummy = moveOutOfElement && isBackward || !moveOutOfElement && !isBackward ? _DOMAPI.dom.getPreviousElementSibling(insertBefore) : insertBefore;
+                    dummyFor = getDummyInputContainer(potentialDummy);
+                    if (dummyFor === element) {
+                        insertBefore = moveOutOfElement && isBackward || !moveOutOfElement && !isBackward ? potentialDummy : _DOMAPI.dom.getNextElementSibling(potentialDummy);
+                    } else {
+                        dummyFor = null;
+                    }
+                }while (dummyFor)
+            }
+            if (parent?.dispatchEvent(new _Events.TabsterMoveFocusEvent({
+                by: "root",
+                owner: parent,
+                next: null,
+                relatedEvent
+            }))) {
+                _DOMAPI.dom.insertBefore(parent, input, insertBefore);
+                (0, _keyborg.nativeFocus)(input);
+            }
+        }
+    }
+    static addPhantomDummyWithTarget(tabster, sourceElement, isBackward, targetElement) {
+        const dummy = new DummyInput(tabster.getWindow, true, {
+            isPhantom: true,
+            isFirst: true
+        }, undefined, new _Utils.WeakHTMLElement(targetElement));
+        const input = dummy.input;
+        if (input) {
+            let dummyParent;
+            let insertBefore;
+            if ((0, _Utils.hasSubFocusable)(sourceElement) && !isBackward) {
+                dummyParent = sourceElement;
+                insertBefore = _DOMAPI.dom.getFirstElementChild(sourceElement);
+            } else {
+                dummyParent = _DOMAPI.dom.getParentElement(sourceElement);
+                insertBefore = isBackward ? sourceElement : _DOMAPI.dom.getNextElementSibling(sourceElement);
+            }
+            if (dummyParent) {
+                _DOMAPI.dom.insertBefore(dummyParent, input, insertBefore);
+            }
+        }
+    }
+}
+function setDummyInputDebugValue(dummy, wrappers) {
+    const what = {
+        1: "Root",
+        2: "Modalizer",
+        3: "Mover",
+        4: "Groupper"
+    };
+    dummy.input?.setAttribute(_Consts.TABSTER_DUMMY_INPUT_ATTRIBUTE_NAME, [
+        `isFirst=${dummy.isFirst}`,
+        `isOutside=${dummy.isOutside}`,
+        ...wrappers.map((w)=>`(${what[w.priority]}, tabbable=${w.tabbable})`)
+    ].join(", "));
+}
+class DummyInputObserver {
+    _win;
+    _updateQueue = new Set();
+    _updateTimer;
+    _lastUpdateQueueTime = 0;
+    _changedParents = new WeakSet();
+    _updateDummyInputsTimer;
+    _dummyElements = [];
+    _dummyCallbacks = new WeakMap();
+    constructor(win){
+        this._win = win;
+    }
+    add(dummy, callback) {
+        if (!this._dummyCallbacks.has(dummy) && this._win) {
+            this._dummyElements.push(new _Utils.WeakHTMLElement(dummy));
+            this._dummyCallbacks.set(dummy, callback);
+            this.domChanged = this._domChanged;
+        }
+    }
+    remove(dummy) {
+        this._dummyElements = this._dummyElements.filter((ref)=>{
+            const element = ref.get();
+            return element && element !== dummy;
+        });
+        this._dummyCallbacks.delete(dummy);
+        if (this._dummyElements.length === 0) {
+            delete this.domChanged;
+        }
+    }
+    dispose() {
+        const win = this._win?.();
+        if (this._updateTimer) {
+            win?.clearTimeout(this._updateTimer);
+            delete this._updateTimer;
+        }
+        if (this._updateDummyInputsTimer) {
+            win?.clearTimeout(this._updateDummyInputsTimer);
+            delete this._updateDummyInputsTimer;
+        }
+        this._changedParents = new WeakSet();
+        this._dummyCallbacks = new WeakMap();
+        this._dummyElements = [];
+        this._updateQueue.clear();
+        delete this.domChanged;
+        delete this._win;
+    }
+    _domChanged = (parent)=>{
+        if (this._changedParents.has(parent)) {
+            return;
+        }
+        this._changedParents.add(parent);
+        if (this._updateDummyInputsTimer) {
+            return;
+        }
+        this._updateDummyInputsTimer = this._win?.().setTimeout(()=>{
+            delete this._updateDummyInputsTimer;
+            for (const ref of this._dummyElements){
+                const dummyElement = ref.get();
+                if (dummyElement) {
+                    const callback = this._dummyCallbacks.get(dummyElement);
+                    if (callback) {
+                        const dummyParent = _DOMAPI.dom.getParentNode(dummyElement);
+                        if (!dummyParent || this._changedParents.has(dummyParent)) {
+                            callback();
+                        }
+                    }
+                }
+            }
+            this._changedParents = new WeakSet();
+        }, _updateDummyInputsTimeout);
+    };
+    updatePositions(compute) {
+        if (!this._win) {
+            // As this is a public method, we make sure that it has no effect when
+            // called after dispose().
+            return;
+        }
+        this._updateQueue.add(compute);
+        this._lastUpdateQueueTime = Date.now();
+        this._scheduledUpdatePositions();
+    }
+    _scheduledUpdatePositions() {
+        if (this._updateTimer) {
+            return;
+        }
+        this._updateTimer = this._win?.().setTimeout(()=>{
+            delete this._updateTimer;
+            // updatePositions() might be called quite a lot during the scrolling.
+            // So, instead of clearing the timeout and scheduling a new one, we
+            // check if enough time has passed since the last updatePositions() call
+            // and only schedule a new one if not.
+            // At maximum, we will update dummy inputs positions
+            // _updateDummyInputsTimeout * 2 after the last updatePositions() call.
+            if (this._lastUpdateQueueTime + _updateDummyInputsTimeout <= Date.now()) {
+                // A cache for current bulk of updates to reduce getComputedStyle() calls.
+                const scrollTopLeftCache = new Map();
+                const setTopLeftCallbacks = [];
+                for (const compute of this._updateQueue){
+                    setTopLeftCallbacks.push(compute(scrollTopLeftCache));
+                }
+                this._updateQueue.clear();
+                // We're splitting the computation of offsets and setting them to avoid extra
+                // reflows.
+                for (const setTopLeft of setTopLeftCallbacks){
+                    setTopLeft();
+                }
+                // Explicitly clear to not hold references till the next garbage collection.
+                scrollTopLeftCache.clear();
+            } else {
+                this._scheduledUpdatePositions();
+            }
+        }, _updateDummyInputsTimeout);
+    }
+}
+/**
+ * Parent class that encapsulates the behaviour of dummy inputs (focus sentinels)
+ */ class DummyInputManagerCore {
+    _tabster;
+    _addTimer;
+    _getWindow;
+    _wrappers = [];
+    _element;
+    _isOutside = false;
+    _firstDummy;
+    _lastDummy;
+    _transformElements = new Set();
+    _callForDefaultAction;
+    constructor(tabster, element, manager, priority, sys, outsideByDefault, callForDefaultAction){
+        const el = element.get();
+        if (!el) {
+            throw new Error("No element");
+        }
+        this._tabster = tabster;
+        this._getWindow = tabster.getWindow;
+        this._callForDefaultAction = callForDefaultAction;
+        const instance = el.__tabsterDummy;
+        (instance || this)._wrappers.push({
+            manager,
+            priority,
+            tabbable: true
+        });
+        if (instance) {
+            if (process.env.NODE_ENV === 'development') {
+                this._firstDummy && setDummyInputDebugValue(this._firstDummy, instance._wrappers);
+                this._lastDummy && setDummyInputDebugValue(this._lastDummy, instance._wrappers);
+            }
+            return instance;
+        }
+        el.__tabsterDummy = this;
+        // Some elements allow only specific types of direct descendants and we need to
+        // put our dummy inputs inside or outside of the element accordingly.
+        const forcedDummyPosition = sys?.dummyInputsPosition;
+        const tagName = el.tagName;
+        this._isOutside = !forcedDummyPosition ? (outsideByDefault || tagName === "UL" || tagName === "OL" || tagName === "TABLE") && !(tagName === "LI" || tagName === "TD" || tagName === "TH") : forcedDummyPosition === _Consts.SysDummyInputsPositions.Outside;
+        this._firstDummy = new DummyInput(this._getWindow, this._isOutside, {
+            isFirst: true
+        }, element);
+        this._lastDummy = new DummyInput(this._getWindow, this._isOutside, {
+            isFirst: false
+        }, element);
+        // We will be checking dummy input parents to see if their child list have changed.
+        // So, it is enough to have just one of the inputs observed, because
+        // both dummy inputs always have the same parent.
+        const dummyElement = this._firstDummy.input;
+        dummyElement && tabster._dummyObserver.add(dummyElement, this._addDummyInputs);
+        this._firstDummy.onFocusIn = this._onFocusIn;
+        this._firstDummy.onFocusOut = this._onFocusOut;
+        this._lastDummy.onFocusIn = this._onFocusIn;
+        this._lastDummy.onFocusOut = this._onFocusOut;
+        this._element = element;
+        this._addDummyInputs();
+    }
+    dispose(manager, force) {
+        const wrappers = this._wrappers = this._wrappers.filter((w)=>w.manager !== manager && !force);
+        if (process.env.NODE_ENV === 'development') {
+            this._firstDummy && setDummyInputDebugValue(this._firstDummy, wrappers);
+            this._lastDummy && setDummyInputDebugValue(this._lastDummy, wrappers);
+        }
+        if (wrappers.length === 0) {
+            delete (this._element?.get()).__tabsterDummy;
+            for (const el of this._transformElements){
+                el.removeEventListener("scroll", this._addTransformOffsets);
+            }
+            this._transformElements.clear();
+            const win = this._getWindow();
+            if (this._addTimer) {
+                win.clearTimeout(this._addTimer);
+                delete this._addTimer;
+            }
+            const dummyElement = this._firstDummy?.input;
+            dummyElement && this._tabster._dummyObserver.remove(dummyElement);
+            this._firstDummy?.dispose();
+            this._lastDummy?.dispose();
+        }
+    }
+    _onFocus(isIn, dummyInput, isBackward, relatedTarget) {
+        const wrapper = this._getCurrent();
+        if (wrapper && (!dummyInput.useDefaultAction || this._callForDefaultAction)) {
+            wrapper.manager.getHandler(isIn)?.(dummyInput, isBackward, relatedTarget);
+        }
+    }
+    _onFocusIn = (dummyInput, isBackward, relatedTarget)=>{
+        this._onFocus(true, dummyInput, isBackward, relatedTarget);
+    };
+    _onFocusOut = (dummyInput, isBackward, relatedTarget)=>{
+        this._onFocus(false, dummyInput, isBackward, relatedTarget);
+    };
+    moveOut = (backwards)=>{
+        const first = this._firstDummy;
+        const last = this._lastDummy;
+        if (first && last) {
+            // For the sake of performance optimization, the dummy input
+            // position in the DOM updates asynchronously from the DOM change.
+            // Calling _ensurePosition() to make sure the position is correct.
+            this._ensurePosition();
+            const firstInput = first.input;
+            const lastInput = last.input;
+            const element = this._element?.get();
+            if (firstInput && lastInput && element) {
+                let toFocus;
+                if (backwards) {
+                    firstInput.tabIndex = 0;
+                    toFocus = firstInput;
+                } else {
+                    lastInput.tabIndex = 0;
+                    toFocus = lastInput;
+                }
+                if (toFocus) {
+                    (0, _keyborg.nativeFocus)(toFocus);
+                }
+            }
+        }
+    };
+    /**
+     * Prepares to move focus out of the given element by focusing
+     * one of the dummy inputs and setting the `useDefaultAction` flag
+     * @param backwards focus moving to an element behind the given element
+     */ moveOutWithDefaultAction = (backwards, relatedEvent)=>{
+        const first = this._firstDummy;
+        const last = this._lastDummy;
+        if (first && last) {
+            // For the sake of performance optimization, the dummy input
+            // position in the DOM updates asynchronously from the DOM change.
+            // Calling _ensurePosition() to make sure the position is correct.
+            this._ensurePosition();
+            const firstInput = first.input;
+            const lastInput = last.input;
+            const element = this._element?.get();
+            if (firstInput && lastInput && element) {
+                let toFocus;
+                if (backwards) {
+                    if (!first.isOutside && this._tabster.focusable.isFocusable(element, true, true, true)) {
+                        toFocus = element;
+                    } else {
+                        first.useDefaultAction = true;
+                        firstInput.tabIndex = 0;
+                        toFocus = firstInput;
+                    }
+                } else {
+                    last.useDefaultAction = true;
+                    lastInput.tabIndex = 0;
+                    toFocus = lastInput;
+                }
+                if (toFocus && element.dispatchEvent(new _Events.TabsterMoveFocusEvent({
+                    by: "root",
+                    owner: element,
+                    next: null,
+                    relatedEvent
+                }))) {
+                    (0, _keyborg.nativeFocus)(toFocus);
+                }
+            }
+        }
+    };
+    setTabbable = (manager, tabbable)=>{
+        for (const w of this._wrappers){
+            if (w.manager === manager) {
+                w.tabbable = tabbable;
+                break;
+            }
+        }
+        const wrapper = this._getCurrent();
+        if (wrapper) {
+            const tabIndex = wrapper.tabbable ? 0 : -1;
+            let input = this._firstDummy?.input;
+            if (input) {
+                input.tabIndex = tabIndex;
+            }
+            input = this._lastDummy?.input;
+            if (input) {
+                input.tabIndex = tabIndex;
+            }
+        }
+        if (process.env.NODE_ENV === 'development') {
+            this._firstDummy && setDummyInputDebugValue(this._firstDummy, this._wrappers);
+            this._lastDummy && setDummyInputDebugValue(this._lastDummy, this._wrappers);
+        }
+    };
+    _getCurrent() {
+        this._wrappers.sort((a, b)=>{
+            if (a.tabbable !== b.tabbable) {
+                return a.tabbable ? -1 : 1;
+            }
+            return a.priority - b.priority;
+        });
+        return this._wrappers[0];
+    }
+    /**
+     * Adds dummy inputs as the first and last child of the given element
+     * Called each time the children under the element is mutated
+     */ _addDummyInputs = ()=>{
+        if (this._addTimer) {
+            return;
+        }
+        this._addTimer = this._getWindow().setTimeout(()=>{
+            delete this._addTimer;
+            this._ensurePosition();
+            if (process.env.NODE_ENV === 'development') {
+                this._firstDummy && setDummyInputDebugValue(this._firstDummy, this._wrappers);
+                this._lastDummy && setDummyInputDebugValue(this._lastDummy, this._wrappers);
+            }
+            this._addTransformOffsets();
+        }, 0);
+    };
+    _ensurePosition() {
+        const element = this._element?.get();
+        const firstDummyInput = this._firstDummy?.input;
+        const lastDummyInput = this._lastDummy?.input;
+        if (!element || !firstDummyInput || !lastDummyInput) {
+            return;
+        }
+        if (this._isOutside) {
+            const elementParent = _DOMAPI.dom.getParentNode(element);
+            if (elementParent) {
+                const nextSibling = _DOMAPI.dom.getNextSibling(element);
+                if (nextSibling !== lastDummyInput) {
+                    _DOMAPI.dom.insertBefore(elementParent, lastDummyInput, nextSibling);
+                }
+                if (_DOMAPI.dom.getPreviousElementSibling(element) !== firstDummyInput) {
+                    _DOMAPI.dom.insertBefore(elementParent, firstDummyInput, element);
+                }
+            }
+        } else {
+            if (_DOMAPI.dom.getLastElementChild(element) !== lastDummyInput) {
+                _DOMAPI.dom.appendChild(element, lastDummyInput);
+            }
+            const firstElementChild = _DOMAPI.dom.getFirstElementChild(element);
+            if (firstElementChild && firstElementChild !== firstDummyInput && firstElementChild.parentNode) {
+                _DOMAPI.dom.insertBefore(firstElementChild.parentNode, firstDummyInput, firstElementChild);
+            }
+        }
+    }
+    _addTransformOffsets = ()=>{
+        this._tabster._dummyObserver.updatePositions(this._computeTransformOffsets);
+    };
+    _computeTransformOffsets = (scrollTopLeftCache)=>{
+        const from = this._firstDummy?.input || this._lastDummy?.input;
+        const transformElements = this._transformElements;
+        const newTransformElements = new Set();
+        let scrollTop = 0;
+        let scrollLeft = 0;
+        const win = this._getWindow();
+        for(let element = from; element && element.nodeType === Node.ELEMENT_NODE; element = _DOMAPI.dom.getParentElement(element)){
+            let scrollTopLeft = scrollTopLeftCache.get(element);
+            // getComputedStyle() and element.scrollLeft/Top() cause style recalculation,
+            // so we cache the result across all elements in the current bulk.
+            if (scrollTopLeft === undefined) {
+                const transform = win.getComputedStyle(element).transform;
+                if (transform && transform !== "none") {
+                    scrollTopLeft = {
+                        scrollTop: element.scrollTop,
+                        scrollLeft: element.scrollLeft
+                    };
+                }
+                scrollTopLeftCache.set(element, scrollTopLeft || null);
+            }
+            if (scrollTopLeft) {
+                newTransformElements.add(element);
+                if (!transformElements.has(element)) {
+                    element.addEventListener("scroll", this._addTransformOffsets);
+                }
+                scrollTop += scrollTopLeft.scrollTop;
+                scrollLeft += scrollTopLeft.scrollLeft;
+            }
+        }
+        for (const el of transformElements){
+            if (!newTransformElements.has(el)) {
+                el.removeEventListener("scroll", this._addTransformOffsets);
+            }
+        }
+        this._transformElements = newTransformElements;
+        return ()=>{
+            this._firstDummy?.setTopLeft(scrollTop, scrollLeft);
+            this._lastDummy?.setTopLeft(scrollTop, scrollLeft);
+        };
+    };
+}
+function getDummyInputContainer(element) {
+    return element?.__tabsterDummyContainer?.get() || null;
+} //# sourceMappingURL=DummyInput.js.map

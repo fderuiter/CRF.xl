@@ -1,0 +1,15 @@
+import type { FluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export declare const WorkIqFilled: FluentFontIcon;
+export declare const WorkIqRegular: FluentFontIcon;
+export declare const WorkIq16Regular: FluentFontIcon;
+export declare const WorkIq16Filled: FluentFontIcon;
+export declare const WorkIq20Regular: FluentFontIcon;
+export declare const WorkIq20Filled: FluentFontIcon;
+export declare const WorkIq24Regular: FluentFontIcon;
+export declare const WorkIq24Filled: FluentFontIcon;
+export declare const WorkIq28Regular: FluentFontIcon;
+export declare const WorkIq28Filled: FluentFontIcon;
+export declare const WorkIq32Regular: FluentFontIcon;
+export declare const WorkIq32Filled: FluentFontIcon;
+export declare const WorkIq48Regular: FluentFontIcon;
+export declare const WorkIq48Filled: FluentFontIcon;

@@ -1,0 +1,18 @@
+'use client';
+import { createContext, useContextSelector } from '@fluentui/react-context-selector';
+const defaultContextValue = {
+    open: false,
+    inertTrapFocus: false,
+    modalType: 'modal',
+    isNestedDialog: false,
+    unmountOnClose: true,
+    dialogRef: {
+        current: null
+    },
+    requestOpenChange () {
+    /* noop */ }
+};
+// Contexts should default to undefined
+export const DialogContext = createContext(undefined);
+export const DialogProvider = DialogContext.Provider;
+export const useDialogContext_unstable = (selector)=>useContextSelector(DialogContext, (ctx = defaultContextValue)=>selector(ctx));

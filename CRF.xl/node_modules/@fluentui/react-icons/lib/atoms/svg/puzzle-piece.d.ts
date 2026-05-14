@@ -1,0 +1,31 @@
+import type { FluentIcon } from '../../utils/createFluentIcon';
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePieceColor: FluentIcon;
+export declare const PuzzlePieceFilled: FluentIcon;
+export declare const PuzzlePieceRegular: FluentIcon;
+export declare const PuzzlePiece12Regular: FluentIcon;
+export declare const PuzzlePiece12Filled: FluentIcon;
+export declare const PuzzlePiece16Regular: FluentIcon;
+export declare const PuzzlePiece16Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece16Color: FluentIcon;
+export declare const PuzzlePiece20Regular: FluentIcon;
+export declare const PuzzlePiece20Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece20Color: FluentIcon;
+export declare const PuzzlePiece24Regular: FluentIcon;
+export declare const PuzzlePiece24Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece24Color: FluentIcon;
+export declare const PuzzlePiece28Regular: FluentIcon;
+export declare const PuzzlePiece28Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece28Color: FluentIcon;
+export declare const PuzzlePiece32Regular: FluentIcon;
+export declare const PuzzlePiece32Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece32Color: FluentIcon;
+export declare const PuzzlePiece48Regular: FluentIcon;
+export declare const PuzzlePiece48Filled: FluentIcon;
+/** @deprecated Color icons are deprecated. [See User Guidance](https://microsoft.github.io/fluentui-system-icons/?path=/docs/icons-user-guidance--docs#color-variants-deprecated) */
+export declare const PuzzlePiece48Color: FluentIcon;

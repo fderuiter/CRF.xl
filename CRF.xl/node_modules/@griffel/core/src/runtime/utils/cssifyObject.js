@@ -1,0 +1,19 @@
+import { hyphenateProperty } from './hyphenateProperty.js';
+export function cssifyObject(style) {
+    let css = '';
+    // eslint-disable-next-line guard-for-in
+    for (const property in style) {
+        const value = style[property];
+        if (typeof value === 'string' || typeof value === 'number') {
+            css += hyphenateProperty(property) + ':' + value + ';';
+            continue;
+        }
+        if (Array.isArray(value)) {
+            for (const arrValue of value) {
+                css += hyphenateProperty(property) + ':' + arrValue + ';';
+            }
+        }
+    }
+    return css;
+}
+//# sourceMappingURL=cssifyObject.js.map

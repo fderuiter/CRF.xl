@@ -1,0 +1,15 @@
+import type { FluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export declare const MicrophoneChatFilled: FluentFontIcon;
+export declare const MicrophoneChatRegular: FluentFontIcon;
+export declare const MicrophoneChat16Regular: FluentFontIcon;
+export declare const MicrophoneChat16Filled: FluentFontIcon;
+export declare const MicrophoneChat20Regular: FluentFontIcon;
+export declare const MicrophoneChat20Filled: FluentFontIcon;
+export declare const MicrophoneChat24Regular: FluentFontIcon;
+export declare const MicrophoneChat24Filled: FluentFontIcon;
+export declare const MicrophoneChat28Regular: FluentFontIcon;
+export declare const MicrophoneChat28Filled: FluentFontIcon;
+export declare const MicrophoneChat32Regular: FluentFontIcon;
+export declare const MicrophoneChat32Filled: FluentFontIcon;
+export declare const MicrophoneChat48Regular: FluentFontIcon;
+export declare const MicrophoneChat48Filled: FluentFontIcon;

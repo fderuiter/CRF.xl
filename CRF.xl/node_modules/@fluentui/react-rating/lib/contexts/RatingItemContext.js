@@ -1,0 +1,16 @@
+'use client';
+import * as React from 'react';
+/**
+ * RatingContext is provided by Rating, and is consumed by Rating to determine default values of some props.
+ */ export const RatingItemContext = /*#__PURE__*/ React.createContext(undefined);
+const ratingItemContextDefaultValue = {
+    color: 'neutral',
+    iconFilled: 'span',
+    iconOutline: 'span',
+    step: 1,
+    size: 'medium'
+};
+export const RatingItemProvider = RatingItemContext.Provider;
+/**
+ * Get the value of the RatingContext.
+ */ export const useRatingItemContextValue_unstable = ()=>React.useContext(RatingItemContext) || ratingItemContextDefaultValue;

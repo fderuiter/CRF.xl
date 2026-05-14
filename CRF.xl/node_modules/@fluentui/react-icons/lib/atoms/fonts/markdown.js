@@ -1,0 +1,12 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const MarkdownFilled = ( /*#__PURE__*/createFluentFontIcon("MarkdownFilled", "", 2, undefined));
+export const MarkdownRegular = ( /*#__PURE__*/createFluentFontIcon("MarkdownRegular", "", 2, undefined));
+export const Markdown16Regular = ( /*#__PURE__*/createFluentFontIcon("Markdown16Regular", "󰰪", 1, 16));
+export const Markdown16Filled = ( /*#__PURE__*/createFluentFontIcon("Markdown16Filled", "󰲧", 0, 16));
+export const Markdown20Regular = ( /*#__PURE__*/createFluentFontIcon("Markdown20Regular", "", 1, 20));
+export const Markdown20Filled = ( /*#__PURE__*/createFluentFontIcon("Markdown20Filled", "", 0, 20));
+export const Markdown24Regular = ( /*#__PURE__*/createFluentFontIcon("Markdown24Regular", "󰭫", 1, 24));
+export const Markdown24Filled = ( /*#__PURE__*/createFluentFontIcon("Markdown24Filled", "󰯩", 0, 24));
+export const Markdown28Regular = ( /*#__PURE__*/createFluentFontIcon("Markdown28Regular", "󰰫", 1, 28));
+export const Markdown28Filled = ( /*#__PURE__*/createFluentFontIcon("Markdown28Filled", "󰲨", 0, 28));

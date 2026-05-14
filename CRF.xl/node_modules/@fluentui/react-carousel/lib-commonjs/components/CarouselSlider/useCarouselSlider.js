@@ -1,0 +1,40 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useCarouselSlider_unstable", {
+    enumerable: true,
+    get: function() {
+        return useCarouselSlider_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const _reacttabster = require("@fluentui/react-tabster");
+const _CarouselContext = require("../CarouselContext");
+const useCarouselSlider_unstable = (props, ref)=>{
+    const { cardFocus = false } = props;
+    const circular = (0, _CarouselContext.useCarouselContext_unstable)((ctx)=>ctx.circular);
+    const focusableGroupAttr = (0, _reacttabster.useArrowNavigationGroup)({
+        circular,
+        axis: 'horizontal',
+        memorizeCurrent: false,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        unstable_hasDefault: true
+    });
+    const focusProps = cardFocus ? focusableGroupAttr : {};
+    return {
+        cardFocus,
+        components: {
+            root: 'div'
+        },
+        root: _reactutilities.slot.always((0, _reactutilities.getIntrinsicElementProps)('div', {
+            ref,
+            role: 'group',
+            ...props,
+            ...focusProps
+        }), {
+            elementType: 'div'
+        })
+    };
+};

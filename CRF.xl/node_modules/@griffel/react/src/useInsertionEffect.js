@@ -1,0 +1,10 @@
+'use client';
+import React from 'react';
+/**
+ * @internal
+ */
+export const useInsertionEffect = 
+// @ts-expect-error Hack to make sure that `useInsertionEffect` will not cause bundling issues in older React versions
+// eslint-disable-next-line no-useless-concat
+React['useInsertion' + 'Effect'] ? React['useInsertion' + 'Effect'] : undefined;
+//# sourceMappingURL=useInsertionEffect.js.map

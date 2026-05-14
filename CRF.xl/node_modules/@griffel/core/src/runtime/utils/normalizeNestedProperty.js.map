@@ -1,0 +1,1 @@
+{"version":3,"file":"normalizeNestedProperty.js","sourceRoot":"","sources":["../../../../../../packages/core/src/runtime/utils/normalizeNestedProperty.ts"],"names":[],"mappings":"AAAA,MAAM,UAAU,uBAAuB,CAAC,cAAsB;IAC5D,IAAI,cAAc,CAAC,MAAM,CAAC,CAAC,CAAC,KAAK,GAAG,EAAE,CAAC;QACrC,OAAO,cAAc,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACjC,CAAC;IAED,OAAO,cAAc,CAAC;AACxB,CAAC"}

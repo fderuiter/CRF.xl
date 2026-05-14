@@ -1,0 +1,1 @@
+{"version":3,"file":"isNestedSelector.js","sourceRoot":"","sources":["../../../../../../packages/core/src/runtime/utils/isNestedSelector.ts"],"names":[],"mappings":"AAAA,MAAM,KAAK,GAAG,aAAa,CAAC;AAE5B,MAAM,UAAU,gBAAgB,CAAC,QAAgB;IAC/C,OAAO,KAAK,CAAC,IAAI,CAAC,QAAQ,CAAC,CAAC;AAC9B,CAAC"}

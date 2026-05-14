@@ -1,0 +1,69 @@
+/*!
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+import { TABSTER_ATTRIBUTE_NAME } from "./Consts.js";
+export function getTabsterAttribute(props, plain) {
+    const attr = JSON.stringify(props);
+    if (plain === true) {
+        return attr;
+    }
+    return {
+        [TABSTER_ATTRIBUTE_NAME]: attr,
+    };
+}
+/**
+ * Updates Tabster props object with new props.
+ * @param element an element to set data-tabster attribute on.
+ * @param props current Tabster props to update.
+ * @param newProps new Tabster props to add.
+ *  When the value of a property in newProps is undefined, the property
+ *  will be removed from the attribute.
+ */
+export function mergeTabsterProps(props, newProps) {
+    for (const key of Object.keys(newProps)) {
+        const value = newProps[key];
+        if (value) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            props[key] = value;
+        }
+        else {
+            delete props[key];
+        }
+    }
+}
+/**
+ * Sets or updates Tabster attribute of the element.
+ * @param element an element to set data-tabster attribute on.
+ * @param newProps new Tabster props to set.
+ * @param update if true, newProps will be merged with the existing props.
+ *  When true and the value of a property in newProps is undefined, the property
+ *  will be removed from the attribute.
+ */
+export function setTabsterAttribute(element, newProps, update) {
+    let props;
+    if (update) {
+        const attr = element.getAttribute(TABSTER_ATTRIBUTE_NAME);
+        if (attr) {
+            try {
+                props = JSON.parse(attr);
+            }
+            catch (e) {
+                if ((process.env.NODE_ENV === 'development')) {
+                    console.error(`data-tabster attribute error: ${e}`, element);
+                }
+            }
+        }
+    }
+    if (!props) {
+        props = {};
+    }
+    mergeTabsterProps(props, newProps);
+    if (Object.keys(props).length > 0) {
+        element.setAttribute(TABSTER_ATTRIBUTE_NAME, getTabsterAttribute(props, true));
+    }
+    else {
+        element.removeAttribute(TABSTER_ATTRIBUTE_NAME);
+    }
+}
+//# sourceMappingURL=AttributeHelpers.js.map

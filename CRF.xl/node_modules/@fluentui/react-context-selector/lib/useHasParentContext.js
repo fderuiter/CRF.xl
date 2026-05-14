@@ -1,0 +1,13 @@
+'use client';
+import * as React from 'react';
+/**
+ * Utility hook for contexts created by react-context-selector to determine if a parent context exists
+ * WARNING: This hook will not work for native React contexts
+ *
+ * @internal
+ * @param context - context created by react-context-selector
+ * @returns whether the hook is wrapped by a parent context
+ */ export function useHasParentContext(context) {
+    const contextValue = React.useContext(context);
+    return !contextValue.isDefault;
+}

@@ -1,0 +1,10 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const ErrorCircleHintFilled = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHintFilled", "", 2, undefined));
+export const ErrorCircleHintRegular = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHintRegular", "", 2, undefined));
+export const ErrorCircleHint16Regular = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint16Regular", "󰯥", 1, 16));
+export const ErrorCircleHint16Filled = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint16Filled", "󰱢", 0, 16));
+export const ErrorCircleHint20Regular = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint20Regular", "󰯦", 1, 20));
+export const ErrorCircleHint20Filled = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint20Filled", "󰱣", 0, 20));
+export const ErrorCircleHint24Regular = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint24Regular", "󰯧", 1, 24));
+export const ErrorCircleHint24Filled = ( /*#__PURE__*/createFluentFontIcon("ErrorCircleHint24Filled", "󰱤", 0, 24));

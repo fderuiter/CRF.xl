@@ -1,0 +1,18 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useNavDivider_unstable", {
+    enumerable: true,
+    get: function() {
+        return useNavDivider_unstable;
+    }
+});
+const _reactdivider = require("@fluentui/react-divider");
+const useNavDivider_unstable = (props, ref)=>{
+    return (0, _reactdivider.useDivider_unstable)({
+        appearance: 'strong',
+        ...props
+    }, ref);
+};

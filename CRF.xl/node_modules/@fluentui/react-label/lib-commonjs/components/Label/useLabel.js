@@ -1,0 +1,51 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    useLabelBase_unstable: function() {
+        return useLabelBase_unstable;
+    },
+    useLabel_unstable: function() {
+        return useLabel_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const useLabel_unstable = (props, ref)=>{
+    const { weight = 'regular', size = 'medium', ...baseProps } = props;
+    const state = useLabelBase_unstable(baseProps, ref);
+    return {
+        weight,
+        size,
+        ...state
+    };
+};
+const useLabelBase_unstable = (props, ref)=>{
+    const { disabled = false, required = false, ...rest } = props;
+    return {
+        disabled,
+        required: _reactutilities.slot.optional(required === true ? '*' : required || undefined, {
+            defaultProps: {
+                'aria-hidden': 'true'
+            },
+            elementType: 'span'
+        }),
+        components: {
+            root: 'label',
+            required: 'span'
+        },
+        root: _reactutilities.slot.always((0, _reactutilities.getIntrinsicElementProps)('label', {
+            ref: ref,
+            ...rest
+        }), {
+            elementType: 'label'
+        })
+    };
+};

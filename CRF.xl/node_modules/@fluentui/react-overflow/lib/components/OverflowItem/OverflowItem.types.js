@@ -1,0 +1,3 @@
+/**
+ * OverflowItemProps
+ */ export { };

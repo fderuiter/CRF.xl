@@ -1,0 +1,70 @@
+{
+  "name": "keyborg",
+  "version": "2.14.1",
+  "description": "Keyboard Navigation Detection for Web",
+  "author": "Marat Abdullin <marata@microsoft.com>",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "<4.0": {
+      "dist/index.d.ts": [
+        "dist/ts3.9/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsoft/keyborg"
+  },
+  "scripts": {
+    "build": "tsdown && npx downlevel-dts ./dist ./dist/ts3.9",
+    "bundle-size": "npm run build && monosize measure",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "playwright test",
+    "test:serve": "storybook dev --port 3000 --no-open",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "npm run lint -- --fix",
+    "prepublishOnly": "npm run lint && npm run format && npm run build",
+    "release": "release-it"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@storybook/react-vite": "^10.2.14",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "downlevel-dts": "^0.11.0",
+    "eslint": "^9.39.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-import": "^2.32.0",
+    "monosize": "^0.8.0",
+    "monosize-bundler-webpack": "^0.3.1",
+    "monosize-storage-git": "^0.3.0",
+    "playwright": "^1.58.2",
+    "prettier": "^3.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-shadow": "^20.6.0",
+    "release-it": "^20.0.0",
+    "storybook": "^10.2.14",
+    "tsdown": "^0.20.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}

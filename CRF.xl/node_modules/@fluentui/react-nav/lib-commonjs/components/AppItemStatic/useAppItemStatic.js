@@ -1,0 +1,33 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useAppItemStatic_unstable", {
+    enumerable: true,
+    get: function() {
+        return useAppItemStatic_unstable;
+    }
+});
+const _reactutilities = require("@fluentui/react-utilities");
+const _NavContext = require("../NavContext");
+const useAppItemStatic_unstable = (props, ref)=>{
+    const { icon } = props;
+    const { density = 'medium' } = (0, _NavContext.useNavContext_unstable)();
+    return {
+        components: {
+            root: 'div',
+            icon: 'span'
+        },
+        root: _reactutilities.slot.always((0, _reactutilities.getIntrinsicElementProps)('div', {
+            ref,
+            ...props
+        }), {
+            elementType: 'div'
+        }),
+        icon: _reactutilities.slot.optional(icon, {
+            elementType: 'span'
+        }),
+        density
+    };
+};

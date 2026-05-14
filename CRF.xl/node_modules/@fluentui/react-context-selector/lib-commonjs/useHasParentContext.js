@@ -1,0 +1,17 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "useHasParentContext", {
+    enumerable: true,
+    get: function() {
+        return useHasParentContext;
+    }
+});
+const _interop_require_wildcard = require("@swc/helpers/_/_interop_require_wildcard");
+const _react = /*#__PURE__*/ _interop_require_wildcard._(require("react"));
+function useHasParentContext(context) {
+    const contextValue = _react.useContext(context);
+    return !contextValue.isDefault;
+}

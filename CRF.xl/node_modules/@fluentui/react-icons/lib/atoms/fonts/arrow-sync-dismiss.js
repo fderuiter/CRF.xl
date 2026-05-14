@@ -1,0 +1,10 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const ArrowSyncDismissFilled = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismissFilled", "", 2, undefined, { flipInRtl: true }));
+export const ArrowSyncDismissRegular = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismissRegular", "", 2, undefined, { flipInRtl: true }));
+export const ArrowSyncDismiss16Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss16Regular", "󰯸", 1, 16, { flipInRtl: true }));
+export const ArrowSyncDismiss16Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss16Filled", "󰱵", 0, 16, { flipInRtl: true }));
+export const ArrowSyncDismiss20Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss20Regular", "", 1, 20, { flipInRtl: true }));
+export const ArrowSyncDismiss20Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss20Filled", "", 0, 20, { flipInRtl: true }));
+export const ArrowSyncDismiss24Regular = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss24Regular", "", 1, 24, { flipInRtl: true }));
+export const ArrowSyncDismiss24Filled = ( /*#__PURE__*/createFluentFontIcon("ArrowSyncDismiss24Filled", "", 0, 24, { flipInRtl: true }));

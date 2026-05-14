@@ -1,0 +1,7 @@
+import { isAtRuleElement } from './isAtRuleElement.js';
+export const sortClassesInAtRulesPlugin = element => {
+    if (isAtRuleElement(element) && Array.isArray(element.children)) {
+        element.children.sort((a, b) => (a.props[0] > b.props[0] ? 1 : -1));
+    }
+};
+//# sourceMappingURL=sortClassesInAtRulesPlugin.js.map

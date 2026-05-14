@@ -1,0 +1,23 @@
+'use client';
+import { makeStyles as vanillaMakeStyles } from '@griffel/core';
+import { insertionFactory } from './insertionFactory.js';
+import { useRenderer } from './RendererContext.js';
+import { useTextDirection } from './TextDirectionContext.js';
+import { isInsideComponent } from './utils/isInsideComponent.js';
+export function makeStyles(stylesBySlots) {
+    const getStyles = vanillaMakeStyles(stylesBySlots, insertionFactory);
+    if (process.env.NODE_ENV !== 'production') {
+        if (isInsideComponent()) {
+            throw new Error([
+                "makeStyles(): this function cannot be called in component's scope.",
+                'All makeStyles() calls should be top level i.e. in a root scope of a file.',
+            ].join(' '));
+        }
+    }
+    return function useClasses() {
+        const dir = useTextDirection();
+        const renderer = useRenderer();
+        return getStyles({ dir, renderer });
+    };
+}
+//# sourceMappingURL=makeStyles.js.map

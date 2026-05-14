@@ -1,0 +1,18 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const ChatCheckmarkFilled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmarkFilled", "", 2, undefined));
+export const ChatCheckmarkRegular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmarkRegular", "", 2, undefined));
+export const ChatCheckmark12Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark12Regular", "󰰍", 1, 12));
+export const ChatCheckmark12Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark12Filled", "󰲊", 0, 12));
+export const ChatCheckmark16Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark16Regular", "󰰎", 1, 16));
+export const ChatCheckmark16Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark16Filled", "󰲋", 0, 16));
+export const ChatCheckmark20Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark20Regular", "󰰏", 1, 20));
+export const ChatCheckmark20Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark20Filled", "󰲌", 0, 20));
+export const ChatCheckmark24Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark24Regular", "󰰐", 1, 24));
+export const ChatCheckmark24Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark24Filled", "󰲍", 0, 24));
+export const ChatCheckmark28Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark28Regular", "󰰑", 1, 28));
+export const ChatCheckmark28Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark28Filled", "󰲎", 0, 28));
+export const ChatCheckmark32Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark32Regular", "󰰒", 1, 32));
+export const ChatCheckmark32Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark32Filled", "󰲏", 0, 32));
+export const ChatCheckmark48Regular = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark48Regular", "󰰓", 1, 48));
+export const ChatCheckmark48Filled = ( /*#__PURE__*/createFluentFontIcon("ChatCheckmark48Filled", "󰲐", 0, 48));

@@ -1,0 +1,14 @@
+"use client";
+import { createFluentFontIcon } from '../../utils/fonts/createFluentFontIcon';
+export const LayoutInfographicFilled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographicFilled", "", 2, undefined));
+export const LayoutInfographicRegular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographicRegular", "", 2, undefined));
+export const LayoutInfographic16Regular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic16Regular", "󰯽", 1, 16));
+export const LayoutInfographic16Filled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic16Filled", "󰱺", 0, 16));
+export const LayoutInfographic20Regular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic20Regular", "󰯾", 1, 20));
+export const LayoutInfographic20Filled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic20Filled", "󰱻", 0, 20));
+export const LayoutInfographic24Regular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic24Regular", "󰯿", 1, 24));
+export const LayoutInfographic24Filled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic24Filled", "󰱼", 0, 24));
+export const LayoutInfographic28Regular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic28Regular", "󰰀", 1, 28));
+export const LayoutInfographic28Filled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic28Filled", "󰱽", 0, 28));
+export const LayoutInfographic32Regular = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic32Regular", "󰰁", 1, 32));
+export const LayoutInfographic32Filled = ( /*#__PURE__*/createFluentFontIcon("LayoutInfographic32Filled", "󰱾", 0, 32));

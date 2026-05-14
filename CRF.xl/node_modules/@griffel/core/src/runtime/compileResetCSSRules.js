@@ -1,0 +1,28 @@
+import { compile, middleware, serialize, stringify } from 'stylis';
+import { globalPlugin } from './stylis/globalPlugin.js';
+import { isAtRuleElement } from './stylis/isAtRuleElement.js';
+import { prefixerPlugin } from './stylis/prefixerPlugin.js';
+import { rulesheetPlugin } from './stylis/rulesheetPlugin.js';
+import { scopePlugin } from './stylis/scopePlugin.js';
+export function compileResetCSSRules(className, body) {
+    const rules = [];
+    const atRules = [];
+    serialize(compile(`.${className}{${body}}`), middleware([
+        scopePlugin(`.${className}`),
+        globalPlugin,
+        prefixerPlugin,
+        stringify,
+        // 💡 we are using `.insertRule()` API for DOM operations, which does not support
+        // insertion of multiple CSS rules in a single call. `rulesheet` plugin extracts
+        // individual rules to be used with this API
+        rulesheetPlugin((element, rule) => {
+            if (isAtRuleElement(element)) {
+                atRules.push(rule);
+                return;
+            }
+            rules.push(rule);
+        }),
+    ]));
+    return [rules, atRules];
+}
+//# sourceMappingURL=compileResetCSSRules.js.map

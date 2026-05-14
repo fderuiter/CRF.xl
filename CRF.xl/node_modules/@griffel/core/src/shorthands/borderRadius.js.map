@@ -1,0 +1,1 @@
+{"version":3,"file":"borderRadius.js","sourceRoot":"","sources":["../../../../../packages/core/src/shorthands/borderRadius.ts"],"names":[],"mappings":"AAQA;;;;;;;;;;;;;GAaG;AACH,MAAM,UAAU,YAAY,CAC1B,MAAyB,EACzB,SAA4B,MAAM,EAClC,SAA4B,MAAM,EAClC,SAA4B,MAAM;IAElC,OAAO;QACL,uBAAuB,EAAE,MAAM;QAC/B,sBAAsB,EAAE,MAAM;QAC9B,oBAAoB,EAAE,MAAM;QAC5B,mBAAmB,EAAE,MAAM;KAC5B,CAAC;AACJ,CAAC"}
