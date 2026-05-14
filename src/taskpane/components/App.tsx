@@ -6,7 +6,7 @@ import { ValidationIssue, validateStudyDesign } from '../core/parser/validator';
 import { parseExcelToStudyDesign } from '../core/parser/excel-parser';
 import { generateDocx } from '../core/generators/docx/docx-builder';
 import { generateOdmXml } from '../core/generators/cdisc/odm-builder';
-import { initializeWorkbook, navigateToSource } from '../core/parser/template-generator';
+import { initializeWorkbook, navigateToSource, syncRegistry } from '../core/parser/template-generator';
 import { StudyDesign } from '../core/types/index';
 
 /**
@@ -106,6 +106,20 @@ export const App: React.FC<{ title?: string }> = () => {
         }
     };
 
+    
+    const handleSync = async () => {
+        setIsProcessing(true);
+        setStatus("Syncing Registry...");
+        try {
+            await syncRegistry();
+            setStatus("Sheets Synced");
+        } catch (e) {
+            setStatus("Sync Failed");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const handleInitialize = async () => {
         setIsProcessing(true);
         setStatus("Scaffolding workbook...");
@@ -136,6 +150,7 @@ export const App: React.FC<{ title?: string }> = () => {
             <main className="flex-grow flex flex-col p-4 gap-4 overflow-hidden">
                 <ControlPanel 
                     onInit={handleInitialize}
+                    onSync={handleSync}
                     onDocx={handleDocxExport}
                     onOdm={handleOdmExport}
                     onAnalyze={performAnalysis}

@@ -2,6 +2,7 @@ import * as React from 'react';
 
 interface ControlPanelProps {
     onInit: () => Promise<void>;
+    onSync: () => Promise<void>;
     onDocx: () => Promise<void>;
     onOdm: () => Promise<void>;
     onAnalyze: () => Promise<any>;
@@ -15,7 +16,7 @@ interface ControlPanelProps {
  * Implements strict visual gating based on the validation state.
  */
 export const ControlPanel: React.FC<ControlPanelProps> = ({ 
-    onInit, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
+    onInit, onSync, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
 }) => {
     return (
         <div className="space-y-4">
@@ -26,6 +27,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     className="w-full bg-slate-900 text-white p-3 rounded-xl font-bold text-xs shadow-sm hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                     <span>✨</span> Initialize Workbook
+                </button>
+
+                
+                <button 
+                    onClick={onSync} 
+                    disabled={isProcessing} 
+                    className="w-full bg-emerald-600 text-white p-3 rounded-xl font-bold text-xs shadow-sm hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                    <span>🔄</span> Sync Form Sheets
                 </button>
 
                 <button 
