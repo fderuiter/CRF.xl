@@ -1,3 +1,4 @@
+import { highlightErrorsOnCanvas, clearAllAnnotations } from '../core/services/annotation-service';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 
@@ -70,6 +71,15 @@ export const App: React.FC<{ title?: string }> = () => {
             setStudy(freshStudy);
             const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
             setIssues(validationIssues);
+
+            // Step 1: Clean previous annotations
+            const sheetsToClear = sheetFilter
+                ? [sheetFilter]
+                : ["_Schedule", ...Object.keys(freshStudy.forms)];
+            await clearAllAnnotations(sheetsToClear);
+
+            // Step 2: Visual Validation - Paint the Excel Grid
+            await highlightErrorsOnCanvas(validationIssues);
             setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
             return freshStudy;
         } catch (e) {
