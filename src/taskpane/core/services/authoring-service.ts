@@ -1,23 +1,21 @@
 /* global Excel */
 
+/**
+ * Inserts a standard CDISC-style Date/Time variable block.
+ */
 export const insertDateBlock = async () => {
   try {
     await Excel.run(async (context) => {
-      const sheet = context.workbook.worksheets.getActiveWorksheet();
-
       const range = context.workbook.getSelectedRange();
-      range.load("rowIndex, columnIndex");
-      await context.sync();
-
-      const startRow = range.rowIndex;
-
-      // Let's do a simple standard insert: Variable Name, Label, Variable Type
-      const standardData = [
-        ["ASSESSDAT", "Date of Assessment", "date", "yes", "", ""],
+      // Variable Name, Label, Type, Required, Min, Max, ShowIf, Codelist
+      const data = [
+        ["_DAT", "Date of Assessment", "Date", "Yes", "", "", "", ""],
+        ["_TIM", "Time of Assessment", "Time", "No", "", "", "", ""]
       ];
 
-      const targetRange = sheet.getRangeByIndexes(startRow, 0, standardData.length, standardData[0].length);
-      targetRange.values = standardData;
+      const targetRange = range.getResizedRange(data.length - 1, 7);
+      targetRange.values = data;
+      targetRange.format.autofitColumns();
 
       await context.sync();
     });
@@ -26,24 +24,25 @@ export const insertDateBlock = async () => {
   }
 };
 
+/**
+ * Inserts a comprehensive Adverse Event log block.
+ */
 export const insertAEBlock = async () => {
   try {
     await Excel.run(async (context) => {
-      const sheet = context.workbook.worksheets.getActiveWorksheet();
       const range = context.workbook.getSelectedRange();
-      range.load("rowIndex, columnIndex");
-      await context.sync();
-
-      const startRow = range.rowIndex;
       const data = [
-        ["AETERM", "Adverse Event Term", "text", "yes", "", ""],
-        ["AESTDAT", "Start Date", "date", "yes", "", ""],
-        ["AEENDAT", "End Date", "date", "no", "", ""],
-        ["AESEV", "Severity", "text", "yes", "", "CL_SEV"]
+        ["AETERM", "Adverse Event Term", "Text", "Yes", "", "", "", ""],
+        ["AESTDAT", "Start Date", "Date", "Yes", "", "", "", ""],
+        ["AEENDAT", "End Date", "Date", "No", "", "", "", ""],
+        ["AESEV", "Severity", "Codelist", "Yes", "", "", "", "SEVERITY"],
+        ["AESER", "Serious?", "Codelist", "Yes", "", "", "", "YES_NO"],
+        ["AEREL", "Relationship to Study Drug", "Codelist", "Yes", "", "", "", "RELATIONSHIP"]
       ];
 
-      const targetRange = sheet.getRangeByIndexes(startRow, 0, data.length, data[0].length);
+      const targetRange = range.getResizedRange(data.length - 1, 7);
       targetRange.values = data;
+      targetRange.format.autofitColumns();
 
       await context.sync();
     });
