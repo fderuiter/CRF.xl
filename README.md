@@ -42,6 +42,7 @@ The application is divided into two primary layers:
   - `npx tsc --noEmit`
   - `npm test`
 - Pull requests should only be merged when all required status checks are green.
+- For dependency lifecycle and security audit tracking, see `SECURITY.md` and run `npm run audit:json`.
 
 ### Configure Main Branch Protection
 1. Go to **Settings → Branches → Add rule** (or update the existing `main` rule).
