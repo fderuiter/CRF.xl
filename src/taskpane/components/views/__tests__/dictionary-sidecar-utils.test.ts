@@ -40,10 +40,30 @@ describe("dictionary-sidecar-utils", () => {
     expect(filterDictionaries(dictionaries, "no")).toEqual([dictionaries[1]]);
   });
 
+  it("returns an empty array when no dictionaries match the search term", () => {
+    expect(filterDictionaries(dictionaries, "NONEXISTENT_TERM_XYZ")).toEqual([]);
+  });
+
+  it("matches case-insensitively on codelist id", () => {
+    expect(filterDictionaries(dictionaries, "SEV_DICT")).toEqual([dictionaries[0]]);
+    expect(filterDictionaries(dictionaries, "sev_dict")).toEqual([dictionaries[0]]);
+  });
+
   it("builds a preview and overflow count for grid display", () => {
     expect(getDictionaryPreview(dictionaries[0].items)).toEqual({
       previewItems: ["1 = Mild", "2 = Moderate", "3 = Severe"],
       overflowCount: 1,
+    });
+  });
+
+  it("builds a preview using only the coded value when decode is absent", () => {
+    const itemsWithoutDecode: import("../../../core/services/dictionary-service").CodelistItem[] = [
+      { codedValue: "A", decode: "" },
+      { codedValue: "B", decode: "Beta" },
+    ];
+    expect(getDictionaryPreview(itemsWithoutDecode)).toEqual({
+      previewItems: ["A", "B = Beta"],
+      overflowCount: 0,
     });
   });
 });
