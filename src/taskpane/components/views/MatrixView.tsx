@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Spinner, Divider, makeStyles, tokens, Text, MessageBar, MessageBarBody } from '@fluentui/react-components';
+import { Body1, Button, Card, Divider, Spinner, makeStyles, tokens, MessageBar, MessageBarBody } from '@fluentui/react-components';
 
 interface MatrixProps {
     onAnalyze: () => Promise<any>;
@@ -76,12 +76,12 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
     const styles = useStyles();
     return (
         <div className={styles.container}>
-            <div className={styles.card}>
+            <Card className={styles.card}>
                 <div className={styles.cardHeader}>
                     <div className={styles.iconBox}>📅</div>
                     <div>
-                        <Text className={styles.cardTitle} block>Visit Matrix</Text>
-                        <Text className={styles.cardSubtitle}>Schedule &amp; Export</Text>
+                        <Body1 className={styles.cardTitle}>Visit Matrix</Body1>
+                        <Body1 className={styles.cardSubtitle}>Schedule &amp; Export</Body1>
                     </div>
                 </div>
 
@@ -123,7 +123,7 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
                         <MessageBarBody>Critical errors detected. Resolve highlighted issues in Excel to unlock export.</MessageBarBody>
                     </MessageBar>
                 )}
-            </div>
+            </Card>
         </div>
     );
 };
