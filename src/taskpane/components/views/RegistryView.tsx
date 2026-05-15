@@ -1,44 +1,92 @@
 import * as React from 'react';
+import { Button, makeStyles, tokens, Text } from '@fluentui/react-components';
+import { Spinner } from '@fluentui/react-components';
 
 interface RegistryProps {
     onInit: () => Promise<void>;
     onSync: () => Promise<void>;
     isProcessing: boolean;
+    isWelcome?: boolean;
 }
 
-export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProcessing }) => (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
-            
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🏛️</span>
-                <h2 className="font-black text-base tracking-tight">System Registry</h2>
-            </div>
-            
-            <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-                Define your global protocol and register your forms here. Sync to generate authoring tabs.
-            </p>
-            
-            <div className="space-y-3 relative z-10">
-                <button 
-                    onClick={onInit} 
-                    disabled={isProcessing} 
-                    className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-bold text-xs transition-all flex items-center justify-between group disabled:opacity-50"
-                >
-                    <span className="flex items-center gap-2">✨ Initialize Canvas</span>
-                    <span className="text-slate-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <button 
-                    onClick={onSync} 
-                    disabled={isProcessing} 
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-between group disabled:opacity-50"
-                >
-                    <span className="flex items-center gap-2">🔄 Sync Form Sheets</span>
-                    <span className="text-blue-200 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    heroCard: {
+        backgroundColor: tokens.colorNeutralBackgroundInverted,
+        borderRadius: tokens.borderRadiusXLarge,
+        padding: '20px',
+        color: tokens.colorNeutralForegroundInverted,
+        boxShadow: tokens.shadow8,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    heroTitle: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorNeutralForegroundInverted,
+        lineHeight: '1.2',
+    },
+    heroDescription: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForegroundInvertedLink,
+        lineHeight: '1.5',
+        marginBottom: '8px',
+    },
+    buttonRow: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    fullWidthBtn: {
+        width: '100%',
+        justifyContent: 'center',
+    },
+});
+
+export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProcessing, isWelcome }) => {
+    const styles = useStyles();
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.heroCard}>
+                <Text className={styles.heroTitle}>
+                    {isWelcome ? 'Welcome to CRF.xl' : '🏛️ System Registry'}
+                </Text>
+                <Text className={styles.heroDescription}>
+                    {isWelcome
+                        ? 'Starting a new project on a blank canvas. Initialize the Matrix Architecture to set up your clinical study.'
+                        : 'Define your global protocol and register your forms here. Sync to generate authoring tabs.'}
+                </Text>
+                <div className={styles.buttonRow}>
+                    <Button
+                        appearance="outline"
+                        className={styles.fullWidthBtn}
+                        onClick={onInit}
+                        disabled={isProcessing}
+                        icon={isProcessing ? <Spinner size="tiny" /> : undefined}
+                    >
+                        ✨ Initialize Canvas
+                    </Button>
+                    {!isWelcome && (
+                        <Button
+                            appearance="primary"
+                            className={styles.fullWidthBtn}
+                            onClick={onSync}
+                            disabled={isProcessing}
+                            icon={isProcessing ? <Spinner size="tiny" /> : undefined}
+                        >
+                            🔄 Sync Form Sheets
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};

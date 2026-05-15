@@ -1,6 +1,7 @@
 import { highlightErrorsOnCanvas, clearAllAnnotations } from '../core/services/annotation-service';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { makeStyles, tokens, Text, Badge, Spinner } from '@fluentui/react-components';
 
 // Core Logic
 import { ValidationLog } from './ValidationLog';
@@ -18,7 +19,87 @@ import { MatrixView } from './views/MatrixView';
 import { AuthoringView } from './views/AuthoringView';
 import { DictionarySidecar } from './views/DictionarySidecar';
 
+const useStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        backgroundColor: tokens.colorNeutralBackground2,
+        overflow: 'hidden',
+    },
+    header: {
+        padding: '10px 16px',
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexShrink: 0,
+        boxShadow: tokens.shadow2,
+        zIndex: 10,
+    },
+    headerBrand: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+    },
+    logo: {
+        width: '32px',
+        height: '32px',
+        backgroundColor: tokens.colorBrandBackground,
+        borderRadius: tokens.borderRadiusMedium,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: tokens.colorNeutralForegroundOnBrand,
+        fontWeight: tokens.fontWeightBold,
+        fontSize: tokens.fontSizeBase300,
+        flexShrink: 0,
+    },
+    brandTextCol: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    appTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorBrandForeground1,
+        lineHeight: '1.1',
+    },
+    activeSheet: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        marginTop: '2px',
+    },
+    main: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '16px',
+        gap: '12px',
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    loadingText: {
+        textAlign: 'center',
+        padding: '32px 16px',
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+    scanningRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        padding: '32px 16px',
+    },
+});
+
 export const App: React.FC<{ title?: string }> = () => {
+    const styles = useStyles();
+
     // 1. Telemetry & Initialization State
     const { activeSheet, isCodelistActive } = useExcelTelemetry();
     const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
@@ -50,17 +131,17 @@ export const App: React.FC<{ title?: string }> = () => {
         setIsProcessing(true); setStatus("Scaffolding canvas...");
         try {
             await initializeWorkbook();
-            setIsInitialized(true); // Manually set to true once built
+            setIsInitialized(true);
             setStatus("Canvas initialized");
         }
-        catch (e) { setStatus("Init failed"); } 
+        catch (e) { setStatus("Init failed"); }
         finally { setIsProcessing(false); }
     };
 
     const handleSync = async () => {
         setIsProcessing(true); setStatus("Warping sheets...");
-        try { await syncRegistry(); setStatus("Sheets synchronized"); } 
-        catch (e) { setStatus("Sync failed"); } 
+        try { await syncRegistry(); setStatus("Sheets synchronized"); }
+        catch (e) { setStatus("Sync failed"); }
         finally { setIsProcessing(false); }
     };
 
@@ -72,13 +153,10 @@ export const App: React.FC<{ title?: string }> = () => {
             const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
             setIssues(validationIssues);
 
-            // Step 1: Clean previous annotations
             const sheetsToClear = sheetFilter
                 ? [sheetFilter]
                 : ["_Schedule", ...Object.keys(freshStudy.forms)];
             await clearAllAnnotations(sheetsToClear);
-
-            // Step 2: Visual Validation - Paint the Excel Grid
             await highlightErrorsOnCanvas(validationIssues);
             setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
             return freshStudy;
@@ -107,39 +185,28 @@ export const App: React.FC<{ title?: string }> = () => {
 
     // 3. View Router Logic
     const renderContextualView = () => {
-        // STATE 1: Checking status on startup
         if (isInitialized === null) {
-            return <div className="text-center p-8 text-slate-400 text-xs animate-pulse font-bold">Scanning Workbook...</div>;
-        }
-
-        // STATE 2: The Welcome Screen (No Matrix architecture detected)
-        if (!isInitialized) {
             return (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
-                        <h2 className="font-black text-xl mb-2 relative z-10">Welcome to CRF.xl</h2>
-                        <p className="text-xs text-slate-300 mb-6 leading-relaxed relative z-10">
-                            It looks like you are starting a new project on a blank canvas. Initialize the Matrix Architecture to set up your clinical study.
-                        </p>
-                        <button
-                            onClick={handleInitialize}
-                            disabled={isProcessing}
-                            className="relative z-10 w-full bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                            ✨ Initialize Canvas
-                        </button>
-                    </div>
+                <div className={styles.scanningRow}>
+                    <Spinner size="tiny" />
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>Scanning Workbook...</Text>
                 </div>
             );
         }
 
-        // STATE 3: Waiting for Telemetry
-        if (!activeSheet) {
-            return <div className="text-center p-4 text-slate-400 text-xs animate-pulse">Syncing with Excel cursor...</div>;
+        if (!isInitialized) {
+            return <RegistryView onInit={handleInitialize} onSync={handleSync} isProcessing={isProcessing} isWelcome />;
         }
-        
-        // STATE 4: The Contextual Routing
+
+        if (!activeSheet) {
+            return (
+                <div className={styles.scanningRow}>
+                    <Spinner size="tiny" />
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>Syncing with Excel cursor...</Text>
+                </div>
+            );
+        }
+
         if (activeSheet === "_Study" || activeSheet === "_Forms") {
             return <RegistryView onInit={handleInitialize} onSync={handleSync} isProcessing={isProcessing} />;
         }
@@ -153,29 +220,29 @@ export const App: React.FC<{ title?: string }> = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
-            <header className="p-4 bg-white border-b flex justify-between items-center shadow-sm z-10 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center text-white font-black text-sm shadow-md">C</div>
-                    <div className="flex flex-col">
-                        <h1 className="text-lg font-black text-blue-900 tracking-tighter leading-none">CRF.xl</h1>
-                        {isInitialized && <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{activeSheet || 'Loading...'}</span>}
+        <div className={styles.root}>
+            <header className={styles.header}>
+                <div className={styles.headerBrand}>
+                    <div className={styles.logo}>C</div>
+                    <div className={styles.brandTextCol}>
+                        <span className={styles.appTitle}>CRF.xl</span>
+                        {isInitialized && (
+                            <span className={styles.activeSheet}>{activeSheet || 'Loading...'}</span>
+                        )}
                     </div>
                 </div>
-                <div className="bg-slate-100 px-2 py-1 rounded text-[9px] font-black text-slate-500 uppercase tracking-widest border border-slate-200">
-                    {status}
-                </div>
+                <Badge appearance="tint" color="informative">{status}</Badge>
             </header>
-            
-            <main className="relative flex-grow flex flex-col p-4 gap-4 overflow-hidden">
+
+            <main className={styles.main}>
                 {isCodelistActive && <DictionarySidecar />}
                 {!isCodelistActive && renderContextualView()}
-                
+
                 {isInitialized && (
                     <ValidationLog
                         issues={issues}
                         isProcessing={isProcessing}
-                        onNavigate={(i) => {
+                        onNavigate={(i: ValidationIssue & { rowIndex?: number }) => {
                             const sheet = i.location?.includes('Events') ? "_Schedule" : i.sheetName;
                             if (i.rowIndex !== undefined && sheet) navigateToSource(sheet, i.rowIndex);
                         }}

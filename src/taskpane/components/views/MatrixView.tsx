@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Button, makeStyles, tokens, Text, Divider } from '@fluentui/react-components';
+import { Spinner } from '@fluentui/react-components';
 
 interface MatrixProps {
     onAnalyze: () => Promise<any>;
@@ -9,45 +11,164 @@ interface MatrixProps {
     isLoaded: boolean;
 }
 
-export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, isProcessing, hasErrors, isLoaded }) => (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-lg">📅</div>
-                <div>
-                    <h2 className="font-black text-sm text-slate-800 tracking-tight">Visit Matrix</h2>
-                    <p className="text-[10px] text-slate-500 font-medium">Schedule & Export</p>
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    card: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusXLarge,
+        padding: '16px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        boxShadow: tokens.shadow4,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    titleRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+    },
+    iconBox: {
+        width: '32px',
+        height: '32px',
+        backgroundColor: tokens.colorBrandBackground2,
+        borderRadius: tokens.borderRadiusMedium,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '16px',
+    },
+    titleCol: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    title: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorNeutralForeground1,
+    },
+    subtitle: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+    },
+    analyzeBtn: {
+        width: '100%',
+        justifyContent: 'center',
+    },
+    exportGrid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '10px',
+    },
+    exportBtn: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '12px 0',
+        height: 'auto',
+        minHeight: '64px',
+    },
+    exportIcon: {
+        fontSize: '22px',
+        lineHeight: '1',
+    },
+    errorBanner: {
+        backgroundColor: tokens.colorPaletteRedBackground1,
+        border: `1px solid ${tokens.colorPaletteRedBorder2}`,
+        borderRadius: tokens.borderRadiusMedium,
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        alignItems: 'center',
+    },
+    errorText: {
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorPaletteRedForeground1,
+        textAlign: 'center',
+    },
+    errorSubText: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorPaletteRedForeground2,
+        textAlign: 'center',
+    },
+    awaitingText: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+        textAlign: 'center',
+        fontWeight: tokens.fontWeightSemibold,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        marginTop: '4px',
+    },
+});
+
+export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, isProcessing, hasErrors, isLoaded }) => {
+    const styles = useStyles();
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.titleRow}>
+                    <div className={styles.iconBox}>📅</div>
+                    <div className={styles.titleCol}>
+                        <Text className={styles.title}>Visit Matrix</Text>
+                        <Text className={styles.subtitle}>Schedule &amp; Export</Text>
+                    </div>
                 </div>
-            </div>
-            
-            <button 
-                onClick={onAnalyze} 
-                disabled={isProcessing} 
-                className="w-full bg-slate-900 hover:bg-black text-white p-3 rounded-xl font-bold text-xs transition-all mb-4 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
-            >
-                <span>🔍</span> Validate Entire Study
-            </button>
-            
-            <div className="h-px bg-slate-100 mb-4" />
-            
-            <div className="grid grid-cols-2 gap-3">
-                <button 
-                    onClick={onDocx} 
-                    disabled={isProcessing || hasErrors || !isLoaded} 
-                    className="bg-slate-50 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 text-slate-600 p-4 rounded-xl font-bold text-xs transition-all flex flex-col items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                <Button
+                    appearance="primary"
+                    className={styles.analyzeBtn}
+                    onClick={onAnalyze}
+                    disabled={isProcessing}
+                    icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
                 >
-                    <span className="text-2xl">📄</span> 
-                    <span>Paper CRF</span>
-                </button>
-                <button 
-                    onClick={onOdm} 
-                    disabled={isProcessing || hasErrors || !isLoaded} 
-                    className="bg-slate-50 border border-slate-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700 text-slate-600 p-4 rounded-xl font-bold text-xs transition-all flex flex-col items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <span className="text-2xl">⚛️</span> 
-                    <span>ODM XML</span>
-                </button>
+                    Validate Entire Study
+                </Button>
+
+                <Divider />
+
+                <div className={styles.exportGrid}>
+                    <Button
+                        appearance="outline"
+                        className={styles.exportBtn}
+                        onClick={onDocx}
+                        disabled={isProcessing || hasErrors || !isLoaded}
+                    >
+                        <span className={styles.exportIcon}>📄</span>
+                        <span>Paper CRF</span>
+                    </Button>
+                    <Button
+                        appearance="outline"
+                        className={styles.exportBtn}
+                        onClick={onOdm}
+                        disabled={isProcessing || hasErrors || !isLoaded}
+                    >
+                        <span className={styles.exportIcon}>⚛️</span>
+                        <span>ODM XML</span>
+                    </Button>
+                </div>
+
+                {hasErrors && (
+                    <div className={styles.errorBanner}>
+                        <Text className={styles.errorText}>⚠️ Critical Errors Detected</Text>
+                        <Text className={styles.errorSubText}>
+                            Resolve highlighted issues in Excel to unlock export.
+                        </Text>
+                    </div>
+                )}
+
+                {!isLoaded && !hasErrors && (
+                    <Text className={styles.awaitingText}>Awaiting Analysis</Text>
+                )}
             </div>
         </div>
-    </div>
-);
+    );
+};

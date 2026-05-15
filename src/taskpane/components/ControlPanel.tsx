@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Button } from './ui/DesignSystem';
+import { Button, makeStyles, tokens, Text, Divider } from '@fluentui/react-components';
+import { Spinner } from '@fluentui/react-components';
 
 interface ControlPanelProps {
     onInit: () => Promise<void>;
@@ -11,78 +12,139 @@ interface ControlPanelProps {
     isLoaded: boolean;
 }
 
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    buttonCol: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    fullWidthBtn: {
+        width: '100%',
+        justifyContent: 'center',
+    },
+    exportGrid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '10px',
+    },
+    exportBtn: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        height: 'auto',
+        minHeight: '60px',
+        padding: '10px 0',
+    },
+    exportIcon: {
+        fontSize: '20px',
+        lineHeight: '1',
+    },
+    errorBanner: {
+        backgroundColor: tokens.colorPaletteRedBackground1,
+        border: `1px solid ${tokens.colorPaletteRedBorder2}`,
+        borderRadius: tokens.borderRadiusMedium,
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        alignItems: 'center',
+    },
+    errorText: {
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorPaletteRedForeground1,
+        textAlign: 'center',
+    },
+    errorSubText: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorPaletteRedForeground2,
+        textAlign: 'center',
+    },
+    awaitingText: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+        textAlign: 'center',
+        fontWeight: tokens.fontWeightSemibold,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        marginTop: '4px',
+    },
+});
+
 /**
  * ControlPanel: The primary action hub for clinical designers.
- * Refactored to consume the strict Atomic Design System.
+ * Refactored to consume Fluent UI v9 components.
  */
-export const ControlPanel: React.FC<ControlPanelProps> = ({ 
+export const ControlPanel: React.FC<ControlPanelProps> = ({
     onInit, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
 }) => {
+    const styles = useStyles();
+
     return (
-        <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-                <Button 
-                    variant="secondary" 
-                    onClick={onInit} 
-                    isLoading={isProcessing} 
-                    icon={<span className="text-sm">✨</span>}
+        <div className={styles.container}>
+            <div className={styles.buttonCol}>
+                <Button
+                    appearance="secondary"
+                    className={styles.fullWidthBtn}
+                    onClick={onInit}
+                    disabled={isProcessing}
+                    icon={isProcessing ? <Spinner size="tiny" /> : <span>✨</span>}
                 >
                     Initialize Workbook
                 </Button>
 
-                <Button 
-                    variant="primary" 
-                    onClick={onAnalyze} 
-                    isLoading={isProcessing} 
-                    icon={<span className="text-sm">🔍</span>}
+                <Button
+                    appearance="primary"
+                    className={styles.fullWidthBtn}
+                    onClick={onAnalyze}
+                    disabled={isProcessing}
+                    icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
                 >
                     {isProcessing ? 'Analyzing Metadata...' : 'Run Workbook Analysis'}
                 </Button>
             </div>
-            
-            <div className="h-px bg-slate-200 my-2 mx-4 rounded-full opacity-50" />
 
-            <div className="grid grid-cols-2 gap-3">
-                <Button 
-                    variant="outline" 
-                    onClick={onDocx} 
-                    disabled={isProcessing || hasErrors || !isLoaded} 
-                    className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-blue-700 border-blue-200 hover:bg-blue-50'}
+            <Divider />
+
+            <div className={styles.exportGrid}>
+                <Button
+                    appearance="outline"
+                    className={styles.exportBtn}
+                    onClick={onDocx}
+                    disabled={isProcessing || hasErrors || !isLoaded}
                 >
-                    <div className="flex flex-col items-center gap-1 py-1">
-                        <span className="text-xl">📄</span>
-                        <span className="text-[10px]">Paper CRF</span>
-                    </div>
+                    <span className={styles.exportIcon}>📄</span>
+                    <span>Paper CRF</span>
                 </Button>
 
-                <Button 
-                    variant="outline" 
-                    onClick={onOdm} 
-                    disabled={isProcessing || hasErrors || !isLoaded} 
-                    className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-purple-700 border-purple-200 hover:bg-purple-50'}
+                <Button
+                    appearance="outline"
+                    className={styles.exportBtn}
+                    onClick={onOdm}
+                    disabled={isProcessing || hasErrors || !isLoaded}
                 >
-                    <div className="flex flex-col items-center gap-1 py-1">
-                        <span className="text-xl">⚛️</span>
-                        <span className="text-[10px]">ODM XML</span>
-                    </div>
+                    <span className={styles.exportIcon}>⚛️</span>
+                    <span>ODM XML</span>
                 </Button>
             </div>
-            
+
             {hasErrors && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl shadow-inner">
-                    <p className="text-[10px] text-red-600 font-black text-center uppercase tracking-widest animate-pulse">
-                        ⚠️ Critical Errors Detected
-                    </p>
-                    <p className="text-[9px] text-red-500 text-center mt-1 font-medium">
+                <div className={styles.errorBanner}>
+                    <Text className={styles.errorText}>⚠️ Critical Errors Detected</Text>
+                    <Text className={styles.errorSubText}>
                         Resolve highlighted issues in Excel to unlock export capabilities.
-                    </p>
+                    </Text>
                 </div>
             )}
-            
+
             {!isLoaded && !hasErrors && (
-                <p className="text-[9px] text-slate-400 font-bold text-center uppercase tracking-widest mt-2">
-                    Awaiting Analysis
-                </p>
+                <Text className={styles.awaitingText}>Awaiting Analysis</Text>
             )}
         </div>
     );

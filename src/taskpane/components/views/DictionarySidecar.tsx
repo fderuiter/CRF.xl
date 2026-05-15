@@ -1,13 +1,173 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { Button, Input, Spinner, Badge, makeStyles, tokens, Text, Divider } from '@fluentui/react-components';
 import { fetchDictionaries, insertDictionaryToActiveCell, saveNewDictionary, CodelistGroup } from '../../core/services/dictionary-service';
 
+const useStyles = makeStyles({
+    overlay: {
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: tokens.shadow64,
+    },
+    header: {
+        padding: '14px 16px',
+        backgroundColor: tokens.colorBrandBackground,
+        color: tokens.colorNeutralForegroundOnBrand,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        flexShrink: 0,
+    },
+    headerLeft: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+    },
+    headerBadge: {
+        marginBottom: '2px',
+    },
+    headerTitle: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorNeutralForegroundOnBrand,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+    },
+    body: {
+        flex: 1,
+        padding: '16px',
+        backgroundColor: tokens.colorNeutralBackground2,
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        gap: '12px',
+    },
+    loadingBox: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+    },
+    loadingText: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    dictCard: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: tokens.borderRadiusLarge,
+        padding: '12px',
+        boxShadow: tokens.shadow2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        transition: 'border-color 0.15s',
+    },
+    dictCardHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    dictId: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorNeutralForeground1,
+    },
+    dictName: {
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+    },
+    tagRow: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '4px',
+    },
+    valueTag: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderRadius: tokens.borderRadiusSmall,
+        padding: '2px 6px',
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground2,
+    },
+    moreTag: {
+        padding: '2px 6px',
+        fontSize: tokens.fontSizeBase100,
+        color: tokens.colorNeutralForeground3,
+    },
+    emptyText: {
+        textAlign: 'center',
+        padding: '16px',
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+    formCard: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: tokens.borderRadiusLarge,
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    fieldLabel: {
+        display: 'block',
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground2,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: '4px',
+    },
+    itemRow: {
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center',
+    },
+    addRowBtn: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorBrandForeground1,
+        fontWeight: tokens.fontWeightSemibold,
+        cursor: 'pointer',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        ':hover': {
+            color: tokens.colorBrandForeground2,
+        },
+    },
+    backBtn: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+        fontWeight: tokens.fontWeightSemibold,
+        cursor: 'pointer',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        ':hover': {
+            color: tokens.colorNeutralForeground1,
+        },
+    },
+    saveBtn: {
+        width: '100%',
+        justifyContent: 'center',
+    },
+});
+
 export const DictionarySidecar: React.FC = () => {
+    const styles = useStyles();
     const [view, setView] = useState<'loading' | 'browse' | 'create'>('loading');
     const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
     const [search, setSearch] = useState('');
 
-    // New Dictionary State
     const [newId, setNewId] = useState('');
     const [newName, setNewName] = useState('');
     const [newItems, setNewItems] = useState([{ codedValue: '', decode: '' }]);
@@ -25,128 +185,164 @@ export const DictionarySidecar: React.FC = () => {
 
     const handleUseDictionary = async (id: string) => {
         await insertDictionaryToActiveCell(id);
-        // Writing to the cell will trigger a SelectionChanged event in Excel, 
-        // which may slide the sidecar away depending on where the cursor moves next.
     };
 
     const handleSaveNew = async () => {
         if (!newId || newItems.some(i => !i.codedValue)) return;
         setView('loading');
         await saveNewDictionary(newId, newName, newItems);
-        
-        // Reset form & reload
         setNewId(''); setNewName(''); setNewItems([{ codedValue: '', decode: '' }]);
         await loadData();
     };
 
-    const filteredDicts = dictionaries.filter(d => 
-        d.id.toLowerCase().includes(search.toLowerCase()) || 
+    const filteredDicts = dictionaries.filter(d =>
+        d.id.toLowerCase().includes(search.toLowerCase()) ||
         d.name.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
-        <div className="absolute inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-right-8 duration-300 shadow-2xl">
+        <div className={styles.overlay}>
             {/* Header */}
-            <div className="p-4 bg-emerald-900 text-white shadow-md flex justify-between items-start">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">Active Context</span>
+            <div className={styles.header}>
+                <div className={styles.headerLeft}>
+                    <div className={styles.headerBadge}>
+                        <Badge appearance="tint" color="success" size="small">Active Context</Badge>
                     </div>
-                    <h2 className="font-black text-lg tracking-tighter flex items-center gap-2">
-                        <span>📚</span> Codelist Library
-                    </h2>
+                    <span className={styles.headerTitle}>📚 Codelist Library</span>
                 </div>
                 {view === 'browse' && (
-                    <button onClick={() => setView('create')} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all">
+                    <Button
+                        appearance="outline"
+                        size="small"
+                        onClick={() => setView('create')}
+                    >
                         + New
-                    </button>
+                    </Button>
                 )}
             </div>
-            
+
             {/* Body */}
-            <div className="flex-grow p-4 bg-slate-50 flex flex-col overflow-y-auto">
+            <div className={styles.body}>
                 {view === 'loading' && (
-                    <div className="flex-grow flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl animate-spin mb-3">⏳</span>
-                        <p className="text-xs text-slate-500 font-bold">Syncing Library...</p>
+                    <div className={styles.loadingBox}>
+                        <Spinner size="medium" />
+                        <Text className={styles.loadingText}>Syncing Library...</Text>
                     </div>
                 )}
 
                 {view === 'browse' && (
-                    <div className="space-y-4">
-                        <input 
-                            type="text" 
-                            placeholder="Search dictionaries..." 
+                    <>
+                        <Input
+                            placeholder="Search dictionaries..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full p-2.5 rounded-xl border border-slate-200 text-xs shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            onChange={(_, d) => setSearch(d.value)}
                         />
-                        
-                        <div className="space-y-3">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {filteredDicts.map(dict => (
-                                <div key={dict.id} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:border-emerald-300 transition-colors">
-                                    <div className="flex justify-between items-start mb-2">
+                                <div key={dict.id} className={styles.dictCard}>
+                                    <div className={styles.dictCardHeader}>
                                         <div>
-                                            <h3 className="font-black text-sm text-slate-800">{dict.id}</h3>
-                                            <p className="text-[10px] text-slate-500 font-medium">{dict.name}</p>
+                                            <Text className={styles.dictId}>{dict.id}</Text>
+                                            <Text className={styles.dictName}>{dict.name}</Text>
                                         </div>
-                                        <button 
+                                        <Button
+                                            appearance="subtle"
+                                            size="small"
                                             onClick={() => handleUseDictionary(dict.id)}
-                                            className="bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 text-slate-600 px-3 py-1 rounded text-[10px] font-bold transition-all"
                                         >
                                             Use
-                                        </button>
+                                        </Button>
                                     </div>
-                                    <div className="flex flex-wrap gap-1">
+                                    <div className={styles.tagRow}>
                                         {dict.items.slice(0, 4).map((item, idx) => (
-                                            <span key={idx} className="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-[9px] text-slate-600 font-medium">
+                                            <span key={idx} className={styles.valueTag}>
                                                 {item.codedValue} = {item.decode}
                                             </span>
                                         ))}
-                                        {dict.items.length > 4 && <span className="px-2 py-0.5 text-[9px] text-slate-400">+{dict.items.length - 4} more</span>}
+                                        {dict.items.length > 4 && (
+                                            <span className={styles.moreTag}>+{dict.items.length - 4} more</span>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                             {filteredDicts.length === 0 && (
-                                <p className="text-center text-xs text-slate-400 py-4">No dictionaries found.</p>
+                                <Text className={styles.emptyText}>No dictionaries found.</Text>
                             )}
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {view === 'create' && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                        <button onClick={() => setView('browse')} className="text-[10px] text-slate-500 font-bold hover:text-slate-800 flex items-center gap-1">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <button className={styles.backBtn} onClick={() => setView('browse')}>
                             ← Back to Browse
                         </button>
-                        
-                        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+
+                        <div className={styles.formCard}>
                             <div>
-                                <label className="block text-[9px] font-black uppercase text-slate-500 mb-1">Codelist ID</label>
-                                <input type="text" value={newId} onChange={e => setNewId(e.target.value.toUpperCase())} placeholder="e.g. SEV_DICT" className="w-full p-2 border border-slate-200 rounded-lg text-xs uppercase" />
+                                <label className={styles.fieldLabel}>Codelist ID</label>
+                                <Input
+                                    value={newId}
+                                    onChange={(_, d) => setNewId(d.value.toUpperCase())}
+                                    placeholder="e.g. SEV_DICT"
+                                />
                             </div>
                             <div>
-                                <label className="block text-[9px] font-black uppercase text-slate-500 mb-1">Display Name</label>
-                                <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Severity Scale" className="w-full p-2 border border-slate-200 rounded-lg text-xs" />
+                                <label className={styles.fieldLabel}>Display Name</label>
+                                <Input
+                                    value={newName}
+                                    onChange={(_, d) => setNewName(d.value)}
+                                    placeholder="e.g. Severity Scale"
+                                />
                             </div>
-                            
-                            <div className="pt-2 border-t">
-                                <label className="block text-[9px] font-black uppercase text-slate-500 mb-2">Values & Decodes</label>
-                                {newItems.map((item, idx) => (
-                                    <div key={idx} className="flex gap-2 mb-2">
-                                        <input type="text" placeholder="Value (e.g. 1)" value={item.codedValue} onChange={e => { const updated = [...newItems]; updated[idx].codedValue = e.target.value; setNewItems(updated); }} className="w-1/3 p-2 border border-slate-200 rounded-lg text-xs" />
-                                        <input type="text" placeholder="Decode (e.g. Mild)" value={item.decode} onChange={e => { const updated = [...newItems]; updated[idx].decode = e.target.value; setNewItems(updated); }} className="flex-grow p-2 border border-slate-200 rounded-lg text-xs" />
-                                    </div>
-                                ))}
-                                <button onClick={() => setNewItems([...newItems, { codedValue: '', decode: '' }])} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800">
-                                    + Add Row
-                                </button>
+
+                            <Divider />
+
+                            <div>
+                                <label className={styles.fieldLabel}>Values &amp; Decodes</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    {newItems.map((item, idx) => (
+                                        <div key={idx} className={styles.itemRow}>
+                                            <Input
+                                                placeholder="Value"
+                                                value={item.codedValue}
+                                                style={{ width: '90px', flexShrink: 0 }}
+                                                onChange={(_, d) => {
+                                                    const updated = [...newItems];
+                                                    updated[idx].codedValue = d.value;
+                                                    setNewItems(updated);
+                                                }}
+                                            />
+                                            <Input
+                                                placeholder="Decode"
+                                                value={item.decode}
+                                                style={{ flex: 1 }}
+                                                onChange={(_, d) => {
+                                                    const updated = [...newItems];
+                                                    updated[idx].decode = d.value;
+                                                    setNewItems(updated);
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                    <button
+                                        className={styles.addRowBtn}
+                                        onClick={() => setNewItems([...newItems, { codedValue: '', decode: '' }])}
+                                    >
+                                        + Add Row
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <button onClick={handleSaveNew} disabled={!newId || newItems.length === 0 || !newItems[0].codedValue} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-bold text-xs shadow-sm transition-all disabled:opacity-50">
+                        <Button
+                            appearance="primary"
+                            className={styles.saveBtn}
+                            onClick={handleSaveNew}
+                            disabled={!newId || newItems.length === 0 || !newItems[0].codedValue}
+                        >
                             Save Dictionary
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>
