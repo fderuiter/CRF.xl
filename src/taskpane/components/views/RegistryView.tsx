@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button, Spinner, makeStyles, tokens, Text } from '@fluentui/react-components';
 
 interface RegistryProps {
     onInit: () => Promise<void>;
@@ -6,39 +7,80 @@ interface RegistryProps {
     isProcessing: boolean;
 }
 
-export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProcessing }) => (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
-            
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🏛️</span>
-                <h2 className="font-black text-base tracking-tight">System Registry</h2>
-            </div>
-            
-            <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-                Define your global protocol and register your forms here. Sync to generate authoring tabs.
-            </p>
-            
-            <div className="space-y-3 relative z-10">
-                <button 
-                    onClick={onInit} 
-                    disabled={isProcessing} 
-                    className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-bold text-xs transition-all flex items-center justify-between group disabled:opacity-50"
-                >
-                    <span className="flex items-center gap-2">✨ Initialize Canvas</span>
-                    <span className="text-slate-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <button 
-                    onClick={onSync} 
-                    disabled={isProcessing} 
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-between group disabled:opacity-50"
-                >
-                    <span className="flex items-center gap-2">🔄 Sync Form Sheets</span>
-                    <span className="text-blue-200 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    card: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusXLarge,
+        padding: '20px',
+        boxShadow: tokens.shadow4,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    cardHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '8px',
+    },
+    cardTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorNeutralForeground1,
+    },
+    cardDesc: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+        marginBottom: '16px',
+        lineHeight: '1.5',
+    },
+    buttonGroup: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    fullWidthButton: {
+        width: '100%',
+        justifyContent: 'flex-start',
+    },
+});
+
+export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProcessing }) => {
+    const styles = useStyles();
+    return (
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                    <span role="img" aria-label="registry">🏛️</span>
+                    <Text className={styles.cardTitle}>System Registry</Text>
+                </div>
+                <Text className={styles.cardDesc} block>
+                    Define your global protocol and register your forms here. Sync to generate authoring tabs.
+                </Text>
+                <div className={styles.buttonGroup}>
+                    <Button
+                        appearance="outline"
+                        className={styles.fullWidthButton}
+                        onClick={onInit}
+                        disabled={isProcessing}
+                        icon={isProcessing ? <Spinner size="tiny" /> : <span>✨</span>}
+                    >
+                        Initialize Canvas
+                    </Button>
+                    <Button
+                        appearance="primary"
+                        className={styles.fullWidthButton}
+                        onClick={onSync}
+                        disabled={isProcessing}
+                        icon={isProcessing ? <Spinner size="tiny" /> : <span>🔄</span>}
+                    >
+                        Sync Form Sheets
+                    </Button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
