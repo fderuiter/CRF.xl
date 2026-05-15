@@ -73,15 +73,12 @@ module.exports = async (env, options) => {
             to: "assets/[name][ext][query]",
           },
           {
-            from: "manifest*.xml",
-            to: "[name]" + "[ext]",
-            transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
-              }
-            },
+            // Copy the environment-appropriate manifest:
+            //   development → manifest.dev.xml
+            //   production  → manifest.prod.xml
+            // Staging manifests are deployed manually; see docs/manifest-management.md.
+            from: dev ? "manifest.dev.xml" : "manifest.prod.xml",
+            to: "manifest.xml",
           },
         ],
       }),

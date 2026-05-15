@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <!-- PRODUCTION MANIFEST — contains only production URLs. No localhost or staging references. -->
+  <Id>d4e7b9f2-31a5-4c82-9e6d-0f8b5a2c7d91</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>CRF.xl</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="CRF.xl"/>
+  <Description DefaultValue="CRF.xl Clinical Metadata Engine — design, validate, and export clinical CRF metadata directly from Excel."/>
+  <!-- Replace PRODUCTION_HOST_URL with your actual production deployment URL, e.g. https://crfxl.example.com -->
+  <IconUrl DefaultValue="PRODUCTION_HOST_URL/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="PRODUCTION_HOST_URL/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://github.com/fderuiter/CRF.xl/issues"/>
+  <AppDomains>
+    <!-- Replace PRODUCTION_HOST_URL with your actual production domain -->
+    <AppDomain>PRODUCTION_HOST_URL</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="PRODUCTION_HOST_URL/taskpane.html"/>
+  </DefaultSettings>
+  <!-- ReadWriteDocument is required to read and write CRF workbook content.
+       Justification: the add-in must read the entire workbook to build the CRF
+       metadata model and write back validated results and navigation hyperlinks. -->
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="CommandsGroup">
+                <Label resid="CommandsGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label"/>
+                    <Description resid="TaskpaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="PRODUCTION_HOST_URL/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="PRODUCTION_HOST_URL/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="PRODUCTION_HOST_URL/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://github.com/fderuiter/CRF.xl/wiki"/>
+        <bt:Url id="Commands.Url" DefaultValue="PRODUCTION_HOST_URL/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="PRODUCTION_HOST_URL/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Get started with CRF.xl"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="CRF.xl"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Open CRF.xl"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="CRF.xl loaded successfully. Click 'Open CRF.xl' on the HOME tab to begin designing and validating your CRF metadata."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open the CRF.xl Clinical Metadata Engine task pane."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

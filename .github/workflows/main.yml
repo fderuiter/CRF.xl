@@ -34,3 +34,16 @@ jobs:
 
     - name: 🧪 Run QA Test Suite
       run: npm test
+
+    - name: 📋 Validate Manifests
+      run: |
+        npm run validate:dev
+        npm run validate:prod
+
+    - name: 🔒 Production manifest localhost check
+      run: |
+        if grep -qi "localhost" manifest.prod.xml; then
+          echo "ERROR: manifest.prod.xml contains a localhost reference — this is not allowed in production."
+          exit 1
+        fi
+        echo "PASS: no localhost references found in manifest.prod.xml"
