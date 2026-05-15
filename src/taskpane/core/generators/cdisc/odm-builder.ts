@@ -71,8 +71,11 @@ export function generateOdmXml(study: StudyDesign): string {
             xml += `
       <ItemGroupDef OID="${group.groupOid}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? 'Yes' : 'No'}">`;
             group.items.forEach(item => {
+                const conditionAttr = item.showIf
+                    ? ` CollectionExceptionConditionOID="COND.${item.itemOid}"`
+                    : "";
                 xml += `
-        <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? 'Yes' : 'No'}"/>`;
+        <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? 'Yes' : 'No'}"${conditionAttr}/>`;
             });
             xml += `
       </ItemGroupDef>`;
@@ -88,6 +91,25 @@ export function generateOdmXml(study: StudyDesign): string {
                 if (processedItems.has(item.itemOid)) return;
                 processedItems.add(item.itemOid);
                 xml += renderItemDef(item);
+            });
+        });
+    });
+
+    // 5b. Condition Definitions
+    const processedConditions = new Set<string>();
+    Object.values(study.forms).forEach(form => {
+        form.itemGroups.forEach(group => {
+            group.items.forEach(item => {
+                if (!item.showIf) return;
+
+                const conditionOid = `COND.${item.itemOid}`;
+                if (processedConditions.has(conditionOid)) return;
+                processedConditions.add(conditionOid);
+
+                xml += `
+      <ConditionDef OID="${conditionOid}" Name="Show condition for ${escapeXml(item.name)}">
+        <FormalExpression Context="CRF.xl">${item.showIf}</FormalExpression>
+      </ConditionDef>`;
             });
         });
     });
