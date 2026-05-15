@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" 
+     FileType="Snapshot" 
+     FileOID="REF-ODM-001_1.0_20260515T233308876Z" 
+     CreationDateTime="2026-05-15T23:33:08.876Z" 
+     ODMVersion="1.3.2">
+  <Study OID="REF-ODM-001">
+    <GlobalVariables>
+      <StudyName>Reference ODM Study</StudyName>
+      <StudyDescription>Metadata export for Protocol REF-ODM-001</StudyDescription>
+      <ProtocolName>REF-ODM-001</ProtocolName>
+    </GlobalVariables>
+    <MetaDataVersion OID="MV.1.0" Name="Version 1.0">
+      <Protocol>
+        <StudyEventRef StudyEventOID="VISIT_1" OrderNumber="1" Mandatory="Yes"/>
+      </Protocol>
+      <StudyEventDef OID="VISIT_1" Name="Screening" Type="Scheduled" Repeating="No">
+        <FormRef FormOID="DEMO" OrderNumber="1" Mandatory="Yes"/>
+      </StudyEventDef>
+      <FormDef OID="DEMO" Name="Demographics" Repeating="No">
+        <ItemGroupRef ItemGroupOID="DEMO_GRP" OrderNumber="1" Mandatory="Yes"/>
+      </FormDef>
+      <ItemGroupDef OID="DEMO_GRP" Name="Default Group" Repeating="No">
+        <ItemRef ItemOID="SEX_CODE" OrderNumber="1" Mandatory="Yes"/>
+        <ItemRef ItemOID="AGE" OrderNumber="2" Mandatory="No"/>
+      </ItemGroupDef>
+      <ItemDef OID="SEX_CODE" Name="SEX_CODE" DataType="text">
+        <Question><TranslatedText xml:lang="en-US">Biological Sex</TranslatedText></Question>
+        <CodeListRef CodeListOID="SEX"/>
+      </ItemDef>
+      <ItemDef OID="AGE" Name="AGE" DataType="integer">
+        <Question><TranslatedText xml:lang="en-US">Age in Years</TranslatedText></Question>
+      </ItemDef>
+      <CodeList OID="SEX" Name="Sex" DataType="text">
+        <CodeListItem CodedValue="M">
+          <Decode><TranslatedText xml:lang="en-US">Male</TranslatedText></Decode>
+        </CodeListItem>
+        <CodeListItem CodedValue="F">
+          <Decode><TranslatedText xml:lang="en-US">Female</TranslatedText></Decode>
+        </CodeListItem>
+      </CodeList>
+    </MetaDataVersion>
+  </Study>
+</ODM>

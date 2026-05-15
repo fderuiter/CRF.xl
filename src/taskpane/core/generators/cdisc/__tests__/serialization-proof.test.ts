@@ -9,13 +9,24 @@ import { DataType, EventType, StudyDesign } from "../../../types";
 
 const fixturePath = path.resolve(
   __dirname,
-  "../__fixtures__/reference-study/reference-study.xlsx"
+  "../../../../../../fixtures/reference-study/reference-study.xlsx"
 );
 
 const schemaPath = path.resolve(
   __dirname,
-  "../__fixtures__/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd"
+  "../../../../../../fixtures/odm/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd"
 );
+
+const generatedFixturePath = path.resolve(
+  __dirname,
+  "../../../../../../fixtures/odm/reference-study.xml"
+);
+
+function normalizeDynamicMetadata(xml: string): string {
+  return xml
+    .replace(/FileOID="[^"]+"/, 'FileOID="__FILE_OID__"')
+    .replace(/CreationDateTime="[^"]+"/, 'CreationDateTime="__CREATION_DATE_TIME__"');
+}
 
 function mapDataType(raw: unknown): DataType {
   const value = String(raw ?? "").trim().toLowerCase();
@@ -202,6 +213,14 @@ describe("ODM serialization proofing", () => {
 
     expect(xml).toContain('<Study OID="REF-ODM-001">');
     expect(xml).toContain('<CodeList OID="SEX" Name="Sex" DataType="text">');
+
+    if (process.env.UPDATE_ODM_FIXTURE === "1") {
+      fs.writeFileSync(generatedFixturePath, xml, "utf-8");
+    }
+
+    expect(fs.existsSync(generatedFixturePath)).toBe(true);
+    const expectedXml = fs.readFileSync(generatedFixturePath, "utf-8");
+    expect(normalizeDynamicMetadata(xml)).toEqual(normalizeDynamicMetadata(expectedXml));
 
     if (!hasXmllint()) {
       process.stderr.write(
