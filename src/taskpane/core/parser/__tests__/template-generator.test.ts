@@ -5,6 +5,7 @@ describe("Sheet protection configuration", () => {
         const formsConfig = getSheetProtectionConfigs().find(config => config.sheetName === "_Forms");
 
         expect(formsConfig).toBeDefined();
+        expect(formsConfig?.protectionArea).toEqual("A1:XFD1000");
         expect(formsConfig?.lockedRanges).toEqual(["A1:D1"]);
         expect(formsConfig?.editableRanges).toEqual(["A2:D1000"]);
     });
@@ -13,6 +14,7 @@ describe("Sheet protection configuration", () => {
         const scheduleConfig = getSheetProtectionConfigs().find(config => config.sheetName === "_Schedule");
 
         expect(scheduleConfig).toBeDefined();
+        expect(scheduleConfig?.protectionArea).toEqual("A1:XFD1000");
         expect(scheduleConfig?.lockedRanges).toEqual(["A1:XFD1", "A2:A1000"]);
         expect(scheduleConfig?.editableRanges).toEqual(["B2:XFD1000"]);
     });
