@@ -26,3 +26,10 @@ Quality Warning: Suggests a best-practice violation. Does not block export.
 |---|---|---|---|
 | UI-01 | Warning | Missing Label | Item exists but 'Label' is empty (will result in blank question on Paper CRF). |
 | UI-02 | Warning | Empty Event | Event exists in visit schedule but has no forms assigned. |
+
+## 5. Current `validator.ts` implementation notes (tested)
+
+- Duplicate OID detection is currently **study-wide** (global across all forms), not per form.
+- Codelist validation also triggers when `codelistId` is present, even if `dataType` is not explicitly `Codelist`.
+- Missing variable errors rely on optional `rowIndex`; when absent, the location becomes `FormOid > Row undefined`.
+- `activeSheetFilter` only filters for non-system tabs. Filters that start with `_` (for example `_Schedule`) intentionally return all issues.
