@@ -42,7 +42,8 @@ jobs:
           ### Epic health
           - [ ] #35 Fluent UI v9 — verify children closed
           - [ ] #42 Structural Guardrails — verify children closed
-          - [ ] #59 Performance — fixture defined?
+          - [ ] #59 Performance — fixture+budget reference reviewed (`docs/qa-testing/performance-benchmark-mega-study.md`)
+          - [ ] #60 Parse runtime validation — thresholds referenced from mega-study budget (`docs/qa-testing/performance-benchmark-mega-study.md`)
           - [ ] #68 Enterprise Distribution — deployment decisions made?
 
           ### Roadmap
