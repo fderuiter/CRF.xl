@@ -21,6 +21,10 @@
     "pretty": true,
     "typeRoots": [
       "node_modules/@types"
+    ],
+    "types": [
+      "jest",
+      "office-js"
     ]
   },
   "exclude": [
@@ -28,10 +32,10 @@
   ],
   "compileOnSave": false,
   "buildOnSave": false,
-  "ts-node": { 
+  "ts-node": {
     "compilerOptions": {
       "module": "commonjs"
     },
-    "files": true 
+    "files": true
   }
 }
