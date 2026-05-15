@@ -42,6 +42,7 @@
     "@babel/core": "^7.24.0",
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.23.3",
+    "@types/jest": "^30.0.0",
     "@types/office-js": "^1.0.591",
     "@types/office-runtime": "^1.0.35",
     "@types/react": "^18.2.64",
