@@ -1,0 +1,56 @@
+name: Spike Decision Summary Check
+
+# When a type:spike issue is closed, verify a Decision Summary is present.
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  check-decision-summary:
+    # Only fire for spike issues
+    if: contains(join(github.event.issue.labels.*.name, ','), 'type:spike')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Require decision summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # Check issue body for a decision summary section
+          if ! echo "$ISSUE_BODY" | grep -qiE "## decision summary|## decision$|## outcome|## result"; then
+            # Also check comments for decision summary
+            has_summary=$(gh api "repos/$GH_REPO/issues/$ISSUE_NUMBER/comments" \
+              -q '[.[].body | ascii_downcase | test("decision summary|## decision|## outcome")] | any')
+
+            if [ "$has_summary" != "true" ]; then
+              gh issue comment "$ISSUE_NUMBER" --body "### 📋 Spike Decision Summary Required
+
+This spike has been closed but no decision summary was found in the issue body or comments.
+
+Please add a decision summary before considering this spike resolved. Suggested format:
+
+\`\`\`markdown
+## Decision Summary
+
+### Options Considered
+- Option A: ...
+- Option B: ...
+
+### Decision
+...
+
+### Consequences
+- ...
+
+### Issues to Update
+- [ ] #...
+- [ ] #...
+\`\`\`
+
+After posting the summary, notify the blocked issues so they can be promoted from \`status:needs-more-information\`."
+            fi
+          fi

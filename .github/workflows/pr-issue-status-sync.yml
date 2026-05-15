@@ -1,0 +1,86 @@
+name: PR to Issue Status Sync
+
+# When a PR is opened/reopened → mark linked issues as in-progress.
+# When a PR is merged           → mark linked issues as verify.
+# When a PR is closed (no merge)→ move linked issues back to ready.
+#
+# Parses 'Fixes #N', 'Closes #N', 'Resolves #N', 'Refs #N' from PR body.
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+
+jobs:
+  sync-issue-status:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Extract linked issue numbers
+        id: extract
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          issues=$(echo "$PR_BODY" | \
+            grep -oiE '(fixes|closes|resolves|refs) #[0-9]+' | \
+            grep -oE '[0-9]+' | sort -u | tr '\n' ' ')
+          echo "issues=${issues}" >> "$GITHUB_OUTPUT"
+
+      - name: Update linked issues
+        if: steps.extract.outputs.issues != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          ACTION: ${{ github.event.action }}
+          ISSUES: ${{ steps.extract.outputs.issues }}
+        run: |
+          for issue in $ISSUES; do
+            # Fetch current status labels for this issue
+            current_status=$(gh api "repos/$GH_REPO/issues/$issue" \
+              -q '[.labels[].name | select(startswith("status:"))] | first // empty')
+
+            if [ "$ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
+              # PR merged → move to verify
+              [ -n "$current_status" ] && \
+                gh issue edit "$issue" --remove-label "$current_status" 2>/dev/null || true
+              gh issue edit "$issue" --add-label "status:verify"
+              gh issue comment "$issue" --body "### ✅ PR Merged — Verification Required
+
+PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was merged.
+
+This issue is now \`status:verify\`. Please confirm:
+- [ ] Implementation meets acceptance criteria
+- [ ] Tests pass
+- [ ] Evidence linked (screenshot / test output / artifact)
+- [ ] Applicable docs updated
+
+Close this issue after verification is complete."
+
+            elif [ "$ACTION" = "closed" ] && [ "$MERGED" = "false" ]; then
+              # PR closed without merging → return to ready
+              [ -n "$current_status" ] && \
+                gh issue edit "$issue" --remove-label "$current_status" 2>/dev/null || true
+              gh issue edit "$issue" --add-label "status:ready"
+              gh issue comment "$issue" --body "### ↩️ PR Closed Without Merging
+
+PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was closed without merging.
+
+This issue has been moved back to \`status:ready\`."
+
+            else
+              # PR opened/reopened → move to in-progress
+              [ -n "$current_status" ] && \
+                gh issue edit "$issue" --remove-label "$current_status" 2>/dev/null || true
+              gh issue edit "$issue" --add-label "status:in-progress"
+              gh issue comment "$issue" --body "### 🚧 Implementation Started
+
+PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) has been opened for this issue.
+
+This issue is now \`status:in-progress\`."
+            fi
+
+            echo "Updated issue #${issue}"
+          done

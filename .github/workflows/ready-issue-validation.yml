@@ -1,0 +1,60 @@
+name: Ready Issue Validation
+
+# When status:ready is added, verify the issue has minimum required metadata.
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  validate-ready:
+    # Only run when the specific label added is status:ready
+    if: github.event.label.name == 'status:ready'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Validate ready issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          LABELS_JSON: ${{ toJson(github.event.issue.labels) }}
+        run: |
+          missing=()
+
+          # Body checks
+          echo "$ISSUE_BODY" | grep -qiE "acceptance criteria|## AC|## Done" \
+            || missing+=("- [ ] Acceptance Criteria section")
+
+          echo "$ISSUE_BODY" | grep -qiE "evidence required|definition of done|## evidence" \
+            || missing+=("- [ ] Evidence Required / Definition of Done section")
+
+          # Label checks
+          has_label() {
+            echo "$LABELS_JSON" | jq -e --arg p "$1" 'any(.[]; .name | startswith($p))' > /dev/null
+          }
+
+          has_label "priority:"  || missing+=("- [ ] \`priority:*\` label")
+          has_label "phase:"     || missing+=("- [ ] \`phase:*\` label")
+          has_label "type:"      || missing+=("- [ ] \`type:*\` label")
+          has_label "area:"      || missing+=("- [ ] \`area:*\` label")
+
+          # Milestone check via API
+          milestone=$(gh api "repos/$GH_REPO/issues/$ISSUE_NUMBER" -q '.milestone.title // empty')
+          [ -n "$milestone" ] || missing+=("- [ ] Milestone assignment")
+
+          # Conflict: should not also carry needs-more-information
+          echo "$LABELS_JSON" | jq -e 'any(.[]; .name == "status:needs-more-information")' > /dev/null \
+            && missing+=("- [ ] Remove conflicting \`status:needs-more-information\` label")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            items=$(printf '%s\n' "${missing[@]}")
+            gh issue comment "$ISSUE_NUMBER" --body "### ⚠️ Ready Issue Validation
+
+This issue was marked \`status:ready\`, but the following items appear to be missing:
+
+${items}
+
+Please resolve before implementation begins."
+          fi

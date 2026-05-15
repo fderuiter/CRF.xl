@@ -1,0 +1,50 @@
+name: Issue Status Conflict Check
+
+# Warns when an issue has more than one primary workflow status label.
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+
+jobs:
+  check-status-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Check for multiple status labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LABELS_JSON: ${{ toJson(github.event.issue.labels) }}
+        run: |
+          # Primary workflow statuses — only one should be present at a time
+          PRIMARY=("status:needs-more-information" "status:needs-design"
+                   "status:needs-acceptance-criteria" "status:ready"
+                   "status:in-progress" "status:verify")
+
+          found=()
+          for label in "${PRIMARY[@]}"; do
+            if echo "$LABELS_JSON" | jq -e --arg l "$label" 'any(.[]; .name == $l)' > /dev/null; then
+              found+=("\`${label}\`")
+            fi
+          done
+
+          count=${#found[@]}
+          if [ "$count" -gt 1 ]; then
+            labels_list=$(printf ' - %s\n' "${found[@]}")
+            gh issue comment "$ISSUE_NUMBER" --body "### ⚠️ Multiple status labels detected
+
+This issue has ${count} primary workflow status labels. Please keep exactly one.
+
+Current status labels:
+${labels_list}
+
+Recommended lifecycle order:
+- \`status:needs-more-information\` → information/design is missing
+- \`status:needs-design\` → scope is known but design is pending
+- \`status:needs-acceptance-criteria\` → design done, AC not written
+- \`status:ready\` → implementation can start
+- \`status:in-progress\` → implementation underway
+- \`status:verify\` → implementation done, needs QA sign-off"
+          fi

@@ -1,0 +1,52 @@
+name: Stale In-Progress Reminder
+
+# Every Monday, find issues with status:in-progress that have had no update
+# in more than 14 days and post a reminder comment.
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  stale-in-progress:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Find and comment on stale in-progress issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          CUTOFF=$(date -d '14 days ago' --utc +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+                || date -v-14d -u +%Y-%m-%dT%H:%M:%SZ)  # macOS fallback
+
+          # Fetch open issues with status:in-progress
+          issues=$(gh issue list \
+            --repo "$GH_REPO" \
+            --state open \
+            --label "status:in-progress" \
+            --json number,title,updatedAt \
+            --limit 100)
+
+          echo "$issues" | jq -c '.[]' | while read -r issue; do
+            number=$(echo "$issue" | jq -r '.number')
+            title=$(echo "$issue"  | jq -r '.title')
+            updated=$(echo "$issue" | jq -r '.updatedAt')
+
+            # Compare timestamps (lexicographic works for ISO 8601)
+            if [[ "$updated" < "$CUTOFF" ]]; then
+              echo "Commenting on stale issue #${number}: ${title}"
+              gh issue comment "$number" --body "### 🕐 Stale In-Progress Reminder
+
+This issue has been \`status:in-progress\` for more than 14 days without activity.
+
+Please update with:
+- [ ] Current progress summary
+- [ ] Any blockers
+- [ ] Next action and owner
+- [ ] Whether this should move to \`status:verify\`, \`status:ready\` (paused), or needs a \`status:blocked\` label
+
+_Automated reminder — update the issue to stop these notifications._"
+            fi
+          done
