@@ -2,6 +2,7 @@
 
 interface SheetProtectionConfig {
     sheetName: "_Forms" | "_Schedule";
+    protectionArea: string;
     editableRanges: string[];
     lockedRanges: string[];
 }
@@ -10,11 +11,13 @@ export function getSheetProtectionConfigs(): SheetProtectionConfig[] {
     return [
         {
             sheetName: "_Forms",
+            protectionArea: "A1:XFD1000",
             editableRanges: ["A2:D1000"],
             lockedRanges: ["A1:D1"]
         },
         {
             sheetName: "_Schedule",
+            protectionArea: "A1:XFD1000",
             editableRanges: ["B2:XFD1000"],
             lockedRanges: ["A1:XFD1", "A2:A1000"]
         }
@@ -173,6 +176,7 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
     const protectionConfigs = getSheetProtectionConfigs();
     for (const config of protectionConfigs) {
         const sheet = config.sheetName === "_Forms" ? formsSheet : scheduleSheet;
+        sheet.getRange(config.protectionArea).format.protection.locked = true;
 
         for (const rangeAddress of config.editableRanges) {
             sheet.getRange(rangeAddress).format.protection.locked = false;
