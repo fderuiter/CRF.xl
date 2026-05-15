@@ -3,7 +3,7 @@ import { ValidationIssue } from '../parser/validator';
 
 /**
  * High-performance canvas cleaner. 
- * Surgically wipes red highlights and cell notes from active study sheets without harming data or headers.
+ * Surgically wipes red highlights and cell comments from active study sheets without harming data or headers.
  */
 export async function clearAllAnnotations(sheetNames: string[]): Promise<void> {
     await Excel.run(async (context) => {
@@ -24,13 +24,18 @@ export async function clearAllAnnotations(sheetNames: string[]): Promise<void> {
             // 1. Clear background color (removes the red error highlight)
             dataRange.format.fill.clear();
 
-            // 2. Clear Excel notes safely (Targeting Column 0 where notes are placed)
+            // 2. Clear Excel comments safely using the official Office.js Comments API
             try {
-                const firstCol = sheet.getRangeByIndexes(1, 0, range.rowCount - 1, 1);
-                // Setting note to an empty string natively clears the comment in Office.js
-                firstCol.note = ""; 
+                const comments = sheet.comments;
+                comments.load("items");
+                await context.sync();
+                
+                // Iterate through and delete all comments on this sheet
+                comments.items.forEach(comment => {
+                    comment.delete();
+                });
             } catch (e) {
-                console.warn(`[AnnotationService] Could not clear notes on sheet: ${name}`, e);
+                console.warn(`[AnnotationService] Could not clear comments on sheet: ${name}`, e);
             }
         }
         await context.sync();
@@ -38,7 +43,7 @@ export async function clearAllAnnotations(sheetNames: string[]): Promise<void> {
 }
 
 /**
- * Paints errors directly onto the Excel grid as red rows and hoverable notes.
+ * Paints errors directly onto the Excel grid as red rows and threaded comments.
  */
 export async function highlightErrorsOnCanvas(issues: ValidationIssue[]): Promise<void> {
     await Excel.run(async (context) => {
@@ -53,9 +58,14 @@ export async function highlightErrorsOnCanvas(issues: ValidationIssue[]): Promis
             const range = sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 8);
             range.format.fill.color = "#fee2e2"; // Tailwind red-100
             
-            // Attach the exact error message to the Variable Name cell as a hoverable note
+            // Attach the exact error message to the Variable Name cell as a Comment
             const cell = sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 1);
-            cell.note = issue.message;
+            
+            try {
+                sheet.comments.add(cell, issue.message);
+            } catch (e) {
+                console.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
+            }
         }
         await context.sync();
     });
