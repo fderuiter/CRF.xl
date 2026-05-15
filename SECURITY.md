@@ -2,6 +2,8 @@
 
 This document maps CRF.xl architecture and delivery controls to the CIS Controls framework, with emphasis on **Access Control**, **Data Protection**, and **Audit Log** requirements relevant to clinical metadata workflows.
 
+For a public-facing audit-trail walkthrough aligned to **21 CFR Part 11**, see `docs/compliance/21-cfr-part-11-excel-versioning.md`.
+
 ## Dependency Stewardship Policy
 
 - Run `npm run audit:json` on a regular cadence (at least weekly and before every release).
