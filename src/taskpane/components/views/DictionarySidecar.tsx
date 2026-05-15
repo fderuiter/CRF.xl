@@ -1,8 +1,25 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { Button, Input, Spinner, Badge, Text, makeStyles, tokens, Divider } from '@fluentui/react-components';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+    Button,
+    Input,
+    Spinner,
+    Badge,
+    Text,
+    makeStyles,
+    tokens,
+    Divider,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
+    createTableColumn,
+} from '@fluentui/react-components';
 import { AddRegular, ArrowLeftRegular } from '@fluentui/react-icons';
 import { fetchDictionaries, insertDictionaryToActiveCell, saveNewDictionary, CodelistGroup } from '../../core/services/dictionary-service';
+import { filterDictionaries, getDictionaryPreview } from './dictionary-sidecar-utils';
 
 const useStyles = makeStyles({
     root: {
@@ -54,23 +71,27 @@ const useStyles = makeStyles({
     searchInput: {
         width: '100%',
     },
-    dictList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-    },
-    dictCard: {
-        backgroundColor: tokens.colorNeutralBackground1,
-        borderRadius: tokens.borderRadiusMedium,
-        padding: '12px',
-        boxShadow: tokens.shadow2,
-        border: `1px solid ${tokens.colorNeutralStroke1}`,
-    },
-    dictCardHeader: {
+    resultsSummary: {
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '8px',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    gridCard: {
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusMedium,
+        padding: '8px',
+        boxShadow: tokens.shadow2,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        overflowX: 'auto',
+    },
+    dataGrid: {
+        minWidth: '680px',
+    },
+    gridCellStack: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
     },
     dictId: {
         fontSize: tokens.fontSizeBase300,
@@ -85,6 +106,7 @@ const useStyles = makeStyles({
         display: 'flex',
         flexWrap: 'wrap',
         gap: '4px',
+        alignItems: 'center',
     },
     tag: {
         fontSize: tokens.fontSizeBase100,
@@ -97,7 +119,11 @@ const useStyles = makeStyles({
     emptyText: {
         textAlign: 'center',
         color: tokens.colorNeutralForeground3,
-        padding: '16px 0',
+        padding: '24px 0',
+    },
+    actionCell: {
+        display: 'flex',
+        justifyContent: 'flex-end',
     },
     createForm: {
         display: 'flex',
@@ -156,9 +182,9 @@ export const DictionarySidecar: React.FC = () => {
         setView('browse');
     };
 
-    const handleUseDictionary = async (id: string) => {
+    const handleUseDictionary = useCallback(async (id: string) => {
         await insertDictionaryToActiveCell(id);
-    };
+    }, []);
 
     const handleSaveNew = async () => {
         if (!newId || newItems.some(i => !i.codedValue)) return;
@@ -168,9 +194,69 @@ export const DictionarySidecar: React.FC = () => {
         await loadData();
     };
 
-    const filteredDicts = dictionaries.filter(d =>
-        d.id.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase())
+    const filteredDicts = useMemo(() => filterDictionaries(dictionaries, search), [dictionaries, search]);
+    const hasSearch = search.trim().length > 0;
+    const resultSummary = hasSearch
+        ? `Showing ${filteredDicts.length} of ${dictionaries.length} codelists`
+        : `${dictionaries.length} codelists available`;
+
+    const columns = useMemo(
+        () => [
+            createTableColumn<CodelistGroup>({
+                columnId: 'id',
+                compare: (a, b) => a.id.localeCompare(b.id),
+                renderHeaderCell: () => 'Codelist ID',
+                renderCell: (item) => (
+                    <div className={styles.gridCellStack}>
+                        <Text className={styles.dictId} block>
+                            {item.id}
+                        </Text>
+                    </div>
+                ),
+            }),
+            createTableColumn<CodelistGroup>({
+                columnId: 'name',
+                compare: (a, b) => a.name.localeCompare(b.name),
+                renderHeaderCell: () => 'Display Name',
+                renderCell: (item) => <Text className={styles.dictName}>{item.name || '—'}</Text>,
+            }),
+            createTableColumn<CodelistGroup>({
+                columnId: 'items',
+                compare: (a, b) => a.items.length - b.items.length,
+                renderHeaderCell: () => 'Values',
+                renderCell: (item) => <Text>{item.items.length}</Text>,
+            }),
+            createTableColumn<CodelistGroup>({
+                columnId: 'preview',
+                renderHeaderCell: () => 'Preview',
+                renderCell: (item) => {
+                    const preview = getDictionaryPreview(item.items);
+
+                    return (
+                        <div className={styles.tagRow}>
+                            {preview.previewItems.map((entry) => (
+                                <span key={entry} className={styles.tag}>
+                                    {entry}
+                                </span>
+                            ))}
+                            {preview.overflowCount > 0 && <span className={styles.tag}>+{preview.overflowCount} more</span>}
+                        </div>
+                    );
+                },
+            }),
+            createTableColumn<CodelistGroup>({
+                columnId: 'actions',
+                renderHeaderCell: () => 'Action',
+                renderCell: (item) => (
+                    <div className={styles.actionCell}>
+                        <Button appearance="outline" size="small" onClick={() => handleUseDictionary(item.id)}>
+                            Use
+                        </Button>
+                    </div>
+                ),
+            }),
+        ],
+        [handleUseDictionary, styles]
     );
 
     return (
@@ -207,42 +293,37 @@ export const DictionarySidecar: React.FC = () => {
                     <>
                         <Input
                             className={styles.searchInput}
-                            placeholder="Search dictionaries..."
+                            placeholder="Search by ID, name, value, or decode..."
                             value={search}
                             onChange={(_, d) => setSearch(d.value)}
+                            aria-label="Search codelists"
                         />
-                        <div className={styles.dictList}>
-                            {filteredDicts.map(dict => (
-                                <div key={dict.id} className={styles.dictCard}>
-                                    <div className={styles.dictCardHeader}>
-                                        <div>
-                                            <Text className={styles.dictId} block>{dict.id}</Text>
-                                            <Text className={styles.dictName}>{dict.name}</Text>
-                                        </div>
-                                        <Button
-                                            appearance="outline"
-                                            size="small"
-                                            onClick={() => handleUseDictionary(dict.id)}
-                                        >
-                                            Use
-                                        </Button>
-                                    </div>
-                                    <div className={styles.tagRow}>
-                                        {dict.items.slice(0, 4).map((item, idx) => (
-                                            <span key={idx} className={styles.tag}>
-                                                {item.codedValue} = {item.decode}
-                                            </span>
-                                        ))}
-                                        {dict.items.length > 4 && (
-                                            <span className={styles.tag}>+{dict.items.length - 4} more</span>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {filteredDicts.length === 0 && (
-                                <Text className={styles.emptyText}>No dictionaries found.</Text>
-                            )}
+                        <div className={styles.resultsSummary}>
+                            <Text>{resultSummary}</Text>
+                            {hasSearch && <Text>{`Search: "${search.trim()}"`}</Text>}
                         </div>
+                        {filteredDicts.length > 0 ? (
+                            <div className={styles.gridCard}>
+                                <DataGrid items={filteredDicts} columns={columns} sortable getRowId={(item) => item.id} className={styles.dataGrid}>
+                                    <DataGridHeader>
+                                        <DataGridRow>
+                                            {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                        </DataGridRow>
+                                    </DataGridHeader>
+                                    <DataGridBody<CodelistGroup>>
+                                        {({ item, rowId }) => (
+                                            <DataGridRow<CodelistGroup> key={rowId}>
+                                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                            </DataGridRow>
+                                        )}
+                                    </DataGridBody>
+                                </DataGrid>
+                            </div>
+                        ) : (
+                            <Text className={styles.emptyText}>
+                                {dictionaries.length === 0 ? 'No codelists available yet.' : 'No codelists found for the current search.'}
+                            </Text>
+                        )}
                     </>
                 )}
 
