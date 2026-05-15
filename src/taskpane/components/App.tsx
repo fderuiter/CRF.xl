@@ -241,7 +241,7 @@ export const App: React.FC<{ title?: string }> = () => {
                         onClick={handleInitialize}
                         disabled={isProcessing}
                         icon={isProcessing ? <Spinner size="tiny" /> : undefined}
-                        style={{ width: '100%', backgroundColor: 'white', color: tokens.colorBrandForeground1 }}
+                        style={{ width: '100%', backgroundColor: tokens.colorNeutralBackground1, color: tokens.colorBrandForeground1 }}
                     >
                         ✨ Initialize Canvas
                     </Button>

@@ -18,7 +18,7 @@ const useStyles = makeStyles({
     },
     emptyIcon: {
         fontSize: '28px',
-        color: tokens.colorPaletteGreenForeground2,
+        color: tokens.colorStatusSuccessForeground1,
         marginBottom: '8px',
     },
     emptyTitle: {
@@ -65,15 +65,20 @@ const useStyles = makeStyles({
     },
     issueCard: {
         padding: '10px 12px',
-        backgroundColor: tokens.colorNeutralBackground1,
-        border: `1px solid ${tokens.colorPaletteRedBorder1}`,
+        backgroundColor: tokens.colorStatusDangerBackground1,
+        border: `1px solid ${tokens.colorStatusDangerBorder1}`,
         borderLeftWidth: '4px',
-        borderLeftColor: tokens.colorPaletteRedBorder2,
+        borderLeftColor: tokens.colorStatusDangerBorder2,
         borderRadius: tokens.borderRadiusMedium,
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         gap: '2px',
+    },
+    warningIssueCard: {
+        backgroundColor: tokens.colorStatusWarningBackground1,
+        border: `1px solid ${tokens.colorStatusWarningBorder1}`,
+        borderLeftColor: tokens.colorStatusWarningBorder2,
     },
     issueMessage: {
         fontSize: tokens.fontSizeBase200,
@@ -112,11 +117,13 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
         <div className={styles.logContainer}>
             <div className={styles.logHeader}>
                 <Text className={styles.logTitle}>Diagnostic Log</Text>
-                <Badge color="danger" appearance="tint">{issues.length} Issues</Badge>
+                <Badge color={issues.some((issue: any) => issue.level === 'Error') ? 'danger' : 'warning'} appearance="tint">
+                    {issues.length} Issues
+                </Badge>
             </div>
             <div className={styles.logBody}>
                 {issues.map((issue: any, idx: number) => (
-                    <div key={idx} className={styles.issueCard}>
+                    <div key={idx} className={issue.level === 'Warning' ? `${styles.issueCard} ${styles.warningIssueCard}` : styles.issueCard}>
                         <Text className={styles.issueMessage}>{issue.message}</Text>
                         <Text className={styles.issueLocation}>{issue.location}</Text>
                         {issue.rowIndex !== undefined && (
