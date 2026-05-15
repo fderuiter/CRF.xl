@@ -47,3 +47,11 @@ The application is divided into two primary layers:
 3. Enable **Require status checks to pass before merging**.
 4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entries).
 5. Save the rule.
+
+## 🔒 Sheet Protection (Support Notes)
+- `_Forms`
+  - **Locked:** `A1:D1` (header row)
+  - **Editable:** `A2:D1000` (form registry user input)
+- `_Schedule`
+  - **Locked:** `A1:XFD1` (header row), `A2:A1000` (formula-driven form OID column)
+  - **Editable:** `B2:XFD1000` (visit matrix user input)

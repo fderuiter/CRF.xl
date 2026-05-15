@@ -1,5 +1,26 @@
 /* global Office, Excel */
 
+interface SheetProtectionConfig {
+    sheetName: "_Forms" | "_Schedule";
+    editableRanges: string[];
+    lockedRanges: string[];
+}
+
+export function getSheetProtectionConfigs(): SheetProtectionConfig[] {
+    return [
+        {
+            sheetName: "_Forms",
+            editableRanges: ["A2:D1000"],
+            lockedRanges: ["A1:D1"]
+        },
+        {
+            sheetName: "_Schedule",
+            editableRanges: ["B2:XFD1000"],
+            lockedRanges: ["A1:XFD1", "A2:A1000"]
+        }
+    ];
+}
+
 /**
  * 1. INITIALIZE WORKBOOK (The Scaffolder)
  * Creates the locked System Control sheets and builds the Named Ranges.
@@ -73,6 +94,17 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
     const sheets = context.workbook.worksheets;
     const formsSheet = sheets.getItem("_Forms");
     const scheduleSheet = sheets.getItem("_Schedule");
+    formsSheet.protection.load("protected");
+    scheduleSheet.protection.load("protected");
+    await context.sync();
+
+    if (formsSheet.protection.protected) {
+        formsSheet.protection.unprotect();
+    }
+
+    if (scheduleSheet.protection.protected) {
+        scheduleSheet.protection.unprotect();
+    }
     
     const usedRange = formsSheet.getUsedRange();
     usedRange.load(["values", "rowCount"]);
@@ -136,6 +168,21 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
         // Re-assign hyperlink to ensure it points to the correct sheet (using single quotes for safety)
         const cell = formsSheet.getRangeByIndexes(i, 0, 1, 1);
         cell.hyperlink = { textToDisplay: oid, address: `#'${oid}'!A1` };
+    }
+
+    const protectionConfigs = getSheetProtectionConfigs();
+    for (const config of protectionConfigs) {
+        const sheet = config.sheetName === "_Forms" ? formsSheet : scheduleSheet;
+
+        for (const rangeAddress of config.editableRanges) {
+            sheet.getRange(rangeAddress).format.protection.locked = false;
+        }
+
+        for (const rangeAddress of config.lockedRanges) {
+            sheet.getRange(rangeAddress).format.protection.locked = true;
+        }
+
+        sheet.protection.protect({ selectionMode: "Unlocked" });
     }
 
     await context.sync();
