@@ -52,9 +52,9 @@ jobs:
             items=$(printf '%s\n' "${missing[@]}")
             gh issue comment "$ISSUE_NUMBER" --body "### ⚠️ Ready Issue Validation
 
-This issue was marked \`status:ready\`, but the following items appear to be missing:
+          This issue was marked \`status:ready\`, but the following items appear to be missing:
 
-${items}
+          ${items}
 
-Please resolve before implementation begins."
+          Please resolve before implementation begins."
           fi

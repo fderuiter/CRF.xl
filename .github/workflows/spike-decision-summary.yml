@@ -29,28 +29,28 @@ jobs:
             if [ "$has_summary" != "true" ]; then
               gh issue comment "$ISSUE_NUMBER" --body "### 📋 Spike Decision Summary Required
 
-This spike has been closed but no decision summary was found in the issue body or comments.
+          This spike has been closed but no decision summary was found in the issue body or comments.
 
-Please add a decision summary before considering this spike resolved. Suggested format:
+          Please add a decision summary before considering this spike resolved. Suggested format:
 
-\`\`\`markdown
-## Decision Summary
+          \`\`\`markdown
+          ## Decision Summary
 
-### Options Considered
-- Option A: ...
-- Option B: ...
+          ### Options Considered
+          - Option A: ...
+          - Option B: ...
 
-### Decision
-...
+          ### Decision
+          ...
 
-### Consequences
-- ...
+          ### Consequences
+          - ...
 
-### Issues to Update
-- [ ] #...
-- [ ] #...
-\`\`\`
+          ### Issues to Update
+          - [ ] #...
+          - [ ] #...
+          \`\`\`
 
-After posting the summary, notify the blocked issues so they can be promoted from \`status:needs-more-information\`."
+          After posting the summary, notify the blocked issues so they can be promoted from \`status:needs-more-information\`."
             fi
           fi

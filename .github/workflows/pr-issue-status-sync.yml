@@ -49,15 +49,15 @@ jobs:
               gh issue edit "$issue" --add-label "status:verify"
               gh issue comment "$issue" --body "### ✅ PR Merged — Verification Required
 
-PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was merged.
+          PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was merged.
 
-This issue is now \`status:verify\`. Please confirm:
-- [ ] Implementation meets acceptance criteria
-- [ ] Tests pass
-- [ ] Evidence linked (screenshot / test output / artifact)
-- [ ] Applicable docs updated
+          This issue is now \`status:verify\`. Please confirm:
+          - [ ] Implementation meets acceptance criteria
+          - [ ] Tests pass
+          - [ ] Evidence linked (screenshot / test output / artifact)
+          - [ ] Applicable docs updated
 
-Close this issue after verification is complete."
+          Close this issue after verification is complete."
 
             elif [ "$ACTION" = "closed" ] && [ "$MERGED" = "false" ]; then
               # PR closed without merging → return to ready
@@ -66,9 +66,9 @@ Close this issue after verification is complete."
               gh issue edit "$issue" --add-label "status:ready"
               gh issue comment "$issue" --body "### ↩️ PR Closed Without Merging
 
-PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was closed without merging.
+          PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) was closed without merging.
 
-This issue has been moved back to \`status:ready\`."
+          This issue has been moved back to \`status:ready\`."
 
             else
               # PR opened/reopened → move to in-progress
@@ -77,9 +77,9 @@ This issue has been moved back to \`status:ready\`."
               gh issue edit "$issue" --add-label "status:in-progress"
               gh issue comment "$issue" --body "### 🚧 Implementation Started
 
-PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) has been opened for this issue.
+          PR #${PR_NUMBER} ([${PR_TITLE}](${PR_URL})) has been opened for this issue.
 
-This issue is now \`status:in-progress\`."
+          This issue is now \`status:in-progress\`."
             fi
 
             echo "Updated issue #${issue}"

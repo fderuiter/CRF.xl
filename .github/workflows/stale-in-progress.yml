@@ -39,14 +39,14 @@ jobs:
               echo "Commenting on stale issue #${number}: ${title}"
               gh issue comment "$number" --body "### 🕐 Stale In-Progress Reminder
 
-This issue has been \`status:in-progress\` for more than 14 days without activity.
+          This issue has been \`status:in-progress\` for more than 14 days without activity.
 
-Please update with:
-- [ ] Current progress summary
-- [ ] Any blockers
-- [ ] Next action and owner
-- [ ] Whether this should move to \`status:verify\`, \`status:ready\` (paused), or needs a \`status:blocked\` label
+          Please update with:
+          - [ ] Current progress summary
+          - [ ] Any blockers
+          - [ ] Next action and owner
+          - [ ] Whether this should move to \`status:verify\`, \`status:ready\` (paused), or needs a \`status:blocked\` label
 
-_Automated reminder — update the issue to stop these notifications._"
+          _Automated reminder — update the issue to stop these notifications._"
             fi
           done
