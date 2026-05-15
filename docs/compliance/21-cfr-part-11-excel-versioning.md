@@ -4,6 +4,8 @@
 
 This guide maps Microsoft Excel versioning and history controls to key **21 CFR Part 11** expectations for audit trails in clinical research workflows using CRF.xl.
 
+For CRF.xl's broader security control mapping (access control, data protection, and audit-log strategy), see `SECURITY.md`.
+
 It is intended for:
 - Clinical data managers
 - QA/compliance reviewers

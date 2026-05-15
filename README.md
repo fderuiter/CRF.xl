@@ -61,4 +61,5 @@ The application is divided into two primary layers:
   - **Editable:** `B2:XFD1000` (visit matrix user input)
 
 ## 📋 Compliance Documentation
+- **Security posture (CIS control mapping with access/data/audit evidence):** `SECURITY.md`
 - **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
