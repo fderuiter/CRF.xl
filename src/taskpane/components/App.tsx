@@ -1,7 +1,7 @@
 import { highlightErrorsOnCanvas, clearAllAnnotations } from '../core/services/annotation-service';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { makeStyles, tokens, Spinner, Badge, Text, Button } from '@fluentui/react-components';
+import { makeStyles, tokens, Spinner, Badge, Text, Button, MessageBar, MessageBarBody } from '@fluentui/react-components';
 
 // Core Logic
 import { ValidationLog } from './ValidationLog';
@@ -11,6 +11,7 @@ import { generateDocx } from '../core/generators/docx/docx-builder';
 import { generateOdmXml } from '../core/generators/cdisc/odm-builder';
 import { initializeWorkbook, navigateToSource, syncRegistry } from '../core/parser/template-generator';
 import { StudyDesign } from '../core/types/index';
+import { createOfficeErrorPresentation, OfficeErrorPresentation } from '../core/services/office-error-handling';
 
 // Telemetry & Views
 import { useExcelTelemetry } from './views/useExcelTelemetry';
@@ -140,38 +141,106 @@ export const App: React.FC<{ title?: string }> = () => {
     const [issues, setIssues] = useState<ValidationIssue[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState("Ready");
+    const [uiError, setUiError] = useState<(OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null>(null);
+
+    const dismissUiError = () => setUiError(null);
+
+    const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
+        const presentation = createOfficeErrorPresentation(error);
+        console.error(`[${presentation.diagnosticCode}]`, error);
+        setUiError({
+            ...presentation,
+            retryAction: presentation.allowRetry ? retryAction : undefined,
+        });
+    };
+
+    const runWithOfficeErrorHandling = async <T,>(operation: () => Promise<T>, retryAction?: () => Promise<void>): Promise<T | null> => {
+        dismissUiError();
+        try {
+            return await operation();
+        } catch (error) {
+            const presentation = createOfficeErrorPresentation(error);
+
+            if (presentation.errorClass === "contextSyncFailure") {
+                try {
+                    return await operation();
+                } catch (retryError) {
+                    presentOfficeError(retryError, retryAction);
+                    return null;
+                }
+            }
+
+            presentOfficeError(error, retryAction);
+            return null;
+        }
+    };
 
     // Startup Check: Does the Matrix architecture exist yet?
     useEffect(() => {
         const checkInit = async () => {
-            try {
+            const result = await runWithOfficeErrorHandling(async () => {
                 await Excel.run(async (context) => {
                     const sheet = context.workbook.worksheets.getItemOrNullObject("_Study");
                     await context.sync();
                     setIsInitialized(!sheet.isNullObject);
                 });
-            } catch (e) {
+                return true;
+            }, async () => {
+                await checkInit();
+            });
+            if (!result) {
                 setIsInitialized(false);
             }
         };
         checkInit();
     }, []);
 
+    useEffect(() => {
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            event.preventDefault();
+            presentOfficeError(event.reason);
+        };
+
+        window.addEventListener("unhandledrejection", handleUnhandledRejection);
+        return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    }, []);
+
     // --- Action Handlers ---
     const handleInitialize = async () => {
         setIsProcessing(true); setStatus("Scaffolding canvas...");
         try {
-            await initializeWorkbook();
+            const completed = await runWithOfficeErrorHandling(
+                async () => {
+                    await initializeWorkbook();
+                    return true;
+                },
+                async () => {
+                    await handleInitialize();
+                }
+            );
+            if (!completed) return;
             setIsInitialized(true); // Manually set to true once built
             setStatus("Canvas initialized");
         }
-        catch (e) { setStatus("Init failed"); } 
+        catch (e) { setStatus("Init failed"); }
         finally { setIsProcessing(false); }
     };
 
     const handleSync = async () => {
         setIsProcessing(true); setStatus("Warping sheets...");
-        try { await syncRegistry(); setStatus("Sheets synchronized"); } 
+        try {
+            const completed = await runWithOfficeErrorHandling(
+                async () => {
+                    await syncRegistry();
+                    return true;
+                },
+                async () => {
+                    await handleSync();
+                }
+            );
+            if (!completed) return;
+            setStatus("Sheets synchronized");
+        }
         catch (e) { setStatus("Sync failed"); } 
         finally { setIsProcessing(false); }
     };
@@ -179,7 +248,16 @@ export const App: React.FC<{ title?: string }> = () => {
     const performAnalysis = async (sheetFilter?: string): Promise<StudyDesign | null> => {
         setIsProcessing(true); setStatus("Analyzing workbook...");
         try {
-            const freshStudy = await parseExcelToStudyDesign();
+            const freshStudy = await runWithOfficeErrorHandling(
+                () => parseExcelToStudyDesign(),
+                async () => {
+                    await performAnalysis(sheetFilter);
+                }
+            );
+            if (!freshStudy) {
+                setStatus("Analysis failed");
+                return null;
+            }
             setStudy(freshStudy);
             const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
             setIssues(validationIssues);
@@ -195,7 +273,7 @@ export const App: React.FC<{ title?: string }> = () => {
             setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
             return freshStudy;
         } catch (e) {
-            console.error(e); setStatus("Analysis failed"); return null;
+            setStatus("Analysis failed"); return null;
         } finally {
             setIsProcessing(false);
         }
@@ -289,6 +367,27 @@ export const App: React.FC<{ title?: string }> = () => {
             <main className={styles.main}>
                 {isCodelistActive && <DictionarySidecar />}
                 {!isCodelistActive && renderContextualView()}
+                {uiError && (
+                    <MessageBar intent="error">
+                        <MessageBarBody>
+                            <strong>{uiError.message}</strong> {uiError.recoveryAction}
+                            {uiError.retryAction && (
+                                <span>
+                                    {" "}
+                                    <Button size="small" appearance="secondary" onClick={uiError.retryAction}>
+                                        Retry
+                                    </Button>
+                                </span>
+                            )}
+                            <span>
+                                {" "}
+                                <Button size="small" appearance="subtle" onClick={dismissUiError}>
+                                    Dismiss
+                                </Button>
+                            </span>
+                        </MessageBarBody>
+                    </MessageBar>
+                )}
                 
                 {isInitialized && (
                     <ValidationLog
