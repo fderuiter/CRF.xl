@@ -58,3 +58,6 @@ The application is divided into two primary layers:
 - `_Schedule`
   - **Locked:** `A1:XFD1` (header row), `A2:A1000` (formula-driven form OID column)
   - **Editable:** `B2:XFD1000` (visit matrix user input)
+
+## 📋 Compliance Documentation
+- **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
