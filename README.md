@@ -34,3 +34,11 @@ The application is divided into two primary layers:
 1. **Define Types First:** Any new feature (e.g., adding a new SDTM mapping column) must start with updating `src/taskpane/core/types.ts`.
 2. **Build the Parser:** Update `parser.ts` to read that new column.
 3. **Update the Generator:** Update `generator.ts` to output that data to the Word document.
+
+## 🔒 Sheet Protection (Support Notes)
+- `_Forms`
+  - **Locked:** `A1:D1` (header row)
+  - **Editable:** `A2:D1000` (form registry user input)
+- `_Schedule`
+  - **Locked:** `A1:XFD1` (header row), `A2:A1000` (formula-driven form OID column)
+  - **Editable:** `B2:XFD1000` (visit matrix user input)
