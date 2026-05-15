@@ -39,6 +39,7 @@ The application is divided into two primary layers:
 
 ## ✅ CI Quality Gates & Branch Protection
 - On every pull request, GitHub Actions runs:
+  - `npm audit --omit=dev --audit-level=high`
   - `npx tsc --noEmit`
   - `npm test`
 - Pull requests should only be merged when all required status checks are green.
@@ -48,7 +49,7 @@ The application is divided into two primary layers:
 1. Go to **Settings → Branches → Add rule** (or update the existing `main` rule).
 2. Enable **Require a pull request before merging**.
 3. Enable **Require status checks to pass before merging**.
-4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entries).
+4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entry, which includes dependency audit + typecheck + tests).
 5. Save the rule.
 
 ## 🔒 Sheet Protection (Support Notes)
@@ -58,3 +59,6 @@ The application is divided into two primary layers:
 - `_Schedule`
   - **Locked:** `A1:XFD1` (header row), `A2:A1000` (formula-driven form OID column)
   - **Editable:** `B2:XFD1000` (visit matrix user input)
+
+## 📋 Compliance Documentation
+- **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
