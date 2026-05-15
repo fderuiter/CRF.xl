@@ -29,11 +29,13 @@ The application is divided into two primary layers:
 * **Office Integration:** `Office.js`
 * **Word Generation:** `docx`
 * **Data Parsing:** `exceljs`
+* **Dictionary Sidecar:** Fluent UI v9 `DataGrid` for searchable codelist browsing
 
 ## 📖 Development Workflow
 1. **Define Types First:** Any new feature (e.g., adding a new SDTM mapping column) must start with updating `src/taskpane/core/types.ts`.
 2. **Build the Parser:** Update `parser.ts` to read that new column.
 3. **Update the Generator:** Update `generator.ts` to output that data to the Word document.
+4. **Validate Sidecar UX:** Changes to `/home/runner/work/CRF.xl/CRF.xl/src/taskpane/components/views/DictionarySidecar.tsx` should preserve the existing create/use flows while keeping codelist search responsive across IDs, display names, coded values, and decodes.
 
 ## ✅ CI Quality Gates & Branch Protection
 - On every pull request, GitHub Actions runs:
