@@ -2,6 +2,13 @@
 
 This document maps CRF.xl architecture and delivery controls to the CIS Controls framework, with emphasis on **Access Control**, **Data Protection**, and **Audit Log** requirements relevant to clinical metadata workflows.
 
+## Dependency Stewardship Policy
+
+- Run `npm run audit:json` on a regular cadence (at least weekly and before every release).
+- Every pull request runs `npm audit --omit=dev --audit-level=high` in GitHub Actions so dependency status is visible in PR checks.
+- Track major dependency upgrade proposals with regression checkpoints before merge.
+- Keep `package-lock.json` committed so dependency state is reproducible and auditable.
+
 ## 1) Scope & System Context
 
 - **Product boundary:** CRF.xl is a client-side Excel add-in (React + TypeScript + Office.js) used to author and validate clinical metadata.
@@ -52,6 +59,7 @@ This document maps CRF.xl architecture and delivery controls to the CIS Controls
 | --- | --- | --- | --- |
 | 2026-05-15 | `npm audit --json` | 18 high vulnerabilities | Baseline captured for dependency-lifecycle work. |
 | 2026-05-15 | `npm install --save-dev copy-webpack-plugin@^14.0.0` + `npm audit --json` | 16 high vulnerabilities | Removed direct `copy-webpack-plugin`/`serialize-javascript` high vulnerability chain; validated with typecheck, tests, and production build. |
+| 2026-05-15 | `npm audit --omit=dev --json` | 0 high/critical vulnerabilities | PR quality gate now enforces production dependency audit at high severity. |
 
 ## 5) Current Risk Notes
 
