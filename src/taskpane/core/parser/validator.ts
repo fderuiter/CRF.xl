@@ -17,7 +17,7 @@ export function validateStudyDesign(study: StudyDesign, activeSheetFilter?: stri
             if (!study.forms[fRef.formOid]) {
                 issues.push({
                     level: 'Error',
-                    message: `Visit '${event.eventName}' schedules a form that doesn't exist: '${fRef.formOid}'`,
+                    message: `Event '${event.eventName}' references non-existent Form ID '${fRef.formOid}'.`,
                     location: `_Schedule > ${event.eventName}`,
                     sheetName: "_Schedule"
                 });
@@ -42,9 +42,9 @@ export function validateStudyDesign(study: StudyDesign, activeSheetFilter?: stri
                 // Check Codelist References
                 if (item.dataType === "Codelist" || item.codelistId) {
                     if (!item.codelistId) {
-                        issues.push({ level: 'Error', message: `Type is Codelist, but ID is blank.`, location: `${sheet} > ${item.itemOid || 'Row '+row}`, rowIndex: row, sheetName: sheet });
+                        issues.push({ level: 'Error', message: `Type is Codelist, but ID is blank.`, location: `${form.formName} > ${item.name}`, rowIndex: row, sheetName: sheet });
                     } else if (!study.codelists[item.codelistId]) {
-                        issues.push({ level: 'Error', message: `Codelist ID '${item.codelistId}' not found in _Codelists.`, location: `${sheet} > ${item.itemOid}`, rowIndex: row, sheetName: sheet });
+                        issues.push({ level: 'Error', message: `Missing Codelist definition for '${item.codelistId}'.`, location: `${form.formName} > ${item.name}`, rowIndex: row, sheetName: sheet });
                     }
                 }
 

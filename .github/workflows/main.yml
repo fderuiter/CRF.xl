@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -34,4 +33,4 @@ jobs:
       run: npm run build --if-present
 
     - name: 🧪 Run QA Test Suite
-      run: npm test || echo "⚠️ Tests bypassed until Jest is implemented in Epic 3."
+      run: npm test

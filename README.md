@@ -35,6 +35,19 @@ The application is divided into two primary layers:
 2. **Build the Parser:** Update `parser.ts` to read that new column.
 3. **Update the Generator:** Update `generator.ts` to output that data to the Word document.
 
+## ✅ CI Quality Gates & Branch Protection
+- On every pull request, GitHub Actions runs:
+  - `npx tsc --noEmit`
+  - `npm test`
+- Pull requests should only be merged when all required status checks are green.
+
+### Configure Main Branch Protection
+1. Go to **Settings → Branches → Add rule** (or update the existing `main` rule).
+2. Enable **Require a pull request before merging**.
+3. Enable **Require status checks to pass before merging**.
+4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entries).
+5. Save the rule.
+
 ## 🔒 Sheet Protection (Support Notes)
 - `_Forms`
   - **Locked:** `A1:D1` (header row)
