@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Badge, Button, makeStyles, tokens, Text, Spinner } from '@fluentui/react-components';
+import { Badge, Body1, Button, Skeleton, SkeletonItem, makeStyles, tokens } from '@fluentui/react-components';
 import { CheckmarkCircleRegular, SearchRegular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
@@ -98,25 +98,57 @@ const useStyles = makeStyles({
         right: '8px',
         minWidth: 'auto',
     },
+    skeletonRoot: {
+        flexGrow: 1,
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusXLarge,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        boxShadow: tokens.shadow2,
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+    },
+    skeletonRow: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+    },
 });
 
 export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
     const styles = useStyles();
 
-    if (isProcessing) return null;
+    if (isProcessing) return (
+        <div className={styles.skeletonRoot}>
+            <Skeleton>
+                <SkeletonItem shape="rectangle" size={16} style={{ width: '45%' }} />
+            </Skeleton>
+            {[0, 1, 2].map((item) => (
+                <div key={item} className={styles.skeletonRow}>
+                    <Skeleton>
+                        <SkeletonItem shape="rectangle" size={14} style={{ width: '85%' }} />
+                    </Skeleton>
+                    <Skeleton>
+                        <SkeletonItem shape="rectangle" size={12} style={{ width: '45%' }} />
+                    </Skeleton>
+                </div>
+            ))}
+        </div>
+    );
 
     if (issues.length === 0) return (
         <div className={styles.emptyState}>
             <CheckmarkCircleRegular className={styles.emptyIcon} fontSize={28} />
-            <Text className={styles.emptyTitle} block>Clean Specification</Text>
-            <Text className={styles.emptyDesc}>No issues detected in current scope.</Text>
+            <Body1 className={styles.emptyTitle}>Clean Specification</Body1>
+            <Body1 className={styles.emptyDesc}>No issues detected in current scope.</Body1>
         </div>
     );
 
     return (
         <div className={styles.logContainer}>
             <div className={styles.logHeader}>
-                <Text className={styles.logTitle}>Diagnostic Log</Text>
+                <Body1 className={styles.logTitle}>Diagnostic Log</Body1>
                 <Badge color={issues.some((issue: any) => issue.level === 'Error') ? 'danger' : 'warning'} appearance="tint">
                     {issues.length} Issues
                 </Badge>
@@ -124,8 +156,8 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
             <div className={styles.logBody}>
                 {issues.map((issue: any, idx: number) => (
                     <div key={idx} className={issue.level === 'Warning' ? `${styles.issueCard} ${styles.warningIssueCard}` : styles.issueCard}>
-                        <Text className={styles.issueMessage}>{issue.message}</Text>
-                        <Text className={styles.issueLocation}>{issue.location}</Text>
+                        <Body1 className={styles.issueMessage}>{issue.message}</Body1>
+                        <Body1 className={styles.issueLocation}>{issue.location}</Body1>
                         {issue.rowIndex !== undefined && (
                             <Button
                                 className={styles.navigateButton}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Spinner, makeStyles, tokens, Text } from '@fluentui/react-components';
+import { Body1, Button, Card, Spinner, makeStyles, tokens } from '@fluentui/react-components';
 
 interface RegistryProps {
     onInit: () => Promise<void>;
@@ -52,14 +52,14 @@ export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProces
     const styles = useStyles();
     return (
         <div className={styles.container}>
-            <div className={styles.card}>
+            <Card className={styles.card}>
                 <div className={styles.cardHeader}>
                     <span role="img" aria-label="registry">🏛️</span>
-                    <Text className={styles.cardTitle}>System Registry</Text>
+                    <Body1 className={styles.cardTitle}>System Registry</Body1>
                 </div>
-                <Text className={styles.cardDesc} block>
+                <Body1 className={styles.cardDesc}>
                     Define your global protocol and register your forms here. Sync to generate authoring tabs.
-                </Text>
+                </Body1>
                 <div className={styles.buttonGroup}>
                     <Button
                         appearance="outline"
@@ -80,7 +80,7 @@ export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProces
                         Sync Form Sheets
                     </Button>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

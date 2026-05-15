@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Spinner, makeStyles, tokens, Text, Divider } from '@fluentui/react-components';
+import { Body1, Button, Card, Spinner, makeStyles, tokens } from '@fluentui/react-components';
 import { insertDateBlock, insertAEBlock } from '../../core/services/authoring-service';
 
 interface AuthoringProps {
@@ -58,11 +58,11 @@ export const AuthoringView: React.FC<AuthoringProps> = ({ sheetName, onValidate,
     const styles = useStyles();
     return (
         <div className={styles.container}>
-            <div className={styles.card}>
-                <Text className={styles.cardTitle} block>
+            <Card className={styles.card}>
+                <Body1 className={styles.cardTitle}>
                     <span>📝</span> Authoring: {sheetName}
-                </Text>
-                <Text className={styles.cardSubtitle} block>Context-aware tools for this form.</Text>
+                </Body1>
+                <Body1 className={styles.cardSubtitle}>Context-aware tools for this form.</Body1>
 
                 <div className={styles.buttonGroup}>
                     <Button
@@ -84,7 +84,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({ sheetName, onValidate,
                         <span className={styles.tagLabel}>Log</span>
                     </Button>
                 </div>
-            </div>
+            </Card>
 
             <Button
                 appearance="secondary"
