@@ -35,16 +35,16 @@ jobs:
             labels_list=$(printf ' - %s\n' "${found[@]}")
             gh issue comment "$ISSUE_NUMBER" --body "### ⚠️ Multiple status labels detected
 
-This issue has ${count} primary workflow status labels. Please keep exactly one.
+          This issue has ${count} primary workflow status labels. Please keep exactly one.
 
-Current status labels:
-${labels_list}
+          Current status labels:
+          ${labels_list}
 
-Recommended lifecycle order:
-- \`status:needs-more-information\` → information/design is missing
-- \`status:needs-design\` → scope is known but design is pending
-- \`status:needs-acceptance-criteria\` → design done, AC not written
-- \`status:ready\` → implementation can start
-- \`status:in-progress\` → implementation underway
-- \`status:verify\` → implementation done, needs QA sign-off"
+          Recommended lifecycle order:
+          - \`status:needs-more-information\` → information/design is missing
+          - \`status:needs-design\` → scope is known but design is pending
+          - \`status:needs-acceptance-criteria\` → design done, AC not written
+          - \`status:ready\` → implementation can start
+          - \`status:in-progress\` → implementation underway
+          - \`status:verify\` → implementation done, needs QA sign-off"
           fi

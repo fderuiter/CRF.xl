@@ -24,29 +24,29 @@ jobs:
             --label "type:task,area:devops,priority:p1,status:ready" \
             --body "## Weekly Backlog Review — ${WEEK}
 
-### Triage checks
-- [ ] Review issues with \`status:needs-more-information\`
-- [ ] Review issues with \`status:needs-design\`
-- [ ] Review issues with no milestone
-- [ ] Review \`priority:p0\` issues not in active milestone
-- [ ] Review stale \`status:in-progress\` issues
-- [ ] Review \`relation:duplicate-candidate\` and \`relation:superseded\` issues
+          ### Triage checks
+          - [ ] Review issues with \`status:needs-more-information\`
+          - [ ] Review issues with \`status:needs-design\`
+          - [ ] Review issues with no milestone
+          - [ ] Review \`priority:p0\` issues not in active milestone
+          - [ ] Review stale \`status:in-progress\` issues
+          - [ ] Review \`relation:duplicate-candidate\` and \`relation:superseded\` issues
 
-### Decision queue
-- [ ] #88 Rule Expression Model
-- [ ] #89 Audit Lifecycle and Governed Field Model
-- [ ] #90 aCRF PDF Rendering Architecture
-- [ ] #91 Migration Import Strategy
-- [ ] #92 VLM & Submission Metadata Scope
+          ### Decision queue
+          - [ ] #88 Rule Expression Model
+          - [ ] #89 Audit Lifecycle and Governed Field Model
+          - [ ] #90 aCRF PDF Rendering Architecture
+          - [ ] #91 Migration Import Strategy
+          - [ ] #92 VLM & Submission Metadata Scope
 
-### Epic health
-- [ ] #35 Fluent UI v9 — verify children closed
-- [ ] #42 Structural Guardrails — verify children closed
-- [ ] #59 Performance — fixture defined?
-- [ ] #68 Enterprise Distribution — deployment decisions made?
+          ### Epic health
+          - [ ] #35 Fluent UI v9 — verify children closed
+          - [ ] #42 Structural Guardrails — verify children closed
+          - [ ] #59 Performance — fixture defined?
+          - [ ] #68 Enterprise Distribution — deployment decisions made?
 
-### Roadmap
-- [ ] Update #28 if priorities or milestones changed
+          ### Roadmap
+          - [ ] Update #28 if priorities or milestones changed
 
-### Notes
-<!-- Add review findings below -->"
+          ### Notes
+          <!-- Add review findings below -->"
