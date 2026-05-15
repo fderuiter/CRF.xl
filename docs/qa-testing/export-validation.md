@@ -29,3 +29,22 @@ XSD Validation: Generated XML must pass validation against the official CDISC OD
 Condition Logic: Verify that showIf logic is exported as <ConditionDef> and correctly referenced via CollectionExceptionConditionOID.
 
 Character Encoding: Ensure UTF-8 encoding and that special characters are escaped (e.g., & as &amp;).
+
+### 2.1 Serialization Proof Fixture & Evidence
+
+Canonical input workbook: `src/taskpane/core/generators/cdisc/__fixtures__/reference-study/reference-study.xlsx`
+
+Official schema set used for validation:
+- `src/taskpane/core/generators/cdisc/__fixtures__/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd`
+- `src/taskpane/core/generators/cdisc/__fixtures__/cdisc-schema/core/xml.xsd`
+- `src/taskpane/core/generators/cdisc/__fixtures__/cdisc-schema/core/xmldsig-core-schema.xsd`
+
+Proof test: `src/taskpane/core/generators/cdisc/__tests__/serialization-proof.test.ts`
+
+The proof test:
+1. Loads the canonical `.xlsx` study fixture.
+2. Builds ODM XML through `generateOdmXml`.
+3. Validates the produced XML against the official ODM 1.3.2 schema with `xmllint --schema`.
+
+CI coverage:
+- `.github/workflows/main.yml` installs `libxml2-utils` and runs `npm test`, so ODM schema validation is enforced in CI.
