@@ -41,3 +41,9 @@ Thumbs.db
 # Temporary files
 temp/
 tmp/
+
+# Test coverage
+coverage/
+
+# Generated lock files (managed by CI)
+package-lock.json
