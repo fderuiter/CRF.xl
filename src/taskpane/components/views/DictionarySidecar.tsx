@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { Button, Spinner } from '@fluentui/react-components';
+import { LibraryRegular, TimerRegular } from '@fluentui/react-icons';
 import { fetchDictionaries, insertDictionaryToActiveCell, saveNewDictionary, CodelistGroup } from '../../core/services/dictionary-service';
 
 export const DictionarySidecar: React.FC = () => {
@@ -53,21 +55,21 @@ export const DictionarySidecar: React.FC = () => {
                         <span className="bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">Active Context</span>
                     </div>
                     <h2 className="font-black text-lg tracking-tighter flex items-center gap-2">
-                        <span>📚</span> Codelist Library
+                        <LibraryRegular fontSize={24} /> Codelist Library
                     </h2>
                 </div>
                 {view === 'browse' && (
-                    <button onClick={() => setView('create')} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all">
+                    <Button onClick={() => setView('create')} appearance="primary" className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all">
                         + New
-                    </button>
+                    </Button>
                 )}
             </div>
             
             {/* Body */}
             <div className="flex-grow p-4 bg-slate-50 flex flex-col overflow-y-auto">
                 {view === 'loading' && (
-                    <div className="flex-grow flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl animate-spin mb-3">⏳</span>
+                    <div className="flex-grow flex flex-col items-center justify-center text-center gap-3">
+                        <Spinner size="large" />
                         <p className="text-xs text-slate-500 font-bold">Syncing Library...</p>
                     </div>
                 )}
@@ -90,12 +92,13 @@ export const DictionarySidecar: React.FC = () => {
                                             <h3 className="font-black text-sm text-slate-800">{dict.id}</h3>
                                             <p className="text-[10px] text-slate-500 font-medium">{dict.name}</p>
                                         </div>
-                                        <button 
+                                        <Button
+                                            appearance="subtle"
                                             onClick={() => handleUseDictionary(dict.id)}
                                             className="bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 text-slate-600 px-3 py-1 rounded text-[10px] font-bold transition-all"
                                         >
                                             Use
-                                        </button>
+                                        </Button>
                                     </div>
                                     <div className="flex flex-wrap gap-1">
                                         {dict.items.slice(0, 4).map((item, idx) => (
@@ -116,9 +119,9 @@ export const DictionarySidecar: React.FC = () => {
 
                 {view === 'create' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                        <button onClick={() => setView('browse')} className="text-[10px] text-slate-500 font-bold hover:text-slate-800 flex items-center gap-1">
+                        <Button appearance="transparent" onClick={() => setView('browse')} className="text-[10px] text-slate-500 font-bold hover:text-slate-800 flex items-center gap-1">
                             ← Back to Browse
-                        </button>
+                        </Button>
                         
                         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
                             <div>
@@ -138,15 +141,15 @@ export const DictionarySidecar: React.FC = () => {
                                         <input type="text" placeholder="Decode (e.g. Mild)" value={item.decode} onChange={e => { const updated = [...newItems]; updated[idx].decode = e.target.value; setNewItems(updated); }} className="flex-grow p-2 border border-slate-200 rounded-lg text-xs" />
                                     </div>
                                 ))}
-                                <button onClick={() => setNewItems([...newItems, { codedValue: '', decode: '' }])} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800">
+                                <Button appearance="transparent" onClick={() => setNewItems([...newItems, { codedValue: '', decode: '' }])} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800">
                                     + Add Row
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
-                        <button onClick={handleSaveNew} disabled={!newId || newItems.length === 0 || !newItems[0].codedValue} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-bold text-xs shadow-sm transition-all disabled:opacity-50">
+                        <Button appearance="primary" onClick={handleSaveNew} disabled={!newId || newItems.length === 0 || !newItems[0].codedValue} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-bold text-xs shadow-sm transition-all disabled:opacity-50">
                             Save Dictionary
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

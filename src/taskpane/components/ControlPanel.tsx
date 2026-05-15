@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Button } from './ui/DesignSystem';
+import { Button, Spinner } from '@fluentui/react-components';
+import { SparkleRegular, SearchRegular, DocumentRegular, MoleculeRegular, WarningRegular } from '@fluentui/react-icons';
 
 interface ControlPanelProps {
     onInit: () => Promise<void>;
@@ -22,19 +23,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <div className="space-y-4">
             <div className="flex flex-col gap-2">
                 <Button 
-                    variant="secondary" 
+                    appearance="secondary"
                     onClick={onInit} 
-                    isLoading={isProcessing} 
-                    icon={<span className="text-sm">✨</span>}
+                    disabled={isProcessing}
+                    icon={isProcessing ? <Spinner size="tiny" /> : <SparkleRegular />}
                 >
                     Initialize Workbook
                 </Button>
 
                 <Button 
-                    variant="primary" 
+                    appearance="primary"
                     onClick={onAnalyze} 
-                    isLoading={isProcessing} 
-                    icon={<span className="text-sm">🔍</span>}
+                    disabled={isProcessing}
+                    icon={isProcessing ? <Spinner size="tiny" /> : <SearchRegular />}
                 >
                     {isProcessing ? 'Analyzing Metadata...' : 'Run Workbook Analysis'}
                 </Button>
@@ -44,25 +45,25 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
                 <Button 
-                    variant="outline" 
+                    appearance="outline"
                     onClick={onDocx} 
                     disabled={isProcessing || hasErrors || !isLoaded} 
                     className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-blue-700 border-blue-200 hover:bg-blue-50'}
                 >
                     <div className="flex flex-col items-center gap-1 py-1">
-                        <span className="text-xl">📄</span>
+                        <DocumentRegular fontSize={20} />
                         <span className="text-[10px]">Paper CRF</span>
                     </div>
                 </Button>
 
                 <Button 
-                    variant="outline" 
+                    appearance="outline"
                     onClick={onOdm} 
                     disabled={isProcessing || hasErrors || !isLoaded} 
                     className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-purple-700 border-purple-200 hover:bg-purple-50'}
                 >
                     <div className="flex flex-col items-center gap-1 py-1">
-                        <span className="text-xl">⚛️</span>
+                        <MoleculeRegular fontSize={20} />
                         <span className="text-[10px]">ODM XML</span>
                     </div>
                 </Button>
@@ -70,8 +71,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             
             {hasErrors && (
                 <div className="p-3 bg-red-50 border border-red-100 rounded-xl shadow-inner">
-                    <p className="text-[10px] text-red-600 font-black text-center uppercase tracking-widest animate-pulse">
-                        ⚠️ Critical Errors Detected
+                    <p className="text-[10px] flex items-center justify-center gap-1 text-red-600 font-black text-center uppercase tracking-widest animate-pulse">
+                        <WarningRegular /> Critical Errors Detected
                     </p>
                     <p className="text-[9px] text-red-500 text-center mt-1 font-medium">
                         Resolve highlighted issues in Excel to unlock export capabilities.

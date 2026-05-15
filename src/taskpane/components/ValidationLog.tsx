@@ -1,11 +1,15 @@
 import * as React from 'react';
+import { Button } from '@fluentui/react-components';
+import { CheckmarkRegular, SearchRegular } from '@fluentui/react-icons';
 
 export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
     if (isProcessing) return null;
     
     if (issues.length === 0) return (
         <div className="flex-grow bg-white rounded-2xl border border-slate-200 border-dashed flex flex-col items-center justify-center p-6 text-center shadow-sm">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-2 text-2xl">✓</div>
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-2 text-2xl">
+                <CheckmarkRegular />
+            </div>
             <h3 className="text-slate-800 font-bold mb-1 text-xs">Clean Specification</h3>
             <p className="text-slate-400 text-[10px]">No issues detected in current scope.</p>
         </div>
@@ -23,13 +27,14 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
                         <p className="text-[10px] font-bold text-slate-800 pr-6 leading-tight">{issue.message}</p>
                         <p className="text-[8px] text-slate-400 mt-1 uppercase font-black">{issue.location}</p>
                         {issue.rowIndex !== undefined && (
-                            <button 
-                                // Map navigation accurately to the sheet where the error lives
-                                onClick={() => onNavigate({ ...issue, location: issue.sheetName })} 
-                                className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                            >
-                                🔎
-                            </button>
+                            <div className="absolute top-2 right-2">
+                                <Button
+                                    appearance="subtle"
+                                    onClick={() => onNavigate({ ...issue, location: issue.sheetName })}
+                                    icon={<SearchRegular />}
+                                    className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                />
+                            </div>
                         )}
                     </div>
                 ))}

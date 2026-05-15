@@ -1,6 +1,8 @@
 import { highlightErrorsOnCanvas, clearAllAnnotations } from '../core/services/annotation-service';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { Button } from '@fluentui/react-components';
+import { SparkleRegular } from '@fluentui/react-icons';
 
 // Core Logic
 import { ValidationLog } from './ValidationLog';
@@ -122,13 +124,15 @@ export const App: React.FC<{ title?: string }> = () => {
                         <p className="text-xs text-slate-300 mb-6 leading-relaxed relative z-10">
                             It looks like you are starting a new project on a blank canvas. Initialize the Matrix Architecture to set up your clinical study.
                         </p>
-                        <button
+                        <Button
+                            appearance="primary"
                             onClick={handleInitialize}
                             disabled={isProcessing}
-                            className="relative z-10 w-full bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                            icon={<SparkleRegular />}
+                            className="relative z-10 w-full p-4 rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            ✨ Initialize Canvas
-                        </button>
+                            Initialize Canvas
+                        </Button>
                     </div>
                 </div>
             );
