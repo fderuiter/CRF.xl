@@ -39,6 +39,7 @@ The application is divided into two primary layers:
 
 ## ✅ CI Quality Gates & Branch Protection
 - On every pull request, GitHub Actions runs:
+  - `npm audit --omit=dev --audit-level=high`
   - `npx tsc --noEmit`
   - `npm test`
 - Pull requests should only be merged when all required status checks are green.
@@ -48,7 +49,7 @@ The application is divided into two primary layers:
 1. Go to **Settings → Branches → Add rule** (or update the existing `main` rule).
 2. Enable **Require a pull request before merging**.
 3. Enable **Require status checks to pass before merging**.
-4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entries).
+4. Add the CI checks from the `CRF.xl CI` workflow (the `build-and-test` job entry, which includes dependency audit + typecheck + tests).
 5. Save the rule.
 
 ## 🔒 Sheet Protection (Support Notes)
