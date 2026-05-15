@@ -4,29 +4,23 @@ import os from "os";
 import path from "path";
 import { execFileSync, spawnSync } from "child_process";
 import ExcelJS from "exceljs";
-import { generateOdmXml } from "../odm-builder";
-import { DataType, EventType, StudyDesign } from "../../../types";
+import { generateOdmXml } from "../../src/taskpane/core/generators/cdisc/odm-builder";
+import { DataType, EventType, StudyDesign } from "../../src/taskpane/core/types";
 
 const fixturePath = path.resolve(
   __dirname,
-  "../../../../../../fixtures/reference-study/reference-study.xlsx"
+  "../fixtures/reference-study/reference-study.xlsx"
 );
 
 const schemaPath = path.resolve(
   __dirname,
-  "../../../../../../fixtures/odm/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd"
+  "../fixtures/reference-study/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd"
 );
 
-const generatedFixturePath = path.resolve(
+const expectedXmlPath = path.resolve(
   __dirname,
-  "../../../../../../fixtures/odm/reference-study.xml"
+  "../fixtures/reference-study/expected-odm.xml"
 );
-
-function normalizeDynamicMetadata(xml: string): string {
-  return xml
-    .replace(/FileOID="[^"]+"/, 'FileOID="__FILE_OID__"')
-    .replace(/CreationDateTime="[^"]+"/, 'CreationDateTime="__CREATION_DATE_TIME__"');
-}
 
 function mapDataType(raw: unknown): DataType {
   const value = String(raw ?? "").trim().toLowerCase();
@@ -53,9 +47,50 @@ function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {
     .map((row) => (Array.isArray(row) ? row.slice(1) : []));
 }
 
+function assertReferenceStudyRequirements(workbook: ExcelJS.Workbook): void {
+  const formsRows = worksheetRows(workbook.getWorksheet("_Forms")!);
+  const formNames = new Set(formsRows.slice(1).map((row) => String(row[1] ?? "")));
+  expect(formNames).toEqual(new Set(["Demographics", "Vital Signs", "Adverse Events"]));
+  expect(formsRows.slice(1).filter((row) => String(row[2] ?? "").toLowerCase() === "yes").length).toBeGreaterThanOrEqual(1);
+
+  const scheduleRows = worksheetRows(workbook.getWorksheet("_Schedule")!);
+  const visits = (scheduleRows[0] ?? []).slice(1).map((value) => String(value ?? "").trim());
+  expect(visits).toEqual(expect.arrayContaining(["Screening", "Baseline"]));
+
+  const codelistRows = worksheetRows(workbook.getWorksheet("_Codelists")!).slice(1);
+  const codelists = new Set(codelistRows.map((row) => String(row[0] ?? "").trim().toUpperCase()));
+  expect(Array.from(codelists)).toEqual(expect.arrayContaining(["YESNO", "SEVERITY"]));
+
+  const rowsByForm = ["DEMO", "VS", "AE"].flatMap((sheetName) => {
+    const rows = worksheetRows(workbook.getWorksheet(sheetName)!);
+    const headers = (rows[0] ?? []).map((header) =>
+      String(header ?? "").trim().toLowerCase()
+    );
+    return rows.slice(1).map((row) => ({
+      variableType: String(row[headers.indexOf("variable type")] ?? "").trim().toLowerCase(),
+      required: String(row[headers.indexOf("required")] ?? "").trim().toLowerCase(),
+      codelistId: String(row[headers.indexOf("codelist id")] ?? "").trim(),
+      length: String(row[headers.indexOf("length")] ?? "").trim(),
+      precision: String(row[headers.indexOf("precision")] ?? "").trim(),
+      origin: String(row[headers.indexOf("origin")] ?? "").trim().toLowerCase(),
+    }));
+  });
+
+  const variableTypes = new Set(rowsByForm.map((row) => row.variableType));
+  expect(Array.from(variableTypes)).toEqual(
+    expect.arrayContaining(["text", "integer", "float", "date"])
+  );
+  expect(rowsByForm.some((row) => row.codelistId.length > 0)).toBe(true);
+  expect(rowsByForm.some((row) => row.length.length > 0 && row.precision.length > 0)).toBe(true);
+  expect(rowsByForm.some((row) => row.origin === "derived")).toBe(true);
+  expect(rowsByForm.some((row) => row.required === "yes")).toBe(true);
+  expect(rowsByForm.some((row) => row.required === "no")).toBe(true);
+}
+
 async function parseReferenceWorkbook(filePath: string): Promise<StudyDesign> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filePath);
+  assertReferenceStudyRequirements(workbook);
 
   const studyRows = worksheetRows(workbook.getWorksheet("_Study")!);
   const study: StudyDesign = {
@@ -77,7 +112,7 @@ async function parseReferenceWorkbook(filePath: string): Promise<StudyDesign> {
       continue;
     }
 
-    const codelistId = String(id).trim();
+    const codelistId = String(id).trim().toUpperCase();
     if (!study.codelists[codelistId]) {
       study.codelists[codelistId] = {
         codelistId,
@@ -203,24 +238,24 @@ function hasXmllint(): boolean {
   return check.status === 0;
 }
 
-describe("ODM serialization proofing", () => {
-  it("creates schema-valid ODM XML from the canonical Excel reference study", async () => {
+describe("ODM serialization proofing (reference study)", () => {
+  it("generates deterministic schema-valid ODM XML from the canonical reference workbook", async () => {
     expect(fs.existsSync(fixturePath)).toBe(true);
     expect(fs.existsSync(schemaPath)).toBe(true);
 
     const study = await parseReferenceWorkbook(fixturePath);
-    const xml = generateOdmXml(study);
 
-    expect(xml).toContain('<Study OID="REF-ODM-001">');
-    expect(xml).toContain('<CodeList OID="SEX" Name="Sex" DataType="text">');
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    const xml = generateOdmXml(study);
+    jest.useRealTimers();
 
     if (process.env.UPDATE_ODM_FIXTURE === "1") {
-      fs.writeFileSync(generatedFixturePath, xml, "utf-8");
+      fs.writeFileSync(expectedXmlPath, xml, "utf-8");
     }
 
-    expect(fs.existsSync(generatedFixturePath)).toBe(true);
-    const expectedXml = fs.readFileSync(generatedFixturePath, "utf-8");
-    expect(normalizeDynamicMetadata(xml)).toEqual(normalizeDynamicMetadata(expectedXml));
+    expect(fs.existsSync(expectedXmlPath)).toBe(true);
+    expect(xml).toBe(fs.readFileSync(expectedXmlPath, "utf-8"));
 
     if (!hasXmllint()) {
       process.stderr.write(

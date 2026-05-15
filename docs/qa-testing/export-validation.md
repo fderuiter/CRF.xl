@@ -32,26 +32,7 @@ Character Encoding: Ensure UTF-8 encoding and that special characters are escape
 
 ### 2.1 Serialization Proof Fixture & Evidence
 
-Canonical input workbook: `fixtures/reference-study/reference-study.xlsx`
-
-Official schema set used for validation:
-- `fixtures/odm/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd`
-- `fixtures/odm/cdisc-schema/core/xml.xsd`
-- `fixtures/odm/cdisc-schema/core/xmldsig-core-schema.xsd`
-
-Canonical generated ODM output: `fixtures/odm/reference-study.xml`
-
-Proof test: `src/taskpane/core/generators/cdisc/__tests__/serialization-proof.test.ts`
-
-The proof test:
-1. Loads the canonical `.xlsx` study fixture.
-2. Builds ODM XML through `generateOdmXml`.
-3. Verifies generated XML against `fixtures/odm/reference-study.xml` (normalizing runtime timestamps).
-4. Validates the produced XML against the official ODM 1.3.2 schema with `xmllint --schema`.
-
-Regenerate fixture and re-validate:
-- `UPDATE_ODM_FIXTURE=1 npm test -- src/taskpane/core/generators/cdisc/__tests__/serialization-proof.test.ts --runInBand`
-- `xmllint --noout --schema fixtures/odm/cdisc-schema/cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd fixtures/odm/reference-study.xml`
+See `docs/serialization-proofing.md` for fixture locations, deterministic generation details, regeneration command, and XSD validation instructions.
 
 CI coverage:
 - `.github/workflows/main.yml` installs `libxml2-utils` and runs `npm test`, so ODM schema validation is enforced in CI.
