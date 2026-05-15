@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { Button } from './ui/DesignSystem';
 
 interface ControlPanelProps {
     onInit: () => Promise<void>;
-    onSync: () => Promise<void>;
     onDocx: () => Promise<void>;
     onOdm: () => Promise<void>;
     onAnalyze: () => Promise<any>;
@@ -13,83 +13,75 @@ interface ControlPanelProps {
 
 /**
  * ControlPanel: The primary action hub for clinical designers.
- * Implements strict visual gating based on the validation state.
+ * Refactored to consume the strict Atomic Design System.
  */
 export const ControlPanel: React.FC<ControlPanelProps> = ({ 
-    onInit, onSync, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
+    onInit, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
 }) => {
     return (
         <div className="space-y-4">
             <div className="flex flex-col gap-2">
-                <button 
+                <Button 
+                    variant="secondary" 
                     onClick={onInit} 
-                    disabled={isProcessing} 
-                    className="w-full bg-slate-900 text-white p-3 rounded-xl font-bold text-xs shadow-sm hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                    isLoading={isProcessing} 
+                    icon={<span className="text-sm">✨</span>}
                 >
-                    <span>✨</span> Initialize Workbook
-                </button>
+                    Initialize Workbook
+                </Button>
 
-                
-                <button 
-                    onClick={onSync} 
-                    disabled={isProcessing} 
-                    className="w-full bg-emerald-600 text-white p-3 rounded-xl font-bold text-xs shadow-sm hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                    <span>🔄</span> Sync Form Sheets
-                </button>
-
-                <button 
+                <Button 
+                    variant="primary" 
                     onClick={onAnalyze} 
-                    disabled={isProcessing} 
-                    className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-xs shadow-sm hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                    isLoading={isProcessing} 
+                    icon={<span className="text-sm">🔍</span>}
                 >
-                    <span>🔍</span> {isProcessing ? 'Analyzing...' : 'Run Workbook Analysis'}
-                </button>
+                    {isProcessing ? 'Analyzing Metadata...' : 'Run Workbook Analysis'}
+                </Button>
             </div>
             
-            <div className="h-px bg-slate-200 my-1 mx-2" />
+            <div className="h-px bg-slate-200 my-2 mx-4 rounded-full opacity-50" />
 
-            <div className="grid grid-cols-2 gap-2">
-                <button 
+            <div className="grid grid-cols-2 gap-3">
+                <Button 
+                    variant="outline" 
                     onClick={onDocx} 
                     disabled={isProcessing || hasErrors || !isLoaded} 
-                    className={`p-3 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 shadow-sm transition-all active:scale-[0.95] ${
-                        hasErrors || !isLoaded
-                            ? 'bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed' 
-                            : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-50'
-                    }`}
+                    className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-blue-700 border-blue-200 hover:bg-blue-50'}
                 >
-                    <span className="text-lg">📄</span>
-                    Paper CRF
-                </button>
-                <button 
+                    <div className="flex flex-col items-center gap-1 py-1">
+                        <span className="text-xl">📄</span>
+                        <span className="text-[10px]">Paper CRF</span>
+                    </div>
+                </Button>
+
+                <Button 
+                    variant="outline" 
                     onClick={onOdm} 
                     disabled={isProcessing || hasErrors || !isLoaded} 
-                    className={`p-3 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 shadow-sm transition-all active:scale-[0.95] ${
-                        hasErrors || !isLoaded
-                            ? 'bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed' 
-                            : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
-                    }`}
+                    className={hasErrors || !isLoaded ? 'bg-slate-50 border-slate-100 text-slate-400' : 'text-purple-700 border-purple-200 hover:bg-purple-50'}
                 >
-                    <span className="text-lg">⚛️</span>
-                    ODM XML
-                </button>
+                    <div className="flex flex-col items-center gap-1 py-1">
+                        <span className="text-xl">⚛️</span>
+                        <span className="text-[10px]">ODM XML</span>
+                    </div>
+                </Button>
             </div>
             
             {hasErrors && (
-                <div className="p-2 bg-red-50 border border-red-100 rounded-lg">
-                    <p className="text-[9px] text-red-600 font-black text-center uppercase tracking-tighter animate-pulse">
-                        ⚠️ Critical errors blocking export.
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl shadow-inner">
+                    <p className="text-[10px] text-red-600 font-black text-center uppercase tracking-widest animate-pulse">
+                        ⚠️ Critical Errors Detected
                     </p>
-                    <p className="text-[8px] text-red-400 text-center mt-0.5 font-medium">
-                        Resolve all red issues in the log to proceed.
+                    <p className="text-[9px] text-red-500 text-center mt-1 font-medium">
+                        Resolve highlighted issues in Excel to unlock export capabilities.
                     </p>
                 </div>
             )}
             
             {!isLoaded && !hasErrors && (
-                <p className="text-[9px] text-slate-400 font-bold text-center uppercase tracking-widest">
-                    Run Analysis to Enable Export
+                <p className="text-[9px] text-slate-400 font-bold text-center uppercase tracking-widest mt-2">
+                    Awaiting Analysis
                 </p>
             )}
         </div>
