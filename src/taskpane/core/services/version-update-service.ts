@@ -1,5 +1,6 @@
-export const VERSION_ENDPOINT_FALLBACK = '/assets/version.json';
-export const VERSION_DISMISSAL_STORAGE_KEY = 'crf-xl-version-update-dismissed-v1';
+/* eslint-disable no-undef */
+export const VERSION_ENDPOINT_FALLBACK = "/assets/version.json";
+export const VERSION_DISMISSAL_STORAGE_KEY = "crf-xl-version-update-dismissed-v1";
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -17,14 +18,14 @@ export interface VersionUpdateMetadata {
 }
 
 export type VersionCheckResult =
-  | { status: 'update-available'; update: VersionUpdateMetadata }
-  | { status: 'dismissed'; update: VersionUpdateMetadata }
-  | { status: 'up-to-date' }
-  | { status: 'unreachable' };
+  | { status: "update-available"; update: VersionUpdateMetadata }
+  | { status: "dismissed"; update: VersionUpdateMetadata }
+  | { status: "up-to-date" }
+  | { status: "unreachable" };
 
 function resolveSessionStorage(storage?: StorageLike): StorageLike | null {
   if (storage) return storage;
-  if (typeof globalThis === 'undefined' || !('sessionStorage' in globalThis)) return null;
+  if (typeof globalThis === "undefined" || !("sessionStorage" in globalThis)) return null;
   try {
     return globalThis.sessionStorage;
   } catch {
@@ -35,7 +36,7 @@ function resolveSessionStorage(storage?: StorageLike): StorageLike | null {
 function parseVersion(version: string): number[] | null {
   const normalized = version.trim();
   if (!normalized) return null;
-  const segments = normalized.split('.').map((segment) => Number.parseInt(segment, 10));
+  const segments = normalized.split(".").map((segment) => Number.parseInt(segment, 10));
   if (segments.some((segment) => Number.isNaN(segment) || segment < 0)) return null;
   return segments;
 }
@@ -87,41 +88,41 @@ export async function checkForVersionUpdate({
 }): Promise<VersionCheckResult> {
   try {
     const response = await httpClient.fetch(endpoint, {
-      method: 'GET',
-      cache: 'no-store',
+      method: "GET",
+      cache: "no-store",
     });
     if (!response.ok) {
-      return { status: 'unreachable' };
+      return { status: "unreachable" };
     }
 
     const payload = (await response.json()) as Partial<VersionUpdateMetadata>;
-    if (!payload || typeof payload.version !== 'string') {
-      return { status: 'up-to-date' };
+    if (!payload || typeof payload.version !== "string") {
+      return { status: "up-to-date" };
     }
 
     if (!isRemoteVersionNewer(currentVersion, payload.version)) {
-      return { status: 'up-to-date' };
+      return { status: "up-to-date" };
     }
 
     const update: VersionUpdateMetadata = {
       version: payload.version,
-      description: typeof payload.description === 'string' ? payload.description : undefined,
-      changelogUrl: typeof payload.changelogUrl === 'string' ? payload.changelogUrl : undefined,
+      description: typeof payload.description === "string" ? payload.description : undefined,
+      changelogUrl: typeof payload.changelogUrl === "string" ? payload.changelogUrl : undefined,
     };
 
     const dismissedVersion = readDismissedVersion(storage);
     if (dismissedVersion === update.version) {
       return {
-        status: 'dismissed',
+        status: "dismissed",
         update,
       };
     }
 
     return {
-      status: 'update-available',
+      status: "update-available",
       update,
     };
   } catch {
-    return { status: 'unreachable' };
+    return { status: "unreachable" };
   }
 }
