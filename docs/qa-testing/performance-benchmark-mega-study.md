@@ -1,11 +1,10 @@
 # Mega-Study Performance Budget and Benchmark
 
-This document defines the committed fixture and provisional numeric budget for performance work tracked by:
+This document defines the committed fixture and numeric performance budget for:
 
 - `fderuiter/CRF.xl#59` (Performance epic)
 - `fderuiter/CRF.xl#60` (parse/runtime validation)
 - `fderuiter/CRF.xl#61` (related performance validation)
-- `fderuiter/CRF.xl#105` (budget finalization)
 
 ## Committed fixture reference
 
@@ -13,7 +12,7 @@ This document defines the committed fixture and provisional numeric budget for p
 - Definition: `test/fixtures/mega-study/README.md`
 - Benchmark harness: `test/serialization/mega-study.benchmark.test.ts`
 
-## Performance budget (provisional, numeric)
+## Performance budget
 
 | Metric | Target |
 |---|---:|
@@ -57,4 +56,4 @@ ENFORCE_PERFORMANCE_BUDGET=1 npm test -- test/serialization/mega-study.benchmark
 - Cancellation behavior: parser accepts a cancellation token (`isCancelled()`); taskpane unmount cancels the remaining parse loop.
 - Timeout handling: parser timeout defaults to `45_000ms` and throws a parse timeout error when exceeded.
 - Partial parse failure behavior: individual CRF sheet parse failures are skipped by default, and warnings are attached to `study.metadata.customProperties.parseWarnings`.
-- Performance benchmark target: mega-study fixture `test/fixtures/mega-study/mega-study-v1.xlsx` and budget table above (tracked by #105).
+- Performance benchmark target: mega-study fixture `test/fixtures/mega-study/mega-study-v1.xlsx` and budget table above.
