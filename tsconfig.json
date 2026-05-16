@@ -8,6 +8,7 @@
     "jsx": "react",
     "module": "ES2020",
     "moduleResolution": "node",
+    "ignoreDeprecations": "5.0",
     "noImplicitReturns": true,
     "noUnusedParameters": true,
     "outDir": "dist",

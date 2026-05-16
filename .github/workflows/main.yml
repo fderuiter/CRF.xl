@@ -32,6 +32,9 @@ jobs:
     - name: 🧰 Install XML validation tooling
       run: sudo apt-get update && sudo apt-get install -y libxml2-utils
 
+    - name: 🧾 Validate Office add-in manifests
+      run: npm run manifest:validate
+
     - name: 🔎 Type Checking
       run: npx tsc --noEmit
 
