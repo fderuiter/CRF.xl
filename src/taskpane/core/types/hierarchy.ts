@@ -40,6 +40,8 @@ export interface CrfItem {
     exportTextUnchecked?: string;   
     
     dataType: DataType;
+    length?: number;
+    significantDigits?: number;
     measurementUnit?: string;       
     unitCodelistId?: string;        
     codelistId?: string;

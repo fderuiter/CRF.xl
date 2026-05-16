@@ -16,6 +16,8 @@ describe('CDISC ODM XML Builder', () => {
                         { 
                             itemOid: "IT_WT", name: "Weight", formOid: "F1", groupOid: "G1", orderNumber: 1, 
                             dataType: DataType.FLOAT, label: {"en-US": "Subject Weight"}, effectiveVersion: "1.0", 
+                            length: 8,
+                            significantDigits: 1,
                             validation: { required: true },
                             sdtmMapping: { domain: "VS", variable: "VSORRES", sasFieldName: "WT" },
                             showIf: "IT.PREG == 'N'" // Custom branching script
@@ -36,7 +38,7 @@ describe('CDISC ODM XML Builder', () => {
 
     it('should serialize clinical items with correct CDISC data types and SAS attributes', () => {
         const xml = generateOdmXml(mockStudy);
-        expect(xml).toContain('<ItemDef OID="IT_WT" Name="Weight" DataType="float" SASFieldName="WT">');
+        expect(xml).toContain('<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT">');
         expect(xml).toContain('<TranslatedText xml:lang="en-US">Subject Weight</TranslatedText>');
     });
 

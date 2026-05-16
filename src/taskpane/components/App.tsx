@@ -1,6 +1,6 @@
 import { highlightErrorsOnCanvas, clearAllAnnotations } from '../core/services/annotation-service';
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { makeStyles, tokens, Spinner, Badge, Text, Button, MessageBar, MessageBarBody } from '@fluentui/react-components';
 
 // Core Logic
@@ -148,6 +148,7 @@ const useAppStyles = makeStyles({
 
 export const App: React.FC<{ title?: string }> = () => {
     const styles = useAppStyles();
+    const isMountedRef = useRef(true);
     // 1. Telemetry & Initialization State
     const { activeSheet, isCodelistActive } = useExcelTelemetry();
     const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
@@ -288,7 +289,10 @@ export const App: React.FC<{ title?: string }> = () => {
         };
 
         window.addEventListener("unhandledrejection", handleUnhandledRejection);
-        return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+        return () => {
+            isMountedRef.current = false;
+            window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+        };
     }, []);
     // --- Action Handlers ---
     const handleInitialize = async () => {
@@ -334,7 +338,17 @@ export const App: React.FC<{ title?: string }> = () => {
         setIsProcessing(true); setStatus("Analyzing workbook...");
         try {
             const freshStudy = await runWithOfficeErrorHandling(
-                () => parseExcelToStudyDesign(),
+                () => parseExcelToStudyDesign({
+                    chunkSize: 250,
+                    timeoutMs: 45_000,
+                    cancellationToken: {
+                        isCancelled: () => !isMountedRef.current,
+                    },
+                    onProgress: (progress) => {
+                        if (!isMountedRef.current) return;
+                        setStatus(`Analyzing: ${progress.message} (${progress.completed}/${progress.total})`);
+                    },
+                }),
                 async () => {
                     await performAnalysis(sheetFilter);
                 }
@@ -348,6 +362,8 @@ export const App: React.FC<{ title?: string }> = () => {
             setIssues(validationIssues);
             setStudySummary(summarizeStudyDesign(freshStudy));
             setCurrentFilter(sheetFilter ?? null);
+            const parseWarnings = freshStudy.metadata.customProperties?.parseWarnings;
+            const hasParseWarnings = Array.isArray(parseWarnings) && parseWarnings.length > 0;
 
             let snapshotFingerprint: WorkbookFingerprint | undefined = undefined;
             try {
@@ -387,7 +403,11 @@ export const App: React.FC<{ title?: string }> = () => {
 
             // Step 2: Visual Validation - Paint the Excel Grid
             await highlightErrorsOnCanvas(validationIssues);
-            setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
+            if (hasParseWarnings) {
+                setStatus("Analysis completed with partial parse warnings");
+            } else {
+                setStatus(validationIssues.some(i => i.level === 'Error') ? "Issues detected" : "Specification clean");
+            }
             return freshStudy;
         } catch (e) {
             setStatus("Analysis failed"); return null;

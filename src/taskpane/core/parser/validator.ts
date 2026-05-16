@@ -55,6 +55,82 @@ export function validateStudyDesign(study: StudyDesign, activeSheetFilter?: stri
                     }
                     globalVariables.add(item.itemOid);
                 }
+
+                const isNumericVariable = isNumericDataType(item.dataType);
+                const hasLength = item.length !== undefined && item.length !== null;
+                const hasSignificantDigits = item.significantDigits !== undefined && item.significantDigits !== null;
+                const length = Number(item.length);
+                const significantDigits = Number(item.significantDigits);
+
+                if (hasLength && (!Number.isInteger(length) || length <= 0)) {
+                    issues.push({
+                        level: 'Error',
+                        message: "Length must be a positive integer.",
+                        location: `${sheet} > ${item.itemOid || item.name}`,
+                        rowIndex: row,
+                        sheetName: sheet
+                    });
+                }
+
+                if (hasSignificantDigits && (!Number.isInteger(significantDigits) || significantDigits < 0)) {
+                    issues.push({
+                        level: 'Error',
+                        message: "Significant Digits must be a non-negative integer.",
+                        location: `${sheet} > ${item.itemOid || item.name}`,
+                        rowIndex: row,
+                        sheetName: sheet
+                    });
+                }
+
+                if (isNumericVariable) {
+                    if (!hasLength) {
+                        issues.push({
+                            level: 'Warning',
+                            message: "Numeric variables should define Length.",
+                            location: `${sheet} > ${item.itemOid || item.name}`,
+                            rowIndex: row,
+                            sheetName: sheet
+                        });
+                    }
+
+                    if (!hasSignificantDigits) {
+                        issues.push({
+                            level: 'Warning',
+                            message: "Numeric variables should define Significant Digits.",
+                            location: `${sheet} > ${item.itemOid || item.name}`,
+                            rowIndex: row,
+                            sheetName: sheet
+                        });
+                    }
+
+                    if (hasSignificantDigits && significantDigits === 0) {
+                        issues.push({
+                            level: 'Warning',
+                            message: "Significant Digits of 0 is likely too coarse for numeric variables.",
+                            location: `${sheet} > ${item.itemOid || item.name}`,
+                            rowIndex: row,
+                            sheetName: sheet
+                        });
+                    }
+                } else if (hasSignificantDigits) {
+                    issues.push({
+                        level: 'Warning',
+                        message: "Significant Digits is typically only used for numeric variables.",
+                        location: `${sheet} > ${item.itemOid || item.name}`,
+                        rowIndex: row,
+                        sheetName: sheet
+                    });
+                }
+
+                if (hasLength && hasSignificantDigits && Number.isInteger(length) && length > 0 && Number.isInteger(significantDigits) && significantDigits >= 0 && significantDigits > length) {
+                    issues.push({
+                        level: 'Error',
+                        message: "Significant Digits cannot exceed Length.",
+                        location: `${sheet} > ${item.itemOid || item.name}`,
+                        rowIndex: row,
+                        sheetName: sheet
+                    });
+                }
             });
         });
     });
@@ -66,4 +142,9 @@ export function validateStudyDesign(study: StudyDesign, activeSheetFilter?: stri
     }
 
     return issues;
+}
+
+function isNumericDataType(dataType: unknown): boolean {
+    const normalized = String(dataType ?? "").toLowerCase();
+    return normalized === "integer" || normalized === "float";
 }
