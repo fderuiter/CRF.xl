@@ -72,6 +72,7 @@ The application is divided into two primary layers:
   - `manifest.production.xml`
 - Validate manifests before release: `npm run manifest:validate`
 - Deployment runbook: `docs/deployment/manifests.md`
+- Version update notification mechanism and cadence: `docs/deployment/manifests.md#taskpane-version-update-notification-mechanism`
 
 ## 💾 Local Recovery Snapshot Scope
 - Stored in browser `localStorage` as a recovery snapshot for accidental refresh/crash recovery.
