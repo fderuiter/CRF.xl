@@ -148,6 +148,16 @@ const useAppStyles = makeStyles({
     },
 });
 
+function toSafeHttpUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : null;
+    } catch {
+        return null;
+    }
+}
+
 export const App: React.FC<{ title?: string }> = () => {
     const styles = useAppStyles();
     const isMountedRef = useRef(true);
@@ -164,6 +174,7 @@ export const App: React.FC<{ title?: string }> = () => {
     const [recoverySnapshot, setRecoverySnapshot] = useState<{ snapshot: RecoverySnapshot; workbookChanged: boolean } | null>(null);
     const [storageWarning, setStorageWarning] = useState<string | null>(null);
     const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
+    const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState("Ready");
     const [uiError, setUiError] = useState<(OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null>(null);
@@ -533,10 +544,10 @@ export const App: React.FC<{ title?: string }> = () => {
                         <MessageBarBody>
                             <strong>Update available:</strong> CRF.xl v{versionUpdate.version}
                             {versionUpdate.description ? ` — ${versionUpdate.description}` : ''}
-                            {versionUpdate.changelogUrl && (
+                            {safeChangelogUrl && (
                                 <span>
                                     {' '}
-                                    <a href={versionUpdate.changelogUrl} target="_blank" rel="noreferrer">View changelog</a>
+                                    <a href={safeChangelogUrl} target="_blank" rel="noreferrer">View changelog</a>
                                 </span>
                             )}
                             <div className={styles.recoveryActions}>

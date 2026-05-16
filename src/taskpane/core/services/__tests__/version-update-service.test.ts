@@ -4,6 +4,7 @@ import {
   checkForVersionUpdate,
   dismissVersionNotification,
   isRemoteVersionNewer,
+  toSafeHttpUrl,
 } from "../version-update-service";
 
 type MockFetch = jest.Mock<Promise<Response>, [string, RequestInit | undefined]>;
@@ -114,5 +115,13 @@ describe("version-update-service", () => {
     expect(isRemoteVersionNewer("1.2.3", "1.2.3.0")).toBe(false);
     expect(isRemoteVersionNewer("1.2.3", "1.2.2")).toBe(false);
     expect(isRemoteVersionNewer("1.2.3", "x.y.z")).toBe(false);
+  });
+
+  it("only allows http/https changelog URLs", () => {
+    expect(toSafeHttpUrl("https://github.com/fderuiter/CRF.xl/releases")).toBe(
+      "https://github.com/fderuiter/CRF.xl/releases"
+    );
+    expect(toSafeHttpUrl("javascript:alert(1)")).toBeUndefined();
+    expect(toSafeHttpUrl("ftp://example.test/changelog")).toBeUndefined();
   });
 });
