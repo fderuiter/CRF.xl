@@ -149,7 +149,18 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
             // Add return warp link
             navRange.hyperlink = { textToDisplay: "[ ← Back to Registry ]", address: "#'_Forms'!A1" };
 
-            const headers = ["Variable Name", "Label", "Variable Type", "Required", "Minimum", "Maximum", "Show If", "Codelist ID"];
+            const headers = [
+                "Variable Name",
+                "Label",
+                "Variable Type",
+                "Required",
+                "Length",
+                "Significant Digits",
+                "Minimum",
+                "Maximum",
+                "Show If",
+                "Codelist ID"
+            ];
             const headerRange = crfSheet.getRangeByIndexes(1, 0, 1, headers.length);
             headerRange.values = [headers];
             headerRange.format.fill.color = "#2563eb"; // Blue 600 for Authoring
@@ -161,7 +172,7 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
             crfSheet.getRange("D3:D1000").dataValidation.rule = { list: { inCellDropDown: true, source: "Yes,No" }};
             
             // Connect to Dynamic Codelist Named Range
-            crfSheet.getRange("H3:H1000").dataValidation.rule = { list: { inCellDropDown: true, source: "=CodelistDictionary" }};
+            crfSheet.getRange("J3:J1000").dataValidation.rule = { list: { inCellDropDown: true, source: "=CodelistDictionary" }};
 
             headerRange.format.autofitColumns();
             crfSheet.freezePanes.freezeRows(2);
