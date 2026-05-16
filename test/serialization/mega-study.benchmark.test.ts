@@ -5,6 +5,7 @@ import { performance } from "perf_hooks";
 import ExcelJS from "exceljs";
 import { validateStudyDesign } from "../../src/taskpane/core/parser/validator";
 import { DataType, EventType, StudyDesign } from "../../src/taskpane/core/types";
+import { buildMatrixSearchEntries, filterMatrixEntries } from "../../src/taskpane/components/views/matrix-view-utils";
 
 const fixturePath = path.resolve(
   __dirname,
@@ -243,12 +244,14 @@ describe("Mega-study benchmark harness", () => {
     parseWorkbookToStudy(coldWorkbook);
     const warmParseMs = performance.now() - warmStart;
 
-    const allItems = Object.values(study.forms).flatMap((form) => form.itemGroups[0].items);
+    const matrixEntries = buildMatrixSearchEntries(study);
     const searchStart = performance.now();
     const searchQuery = "VAR_025_015";
-    const matches = allItems.filter((item) => {
-      const label = item.label?.["en-US"] ?? "";
-      return item.itemOid.includes(searchQuery) || label.includes(searchQuery);
+    const matches = filterMatrixEntries(matrixEntries, {
+      search: searchQuery,
+      required: "all",
+      dataType: "all",
+      visit: "all",
     });
     const matrixSearchMs = performance.now() - searchStart;
 
@@ -293,6 +296,7 @@ describe("Mega-study benchmark harness", () => {
     expect(counts.codelistEntries).toBe(EXPECTED_COUNTS.codelistEntries);
     expect(counts.scheduleRows).toBe(EXPECTED_COUNTS.scheduleRows);
     expect(counts.totalWorkbookRows).toBe(EXPECTED_COUNTS.totalWorkbookRows);
+    expect(matrixEntries.length).toBeGreaterThan(0);
     expect(matches.length).toBeGreaterThan(0);
 
     expect(result.metricsMs.coldParse).toBeGreaterThan(0);
