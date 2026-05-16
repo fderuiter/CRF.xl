@@ -11,6 +11,16 @@ import { generateDocx } from '../core/generators/docx/docx-builder';
 import { generateOdmXml } from '../core/generators/cdisc/odm-builder';
 import { initializeWorkbook, navigateToSource, syncRegistry } from '../core/parser/template-generator';
 import { StudyDesign } from '../core/types/index';
+import {
+    RecoverySnapshot,
+    WorkbookFingerprint,
+    createRecoverySnapshot,
+    dismissRecoverySnapshot,
+    hasWorkbookChanged,
+    persistRecoverySnapshot,
+    readRecoverySnapshot,
+    summarizeStudyDesign,
+} from '../core/services/recovery-storage';
 import { createOfficeErrorPresentation, OfficeErrorPresentation } from '../core/services/office-error-handling';
 
 // Telemetry & Views
@@ -128,6 +138,12 @@ const useAppStyles = makeStyles({
         color: tokens.colorBrandForeground1,
         fontWeight: tokens.fontWeightBold,
     },
+    recoveryActions: {
+        marginTop: '8px',
+        display: 'flex',
+        gap: '8px',
+        justifyContent: 'flex-end',
+    },
 });
 
 export const App: React.FC<{ title?: string }> = () => {
@@ -139,6 +155,11 @@ export const App: React.FC<{ title?: string }> = () => {
     // 2. Application State
     const [study, setStudy] = useState<StudyDesign | null>(null);
     const [issues, setIssues] = useState<ValidationIssue[]>([]);
+    const [studySummary, setStudySummary] = useState<{ formCount: number; variableCount: number; visitCount: number } | null>(null);
+    const [currentFilter, setCurrentFilter] = useState<string | null>(null);
+    const [workbookFingerprint, setWorkbookFingerprint] = useState<WorkbookFingerprint | undefined>(undefined);
+    const [recoverySnapshot, setRecoverySnapshot] = useState<{ snapshot: RecoverySnapshot; workbookChanged: boolean } | null>(null);
+    const [storageWarning, setStorageWarning] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState("Ready");
     const [uiError, setUiError] = useState<(OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null>(null);
@@ -196,6 +217,71 @@ export const App: React.FC<{ title?: string }> = () => {
     }, []);
 
     useEffect(() => {
+        const detectRecoverableSnapshot = async () => {
+            const snapshot = readRecoverySnapshot();
+            if (!snapshot) return;
+
+            let currentFingerprint: WorkbookFingerprint | undefined = undefined;
+            try {
+                currentFingerprint = await Excel.run(async (context) => {
+                    const sheets = context.workbook.worksheets;
+                    sheets.load("items/name");
+                    await context.sync();
+                    const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
+                    return { sheetCount: sheetNames.length, sheetNames };
+                });
+            } catch {
+                currentFingerprint = undefined;
+            }
+
+            setRecoverySnapshot({
+                snapshot,
+                workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
+            });
+        };
+
+        void detectRecoverableSnapshot();
+    }, []);
+
+    useEffect(() => {
+        if (!studySummary) return undefined;
+
+        const saveCheckpoint = () => {
+            const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
+            const snapshot = createRecoverySnapshot({
+                issues,
+                studySummary,
+                openForm,
+                currentFilter: currentFilter ?? undefined,
+                workbookFingerprint,
+            });
+            const saveResult = persistRecoverySnapshot(snapshot);
+            if ('reason' in saveResult && saveResult.reason === "quota-exceeded") {
+                setStorageWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
+            } else if (saveResult.saved) {
+                setStorageWarning(null);
+            }
+        };
+
+        const checkpointTimer = window.setInterval(saveCheckpoint, 30000);
+        return () => window.clearInterval(checkpointTimer);
+    }, [studySummary, issues, activeSheet, currentFilter, workbookFingerprint]);
+
+    const handleRestoreSnapshot = () => {
+        if (!recoverySnapshot) return;
+        setIssues(recoverySnapshot.snapshot.issues as ValidationIssue[]);
+        setStudySummary(recoverySnapshot.snapshot.studySummary);
+        setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
+        setStatus(`Recovered snapshot from ${new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}`);
+        setRecoverySnapshot(null);
+    };
+
+    const handleDismissSnapshot = () => {
+        dismissRecoverySnapshot();
+        setRecoverySnapshot(null);
+    };
+
+    useEffect(() => {
         const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
             event.preventDefault();
             presentOfficeError(event.reason);
@@ -204,7 +290,6 @@ export const App: React.FC<{ title?: string }> = () => {
         window.addEventListener("unhandledrejection", handleUnhandledRejection);
         return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     }, []);
-
     // --- Action Handlers ---
     const handleInitialize = async () => {
         setIsProcessing(true); setStatus("Scaffolding canvas...");
@@ -261,6 +346,38 @@ export const App: React.FC<{ title?: string }> = () => {
             setStudy(freshStudy);
             const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
             setIssues(validationIssues);
+            setStudySummary(summarizeStudyDesign(freshStudy));
+            setCurrentFilter(sheetFilter ?? null);
+
+            let snapshotFingerprint: WorkbookFingerprint | undefined = undefined;
+            try {
+                snapshotFingerprint = await Excel.run(async (context) => {
+                    const sheets = context.workbook.worksheets;
+                    sheets.load("items/name");
+                    await context.sync();
+                    const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
+                    return { sheetCount: sheetNames.length, sheetNames };
+                });
+            } catch {
+                snapshotFingerprint = undefined;
+            }
+            setWorkbookFingerprint(snapshotFingerprint);
+
+            const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
+            const snapshot = createRecoverySnapshot({
+                issues: validationIssues,
+                studySummary: summarizeStudyDesign(freshStudy),
+                openForm,
+                currentFilter: sheetFilter,
+                workbookFingerprint: snapshotFingerprint,
+            });
+            const saveResult = persistRecoverySnapshot(snapshot);
+            if ('reason' in saveResult && saveResult.reason === "quota-exceeded") {
+                setStorageWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
+            } else if (saveResult.saved) {
+                setStorageWarning(null);
+            }
+            setRecoverySnapshot(null);
 
             // Step 1: Clean previous annotations
             const sheetsToClear = sheetFilter
@@ -341,7 +458,7 @@ export const App: React.FC<{ title?: string }> = () => {
             return <RegistryView onInit={handleInitialize} onSync={handleSync} isProcessing={isProcessing} />;
         }
         if (activeSheet === "_Schedule" || activeSheet === "_Codelists") {
-            return <MatrixView onAnalyze={() => performAnalysis()} onDocx={handleDocxExport} onOdm={handleOdmExport} isProcessing={isProcessing} hasErrors={issues.some(i => i.level === 'Error')} isLoaded={!!study} />;
+            return <MatrixView onAnalyze={() => performAnalysis()} onDocx={handleDocxExport} onOdm={handleOdmExport} isProcessing={isProcessing} hasErrors={issues.some(i => i.level === 'Error')} isLoaded={!!studySummary} />;
         }
         if (!activeSheet.startsWith("_")) {
             return <AuthoringView sheetName={activeSheet} onValidate={() => performAnalysis(activeSheet)} isProcessing={isProcessing} />;
@@ -365,6 +482,23 @@ export const App: React.FC<{ title?: string }> = () => {
             </header>
             
             <main className={styles.main}>
+                {recoverySnapshot && (
+                    <MessageBar intent={recoverySnapshot.workbookChanged ? "warning" : "info"}>
+                        <MessageBarBody>
+                            Recovery snapshot detected from {new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}.
+                            {recoverySnapshot.workbookChanged && " Workbook structure has changed since this snapshot; review restored results carefully."}
+                            <div className={styles.recoveryActions}>
+                                <Button appearance="primary" size="small" onClick={handleRestoreSnapshot}>Restore</Button>
+                                <Button appearance="secondary" size="small" onClick={handleDismissSnapshot}>Dismiss</Button>
+                            </div>
+                        </MessageBarBody>
+                    </MessageBar>
+                )}
+                {storageWarning && (
+                    <MessageBar intent="warning">
+                        <MessageBarBody>{storageWarning}</MessageBarBody>
+                    </MessageBar>
+                )}
                 {isCodelistActive && <DictionarySidecar />}
                 {!isCodelistActive && renderContextualView()}
                 {uiError && (

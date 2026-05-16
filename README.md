@@ -63,3 +63,16 @@ The application is divided into two primary layers:
 ## 📋 Compliance Documentation
 - **Security posture (CIS control mapping with access/data/audit evidence):** `SECURITY.md`
 - **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
+
+## 💾 Local Recovery Snapshot Scope
+- Stored in browser `localStorage` as a recovery snapshot for accidental refresh/crash recovery.
+- Includes:
+  - Validation summary + visible diagnostic log items (level/message/location/row/sheet)
+  - Parsed study summary only (form count, variable count, visit count)
+  - UI analysis context (open form + active validation filter)
+  - Snapshot metadata (saved timestamp + app version)
+- Excludes:
+  - Credentials, API keys, tokens, secrets
+  - Raw workbook cell contents
+  - Full parsed `StudyDesign` payload
+- Recovery snapshots auto-expire after 7 days.
