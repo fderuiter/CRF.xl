@@ -1,7 +1,22 @@
 import * as React from 'react';
-import { Body1, Button, Card, Divider, Spinner, Input, Text, Badge, Dropdown, Option, makeStyles, tokens, MessageBar, MessageBarBody } from '@fluentui/react-components';
+import {
+    Badge,
+    Body1,
+    Button,
+    Card,
+    Divider,
+    Dropdown,
+    Input,
+    Spinner,
+    Text,
+    makeStyles,
+    tokens,
+    MessageBar,
+    MessageBarBody,
+    Option,
+} from '@fluentui/react-components';
 import { StudyDesign } from '../../core/types';
-import { buildMatrixSearchEntries, filterMatrixEntries, normalizeMatrixSearch, MatrixRequiredFilter } from './matrix-view-utils';
+import { buildMatrixSearchIndex, filterMatrixSearchIndex, MatrixRequiredFilter } from './matrix-view-utils';
 
 interface MatrixProps {
     onAnalyze: () => Promise<any>;
@@ -77,13 +92,13 @@ const useStyles = makeStyles({
         marginTop: '16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: '10px',
     },
     searchHeader: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        gap: '12px',
+        gap: '8px',
         flexWrap: 'wrap',
     },
     searchTitle: {
@@ -92,18 +107,12 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground1,
     },
     searchHint: {
-        fontSize: tokens.fontSizeBase100,
         color: tokens.colorNeutralForeground3,
     },
-    searchRow: {
-        display: 'flex',
-        gap: '8px',
-        alignItems: 'center',
-    },
     searchInput: {
-        flexGrow: 1,
+        width: '100%',
     },
-    filtersRow: {
+    filterGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
         gap: '8px',
@@ -111,7 +120,7 @@ const useStyles = makeStyles({
     filterControl: {
         minWidth: 0,
     },
-    resultsSummary: {
+    summaryRow: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -119,61 +128,46 @@ const useStyles = makeStyles({
         flexWrap: 'wrap',
     },
     summaryText: {
-        fontSize: tokens.fontSizeBase100,
         color: tokens.colorNeutralForeground3,
     },
     resultList: {
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
-        maxHeight: '320px',
+        maxHeight: '280px',
         overflowY: 'auto',
         paddingRight: '4px',
     },
-    resultCard: {
+    resultItem: {
         backgroundColor: tokens.colorNeutralBackground2,
         borderRadius: tokens.borderRadiusLarge,
-        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderLeft: `4px solid ${tokens.colorBrandStroke1}`,
         padding: '12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '6px',
     },
-    resultHeader: {
+    resultTopRow: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         gap: '8px',
+        flexWrap: 'wrap',
     },
     resultTitle: {
-        fontSize: tokens.fontSizeBase200,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground1,
     },
     resultMeta: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '6px',
-    },
-    resultBadges: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '6px',
-    },
-    previewList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px',
-    },
-    previewText: {
-        fontSize: tokens.fontSizeBase100,
         color: tokens.colorNeutralForeground2,
     },
-    matchHighlight: {
-        backgroundColor: tokens.colorPaletteYellowBackground2,
-        borderRadius: tokens.borderRadiusSmall,
-        padding: '0 2px',
-        fontWeight: tokens.fontWeightSemibold,
+    badgeRow: {
+        display: 'flex',
+        gap: '6px',
+        flexWrap: 'wrap',
+    },
+    previewText: {
+        color: tokens.colorNeutralForeground2,
     },
     emptyState: {
         backgroundColor: tokens.colorNeutralBackground2,
@@ -183,33 +177,9 @@ const useStyles = makeStyles({
         textAlign: 'center',
         color: tokens.colorNeutralForeground3,
     },
-    loadingHint: {
-        marginTop: '12px',
-    },
 });
 
 const SEARCH_DEBOUNCE_MS = 150;
-
-function renderHighlightedText(text: string, search: string, highlightClassName: string): React.ReactNode {
-    const normalizedSearch = normalizeMatrixSearch(search);
-    if (!normalizedSearch) {
-        return text;
-    }
-
-    const lowerText = text.toLowerCase();
-    const index = lowerText.indexOf(normalizedSearch);
-    if (index === -1) {
-        return text;
-    }
-
-    return (
-        <>
-            {text.slice(0, index)}
-            <span className={highlightClassName}>{text.slice(index, index + normalizedSearch.length)}</span>
-            {text.slice(index + normalizedSearch.length)}
-        </>
-    );
-}
 
 export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, isProcessing, hasErrors, isLoaded, study }) => {
     const styles = useStyles();
@@ -220,30 +190,31 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
     const [visitFilter, setVisitFilter] = React.useState('all');
 
     React.useEffect(() => {
-        const timer = window.setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
-        return () => window.clearTimeout(timer);
+        const timer = globalThis.setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
+        return () => globalThis.clearTimeout(timer);
     }, [search]);
 
-    const matrixEntries = React.useMemo(() => (study ? buildMatrixSearchEntries(study) : []), [study]);
-    const filteredResults = React.useMemo(
+    const matrixIndex = React.useMemo(() => (study ? buildMatrixSearchIndex(study) : []), [study]);
+    const filteredEntries = React.useMemo(
         () =>
-            filterMatrixEntries(matrixEntries, {
+            filterMatrixSearchIndex(matrixIndex, {
                 search: debouncedSearch,
                 required: requiredFilter,
                 dataType: dataTypeFilter,
                 visit: visitFilter,
             }),
-        [matrixEntries, debouncedSearch, requiredFilter, dataTypeFilter, visitFilter]
+        [matrixIndex, debouncedSearch, requiredFilter, dataTypeFilter, visitFilter]
     );
-    const hasActiveFilters = search.trim().length > 0 || requiredFilter !== 'all' || dataTypeFilter !== 'all' || visitFilter !== 'all';
     const visitOptions = React.useMemo(
-        () => Array.from(new Map(matrixEntries.map((entry) => [entry.eventOid, entry.eventName])).entries()),
-        [matrixEntries]
+        () => Array.from(new Map(matrixIndex.map((entry) => [entry.eventOid, entry.eventName])).entries()),
+        [matrixIndex]
     );
     const dataTypeOptions = React.useMemo(
-        () => Array.from(new Set(matrixEntries.flatMap((entry) => entry.dataTypes))).sort((left, right) => left.localeCompare(right)),
-        [matrixEntries]
+        () => Array.from(new Set(matrixIndex.flatMap((entry) => entry.dataTypes))).sort((left, right) => left.localeCompare(right)),
+        [matrixIndex]
     );
+    const hasActiveFilters = search.trim().length > 0 || requiredFilter !== 'all' || dataTypeFilter !== 'all' || visitFilter !== 'all';
+
     const clearFilters = React.useCallback(() => {
         setSearch('');
         setDebouncedSearch('');
@@ -307,7 +278,7 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
                         <div>
                             <Text className={styles.searchTitle} block>Quick Search</Text>
                             <Text className={styles.searchHint} block>
-                                Filter matrix assignments by form, visit, variable, or label without re-reading Excel.
+                                Search form OID, form name, visit, variable OID, or variable label.
                             </Text>
                         </div>
                         {hasActiveFilters && (
@@ -319,16 +290,14 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
 
                     {study ? (
                         <>
-                            <div className={styles.searchRow}>
-                                <Input
-                                    className={styles.searchInput}
-                                    placeholder="Search form OID, form name, visit, variable OID, or variable label..."
-                                    value={search}
-                                    onChange={(_, data) => setSearch(data.value)}
-                                    aria-label="Quick search matrix"
-                                />
-                            </div>
-                            <div className={styles.filtersRow}>
+                            <Input
+                                className={styles.searchInput}
+                                placeholder="Search matrix assignments..."
+                                value={search}
+                                onChange={(_, data) => setSearch(data.value)}
+                                aria-label="Quick search matrix"
+                            />
+                            <div className={styles.filterGrid}>
                                 <Dropdown
                                     className={styles.filterControl}
                                     value={requiredFilter === 'all' ? 'Required / optional' : requiredFilter === 'required' ? 'Required only' : 'Optional only'}
@@ -366,65 +335,43 @@ export const MatrixView: React.FC<MatrixProps> = ({ onAnalyze, onDocx, onOdm, is
                                     ))}
                                 </Dropdown>
                             </div>
-                            <div className={styles.resultsSummary}>
+                            <div className={styles.summaryRow}>
                                 <Text className={styles.summaryText}>
                                     {hasActiveFilters
-                                        ? `Showing ${filteredResults.length} of ${matrixEntries.length} matrix assignments`
-                                        : `${matrixEntries.length} matrix assignments indexed`}
+                                        ? `Showing ${filteredEntries.length} of ${matrixIndex.length} matrix assignments`
+                                        : `${matrixIndex.length} matrix assignments indexed`}
                                 </Text>
                                 {search.trim().length > 0 && <Text className={styles.summaryText}>{`Search: "${search.trim()}"`}</Text>}
                             </div>
-                            {filteredResults.length > 0 ? (
+                            {filteredEntries.length > 0 ? (
                                 <div className={styles.resultList}>
-                                    {filteredResults.map(({ entry, matchedFields, previewItems, matchedItemCount }) => (
-                                        <div key={entry.id} className={styles.resultCard}>
-                                            <div className={styles.resultHeader}>
+                                    {filteredEntries.map((entry) => (
+                                        <div key={entry.id} className={styles.resultItem}>
+                                            <div className={styles.resultTopRow}>
                                                 <div>
-                                                    <Text className={styles.resultTitle} block>
-                                                        {renderHighlightedText(entry.formName, search, styles.matchHighlight)}
-                                                    </Text>
-                                                    <Text className={styles.summaryText} block>
-                                                        {renderHighlightedText(entry.formOid, search, styles.matchHighlight)} · {renderHighlightedText(entry.eventName, search, styles.matchHighlight)}
-                                                    </Text>
+                                                    <Text className={styles.resultTitle} block>{entry.formName}</Text>
+                                                    <Text className={styles.resultMeta} block>{`${entry.formOid} · ${entry.eventName}`}</Text>
                                                 </div>
-                                                <div className={styles.resultMeta}>
-                                                    <Badge appearance="tint" color="informative">{`${entry.itemCount} vars`}</Badge>
-                                                    <Badge appearance="tint" color="success">{`${entry.requiredCount} required`}</Badge>
-                                                    <Badge appearance="tint" color="warning">{`${entry.optionalCount} optional`}</Badge>
-                                                </div>
+                                                <Badge appearance="tint" color="brand">{`${entry.itemCount} vars`}</Badge>
                                             </div>
-                                            {matchedFields.length > 0 && (
-                                                <div className={styles.resultBadges}>
-                                                    {matchedFields.map((field) => (
-                                                        <Badge key={field} appearance="filled" color="brand">
-                                                            {field}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            <Text className={styles.summaryText}>
-                                                {matchedItemCount === entry.itemCount ? `${entry.itemCount} variables in assignment` : `${matchedItemCount} matching variables`}
-                                            </Text>
-                                            <div className={styles.previewList}>
-                                                {previewItems.map((item) => (
-                                                    <Text key={`${entry.id}:${item.itemOid}`} className={styles.previewText}>
-                                                        {renderHighlightedText(item.itemOid, search, styles.matchHighlight)} — {renderHighlightedText(item.itemLabel, search, styles.matchHighlight)} ({item.dataType})
-                                                    </Text>
-                                                ))}
+                                            <div className={styles.badgeRow}>
+                                                <Badge appearance="outline" color="success">{`${entry.requiredCount} required`}</Badge>
+                                                <Badge appearance="outline" color="warning">{`${entry.optionalCount} optional`}</Badge>
                                             </div>
+                                            <Text className={styles.previewText}>{entry.previewItems.join(' • ')}</Text>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div className={styles.emptyState}>
                                     <Text block>No matrix assignments match the current search and filters.</Text>
-                                    <Text block>Clear the search or adjust filters to restore the full matrix.</Text>
+                                    <Text block>Clear the search or adjust the filters to restore the full matrix.</Text>
                                 </div>
                             )}
                         </>
                     ) : (
-                        <MessageBar className={styles.loadingHint}>
-                            <MessageBarBody>Run “Validate Entire Study” once to load the latest matrix into memory for quick search and filtering.</MessageBarBody>
+                        <MessageBar>
+                            <MessageBarBody>Run “Validate Entire Study” to load the latest matrix into memory for quick search.</MessageBarBody>
                         </MessageBar>
                     )}
                 </div>
