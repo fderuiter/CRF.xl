@@ -15,13 +15,13 @@ This document defines the committed fixture and provisional numeric budget for p
 
 ## Performance budget (provisional, numeric)
 
-| Metric | Target |
-|---|---:|
-| Cold parse time (fixture workbook -> StudyDesign) | <= 3000 ms |
-| Warm parse time (cached sheet data) | <= 1500 ms |
-| Validation time (`validateStudyDesign`) | <= 500 ms |
-| Matrix view search latency (1,500 variables) | <= 150 ms |
-| Taskpane blocking time during parse | <= 1000 ms |
+| Metric                                              |         Target |
+| --------------------------------------------------- | -------------: |
+| Cold parse time (fixture workbook -> StudyDesign)   |     <= 3000 ms |
+| Warm parse time (cached sheet data)                 |     <= 1500 ms |
+| Validation time (`validateStudyDesign`)             |      <= 500 ms |
+| Matrix view search latency (1,500 variables)        |      <= 150 ms |
+| Taskpane blocking time during parse                 |     <= 1000 ms |
 | Max acceptable memory use (parse + validation peak) | <= 1024 MB RSS |
 
 ## Benchmark output contract
