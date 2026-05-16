@@ -48,3 +48,13 @@ Optional budget enforcement:
 ```bash
 ENFORCE_PERFORMANCE_BUDGET=1 npm test -- test/serialization/mega-study.benchmark.test.ts --runInBand
 ```
+
+## Parser chunking + background execution decisions (Issue #60)
+
+- Chunk size strategy: fixed row/column chunking with default `250` rows/columns per chunk (`parseExcelToStudyDesign` option `chunkSize`).
+- Worker vs async batching strategy: cooperative async batching (`setTimeout(0)` yield between chunks) in the taskpane thread; no dedicated Web Worker dependency for Office.js parsing.
+- Progress callback shape: `{ phase, completed, total, message }` via parser `onProgress` callback.
+- Cancellation behavior: parser accepts a cancellation token (`isCancelled()`); taskpane unmount cancels the remaining parse loop.
+- Timeout handling: parser timeout defaults to `45_000ms` and throws a parse timeout error when exceeded.
+- Partial parse failure behavior: individual CRF sheet parse failures are skipped by default, and warnings are attached to `study.metadata.customProperties.parseWarnings`.
+- Performance benchmark target: mega-study fixture `test/fixtures/mega-study/mega-study-v1.xlsx` and budget table above (tracked by #105).
