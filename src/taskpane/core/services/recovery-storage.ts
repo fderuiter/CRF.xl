@@ -55,7 +55,11 @@ type PersistResult = { saved: true } | { saved: false; reason: 'storage-unavaila
 function resolveStorage(storage?: StorageLike): StorageLike | null {
     if (storage) return storage;
     if (typeof globalThis === 'undefined' || !('localStorage' in globalThis)) return null;
-    return globalThis.localStorage;
+    try {
+        return globalThis.localStorage;
+    } catch {
+        return null;
+    }
 }
 
 function isQuotaError(error: unknown): boolean {
@@ -161,7 +165,12 @@ export function readRecoverySnapshot({
     const resolvedStorage = resolveStorage(storage);
     if (!resolvedStorage) return null;
 
-    const raw = resolvedStorage.getItem(RECOVERY_STORAGE_KEY);
+    let raw: string | null = null;
+    try {
+        raw = resolvedStorage.getItem(RECOVERY_STORAGE_KEY);
+    } catch {
+        return null;
+    }
     if (!raw) return null;
 
     try {
