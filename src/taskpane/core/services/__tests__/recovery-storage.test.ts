@@ -114,6 +114,18 @@ describe('recovery-storage', () => {
         expect(result).toEqual({ saved: false, reason: 'quota-exceeded' });
     });
 
+    it('returns null when storage getItem throws', () => {
+        const storage = {
+            getItem: () => {
+                throw new Error('SecurityError');
+            },
+            setItem: () => undefined,
+            removeItem: () => undefined,
+        };
+
+        expect(readRecoverySnapshot({ storage })).toBeNull();
+    });
+
     it('detects workbook shape changes between snapshot and current workbook', () => {
         expect(
             hasWorkbookChanged(
