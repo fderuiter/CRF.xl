@@ -41,6 +41,18 @@ function parseVersion(version: string): number[] | null {
   return segments;
 }
 
+export function toSafeHttpUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function isRemoteVersionNewer(currentVersion: string, remoteVersion: string): boolean {
   const current = parseVersion(currentVersion);
   const remote = parseVersion(remoteVersion);
@@ -107,7 +119,8 @@ export async function checkForVersionUpdate({
     const update: VersionUpdateMetadata = {
       version: payload.version,
       description: typeof payload.description === "string" ? payload.description : undefined,
-      changelogUrl: typeof payload.changelogUrl === "string" ? payload.changelogUrl : undefined,
+      changelogUrl:
+        typeof payload.changelogUrl === "string" ? toSafeHttpUrl(payload.changelogUrl) : undefined,
     };
 
     const dismissedVersion = readDismissedVersion(storage);

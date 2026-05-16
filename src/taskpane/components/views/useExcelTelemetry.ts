@@ -42,8 +42,8 @@ export function useExcelTelemetry() {
 
               const sheetName = worksheet.name;
 
-              // Context Trigger: If on a CRF sheet AND in the Codelist ID col (Index 7 / Col H)
-              if (!sheetName.startsWith("_") && range.columnIndex === 7) {
+              // Context Trigger: If on a CRF sheet AND in the Codelist ID col (Index 9 / Col J)
+              if (!sheetName.startsWith("_") && range.columnIndex === 9) {
                 setIsCodelistActive(true);
               } else {
                 setIsCodelistActive(false);
