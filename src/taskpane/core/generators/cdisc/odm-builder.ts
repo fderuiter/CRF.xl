@@ -144,6 +144,14 @@ function renderItemDef(item: CrfItem): string {
     const odmType = mapDataTypeToOdm(item.dataType);
     let output = `
       <ItemDef OID="${item.itemOid}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
+
+    if (Number.isInteger(item.length) && Number(item.length) > 0) {
+        output += ` Length="${item.length}"`;
+    }
+
+    if (Number.isInteger(item.significantDigits) && Number(item.significantDigits) >= 0) {
+        output += ` SignificantDigits="${item.significantDigits}"`;
+    }
     
     if (item.sdtmMapping?.sasFieldName) {
         output += ` SASFieldName="${escapeXml(item.sdtmMapping.sasFieldName)}"`;

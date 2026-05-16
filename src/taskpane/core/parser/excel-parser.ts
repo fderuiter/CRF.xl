@@ -145,9 +145,18 @@ function mapRowToItem(headers: string[], row: any[], formOid: string, excelRowIn
         if (ch === 'variable name') { item.itemOid = String(val).trim().toUpperCase(); item.name = item.itemOid; }
         if (ch === 'label') item.label["en-US"] = String(val);
         if (ch === 'variable type') item.dataType = String(val).toLowerCase() as any;
+        if (ch === 'length') item.length = parseNumericMetadata(val);
+        if (ch === 'significant digits' || ch === 'precision') item.significantDigits = parseNumericMetadata(val);
         if (ch === 'required') item.validation.required = String(val).toLowerCase() === 'yes';
         if (ch === 'show if') item.showIf = String(val);
         if (ch === 'codelist id') item.codelistId = String(val).trim().toUpperCase();
     });
     return item;
+}
+
+function parseNumericMetadata(value: unknown): number | undefined {
+    if (value === undefined || value === null || value === "") {
+        return undefined;
+    }
+    return Number(value);
 }

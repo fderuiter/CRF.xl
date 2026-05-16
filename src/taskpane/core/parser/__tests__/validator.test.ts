@@ -174,6 +174,180 @@ describe('Clinical Validator Engine', () => {
         );
     });
 
+    it('should accept numeric metadata when Length and Significant Digits are valid integers', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 8;
+        item.significantDigits = 2;
+
+        const issues = validateStudyDesign(mockStudy);
+        const metadataIssues = issues.filter(i => i.message.includes("Length") || i.message.includes("Significant Digits"));
+
+        expect(metadataIssues).toHaveLength(0);
+    });
+
+    it('should raise an error when Significant Digits exceeds Length', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 2;
+        item.significantDigits = 3;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Error',
+                    message: "Significant Digits cannot exceed Length.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should warn when Significant Digits is set for text variables', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.TEXT;
+        item.significantDigits = 1;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Warning',
+                    message: "Significant Digits is typically only used for numeric variables.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should warn when numeric variables are missing Length metadata', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.significantDigits = 2;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Warning',
+                    message: "Numeric variables should define Length.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should warn when numeric variables are missing Significant Digits metadata', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 8;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Warning',
+                    message: "Numeric variables should define Significant Digits.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should warn when Significant Digits is zero for numeric variables', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 8;
+        item.significantDigits = 0;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Warning',
+                    message: "Significant Digits of 0 is likely too coarse for numeric variables.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should raise an error for non-integer Significant Digits values', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 8;
+        item.significantDigits = 1.5;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Error',
+                    message: "Significant Digits must be a non-negative integer.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should raise an error for negative Significant Digits values', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 8;
+        item.significantDigits = -1;
+
+        const issues = validateStudyDesign(mockStudy);
+
+        expect(issues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Error',
+                    message: "Significant Digits must be a non-negative integer.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
+    it('should raise an error for non-positive or non-integer Length values', () => {
+        const item = mockStudy.forms["F1"].itemGroups[0].items[0] as any;
+        item.dataType = DataType.FLOAT;
+        item.length = 0;
+        item.significantDigits = 1;
+
+        const zeroLengthIssues = validateStudyDesign(mockStudy);
+
+        expect(zeroLengthIssues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Error',
+                    message: "Length must be a positive integer.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+
+        item.length = 2.5;
+        const decimalLengthIssues = validateStudyDesign(mockStudy);
+
+        expect(decimalLengthIssues).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    level: 'Error',
+                    message: "Length must be a positive integer.",
+                    sheetName: 'F1',
+                }),
+            ])
+        );
+    });
+
     it('should filter issues to the active CRF sheet only', () => {
         (mockStudy.forms["F1"].itemGroups[0].items[0] as any).itemOid = "";
         (mockStudy.forms["F1"].itemGroups[0].items[0] as any).rowIndex = 3;
