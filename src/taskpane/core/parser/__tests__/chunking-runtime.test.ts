@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { createParseRuntime, processRowsInChunks } from "../chunking-runtime";
 
 describe("chunking runtime", () => {

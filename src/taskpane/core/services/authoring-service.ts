@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* global Excel */
 
 /**
@@ -10,7 +11,7 @@ export const insertDateBlock = async () => {
       // Variable Name, Label, Type, Required, Min, Max, ShowIf, Codelist
       const data = [
         ["_DAT", "Date of Assessment", "Date", "Yes", "", "", "", ""],
-        ["_TIM", "Time of Assessment", "Time", "No", "", "", "", ""]
+        ["_TIM", "Time of Assessment", "Time", "No", "", "", "", ""],
       ];
 
       const targetRange = range.getResizedRange(data.length - 1, 7);
@@ -37,7 +38,7 @@ export const insertAEBlock = async () => {
         ["AEENDAT", "End Date", "Date", "No", "", "", "", ""],
         ["AESEV", "Severity", "Codelist", "Yes", "", "", "", "SEVERITY"],
         ["AESER", "Serious?", "Codelist", "Yes", "", "", "", "YES_NO"],
-        ["AEREL", "Relationship to Study Drug", "Codelist", "Yes", "", "", "", "RELATIONSHIP"]
+        ["AEREL", "Relationship to Study Drug", "Codelist", "Yes", "", "", "", "RELATIONSHIP"],
       ];
 
       const targetRange = range.getResizedRange(data.length - 1, 7);
