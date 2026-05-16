@@ -13,6 +13,7 @@ import { initializeWorkbook, navigateToSource, syncRegistry } from '../core/pars
 import { StudyDesign } from '../core/types/index';
 import {
     RecoverySnapshot,
+    RECOVERY_APP_VERSION,
     WorkbookFingerprint,
     createRecoverySnapshot,
     dismissRecoverySnapshot,
@@ -22,6 +23,7 @@ import {
     summarizeStudyDesign,
 } from '../core/services/recovery-storage';
 import { createOfficeErrorPresentation, OfficeErrorPresentation } from '../core/services/office-error-handling';
+import { checkForVersionUpdate, dismissVersionNotification, VersionUpdateMetadata } from '../core/services/version-update-service';
 
 // Telemetry & Views
 import { useExcelTelemetry } from './views/useExcelTelemetry';
@@ -161,6 +163,7 @@ export const App: React.FC<{ title?: string }> = () => {
     const [workbookFingerprint, setWorkbookFingerprint] = useState<WorkbookFingerprint | undefined>(undefined);
     const [recoverySnapshot, setRecoverySnapshot] = useState<{ snapshot: RecoverySnapshot; workbookChanged: boolean } | null>(null);
     const [storageWarning, setStorageWarning] = useState<string | null>(null);
+    const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState("Ready");
     const [uiError, setUiError] = useState<(OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null>(null);
@@ -245,6 +248,23 @@ export const App: React.FC<{ title?: string }> = () => {
     }, []);
 
     useEffect(() => {
+        const detectVersionUpdate = async () => {
+            const globalRef = globalThis as { CRF_XL_VERSION_ENDPOINT?: string };
+            const versionEndpoint = globalRef.CRF_XL_VERSION_ENDPOINT;
+            const result = await checkForVersionUpdate({
+                currentVersion: RECOVERY_APP_VERSION,
+                endpoint: versionEndpoint,
+            });
+            if (!isMountedRef.current) return;
+            if (result.status === 'update-available') {
+                setVersionUpdate(result.update);
+            }
+        };
+
+        void detectVersionUpdate();
+    }, []);
+
+    useEffect(() => {
         if (!studySummary) return undefined;
 
         const saveCheckpoint = () => {
@@ -280,6 +300,12 @@ export const App: React.FC<{ title?: string }> = () => {
     const handleDismissSnapshot = () => {
         dismissRecoverySnapshot();
         setRecoverySnapshot(null);
+    };
+
+    const handleDismissVersionUpdate = () => {
+        if (!versionUpdate) return;
+        dismissVersionNotification(versionUpdate.version);
+        setVersionUpdate(null);
     };
 
     useEffect(() => {
@@ -502,6 +528,25 @@ export const App: React.FC<{ title?: string }> = () => {
             </header>
             
             <main className={styles.main}>
+                {versionUpdate && (
+                    <MessageBar intent="info">
+                        <MessageBarBody>
+                            <strong>Update available:</strong> CRF.xl v{versionUpdate.version}
+                            {versionUpdate.description ? ` — ${versionUpdate.description}` : ''}
+                            {versionUpdate.changelogUrl && (
+                                <span>
+                                    {' '}
+                                    <a href={versionUpdate.changelogUrl} target="_blank" rel="noreferrer">View changelog</a>
+                                </span>
+                            )}
+                            <div className={styles.recoveryActions}>
+                                <Button size="small" appearance="subtle" onClick={handleDismissVersionUpdate}>
+                                    Dismiss
+                                </Button>
+                            </div>
+                        </MessageBarBody>
+                    </MessageBar>
+                )}
                 {recoverySnapshot && (
                     <MessageBar intent={recoverySnapshot.workbookChanged ? "warning" : "info"}>
                         <MessageBarBody>
