@@ -18,6 +18,16 @@ File Permissions: Test behavior when the user attempts to generate a document bu
 
 Data Corruption: Verify the system handles rows with junk data or infinite recursion in derivation dependencies gracefully.
 
+### Office.js runtime manual checklist
+
+- [ ] Excel busy / cell edit mode: start editing a cell and run a CRF.xl action; confirm plain-language prompt appears with retry and dismiss.
+- [ ] Workbook not ready: open taskpane immediately on workbook open; confirm "Waiting for workbook to load..." guidance and retry path.
+- [ ] Sheet/range missing: remove a required sheet/range and run analysis; confirm missing-structure prompt.
+- [ ] Permission/protection failure: protect a required sheet and run sync/analysis; confirm protection guidance prompt.
+- [ ] `context.sync()` failure: simulate transient Office sync failure; confirm one silent retry before a user prompt with retry/dismiss.
+- [ ] Unsupported host/platform: open in unsupported Excel host/version; confirm supported-version guidance.
+- [ ] Network/API failure: disable network and run a network-dependent flow; confirm connectivity guidance prompt.
+
 ## 3. Security & Privacy
 
 PHI Protection: Verify that items marked isPHI: true trigger a warning if they are about to be exported to a non-blinded file format.

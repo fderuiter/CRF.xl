@@ -25,6 +25,7 @@
     "validate": "office-addin-manifest validate manifest.xml",
     "watch": "webpack --mode development --watch",
     "test": "jest",
+    "benchmark:mega-study": "jest test/serialization/mega-study.benchmark.test.ts --runInBand",
     "audit": "npm audit",
     "audit:json": "npm audit --json"
   },

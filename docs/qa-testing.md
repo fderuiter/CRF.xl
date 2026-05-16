@@ -44,6 +44,12 @@ Test with a "Large Study" (500+ items).
 
 Measure parsing time; target is < 3 seconds to prevent UI freezing.
 
+Mega-study benchmark fixture and numeric budget are documented in:
+
+- `test/fixtures/mega-study/README.md`
+- `docs/qa-testing/performance-benchmark-mega-study.md`
+- `test/serialization/mega-study.benchmark.test.ts`
+
 ## 4. Regression Test Cases
 
 | ID | Title | Expected Result |
