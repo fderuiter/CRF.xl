@@ -63,6 +63,7 @@ The application is divided into two primary layers:
 ## 📋 Compliance Documentation
 - **Security posture (CIS control mapping with access/data/audit evidence):** `SECURITY.md`
 - **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
+- **CDISC Library standards fetcher contract (OAuth, endpoints, retries, typed errors):** `docs/specification/cdisc-api-service.md`
 
 ## 💾 Local Recovery Snapshot Scope
 - Stored in browser `localStorage` as a recovery snapshot for accidental refresh/crash recovery.
