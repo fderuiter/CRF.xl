@@ -6,13 +6,27 @@ import {
 
 describe("office-error-handling", () => {
   it("classifies each required Office.js error class", () => {
-    expect(classifyOfficeError({ code: "Busy", message: "User is in cell edit mode" })).toBe("excelBusy");
-    expect(classifyOfficeError({ code: "InvalidObjectPath", message: "Workbook not ready" })).toBe("workbookNotReady");
-    expect(classifyOfficeError({ code: "ItemNotFound", message: "Worksheet not found" })).toBe("sheetOrRangeMissing");
-    expect(classifyOfficeError({ code: "AccessDenied", message: "Sheet is protected" })).toBe("permissionFailure");
-    expect(classifyOfficeError({ code: "GeneralException", message: "context.sync failed" })).toBe("contextSyncFailure");
-    expect(classifyOfficeError({ code: "Unsupported", message: "Feature not supported" })).toBe("unsupportedHost");
-    expect(classifyOfficeError({ code: "NetworkError", message: "Failed to fetch" })).toBe("networkFailure");
+    expect(classifyOfficeError({ code: "Busy", message: "User is in cell edit mode" })).toBe(
+      "excelBusy"
+    );
+    expect(classifyOfficeError({ code: "InvalidObjectPath", message: "Workbook not ready" })).toBe(
+      "workbookNotReady"
+    );
+    expect(classifyOfficeError({ code: "ItemNotFound", message: "Worksheet not found" })).toBe(
+      "sheetOrRangeMissing"
+    );
+    expect(classifyOfficeError({ code: "AccessDenied", message: "Sheet is protected" })).toBe(
+      "permissionFailure"
+    );
+    expect(classifyOfficeError({ code: "GeneralException", message: "context.sync failed" })).toBe(
+      "contextSyncFailure"
+    );
+    expect(classifyOfficeError({ code: "Unsupported", message: "Feature not supported" })).toBe(
+      "unsupportedHost"
+    );
+    expect(classifyOfficeError({ code: "NetworkError", message: "Failed to fetch" })).toBe(
+      "networkFailure"
+    );
   });
 
   it("returns plain-language sheet missing message with extracted name", () => {
@@ -22,7 +36,9 @@ describe("office-error-handling", () => {
     });
 
     expect(presentation.message).toContain("Required sheet or range 'DEMO' is missing.");
-    expect(presentation.recoveryAction).toBe(OFFICE_ERROR_MESSAGES.sheetOrRangeMissing.recoveryAction);
+    expect(presentation.recoveryAction).toBe(
+      OFFICE_ERROR_MESSAGES.sheetOrRangeMissing.recoveryAction
+    );
     expect(presentation.diagnosticCode).toBe("OFFICE_SHEET_OR_RANGE_MISSING:ItemNotFound");
   });
 
