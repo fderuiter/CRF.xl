@@ -134,12 +134,19 @@ function wait(ms: number): Promise<void> {
   });
 }
 
-function sanitizeLogContext(context: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+function sanitizeLogContext(
+  context: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
   if (!context) return undefined;
   const sanitized: Record<string, unknown> = {};
   Object.entries(context).forEach(([key, value]) => {
     const lower = key.toLowerCase();
-    if (lower.includes("token") || lower.includes("secret") || lower.includes("authorization") || lower.includes("password")) {
+    if (
+      lower.includes("token") ||
+      lower.includes("secret") ||
+      lower.includes("authorization") ||
+      lower.includes("password")
+    ) {
       sanitized[key] = "[redacted]";
       return;
     }
@@ -227,7 +234,8 @@ function toTerm(value: Record<string, unknown>): CdiscCtTerm {
 }
 
 function readEnv(name: string): string | undefined {
-  const processRef = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
+  const processRef = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process;
   return processRef?.env?.[name];
 }
 
@@ -248,7 +256,7 @@ function resolveCredentials(explicit?: CdiscCredentials): CdiscCredentials | nul
 export function createCdiscApiService(
   config: CdiscApiServiceConfig = {},
   httpClient: CdiscHttpClient = { fetch: (input, init) => fetch(input, init) },
-  logger: CdiscLogger = noOpLogger,
+  logger: CdiscLogger = noOpLogger
 ): CdiscApiService {
   const baseUrl = config.baseUrl ?? DEFAULT_BASE_URL;
   const tokenUrl = config.tokenUrl ?? DEFAULT_TOKEN_URL;
@@ -384,10 +392,17 @@ export function createCdiscApiService(
     }
 
     tokenState = tokenResult.data;
-    return { ok: true, endpoint: tokenUrl, status: tokenResult.status, data: tokenResult.data.accessToken };
+    return {
+      ok: true,
+      endpoint: tokenUrl,
+      status: tokenResult.status,
+      data: tokenResult.data.accessToken,
+    };
   }
 
-  async function requestJsonArray(endpoint: string): Promise<CdiscApiResult<Record<string, unknown>[]>> {
+  async function requestJsonArray(
+    endpoint: string
+  ): Promise<CdiscApiResult<Record<string, unknown>[]>> {
     const tokenResult = await ensureToken();
     if (!tokenResult.ok) {
       return { ok: false, error: asFailure(tokenResult).error };
@@ -455,7 +470,9 @@ export function createCdiscApiService(
         if (!response.ok) {
           lastError = {
             type: response.status === 401 || response.status === 403 ? "auth" : "http",
-            ...(response.status === 401 || response.status === 403 ? { code: "unauthorized" as const } : {}),
+            ...(response.status === 401 || response.status === 403
+              ? { code: "unauthorized" as const }
+              : {}),
             endpoint,
             status: response.status,
             retriable: response.status >= 500 && attempt < maxRetries,
@@ -549,13 +566,12 @@ export function createCdiscApiService(
 
     return {
       ok: false,
-      error:
-        lastError ?? {
-          type: "http",
-          endpoint,
-          retriable: false,
-          message: "CDISC API request failed.",
-        },
+      error: lastError ?? {
+        type: "http",
+        endpoint,
+        retriable: false,
+        message: "CDISC API request failed.",
+      },
     };
   }
 
@@ -571,7 +587,9 @@ export function createCdiscApiService(
     };
   }
 
-  async function listPackageCodelists(packageOid: string): Promise<CdiscApiResult<CdiscCtCodelist[]>> {
+  async function listPackageCodelists(
+    packageOid: string
+  ): Promise<CdiscApiResult<CdiscCtCodelist[]>> {
     if (!packageOid.trim()) {
       return {
         ok: false,
@@ -584,7 +602,9 @@ export function createCdiscApiService(
       };
     }
 
-    const result = await requestJsonArray(`/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`);
+    const result = await requestJsonArray(
+      `/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`
+    );
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {
@@ -608,7 +628,9 @@ export function createCdiscApiService(
       };
     }
 
-    const result = await requestJsonArray(`/mdr/ct/codelists/${encodeURIComponent(codelistOid)}/terms`);
+    const result = await requestJsonArray(
+      `/mdr/ct/codelists/${encodeURIComponent(codelistOid)}/terms`
+    );
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {

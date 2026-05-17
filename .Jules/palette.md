@@ -1,0 +1,1 @@
+## 2023-11-06 - [Layout] Learning: DataGrid components from @fluentui/react-components impose a minWidth that causes horizontal scrolling in the narrow Excel task pane. Action: Prefer vertically stacked flex-card layouts mapped from arrays instead of the DataGrid.
