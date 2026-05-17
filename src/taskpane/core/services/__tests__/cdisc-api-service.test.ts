@@ -33,23 +33,16 @@ describe("cdisc-api-service", () => {
   });
 
   it("returns packages for a successful call", async () => {
-    const tokenResponse = new Response(
-      JSON.stringify({ access_token: "token-1", expires_in: 3600 }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    const packagesResponse = new Response(
-      JSON.stringify(loadFixture("ct-packages.response.json")),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    const tokenResponse = new Response(JSON.stringify({ access_token: "token-1", expires_in: 3600 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+    const packagesResponse = new Response(JSON.stringify(loadFixture("ct-packages.response.json")), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
 
-    const fetchMock: MockFetch = jest
-      .fn()
+    const fetchMock: MockFetch = jest.fn()
       .mockResolvedValueOnce(tokenResponse)
       .mockResolvedValueOnce(packagesResponse);
 
@@ -59,7 +52,7 @@ describe("cdisc-api-service", () => {
         tokenUrl: "https://api.cdisc.org/oauth/token",
         credentials: { clientId: "client", clientSecret: "secret" },
       },
-      createMockClient(fetchMock)
+      createMockClient(fetchMock),
     );
 
     const result = await service.listCtPackages();
@@ -78,7 +71,7 @@ describe("cdisc-api-service", () => {
         baseUrl: "https://api.cdisc.org",
         tokenUrl: "https://api.cdisc.org/oauth/token",
       },
-      createMockClient(jest.fn())
+      createMockClient(jest.fn()),
     );
 
     const result = await service.listCtPackages();
@@ -100,16 +93,12 @@ describe("cdisc-api-service", () => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-    const codelists = new Response(
-      JSON.stringify(loadFixture("ct-package-codelists.response.json")),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    const codelists = new Response(JSON.stringify(loadFixture("ct-package-codelists.response.json")), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
 
-    const fetchMock: MockFetch = jest
-      .fn()
+    const fetchMock: MockFetch = jest.fn()
       .mockResolvedValueOnce(token1)
       .mockResolvedValueOnce(unauthorized)
       .mockResolvedValueOnce(token2)
@@ -121,7 +110,7 @@ describe("cdisc-api-service", () => {
         tokenUrl: "https://api.cdisc.org/oauth/token",
         credentials: { clientId: "client", clientSecret: "secret" },
       },
-      createMockClient(fetchMock)
+      createMockClient(fetchMock),
     );
 
     const result = await service.listPackageCodelists("NCI_CDISC_Terminology_2026-03-27");
@@ -142,8 +131,7 @@ describe("cdisc-api-service", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const fetchMock: MockFetch = jest
-      .fn()
+    const fetchMock: MockFetch = jest.fn()
       .mockResolvedValueOnce(token)
       .mockRejectedValueOnce(new Error("ECONNRESET"));
 
@@ -154,7 +142,7 @@ describe("cdisc-api-service", () => {
         maxRetries: 0,
         credentials: { clientId: "client", clientSecret: "secret" },
       },
-      createMockClient(fetchMock)
+      createMockClient(fetchMock),
     );
 
     const result = await service.listCtPackages();
@@ -173,8 +161,7 @@ describe("cdisc-api-service", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const fetchMock: MockFetch = jest
-      .fn()
+    const fetchMock: MockFetch = jest.fn()
       .mockResolvedValueOnce(token)
       .mockResolvedValueOnce(malformed);
 
@@ -184,7 +171,7 @@ describe("cdisc-api-service", () => {
         tokenUrl: "https://api.cdisc.org/oauth/token",
         credentials: { clientId: "client", clientSecret: "secret" },
       },
-      createMockClient(fetchMock)
+      createMockClient(fetchMock),
     );
 
     const result = await service.listCtPackages();
@@ -202,8 +189,7 @@ describe("cdisc-api-service", () => {
       headers: { "Content-Type": "application/json", "Retry-After": "3" },
     });
 
-    const fetchMock: MockFetch = jest
-      .fn()
+    const fetchMock: MockFetch = jest.fn()
       .mockResolvedValueOnce(token)
       .mockResolvedValueOnce(rateLimited);
 
@@ -214,7 +200,7 @@ describe("cdisc-api-service", () => {
         maxRetries: 0,
         credentials: { clientId: "client", clientSecret: "secret" },
       },
-      createMockClient(fetchMock)
+      createMockClient(fetchMock),
     );
 
     const result = await service.listCtPackages();
@@ -236,7 +222,7 @@ describe("cdisc-api-service", () => {
       new Response(JSON.stringify({ error: "bad credentials" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
-      })
+      }),
     );
 
     const service = createCdiscApiService(
@@ -246,7 +232,7 @@ describe("cdisc-api-service", () => {
         credentials: { clientId: "client", clientSecret: "my-secret-value" },
       },
       createMockClient(fetchMock),
-      logger
+      logger,
     );
 
     await service.listCtPackages();
