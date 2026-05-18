@@ -164,6 +164,8 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
                                 appearance="subtle"
                                 size="small"
                                 icon={<SearchRegular />}
+                                aria-label={`Navigate to issue in ${issue.sheetName}`}
+                                title={`Navigate to issue in ${issue.sheetName}`}
                                 onClick={() => onNavigate({ ...issue, location: issue.sheetName })}
                             />
                         )}
