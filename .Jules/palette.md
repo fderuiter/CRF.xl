@@ -1,0 +1,1 @@
+## 2026-05-18 - [Accessibility] Learning: Missing labels on icon-only buttons hinder accessibility in ValidationLog. Action: Always add `aria-label` and `title` to icon-only buttons for screen reader support and tooltip hover hints.
