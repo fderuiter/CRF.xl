@@ -5,7 +5,7 @@ CRF.xl is an Excel Add-in designed to transform a standard workbook into a struc
 ## 🚀 Quick Start
 
 ### Prerequisites
-* Node.js (v18 or higher)
+* Node.js (v20 or higher)
 * Excel Desktop or an Office 365 Account (for Web)
 
 ### Installation
