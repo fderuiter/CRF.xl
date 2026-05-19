@@ -1,0 +1,1 @@
+## 2025-05-19 - [DataGrid Width Constraint] Learning: Fluent UI's `DataGrid` component imposes horizontal scrolling on narrow viewports (~300px), frustrating users in Excel task panes. Action: Prefer stacked flex-card layouts or accordion designs over tables/data grids for dense lists to keep the task pane responsive.
