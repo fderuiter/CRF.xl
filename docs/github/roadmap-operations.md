@@ -10,7 +10,7 @@ Issue #28 is the **single strategic dashboard** for CRF.xl delivery direction. I
 
 > `[Roadmap] CRF.xl Strategic Delivery Dashboard`
 
-It is a **meta-issue** — not an execution container. Do not assign sub-issues to it. Do not add acceptance criteria or code tasks to it.
+It is the **single strategic master issue** for CRF.xl. It may contain **epics as top-level sub-issues**. Implementation-level child issues belong under epics rather than directly under #28. Do not add acceptance criteria or code/task-level sub-issues to it.
 
 ---
 
@@ -51,7 +51,7 @@ A single line: "Execution tracking, sub-issue structure, and individual acceptan
 | Does not belong | Belongs instead in |
 |-----------------|-------------------|
 | Acceptance criteria | Feature/task issues |
-| Sub-issue links | Epic issues |
+| Feature/task sub-issues | Epic issues |
 | Sprint planning | Milestone description or project board |
 | Code review decisions | Pull requests |
 | Implementation notes | Feature issues |
