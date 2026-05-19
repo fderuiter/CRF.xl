@@ -62,12 +62,14 @@ For a public-facing audit-trail walkthrough aligned to **21 CFR Part 11**, see `
 | 2026-05-15 | `npm audit --json` | 18 high vulnerabilities | Baseline captured for dependency-lifecycle work. |
 | 2026-05-15 | `npm install --save-dev copy-webpack-plugin@^14.0.0` + `npm audit --json` | 16 high vulnerabilities | Removed direct `copy-webpack-plugin`/`serialize-javascript` high vulnerability chain; validated with typecheck, tests, and production build. |
 | 2026-05-15 | `npm audit --omit=dev --json` | 0 high/critical vulnerabilities | PR quality gate now enforces production dependency audit at high severity. |
+| 2026-05-19 | Added `"overrides": { "protobufjs": "^8.4.0" }` to `package.json` + `npm install` + `npm audit --json` | 0 vulnerabilities | Resolved all 16 remaining transitive high vulnerabilities in `@opentelemetry/*`/`protobufjs` chain (via `office-addin-usage-data` → `applicationinsights`). Override pins `protobufjs` to a patched version across the entire dependency tree. |
 
 ## 5) Current Risk Notes
 
-- Remaining high vulnerabilities are transitive and currently cluster under `@opentelemetry/*`, `applicationinsights`, and `protobufjs`.
-- These come through Office add-in tooling dependencies and are not directly imported by CRF.xl runtime application code.
-- Mitigation path: track upstream toolchain releases, re-run `npm run audit:json` after upgrades, and document disposition updates in the Security Audit Log.
+- All known transitive high vulnerabilities in `@opentelemetry/*`, `applicationinsights`, and `protobufjs` have been resolved via `package.json` overrides pinning `protobufjs` to `^8.4.0`.
+- Transitive dev-only vulnerability chains from Office add-in tooling are mitigated by the override; the chain `office-addin-usage-data` → `applicationinsights` → `@opentelemetry/otlp-transformer` → `protobufjs` is now clean.
+- Both `npm audit --json` (full tree) and `npm audit --omit=dev --json` (production only) pass with zero high/critical vulnerabilities.
+- Mitigation path: on future protobufjs CVEs, update the `overrides.protobufjs` version constraint in `package.json` and validate with `npm run audit:json`.
 
 ## 6) Maintenance Protocol (Documentation-as-Code)
 

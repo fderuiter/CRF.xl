@@ -83,6 +83,9 @@
     "webpack-cli": "^7.0.2",
     "webpack-dev-server": "^5.2.4"
   },
+  "overrides": {
+    "protobufjs": "^8.4.0"
+  },
   "prettier": "office-addin-prettier-config",
   "browserslist": [
     "last 2 versions",
