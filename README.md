@@ -16,12 +16,33 @@ CRF.xl is an Excel Add-in designed to transform a standard workbook into a struc
 *Note: The first time you run the start command, it may ask you to install local SSL certificates. Accept this prompt, as Office Add-ins require HTTPS to run locally.*
 
 ## 🏗️ Architecture
+
 The application is divided into two primary layers:
-* **The Task Pane (Frontend):** A React/TypeScript application running inside Excel via `Office.js`. It provides real-time metadata validation and UI controls.
-* **The Clinical Engine (Core):** Located in `src/taskpane/core/`.
-  * `types.ts`: Strict TypeScript definitions for clinical metadata (SDTM, OIDs, Codelists).
-  * `parser.ts`: Extracts and validates data from the active Excel sheet.
-  * `generator.ts`: Uses `docx` to programmatically compile the clinical metadata into handwriting-optimized Word layouts.
+
+* **The Task Pane (Frontend):** A React/TypeScript application running inside Excel via `Office.js`. Located in `src/taskpane/components/`, it provides real-time metadata validation, authoring controls, and export triggers. Key views:
+  * `App.tsx` — root orchestrator and contextual routing
+  * `views/RegistryView.tsx` — form/item registry browser
+  * `views/MatrixView.tsx` — study schedule matrix with search and filter
+  * `views/AuthoringView.tsx` — item-level authoring and editing
+  * `views/DictionarySidecar.tsx` — codelist and terminology browser
+
+* **The Clinical Engine (Core):** Located in `src/taskpane/core/`. Organized into four subdirectories:
+
+  * `core/types/` — TypeScript type definitions for clinical metadata (OIDs, StudyDesign, CrfItem, Codelist, Schedule, and CDISC mapping types)
+  * `core/parser/` — Excel workbook readers and validation engine:
+    * `excel-parser.ts` — parses `_Study`, `_Codelists`, `_Forms`, form sheets, and `_Schedule` into a typed `StudyDesign`
+    * `validator.ts` — validates referential integrity, numeric metadata, and codelist consistency
+    * `template-generator.ts` — initializes and synchronizes the workbook structure
+    * `chunking-runtime.ts` — handles large-workbook sheet parsing with memory management
+  * `core/generators/` — export engines:
+    * `generators/docx/docx-builder.ts` — DOCX annotated CRF generation
+    * `generators/cdisc/odm-builder.ts` — CDISC ODM XML export
+  * `core/services/` — Office.js-isolating service layer:
+    * `authoring-service.ts` — item-level authoring and write-back
+    * `cdisc-api-service.ts` — CDISC Library API client
+    * `dictionary-service.ts` — codelist and terminology write operations
+
+See `docs/architecture/module-map.md` for the complete module inventory and `docs/architecture/adr-index.md` for key architectural decisions.
 
 ## 🛠️ Tech Stack
 * **Framework:** React 18
@@ -32,10 +53,14 @@ The application is divided into two primary layers:
 * **Dictionary Sidecar:** Fluent UI v9 `DataGrid` for searchable codelist browsing
 
 ## 📖 Development Workflow
-1. **Define Types First:** Any new feature (e.g., adding a new SDTM mapping column) must start with updating `src/taskpane/core/types.ts`.
-2. **Build the Parser:** Update `parser.ts` to read that new column.
-3. **Update the Generator:** Update `generator.ts` to output that data to the Word document.
-4. **Validate Sidecar UX:** Changes to `src/taskpane/components/views/DictionarySidecar.tsx` should preserve the existing create/use flows while keeping codelist search responsive across IDs, display names, coded values, and decodes.
+
+1. **Define Types First:** New features start in `src/taskpane/core/types/`. Add or extend the relevant type definitions for the new clinical concept.
+2. **Build the Parser:** Update `core/parser/excel-parser.ts` to read the new workbook columns or sheets into the type model.
+3. **Add Validation:** Update `core/parser/validator.ts` with any new referential or clinical validation rules.
+4. **Implement the Service:** Add any Office.js write-back or external API calls in the appropriate `core/services/` module.
+5. **Update the Generators:** Update `core/generators/docx/docx-builder.ts` or `core/generators/cdisc/odm-builder.ts` to output the new data.
+6. **Wire the UI:** Update or add a component in `components/views/` to expose the feature in the taskpane.
+7. **Validate Sidecar UX:** Changes to `DictionarySidecar.tsx` must preserve the existing create/use flows while keeping codelist search responsive.
 
 ## ✅ CI Quality Gates & Branch Protection
 - On every pull request, GitHub Actions runs:
@@ -65,8 +90,13 @@ The application is divided into two primary layers:
 - **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
 - **CDISC Library standards fetcher contract (OAuth, endpoints, retries, typed errors):** `docs/specification/cdisc-api-service.md`
 - **GitHub issue taxonomy and hierarchy rules:** `docs/github/issue-governance.md`
-- **Milestone policy:** `docs/github/milestones.md`
+- **Milestone policy (M1–M7 canonical model):** `docs/github/milestones.md`
 - **Backlog-to-codebase alignment audit:** `docs/github/codebase-alignment.md`
+- **Dependency management and encoding convention:** `docs/github/dependency-management.md`
+- **Roadmap dashboard operations guide:** `docs/github/roadmap-operations.md`
+- **Definition of Ready and Done (quality gates by issue type):** `docs/github/definition-of-ready-done.md`
+- **Module map (full core/ module inventory):** `docs/architecture/module-map.md`
+- **Architecture Decision Record index:** `docs/architecture/adr-index.md`
 
 ## 🚢 Manifest & Deployment
 - Environment manifests:

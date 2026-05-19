@@ -26,6 +26,20 @@ This document records the current codebase evidence for high-impact backlog item
 3. **Diff/comparison:** baseline ingestion (`#130`) -> diff engine (`#129`) -> visualization (`#128`)
 4. **Enterprise hardening:** manifests + validation scripts + deployment runbook live in the repo already; provisioning is the external dependency
 
+## Expected-but-absent modules
+
+The following modules are planned but not yet created. Their owning issues are listed.
+
+| Expected module | Owning issue(s) | Notes |
+| --- | --- | --- |
+| `src/taskpane/core/services/diff-engine.ts` | `#129` | Core metadata diff computation service |
+| `src/taskpane/core/parser/rules-parser.ts` | `#137` | `_Rules` sheet parser producing rule tokens |
+| `src/taskpane/core/parser/rules-ast.ts` | `#137` | AST type definitions for parsed rule expressions |
+| `src/taskpane/core/parser/dag-validator.ts` | `#138` | DAG topological sort and cycle detection |
+| `src/taskpane/core/services/cdisc-mapping-service.ts` | `#93` | Transform contract between CDISC Library API and internal types |
+
+See `docs/architecture/module-map.md` for the complete module inventory including present modules.
+
 ## Working rule
 
-When an issue changes materially, update this document if the owning files, tests, or implementation gaps changed too.
+When an issue changes materially, update this document if the owning files, tests, or implementation gaps changed too. For a complete codebase module inventory, see `docs/architecture/module-map.md`.

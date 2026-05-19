@@ -1,158 +1,211 @@
-# GitHub Issue Governance
+# Issue Governance
 
-This repository uses GitHub Issues as the execution system for roadmap, implementation, and governance work. The goal is a backlog that stays **actionable, auditable, and aligned to the codebase**.
+This document defines the taxonomy, hierarchy rules, and operating standards for all GitHub issues in CRF.xl.
 
-## Required taxonomy
+---
 
-Every active issue must carry:
+## Label taxonomy
 
-- exactly one `type:*` label
-- exactly one `status:*` label
-- exactly one `priority:*` label
-- exactly one `stream:*` label, unless the issue is an explicit roadmap/index item
-- one or two `area:*` labels
+Every active issue must carry exactly:
+- **One** `type:*` label
+- **One** `status:*` label
+- **One** `priority:*` label
+- **One** `stream:*` label
+- **One or two** `area:*` labels
 
-Use `relation:*` labels only for relationship metadata that is not already represented by GitHub's parent/sub-issue model.
+### Type labels
 
-## Stream rules
+| Label | Used for |
+|-------|----------|
+| `type:epic` | Delivery container grouping related features under a stream |
+| `type:feature` | Implementable unit of functionality with acceptance criteria |
+| `type:task` | Scoped unit of work producing a non-code artifact (doc, config, design, checklist) |
+| `type:governance` | Backlog health, taxonomy normalization, process control, and structure fixes |
+| `type:docs` | Documentation file creation or update |
+| `type:bug` | Defect in existing behavior |
+| `type:refactor` | Code restructuring with no behavior change |
+| `type:spike` | Time-boxed investigation with a defined output artifact |
+| `type:roadmap` | The single strategic dashboard issue (#28); only one per repo |
 
-Use these stream labels consistently:
+### Status labels
 
-- `stream:core-metadata`
-- `stream:ingestion-migration`
-- `stream:authoring-ux`
-- `stream:reviewer-export`
-- `stream:enterprise-hardening`
-- `stream:audit-governance`
+| Label | Meaning |
+|-------|---------|
+| `status:needs-triage` | Newly created; not yet reviewed |
+| `status:needs-design` | Accepted; design or scoping work still required before implementation |
+| `status:needs-acceptance-criteria` | Design exists; acceptance criteria not yet written |
+| `status:ready` | Fully defined; can be picked up (see Definition of Ready) |
+| `status:in-progress` | Actively being worked |
+| `status:verify` | Implementation complete; awaiting verification or acceptance review |
+| `status:blocked` | Cannot proceed due to an upstream dependency or external blocker |
+| `status:needs-more-information` | Waiting on clarification from the author or stakeholder |
 
-### Stream ownership boundaries
+### Priority labels
 
-1. **Core metadata** owns study structure, rule execution plumbing, schema, validation engines, and metadata serialization.
-2. **Ingestion & migration** owns reverse parsing, migration flows, standards import mapping, and workbook-safe import pipelines.
-3. **Authoring UX** owns authoring-side UI, internationalization support, annotation UX, and interactive author tooling.
-4. **Reviewer / export** owns reviewer workflows, aCRF generation, and reviewer-facing export artifacts.
-5. **Enterprise hardening** owns manifests, deployment, release validation, versioning, and operational security controls.
-6. **Audit & governance** owns provenance, change-control policy, backlog governance, and architecture-to-process compliance work.
+| Label | Meaning |
+|-------|---------|
+| `priority:p0` | Critical path; blocks a milestone or has an active external dependency |
+| `priority:p1` | High priority; part of the current active milestone |
+| `priority:p2` | Normal priority; scheduled for a future milestone |
+| `priority:p3` | Low priority; deferred or nice-to-have |
 
-Do not let a single issue span two streams. Split the work or choose the owning stream and use `Blocked by #...` links for dependencies.
+### Stream labels
+
+| Label | Scope |
+|-------|-------|
+| `stream:core-metadata` | Parser, validator, types, rule AST, diff engine, ODM/DOCX export |
+| `stream:ingestion-migration` | CDISC API, reverse parsing, terminology import, migration wizards |
+| `stream:authoring-ux` | Authoring views, dictionary sidecar, annotations, internationalization |
+| `stream:reviewer-export` | Reviewer workflow, PDF/DOCX export rendering, aCRF generation |
+| `stream:enterprise-hardening` | Manifests, deployment, CI enforcement, security, release hardening |
+| `stream:audit-governance` | Audit trail, change-control compliance, backlog governance, architecture docs |
+
+### Area labels
+
+| Label | Scope |
+|-------|-------|
+| `area:core-schema` | Type definitions, OID model, clinical metadata contract |
+| `area:validation-rules` | Validator, rule AST, dependency graph, logic engine |
+| `area:excel-integration` | Office.js API calls, workbook read/write, sheet management |
+| `area:import-export` | ODM, DOCX, reverse parsing, ingestion |
+| `area:cdisc-standards` | CDISC Library API, controlled terminology, ODM structure |
+| `area:ui-ux` | React components, views, taskpane layout |
+| `area:reviewer-exports` | Annotated CRF, PDF rendering, review mode output |
+| `area:internationalization` | Locale-aware parsing, translation UI, multi-language support |
+| `area:devops` | CI/CD, manifests, deployment, scripts |
+| `area:security-compliance` | GxP compliance, 21 CFR Part 11, RBAC, audit trail |
+| `area:audit-trail` | Audit log, change history, provenance trail |
+| `area:performance` | Parse speed, memory, Excel runtime performance |
+| `area:state-management` | Recovery snapshots, UI state, workbook sync state |
+
+### Risk labels (supplemental — added alongside required labels)
+
+| Label | Indicates |
+|-------|-----------|
+| `risk:excel-runtime` | Issue involves Office.js behavior that has known runtime risk |
+| `risk:clinical-validation` | Issue affects clinical data validation logic |
+| `risk:compliance` | Issue touches GxP or regulatory compliance surface |
+| `risk:data-loss` | Issue involves operations that could cause data loss |
+| `risk:performance` | Issue has a performance risk at scale |
+
+### Relation labels (supplemental)
+
+| Label | Indicates |
+|-------|-----------|
+| `relation:child-of-epic` | Issue is a child of a parent epic (must also be encoded as GitHub sub-issue) |
+| `relation:blocked-by-epic` | Issue is pending resolution of a parent epic decision |
+| `relation:duplicate-candidate` | May be a duplicate; pending review |
+| `relation:superseded` | Replaced by another issue |
+
+---
 
 ## Issue hierarchy
 
-Use the hierarchy below:
-
-- `type:roadmap` for umbrella/index issues only
-- `type:epic` for owned delivery scope
-- `type:feature` for implementation slices under an epic
-- `type:task` for focused engineering, governance, or operational work
-- `type:spike` for investigation/decision work
-
-### Parent / child rules
-
-Use GitHub sub-issues when the parent owns the child's scope. Child issues must also include an explicit body reference to the parent:
-
-- `## Parent Epic`
-- or `**Parent Epic:** #...`
-- or `**Sub-Issue of:** ...`
-
-Use `Blocked by #...` only for prerequisites. A dependency is not a parent unless the parent owns the delivered scope.
-
-## Required issue body structure
-
-### Epics
-
-Epics must include:
-
-- `## Outcome`
-- `## In Scope`
-- `## Out of Scope`
-- `## Child Issues`
-- `## Dependencies`
-- `## Exit Criteria`
-
-### Features and tasks
-
-Implementation issues must include:
-
-- `## Objective`
-- `## Scope`
-- `## Acceptance Criteria`
-- `## Dependencies`
-- `## Out of Scope`
-
-### Spikes
-
-Spikes must include:
-
-- `## Question`
-- `## Investigation Scope`
-- `## Deliverable`
-- `## Decision Summary`
-- `## Issues To Update`
-
-## Status rules
-
-- `status:needs-more-information` — one concrete unknown blocks progress
-- `status:needs-design` — scope exists, design or boundary work still needed
-- `status:needs-acceptance-criteria` — design is understood, execution gate is AC quality
-- `status:ready` — implementation can begin now
-- `status:in-progress` — active implementation is underway
-- `status:verify` — implementation merged, awaiting validation/closeout
-
-Do not put more than one primary `status:*` label on an issue.
-
-## Ready issue quality bar
-
-An issue is not `status:ready` unless all of the following are true:
-
-1. Acceptance criteria are testable.
-2. Dependencies are explicit.
-3. Out-of-scope boundaries are explicit.
-4. Owning stream, type, priority, and area labels are present.
-5. The issue is assigned to an active milestone.
-6. The issue names the code surface it will touch, if implementation work is expected.
-
-## Codebase alignment requirement
-
-Implementation issues should identify the current or expected code surface using a short section such as:
-
-```markdown
-## Codebase Alignment
-
-- `src/taskpane/core/parser/excel-parser.ts`
-- `src/taskpane/core/services/dictionary-service.ts`
-- `test/fixtures/cdisc-library/`
+```
+[Roadmap] #28                   — single strategic dashboard
+  └─ Milestone M1–M7            — execution queue
+       └─ [Epic] #N             — delivery container; one per stream/topic area
+            └─ Feature #N       — implementable unit with acceptance criteria
+                 └─ Task #N     — optional sub-unit of a feature
 ```
 
-If the issue describes a capability that has no current code surface, say that directly and identify the expected new module.
+### Parent/child encoding
 
-## Duplicate and superseded handling
+Parent/child relationships must be encoded in **two** ways:
+1. **GitHub sub-issue link** — link the child as a sub-issue of the parent epic in the GitHub UI
+2. **Body reference** — the child issue body lists `**Parent Epic:** #N` and the epic body lists the child issue in its Child Issues section
 
-Use explicit language:
+Label-only encoding (`relation:child-of-epic` without a GitHub sub-issue link) is a temporary state during triage. Issues in this state are tracked in #141.
 
-- `Duplicate of #...`
-- `Superseded by #...`
-- `Blocked by #...`
-- `Unblocks #...`
-- `Context for #...`
+---
 
-If an issue is superseded, close it promptly or rewrite it so its remaining scope is unique.
+## Issue body templates
 
-## Milestone rules
+### Epic body template
+```markdown
+# Epic #N: [Title]
 
-Active execution work belongs in the canonical milestone set documented in `docs/github/milestones.md`.
+**Parent:** [Roadmap] CRF.xl Strategic Delivery Dashboard (#28)
+**Stream:** [stream name]
+**Milestone:** [M1–M7]
 
-- Do not assign new work to retired phase milestones.
-- Do not leave `status:ready` work without a milestone.
-- Roadmap/index issues may remain unmilestoned if they are not execution work.
+## Outcome
+[What success looks like for this epic]
 
-## Update responsibilities
+## In Scope
+- [Item]
 
-When architecture, ownership, or dependencies change:
+## Out of Scope
+- [Item]
 
-1. update the parent epic first
-2. update affected child issues
-3. update blockers/unblockers
-4. update the milestone if the delivery queue changed
-5. add a superseded/duplicate note where applicable
+## Child Issues
+- #N [Title]
 
-Backlog structure is part of the repository's maintainability surface. Treat issue hygiene as engineering work, not admin afterthought.
+## Dependencies
+- [Upstream issue or external dependency]
+
+## Exit Criteria
+- [ ] [Checkable criterion]
+```
+
+### Feature body template
+```markdown
+# Issue #N: [Title]
+
+**Parent Epic:** #N [Epic Title]
+
+## Objective
+[One paragraph: what this feature does and why]
+
+## Scope
+- [In scope item]
+
+## Acceptance Criteria
+- [ ] [Binary-checkable criterion]
+
+## Dependencies
+- [Upstream issue reference if blocked]
+
+## Out of Scope
+- [Explicitly excluded item]
+
+## Codebase Alignment
+| File | Change type | Notes |
+|------|-------------|-------|
+| `src/taskpane/...` | New / Modified / Read | [description] |
+```
+
+---
+
+## Milestone policy
+
+See `docs/github/milestones.md` for the canonical milestone set (M1–M7), assignment rules, and retirement policy.
+
+---
+
+## Dependency management
+
+See `docs/github/dependency-management.md` for the encoding convention, canonical dependency chains, and review cadence.
+
+---
+
+## Roadmap operations
+
+See `docs/github/roadmap-operations.md` for how the roadmap issue (#28) is maintained and updated.
+
+---
+
+## Definition of Ready and Done
+
+See `docs/github/definition-of-ready-done.md` for quality gates.
+
+---
+
+## Working rule
+
+When creating a new issue:
+1. Apply all five required label categories immediately.
+2. Add body content per the appropriate template.
+3. Assign a milestone.
+4. If it is a child of an epic, add the GitHub sub-issue link and body reference.
+5. If it is blocked, add a dependency comment and set `status:blocked`.
