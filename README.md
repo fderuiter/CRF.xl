@@ -64,6 +64,9 @@ The application is divided into two primary layers:
 - **Security posture (CIS control mapping with access/data/audit evidence):** `SECURITY.md`
 - **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
 - **CDISC Library standards fetcher contract (OAuth, endpoints, retries, typed errors):** `docs/specification/cdisc-api-service.md`
+- **GitHub issue taxonomy and hierarchy rules:** `docs/github/issue-governance.md`
+- **Milestone policy:** `docs/github/milestones.md`
+- **Backlog-to-codebase alignment audit:** `docs/github/codebase-alignment.md`
 
 ## 🚢 Manifest & Deployment
 - Environment manifests:

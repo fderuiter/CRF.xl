@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Backlog governance
+    url: https://github.com/fderuiter/CRF.xl/blob/main/docs/github/issue-governance.md
+    about: Read the backlog taxonomy, hierarchy, and ready-for-implementation rules before opening an issue.
+  - name: Milestone policy
+    url: https://github.com/fderuiter/CRF.xl/blob/main/docs/github/milestones.md
+    about: Review the active milestone set and retirement policy.

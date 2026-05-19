@@ -21,7 +21,7 @@ jobs:
           WEEK=$(date +"%Y-W%V")
           gh issue create \
             --title "Weekly Backlog Review — ${WEEK}" \
-            --label "type:task,area:devops,priority:p1,status:ready" \
+            --label "type:task,area:devops,priority:p1,status:ready,stream:audit-governance" \
             --body "## Weekly Backlog Review — ${WEEK}
 
           ### Triage checks
