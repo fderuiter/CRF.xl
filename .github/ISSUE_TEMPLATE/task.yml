@@ -1,0 +1,90 @@
+name: Task
+description: Create a focused engineering, governance, or operational task.
+title: ""
+labels:
+  - type:task
+  - status:needs-design
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Complete the form, then apply the final `stream:*`, `priority:*`, and `area:*` labels to match the selections below.
+  - type: input
+    id: parent
+    attributes:
+      label: Parent epic or governing issue
+      placeholder: "#68"
+    validations:
+      required: true
+  - type: dropdown
+    id: stream
+    attributes:
+      label: Delivery stream
+      options:
+        - stream:core-metadata
+        - stream:ingestion-migration
+        - stream:authoring-ux
+        - stream:reviewer-export
+        - stream:enterprise-hardening
+        - stream:audit-governance
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      placeholder: What must be completed?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      placeholder: List the specific deliverables.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: List the concrete completion checks.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "Blocked by #...\nUnblocks #..."
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      placeholder: List what this task will not do.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence required
+      placeholder: Screenshots, test output, manifests, docs, or runbook evidence needed before closure.
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone
+      placeholder: "M6 — Enterprise Hardening & Deployment"
+    validations:
+      required: true

@@ -1,0 +1,72 @@
+name: Spike
+description: Create an investigation issue that must conclude with an explicit decision.
+title: "[Spike] "
+labels:
+  - type:spike
+  - status:needs-design
+body:
+  - type: dropdown
+    id: stream
+    attributes:
+      label: Delivery stream
+      options:
+        - stream:core-metadata
+        - stream:ingestion-migration
+        - stream:authoring-ux
+        - stream:reviewer-export
+        - stream:enterprise-hardening
+        - stream:audit-governance
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      placeholder: What decision or unknown does this spike resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Investigation Scope
+      placeholder: What options, files, or constraints will be investigated?
+    validations:
+      required: true
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      placeholder: What artifact or recommendation must exist when this closes?
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision Summary
+      placeholder: Capture the final decision and its consequences here before closing.
+    validations:
+      required: true
+  - type: textarea
+    id: issues
+    attributes:
+      label: Issues To Update
+      placeholder: "- #137\n- #138"
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone
+      placeholder: "M7 — Audit & Governance"
+    validations:
+      required: true

@@ -1,0 +1,85 @@
+name: Epic
+description: Create a delivery epic with explicit scope, ownership, and exit criteria.
+title: "[Epic] "
+labels:
+  - type:epic
+  - status:needs-design
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Complete the form, then apply the final `stream:*`, `priority:*`, and `area:*` labels to match the selections below.
+  - type: dropdown
+    id: stream
+    attributes:
+      label: Delivery stream
+      options:
+        - stream:core-metadata
+        - stream:ingestion-migration
+        - stream:authoring-ux
+        - stream:reviewer-export
+        - stream:enterprise-hardening
+        - stream:audit-governance
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What business or product capability does this epic deliver?
+      placeholder: Describe the end state this epic owns.
+    validations:
+      required: true
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: In Scope
+      placeholder: List the capabilities this epic owns.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      placeholder: List adjacent work this epic explicitly does not own.
+    validations:
+      required: true
+  - type: textarea
+    id: child-issues
+    attributes:
+      label: Child Issues
+      description: List existing child issues or planned child slices.
+      placeholder: "- #123 ...\n- #124 ..."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "Blocked by #...\nUnblocks #..."
+    validations:
+      required: true
+  - type: textarea
+    id: exit-criteria
+    attributes:
+      label: Exit Criteria
+      placeholder: Define the conditions required to close the epic.
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone
+      placeholder: "M1 — Core Metadata Foundations"
+    validations:
+      required: true

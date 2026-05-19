@@ -30,6 +30,12 @@ jobs:
           echo "$ISSUE_BODY" | grep -qiE "evidence required|definition of done|## evidence" \
             || missing+=("- [ ] Evidence Required / Definition of Done section")
 
+          echo "$ISSUE_BODY" | grep -qiE "^## Dependencies|^\*\*Dependencies:" \
+            || missing+=("- [ ] Dependencies section")
+
+          echo "$ISSUE_BODY" | grep -qiE "^## Out of Scope|^\*\*Out of Scope:" \
+            || missing+=("- [ ] Out of Scope section")
+
           # Label checks
           has_label() {
             echo "$LABELS_JSON" | jq -e --arg p "$1" 'any(.[]; .name | startswith($p))' > /dev/null
@@ -39,6 +45,7 @@ jobs:
           has_label "phase:"     || missing+=("- [ ] \`phase:*\` label")
           has_label "type:"      || missing+=("- [ ] \`type:*\` label")
           has_label "area:"      || missing+=("- [ ] \`area:*\` label")
+          has_label "stream:"    || missing+=("- [ ] \`stream:*\` label")
 
           # Milestone check via API
           milestone=$(gh api "repos/$GH_REPO/issues/$ISSUE_NUMBER" -q '.milestone.title // empty')

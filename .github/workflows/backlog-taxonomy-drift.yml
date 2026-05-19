@@ -1,0 +1,67 @@
+name: Backlog Taxonomy Drift Check
+
+on:
+  schedule:
+    - cron: "30 9 * * 1"
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+    steps:
+      - name: Check open issue taxonomy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh issue list \
+            --repo "$GH_REPO" \
+            --state open \
+            --limit 200 \
+            --json number,title,body,labels,milestone > issues.json
+
+          violations=$(jq -r '
+            def labels_by($prefix): [.labels[].name | select(startswith($prefix))];
+            def is_roadmap: (labels_by("type:") | index("type:roadmap")) != null;
+            def has_child_label: (.labels[].name? == "relation:child-of-epic");
+            def has_parent_ref:
+              (.body | test("(?is)##\\s*Parent Epic|\\*\\*Parent Epic:\\*\\*|\\*\\*Sub-Issue of:\\*\\*|\\* Child of #[0-9]+"));
+            def mentions_superseded:
+              (.body | test("(?i)superseded by #[0-9]+|duplicate of #[0-9]+"));
+            def deprecated_milestone:
+              (.milestone.title // "" | test("^(Phase\\s|Build Queue\\s|Dev Best Practices:)"));
+            [
+              .[] |
+              (
+                (labels_by("type:") | length) as $types |
+                (labels_by("status:") | length) as $statuses |
+                (labels_by("priority:") | length) as $priorities |
+                (labels_by("stream:") | length) as $streams |
+                [
+                  if $types != 1 then "#\(.number) missing or conflicting type label" else empty end,
+                  if $statuses != 1 then "#\(.number) missing or conflicting status label" else empty end,
+                  if $priorities != 1 then "#\(.number) missing or conflicting priority label" else empty end,
+                  if ((is_roadmap | not) and $streams != 1) then "#\(.number) missing or conflicting stream label" else empty end,
+                  if ((labels_by("status:") | index("status:ready")) != null and (.milestone.title // "") == "") then "#\(.number) is ready but has no milestone" else empty end,
+                  if ((labels_by("status:") | index("status:ready")) != null and deprecated_milestone) then "#\(.number) is ready but still assigned to a retired milestone" else empty end,
+                  if (has_child_label and (has_parent_ref | not)) then "#\(.number) has relation:child-of-epic without parent reference in body" else empty end,
+                  if mentions_superseded then "#\(.number) is open but body marks it duplicate/superseded" else empty end
+                ][]
+              )
+            ] | .[]
+          ' issues.json)
+
+          if [ -n "$violations" ]; then
+            {
+              echo "## Backlog taxonomy drift detected"
+              echo
+              echo "$violations" | sed 's/^/- /'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "$violations"
+            exit 1
+          fi
+
+          echo "No backlog taxonomy drift detected." >> "$GITHUB_STEP_SUMMARY"

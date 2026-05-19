@@ -1,0 +1,60 @@
+name: Governance / Backlog Maintenance
+description: Create a governance task for taxonomy, milestone, or backlog hygiene work.
+title: ""
+labels:
+  - type:task
+  - stream:audit-governance
+  - status:ready
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      placeholder: What backlog or governance outcome is required?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      placeholder: What issues, milestones, labels, or policies are in scope?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: Define the concrete governance checks that must be true when this closes.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "Blocked by #...\nContext for #..."
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      placeholder: What related cleanup is intentionally excluded?
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone
+      placeholder: "M7 — Audit & Governance"
+    validations:
+      required: true

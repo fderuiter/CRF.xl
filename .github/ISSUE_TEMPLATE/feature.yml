@@ -1,0 +1,90 @@
+name: Feature
+description: Create an implementation feature under an epic.
+title: ""
+labels:
+  - type:feature
+  - status:needs-design
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Complete the form, then apply the final `stream:*`, `priority:*`, and `area:*` labels to match the selections below.
+  - type: input
+    id: parent
+    attributes:
+      label: Parent epic
+      placeholder: "#53"
+    validations:
+      required: true
+  - type: dropdown
+    id: stream
+    attributes:
+      label: Delivery stream
+      options:
+        - stream:core-metadata
+        - stream:ingestion-migration
+        - stream:authoring-ux
+        - stream:reviewer-export
+        - stream:enterprise-hardening
+        - stream:audit-governance
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      placeholder: What capability should this feature deliver?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      placeholder: List the included implementation slices.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: List testable acceptance criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "Blocked by #...\nUnblocks #..."
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      placeholder: List adjacent work this issue does not own.
+    validations:
+      required: true
+  - type: textarea
+    id: codebase
+    attributes:
+      label: Codebase Alignment
+      placeholder: "- src/taskpane/core/...\n- test/fixtures/..."
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone
+      placeholder: "M3 — Metadata Diff & Comparison"
+    validations:
+      required: true
