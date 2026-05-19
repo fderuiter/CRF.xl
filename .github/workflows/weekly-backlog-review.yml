@@ -33,21 +33,21 @@ jobs:
           - [ ] Review \`relation:duplicate-candidate\` and \`relation:superseded\` issues
 
           ### Decision queue
-          - [ ] #88 Rule Expression Model
-          - [ ] #89 Audit Lifecycle and Governed Field Model
-          - [ ] #90 aCRF PDF Rendering Architecture
-          - [ ] #91 Migration Import Strategy
-          - [ ] #92 VLM & Submission Metadata Scope
+          - [ ] fderuiter/CRF.xl#88 Rule Expression Model
+          - [ ] fderuiter/CRF.xl#89 Audit Lifecycle and Governed Field Model
+          - [ ] fderuiter/CRF.xl#90 aCRF PDF Rendering Architecture
+          - [ ] fderuiter/CRF.xl#91 Migration Import Strategy
+          - [ ] fderuiter/CRF.xl#92 VLM & Submission Metadata Scope
 
           ### Epic health
-          - [ ] #35 Fluent UI v9 — verify children closed
-          - [ ] #42 Structural Guardrails — verify children closed
-          - [ ] #59 Performance — fixture+budget reference reviewed (`docs/qa-testing/performance-benchmark-mega-study.md`)
-          - [ ] #60 Parse runtime validation — thresholds referenced from mega-study budget (`docs/qa-testing/performance-benchmark-mega-study.md`)
-          - [ ] #68 Enterprise Distribution — deployment decisions made?
+          - [ ] fderuiter/CRF.xl#35 Fluent UI v9 — verify children closed
+          - [ ] fderuiter/CRF.xl#42 Structural Guardrails — verify children closed
+          - [ ] fderuiter/CRF.xl#59 Performance — fixture+budget reference reviewed ()
+          - [ ] fderuiter/CRF.xl#60 Parse runtime validation — thresholds referenced from mega-study budget ()
+          - [ ] fderuiter/CRF.xl#68 Enterprise Distribution — deployment decisions made?
 
           ### Roadmap
-          - [ ] Update #28 if priorities or milestones changed
+          - [ ] Update fderuiter/CRF.xl#28 if priorities or milestones changed
 
           ### Notes
           <!-- Add review findings below -->"
