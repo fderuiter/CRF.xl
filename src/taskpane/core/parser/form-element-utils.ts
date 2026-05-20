@@ -1,4 +1,5 @@
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
+import { normalizeDataOrigin } from "./metadata-utils";
 
 export const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
 
@@ -119,7 +120,7 @@ function mapRowToItem(
       item.validation.required = String(value).toLowerCase() === "yes";
     if (normalizedHeader === "show if") item.showIf = String(value);
     if (normalizedHeader === "codelist id") item.codelistId = String(value).trim().toUpperCase();
-    if (normalizedHeader === "origin") item.origin = String(value).trim();
+    if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value);
     if (normalizedHeader === "methodoid" || normalizedHeader === "method oid")
       item.methodOid = String(value).trim();
 

@@ -84,12 +84,12 @@ export enum CodingTermType {
 }
 
 export enum DataOrigin {
-  PROTOCOL = "Protocol",
-  INVESTIGATOR = "Investigator",
-  SUBJECT = "Subject",
+  COLLECTED = "Collected",
   DERIVED = "Derived",
   ASSIGNED = "Assigned",
-  EDT = "eDT",
+  PRE_SPECIFIED = "Pre-Specified",
+  EXTERNAL = "External",
+  OTHER = "Other",
 }
 
 export enum CollectionMethod {

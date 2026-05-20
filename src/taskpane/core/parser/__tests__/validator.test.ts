@@ -657,7 +657,7 @@ describe("Clinical Validator Engine", () => {
     });
 
     it("should not raise an Error for a valid Origin value", () => {
-      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Protocol" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Collected" as any;
       const issues = validateStudyDesign(mockStudy);
       const errors = issues.filter((i) => i.level === "Error" && i.message.includes("Origin"));
       expect(errors.length).toBe(0);
