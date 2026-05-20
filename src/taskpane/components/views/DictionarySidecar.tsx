@@ -16,8 +16,11 @@ import {
   DataGridHeaderCell,
   DataGridRow,
   createTableColumn,
+  MessageBar,
+  MessageBarBody,
+  ProgressBar,
 } from "@fluentui/react-components";
-import { AddRegular, ArrowLeftRegular } from "@fluentui/react-icons";
+import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
   insertDictionaryToActiveCell,
@@ -25,6 +28,16 @@ import {
   CodelistGroup,
 } from "../../core/services/dictionary-service";
 import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
+import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core/services/cdisc-ct-mapping-service";
+import {
+  buildCtImportPlan,
+  executeCtImport,
+  readExistingCodelistRows,
+  ConflictResolution,
+  ImportConflictItem,
+  ImportSummary,
+  CtImportPlan,
+} from "../../core/services/ct-import-service";
 
 const useStyles = makeStyles({
   root: {
@@ -55,6 +68,11 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     gap: "8px",
+  },
+  headerActions: {
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
   },
   body: {
     flexGrow: 1,
@@ -164,17 +182,99 @@ const useStyles = makeStyles({
   saveButton: {
     width: "100%",
   },
+  // ── Import view ────────────────────────────────────────────────────────────
+  importForm: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  importTextarea: {
+    width: "100%",
+    minHeight: "120px",
+    fontFamily: "monospace",
+    fontSize: tokens.fontSizeBase100,
+    resize: "vertical",
+    padding: "8px",
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderRadius: tokens.borderRadiusMedium,
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  progressCard: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusMedium,
+    padding: "16px",
+    boxShadow: tokens.shadow2,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  conflictCard: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusMedium,
+    padding: "16px",
+    boxShadow: tokens.shadow2,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  conflictItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    paddingBottom: "10px",
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  conflictActions: {
+    display: "flex",
+    gap: "6px",
+    flexWrap: "wrap",
+  },
+  summaryCard: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusMedium,
+    padding: "16px",
+    boxShadow: tokens.shadow2,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  summaryCount: {
+    fontWeight: tokens.fontWeightBold,
+  },
 });
 
 export const DictionarySidecar: React.FC = () => {
   const styles = useStyles();
-  const [view, setView] = useState<"loading" | "browse" | "create">("loading");
+  const [view, setView] = useState<"loading" | "browse" | "create" | "import">("loading");
   const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
   const [search, setSearch] = useState("");
 
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
   const [newItems, setNewItems] = useState([{ codedValue: "", decode: "" }]);
+
+  // ── Import view state ──────────────────────────────────────────────────────
+  const [importBundle, setImportBundle] = useState("");
+  const [importParseError, setImportParseError] = useState<string | null>(null);
+  const [importPlan, setImportPlan] = useState<CtImportPlan | null>(null);
+  const [conflictResolutions, setConflictResolutions] = useState<
+    Record<string, ConflictResolution>
+  >({});
+  const [importProgress, setImportProgress] = useState<{
+    stage: string;
+    completed: number;
+    total: number;
+  } | null>(null);
+  const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -200,6 +300,103 @@ export const DictionarySidecar: React.FC = () => {
     setNewItems([{ codedValue: "", decode: "" }]);
     await loadData();
   };
+
+  // ── Import handlers ────────────────────────────────────────────────────────
+
+  const handleOpenImport = useCallback(() => {
+    setImportBundle("");
+    setImportParseError(null);
+    setImportPlan(null);
+    setConflictResolutions({});
+    setImportProgress(null);
+    setImportSummary(null);
+    setImportError(null);
+    setView("import");
+  }, []);
+
+  const handleParseBundleAndPlan = useCallback(async () => {
+    setImportParseError(null);
+    setImportPlan(null);
+    setImportSummary(null);
+    setImportError(null);
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(importBundle);
+    } catch {
+      setImportParseError("Invalid JSON. Please paste a valid CDISC CT mapping bundle.");
+      return;
+    }
+
+    const mappingResult = mapCdiscApiResponseToCrfCodelists(parsed);
+    if (!mappingResult.ok) {
+      const failure = mappingResult as CdiscCtMappingFailure;
+      setImportParseError(
+        `Mapping error (${failure.error.code}): ${failure.error.message}`
+      );
+      return;
+    }
+
+    let existingRows;
+    try {
+      existingRows = await readExistingCodelistRows();
+    } catch (err) {
+      setImportParseError(err instanceof Error ? err.message : String(err));
+      return;
+    }
+
+    const plan = buildCtImportPlan(existingRows, mappingResult.rows);
+    // Default: resolve all conflicts as "skip" (safe default)
+    const defaultResolutions: Record<string, ConflictResolution> = {};
+    plan.conflicts.forEach((c) => {
+      defaultResolutions[c.codelistId] = "skip";
+    });
+    setConflictResolutions(defaultResolutions);
+    setImportPlan(plan);
+  }, [importBundle]);
+
+  const handleExecuteImport = useCallback(async () => {
+    if (!importPlan) return;
+    setImportError(null);
+    setImportProgress({ stage: "Preparing…", completed: 0, total: 1 });
+
+    let existingRows;
+    try {
+      existingRows = await readExistingCodelistRows();
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : String(err));
+      setImportProgress(null);
+      return;
+    }
+
+    const resolutionMap = new Map<string, ConflictResolution>(
+      Object.entries(conflictResolutions) as [string, ConflictResolution][]
+    );
+
+    const summary = await executeCtImport(
+      existingRows,
+      importPlan,
+      resolutionMap,
+      (stage, completed, total) => {
+        setImportProgress({ stage, completed, total });
+      }
+    );
+
+    setImportProgress(null);
+    setImportSummary(summary);
+
+    if (summary.errors.length === 0) {
+      // Reload the codelist library after a successful import
+      await loadData();
+    }
+  }, [importPlan, conflictResolutions]);
+
+  const handleConflictResolution = useCallback(
+    (codelistId: string, resolution: ConflictResolution) => {
+      setConflictResolutions((prev) => ({ ...prev, [codelistId]: resolution }));
+    },
+    []
+  );
 
   const filteredDicts = useMemo(
     () => filterDictionaries(dictionaries, search),
@@ -285,14 +482,24 @@ export const DictionarySidecar: React.FC = () => {
           </Text>
         </div>
         {view === "browse" && (
-          <Button
-            appearance="secondary"
-            size="small"
-            icon={<AddRegular />}
-            onClick={() => setView("create")}
-          >
-            New
-          </Button>
+          <div className={styles.headerActions}>
+            <Button
+              appearance="secondary"
+              size="small"
+              icon={<ArrowDownloadRegular />}
+              onClick={handleOpenImport}
+            >
+              Import CDISC CT
+            </Button>
+            <Button
+              appearance="secondary"
+              size="small"
+              icon={<AddRegular />}
+              onClick={() => setView("create")}
+            >
+              New
+            </Button>
+          </div>
         )}
       </div>
 
@@ -429,6 +636,215 @@ export const DictionarySidecar: React.FC = () => {
             >
               Save Dictionary
             </Button>
+          </div>
+        )}
+
+        {/* ── Import CDISC CT view ────────────────────────────────────────────── */}
+        {view === "import" && (
+          <div className={styles.importForm}>
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<ArrowLeftRegular />}
+              onClick={() => {
+                setImportPlan(null);
+                setImportSummary(null);
+                setImportError(null);
+                setView("browse");
+              }}
+            >
+              Back to Browse
+            </Button>
+
+            {/* ── Step 1: Paste bundle ───────────────────────────────────────── */}
+            {!importPlan && !importSummary && (
+              <div className={styles.formCard}>
+                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                  Import Controlled Terminology
+                </Text>
+                <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
+                  Paste a pre-mapped CDISC CT bundle (JSON) from the mapping layer. The bundle must
+                  conform to the <code>CdiscCtMappingInput</code> contract.
+                </Text>
+
+                <label className={styles.fieldLabel}>Mapping Bundle (JSON)</label>
+                <textarea
+                  className={styles.importTextarea}
+                  value={importBundle}
+                  onChange={(e) => {
+                    setImportBundle(e.target.value);
+                    setImportParseError(null);
+                  }}
+                  placeholder={'{\n  "package": { ... },\n  "codelists": [ ... ],\n  "termsByCodelistOid": { ... }\n}'}
+                  aria-label="CDISC CT mapping bundle JSON"
+                />
+
+                {importParseError && (
+                  <MessageBar intent="error">
+                    <MessageBarBody>{importParseError}</MessageBarBody>
+                  </MessageBar>
+                )}
+
+                <Button
+                  appearance="primary"
+                  className={styles.saveButton}
+                  onClick={handleParseBundleAndPlan}
+                  disabled={!importBundle.trim()}
+                >
+                  Validate &amp; Plan Import
+                </Button>
+              </div>
+            )}
+
+            {/* ── Step 2: Progress during planning ──────────────────────────── */}
+            {importProgress && (
+              <div className={styles.progressCard}>
+                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                  {importProgress.stage}
+                </Text>
+                <ProgressBar
+                  value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined}
+                />
+                <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                  {importProgress.total > 0
+                    ? `${importProgress.completed} / ${importProgress.total}`
+                    : "Processing…"}
+                </Text>
+              </div>
+            )}
+
+            {/* ── Step 3: Conflict resolution ───────────────────────────────── */}
+            {importPlan && !importProgress && !importSummary && (
+              <>
+                {/* Auto-action summary */}
+                <div className={styles.formCard}>
+                  <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                    Import Plan
+                  </Text>
+                  <div className={styles.summaryRow}>
+                    <Text>New codelists to insert</Text>
+                    <Text className={styles.summaryCount}>{importPlan.autoInsertIds.size}</Text>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <Text>Codelists with newer version (auto-overwrite)</Text>
+                    <Text className={styles.summaryCount}>{importPlan.autoOverwriteIds.size}</Text>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <Text>Identical codelists (auto-skip)</Text>
+                    <Text className={styles.summaryCount}>{importPlan.skipIdenticalIds.size}</Text>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <Text>Conflicts requiring resolution</Text>
+                    <Text className={styles.summaryCount}>{importPlan.conflictIds.size}</Text>
+                  </div>
+                </div>
+
+                {/* Conflict resolution UI */}
+                {importPlan.conflicts.length > 0 && (
+                  <div className={styles.conflictCard}>
+                    <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                      Resolve Conflicts
+                    </Text>
+                    <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
+                      Each codelist below has a conflict with existing data. Choose how to handle it.
+                    </Text>
+                    {importPlan.conflicts.map((conflict: ImportConflictItem) => (
+                      <div key={conflict.codelistId} className={styles.conflictItem}>
+                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                          {conflict.codelistId}
+                          {conflict.codelistName && conflict.codelistName !== conflict.codelistId
+                            ? ` — ${conflict.codelistName}`
+                            : ""}
+                        </Text>
+                        <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                          Existing: {conflict.existingTermCount} term(s) · Incoming: {conflict.incomingTermCount} term(s)
+                        </Text>
+                        <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                          {conflict.message}
+                        </Text>
+                        <div className={styles.conflictActions}>
+                          {(["skip", "overwrite", "append"] as ConflictResolution[]).map((resolution) => (
+                            <Button
+                              key={resolution}
+                              size="small"
+                              appearance={conflictResolutions[conflict.codelistId] === resolution ? "primary" : "outline"}
+                              onClick={() => handleConflictResolution(conflict.codelistId, resolution)}
+                            >
+                              {resolution.charAt(0).toUpperCase() + resolution.slice(1)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {importError && (
+                  <MessageBar intent="error">
+                    <MessageBarBody>{importError}</MessageBarBody>
+                  </MessageBar>
+                )}
+
+                <Button
+                  appearance="primary"
+                  className={styles.saveButton}
+                  onClick={handleExecuteImport}
+                >
+                  Execute Import
+                </Button>
+              </>
+            )}
+
+            {/* ── Step 4: Summary ───────────────────────────────────────────── */}
+            {importSummary && !importProgress && (
+              <div className={styles.summaryCard}>
+                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                  {importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}
+                </Text>
+
+                <div className={styles.summaryRow}>
+                  <Text>Added</Text>
+                  <Text className={styles.summaryCount}>{importSummary.added}</Text>
+                </div>
+                <div className={styles.summaryRow}>
+                  <Text>Updated</Text>
+                  <Text className={styles.summaryCount}>{importSummary.updated}</Text>
+                </div>
+                <div className={styles.summaryRow}>
+                  <Text>Skipped</Text>
+                  <Text className={styles.summaryCount}>{importSummary.skipped}</Text>
+                </div>
+                {importSummary.failed > 0 && (
+                  <div className={styles.summaryRow}>
+                    <Text>Failed</Text>
+                    <Text className={styles.summaryCount}>{importSummary.failed}</Text>
+                  </div>
+                )}
+
+                {importSummary.errors.map((err, i) => (
+                  <MessageBar key={i} intent="error">
+                    <MessageBarBody>{err}</MessageBarBody>
+                  </MessageBar>
+                ))}
+                {importSummary.warnings.map((w, i) => (
+                  <MessageBar key={i} intent="warning">
+                    <MessageBarBody>{w}</MessageBarBody>
+                  </MessageBar>
+                ))}
+
+                <Button
+                  appearance="secondary"
+                  className={styles.saveButton}
+                  onClick={() => {
+                    setImportPlan(null);
+                    setImportSummary(null);
+                    setView("browse");
+                  }}
+                >
+                  Done
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
