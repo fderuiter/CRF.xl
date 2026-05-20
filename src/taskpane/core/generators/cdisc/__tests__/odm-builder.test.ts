@@ -339,4 +339,75 @@ describe("CDISC ODM XML Builder", () => {
       consoleWarnSpy.mockRestore();
     });
   });
+
+  describe("VLM & Methods Serialization Integration", () => {
+    it("should serialize study.methods to MethodDef elements", () => {
+      mockStudy.methods = {
+        "M_BMI": {
+          methodOid: "M_BMI",
+          name: "BMI Derivation",
+          type: "Computation",
+          description: "Calculates BMI",
+          expression: "[WEIGHT] / ([HEIGHT]/100)^2",
+        },
+      };
+
+      const xml = generateOdmXml(mockStudy);
+      expect(xml).toContain('<MethodDef OID="M_BMI" Name="BMI Derivation" Type="Computation">');
+      expect(xml).toContain('<Description>');
+      expect(xml).toContain('<TranslatedText xml:lang="en-US">Calculates BMI</TranslatedText>');
+      expect(xml).toContain('<FormalExpression Context="CRF.xl">[WEIGHT] / ([HEIGHT]/100)^2</FormalExpression>');
+    });
+
+    it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", () => {
+      const item = mockStudy.forms["F1"].itemGroups[0].items[0];
+      item.origin = "Protocol" as any;
+      item.comment = "Collected weight at baseline";
+      item.methodOid = "M_WT_COLLECT";
+
+      mockStudy.methods = {
+        "M_WT_COLLECT": {
+          methodOid: "M_WT_COLLECT",
+          name: "Collect Weight",
+          type: "Interview",
+        }
+      };
+
+      const xml = generateOdmXml(mockStudy);
+      expect(xml).toContain('Origin="Protocol"');
+      expect(xml).toContain('Comment="Collected weight at baseline"');
+      expect(xml).toContain('MethodOID="M_WT_COLLECT"');
+    });
+
+    it("should prioritize item.methodOid over rules-derived MethodOID on ItemDef", () => {
+      const item = mockStudy.forms["F1"].itemGroups[0].items[0];
+      item.methodOid = "M_EXPLICIT_BMI";
+
+      mockStudy.rules = [
+        {
+          ruleId: "M_RULE_BMI",
+          ruleType: RuleType.DERIVATION,
+          target: "IT_WT",
+          expression: "100",
+          _sourceRowIndex: 2,
+        },
+      ];
+
+      const { parseRuleExpression } = require("../../../parser/rules-parser");
+      mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
+
+      mockStudy.methods = {
+        "M_EXPLICIT_BMI": {
+          methodOid: "M_EXPLICIT_BMI",
+          name: "Explicit BMI",
+          type: "Computation",
+        }
+      };
+
+      const xml = generateOdmXml(mockStudy);
+      // It should contain the explicit MethodOID instead of the rule's ID
+      expect(xml).toContain('MethodOID="M_EXPLICIT_BMI"');
+      expect(xml).not.toContain('MethodOID="M_RULE_BMI"');
+    });
+  });
 });

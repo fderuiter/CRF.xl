@@ -84,12 +84,12 @@ export enum CodingTermType {
 }
 
 export enum DataOrigin {
-  CRF = "CRF",
+  PROTOCOL = "Protocol",
+  INVESTIGATOR = "Investigator",
+  SUBJECT = "Subject",
   DERIVED = "Derived",
-  EPRO = "ePRO",
-  CENTRAL_LAB = "CentralLab",
-  WEARABLE_SENSOR = "Sensor",
-  PRE_POPULATED = "PrePopulated",
+  ASSIGNED = "Assigned",
+  EDT = "eDT",
 }
 
 export enum CollectionMethod {

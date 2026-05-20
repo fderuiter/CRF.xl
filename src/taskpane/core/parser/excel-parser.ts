@@ -305,6 +305,50 @@ export async function parseExcelToStudyDesign(
       message: "Completed _Rules sheet",
     });
 
+    // 7. Parse _Methods Sheet
+    runtime.reportProgress({
+      phase: "methods",
+      completed: 0,
+      total: 1,
+      message: "Reading _Methods sheet",
+    });
+    runtime.throwIfStopped("methods");
+    const methodsSheet = sheets.getItemOrNullObject("_Methods");
+    await context.sync();
+    study.methods = {};
+    if (!methodsSheet.isNullObject) {
+      try {
+        const vals = await getValues(methodsSheet);
+        if (vals && vals.length > 1) {
+          const rows = vals.slice(1);
+          await processRowsInChunks(rows, runtime, "methods", (row, rowIndex) => {
+            runtime.throwIfStopped("methods");
+            const [oid, name, type, description, expression] = row;
+            if (!oid) return;
+            const strOid = String(oid).trim();
+            study.methods![strOid] = {
+              methodOid: strOid,
+              name: String(name || "").trim(),
+              type: String(type || "").trim(),
+              description: description ? String(description).trim() : undefined,
+              expression: expression ? String(expression).trim() : undefined,
+            };
+          });
+        }
+      } catch (error) {
+        if (!allowPartialSheetFailures) throw error;
+        parseWarnings.push(
+          `Sheet "_Methods" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+    runtime.reportProgress({
+      phase: "methods",
+      completed: 1,
+      total: 1,
+      message: "Completed _Methods sheet",
+    });
+
     if (parseWarnings.length > 0) {
       study.metadata.customProperties = {
         ...(study.metadata.customProperties ?? {}),
@@ -361,6 +405,11 @@ function mapRowToItem(
     if (ch === "required") item.validation.required = String(val).toLowerCase() === "yes";
     if (ch === "show if") item.showIf = String(val);
     if (ch === "codelist id") item.codelistId = String(val).trim().toUpperCase();
+    if (ch === "origin") item.origin = String(val).trim();
+    if (ch === "methodoid" || ch === "method oid") item.methodOid = String(val).trim();
+    if (ch === "sdtmdomain" || ch === "sdtm domain") item.sdtmMapping.domain = String(val).trim();
+    if (ch === "sdtmvariable" || ch === "sdtm variable") item.sdtmMapping.variable = String(val).trim();
+    if (ch === "comment") item.comment = String(val).trim();
   });
   return item;
 }

@@ -1,4 +1,4 @@
-import { StudyDesign, RuleType, CrfItem } from "../types/index";
+import { StudyDesign, RuleType, CrfItem, DataOrigin } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
 
@@ -184,6 +184,67 @@ export function validateStudyDesign(
           issues.push({
             level: "Error",
             message: "Significant Digits cannot exceed Length.",
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        }
+
+        // VLM & Methods Validation
+        const validOrigins = Object.values(DataOrigin) as string[];
+        if (item.origin) {
+          if (!validOrigins.includes(item.origin)) {
+            issues.push({
+              level: "Error",
+              message: `Invalid Origin value: '${item.origin}'. Must be one of: ${validOrigins.join(", ")}.`,
+              location: `${sheet} > ${item.itemOid || item.name}`,
+              rowIndex: row,
+              sheetName: sheet,
+            });
+          }
+        }
+
+        if (
+          (item.origin === DataOrigin.DERIVED || item.origin === DataOrigin.ASSIGNED) &&
+          (!item.methodOid || !item.methodOid.trim())
+        ) {
+          issues.push({
+            level: "Error",
+            message: `Method OID is required when Origin is '${item.origin}'.`,
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        }
+
+        if (item.methodOid && item.methodOid.trim()) {
+          const cleanMethodOid = item.methodOid.trim().toLowerCase();
+          const methodsKeys = study.methods ? Object.keys(study.methods).map(k => k.toLowerCase()) : [];
+          if (!methodsKeys.includes(cleanMethodOid)) {
+            issues.push({
+              level: "Error",
+              message: `Referenced Method OID '${item.methodOid}' does not exist in _Methods.`,
+              location: `${sheet} > ${item.itemOid || item.name}`,
+              rowIndex: row,
+              sheetName: sheet,
+            });
+          }
+        }
+
+        const hasDomain = !!item.sdtmMapping?.domain && !!item.sdtmMapping.domain.trim();
+        const hasVariable = !!item.sdtmMapping?.variable && !!item.sdtmMapping.variable.trim();
+        if (hasDomain && !hasVariable) {
+          issues.push({
+            level: "Warning",
+            message: "SDTM Domain is specified but companion SDTM Variable is missing.",
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        } else if (hasVariable && !hasDomain) {
+          issues.push({
+            level: "Warning",
+            message: "SDTM Variable is specified but companion SDTM Domain is missing.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
             sheetName: sheet,

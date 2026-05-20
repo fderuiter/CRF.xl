@@ -57,3 +57,11 @@ export interface Codelist {
   items: CodelistItem[];
   customProperties?: Record<string, any>;
 }
+
+export interface MethodDefinition {
+  methodOid: string;
+  name: string;
+  type: string;
+  description?: string;
+  expression?: string;
+}

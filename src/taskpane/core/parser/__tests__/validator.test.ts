@@ -604,4 +604,86 @@ describe("Clinical Validator Engine", () => {
       expect(mockStudy.crossFormDependencies?.length).toBe(0);
     });
   });
+
+  describe("Variable Level Metadata (VLM) & Methods Validation", () => {
+    it("should raise an Error for an invalid Origin value", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "InvalidOrigin" as any;
+      const issues = validateStudyDesign(mockStudy);
+      const error = issues.find((i) => i.level === "Error" && i.message.includes("Invalid Origin value"));
+      expect(error).toBeDefined();
+    });
+
+    it("should not raise an Error for a valid Origin value", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Protocol" as any;
+      const issues = validateStudyDesign(mockStudy);
+      const errors = issues.filter((i) => i.level === "Error" && i.message.includes("Origin"));
+      expect(errors.length).toBe(0);
+    });
+
+    it("should raise an Error when Origin is Derived/Assigned but Method OID is missing", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "";
+      const issues1 = validateStudyDesign(mockStudy);
+      const err1 = issues1.find((i) => i.level === "Error" && i.message.includes("Method OID is required"));
+      expect(err1).toBeDefined();
+
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Assigned" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "  ";
+      const issues2 = validateStudyDesign(mockStudy);
+      const err2 = issues2.find((i) => i.level === "Error" && i.message.includes("Method OID is required"));
+      expect(err2).toBeDefined();
+    });
+
+    it("should raise an Error when Method OID is specified but not found in study.methods", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "M_UNKNOWN";
+      mockStudy.methods = {};
+      const issues = validateStudyDesign(mockStudy);
+      const err = issues.find((i) => i.level === "Error" && i.message.includes("does not exist in _Methods"));
+      expect(err).toBeDefined();
+    });
+
+    it("should pass when Method OID exists in study.methods (case-insensitive)", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "m_bmi";
+      mockStudy.methods = {
+        "M_BMI": {
+          methodOid: "M_BMI",
+          name: "BMI Method",
+          type: "Computation",
+        }
+      };
+      const issues = validateStudyDesign(mockStudy);
+      const vlmErrors = issues.filter((i) => i.level === "Error" && i.location?.includes("Item 1"));
+      expect(vlmErrors.length).toBe(0);
+    });
+
+    it("should raise a Warning when companion SDTM Domain or Variable is missing", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
+        domain: "DM",
+        variable: "",
+      };
+      const issues1 = validateStudyDesign(mockStudy);
+      const warn1 = issues1.find((i) => i.level === "Warning" && i.message.includes("SDTM Domain is specified but companion SDTM Variable is missing"));
+      expect(warn1).toBeDefined();
+
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
+        domain: "",
+        variable: "SUBJID",
+      };
+      const issues2 = validateStudyDesign(mockStudy);
+      const warn2 = issues2.find((i) => i.level === "Warning" && i.message.includes("SDTM Variable is specified but companion SDTM Domain is missing"));
+      expect(warn2).toBeDefined();
+    });
+
+    it("should pass when companion SDTM Domain and Variable are both present or both missing", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
+        domain: "DM",
+        variable: "SUBJID",
+      };
+      const issues = validateStudyDesign(mockStudy);
+      const warnings = issues.filter((i) => i.level === "Warning" && i.message.includes("SDTM"));
+      expect(warnings.length).toBe(0);
+    });
+  });
 });
