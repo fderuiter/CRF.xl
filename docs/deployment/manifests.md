@@ -1,107 +1,105 @@
 # Office Add-in Manifests by Environment
 
-This repository maintains separate Office add-in manifests for each deployment environment:
+This repository maintains separate Office add-in XML manifests for each deployment environment to enforce environment isolation and GxP compliance:
 
-- Development: `manifest.dev.xml`
-- Staging: `manifest.staging.xml`
-- Production: `manifest.production.xml`
+- **Development:** [manifest.dev.xml](../../manifest.dev.xml)
+- **Staging / UAT:** [manifest.staging.xml](../../manifest.staging.xml)
+- **Production:** [manifest.production.xml](../../manifest.production.xml)
 
-## Which manifest to use
+---
 
-- Local developer sideload: `manifest.dev.xml`
-- Department/UAT validation: `manifest.staging.xml`
-- Centralized rollout in Microsoft 365 Admin Center: `manifest.production.xml`
+## 🛠️ Which manifest to use
 
-## Required placeholders before release
+- **Local developer sideload:** `manifest.dev.xml` (points to `localhost:3000` or dev-tunnel URLs).
+- **Department/UAT validation:** `manifest.staging.xml` (points to secure UAT sandbox host).
+- **Centralized rollout in Microsoft 365 Admin Center:** `manifest.production.xml` (points to canonical production host).
 
-Until final endpoints are confirmed, staging/production manifests intentionally use:
+---
 
-- `REPLACE_WITH_STAGING_HOST`
-- `REPLACE_WITH_PRODUCTION_HOST`
+## 🚫 External Host Provisioning Status (Issue #135 Block)
 
-Replace these placeholders with the final HTTPS hostnames before deployment.
+> [!WARNING]
+> **Pending Infrastructure Provisioning:**
+> Until the corporate IT infrastructure group completes external host provisioning (Issue #135), the staging and production manifests utilize secure placeholder hosts:
+> * `REPLACE_WITH_STAGING_HOST`
+> * `REPLACE_WITH_PRODUCTION_HOST`
+> 
+> Sideloading staging or production manifests will fail to resolve until these placeholders are substituted with final HTTPS endpoints in your target deployment pipelines.
 
-## Validation (repeatable from clean checkout)
+---
+
+## ✅ Manifest Validation & CI Quality Gates
+
+Every manifest change undergoes automated linting and validation via `scripts/validate-manifests.js` on checkouts and PR builds:
 
 ```bash
-npm ci
 npm run manifest:validate
 ```
 
-`manifest:validate` performs:
+The validation suite (`npm run manifest:validate`) automatically executes:
+1. **Developer Endpoint Guardrails:** Rejects any staging/production manifests containing `localhost` or dev-tunnel URLs.
+2. **Version Synchronization:** Enforces that `<Version>` tags match the root `package.json` version string exactly as `${version}.0`.
+3. **Identifier Isolation:** Verifies that the unique XML `<Id>` GUIDs differ across all three manifests to prevent environment conflicts in Excel clients.
+4. **Placeholder Checks:** Confirms the presence of staging/production placeholder hosts before release assembly.
 
-1. Guardrail checks that staging/production manifests do not contain localhost/dev-tunnel endpoints.
-2. Version check (`<Version>` must match `package.json` as `${version}.0`).
-3. Environment ID check (each manifest `<Id>` must be unique).
-4. Presence checks for required metadata fields (`Id`, `Version`, `Permissions`) and environment placeholders.
-
-Optional Office service validation:
+To validate against Microsoft's schema validator, run:
 
 ```bash
 npm run manifest:validate:office
 ```
 
-## Permissions rationale
+---
 
-All manifests request:
+## 🔑 Permissions Rationale
 
-- `<Permissions>ReadWriteDocument</Permissions>`
+All environment manifests request the following permission level:
 
-This permission is required for CRF.xl workbook authoring flows (sheet creation, metadata extraction, navigation, and in-workbook updates). No broader mailbox/calendar scopes are requested.
-
-## Microsoft 365 Admin Center centralized deployment (production)
-
-1. Build and publish production web assets to the approved production host.
-2. Update `manifest.production.xml` placeholders with final production URLs.
-3. Run `npm run manifest:validate`.
-4. In Microsoft 365 admin center, open **Settings → Integrated apps**.
-5. Select **Upload custom apps** and upload `manifest.production.xml`.
-6. Assign users/groups:
-   - Pilot IT group first.
-   - Department rollout groups second.
-   - Organization-wide assignment last.
-7. Confirm add-in appears in target Excel clients.
-
-## Smoke test checklist (sideload/deployment)
-
-1. Install/sideload manifest for target environment.
-2. Open Excel and launch the CRF.xl task pane.
-3. Verify task pane and commands load from the expected host.
-4. Run a basic workbook flow:
-   - Initialize workbook
-   - Parse/validate metadata
-   - Trigger an export action
-5. Confirm no console/network calls to localhost for staging/production.
-
-## Rollback / previous-version strategy
-
-1. Keep the last known-good production manifest in release artifacts/source control.
-2. If a release fails, re-upload the previous production manifest version in Admin Center.
-3. Reassign the same deployment groups to the prior manifest package.
-4. Verify clients receive the prior version and smoke-test the critical path.
-
-## Taskpane version-update notification mechanism
-
-- On taskpane boot, CRF.xl requests a JSON payload from `/assets/version.json` (or from `globalThis.CRF_XL_VERSION_ENDPOINT` when overridden by host configuration).
-- Expected payload shape:
-
-```json
-{
-  "version": "0.0.2",
-  "description": "Short non-blocking update message",
-  "changelogUrl": "https://github.com/fderuiter/CRF.xl/releases"
-}
+```xml
+<Permissions>ReadWriteDocument</Permissions>
 ```
 
-- If `version` is newer than the running app version, a Fluent UI v9 `MessageBar` is shown with:
-  - target version number,
-  - optional description,
-  - optional changelog link.
-- Dismissal is persisted for the current browser session in `sessionStorage` key `crf-xl-version-update-dismissed-v1`, so the notice does not reappear until the next session.
-- Endpoint failures (offline/network/non-200) are treated as non-fatal and the add-in continues without showing an error notification.
+This permission is **strictly limited** to the workbook context. It is required for CRF.xl's core tabular authoring flows (sheet initialization, workbook data extraction, cell validation drop-downs, metadata sync, and in-workbook updates). CRF.xl does **not** request or utilize broader mailbox, user account, or calendar scopes.
 
-### Update cadence expectations
+---
 
-- Publish `assets/version.json` with each production release.
-- Keep `version` aligned with release manifest/package versioning.
-- Keep `description` concise (< 120 chars) and include a stable changelog URL for release auditability.
+## 🚀 Microsoft 365 Centralized Rollout (Production)
+
+1. Build and publish production web assets to the approved production host.
+2. Update `manifest.production.xml` placeholders with the final provisioned production URLs.
+3. Verify manifest integrity: `npm run manifest:validate`.
+4. Log in to the **Microsoft 365 Admin Center** as an Global Admin or Exchange Admin.
+5. Navigate to **Settings → Integrated apps**.
+6. Select **Upload custom apps** and upload your production `manifest.production.xml`.
+7. Configure deployment scope:
+   - Stage 1: Pilot IT / QA validation group.
+   - Stage 2: Clinical Data Management / UAT department rollout.
+   - Stage 3: Global organization-wide deployment.
+8. Verify that the CRF.xl task pane appears in the Excel clients of the target users.
+
+---
+
+## 🔄 Rollback / Previous-Version Strategy
+
+1. Maintain the last known-good production manifest in your release archives and git repository history.
+2. In the event of a critical production release failure, immediately re-upload the prior manifest version in the Microsoft 365 Admin Center.
+3. Keep the target deployment scopes identical to ensure all active users are immediately reverted.
+4. Clear Excel client cache if the prior taskpane version is slow to update.
+
+---
+
+## 🔔 Taskpane Version-Update Notification Mechanism
+
+To alert active users of available application updates without interrupting current workflows, the taskpane executes a passive version audit:
+
+1. **Endpoint Fetch:** On launch, the add-in requests `assets/version.json` (or `globalThis.CRF_XL_VERSION_ENDPOINT` if overridden by enterprise hosts).
+2. **Payload Schema:**
+   ```json
+   {
+     "version": "2.4.0",
+     "description": "Critical security and stability updates.",
+     "changelogUrl": "https://github.com/fderuiter/CRF.xl/releases"
+   }
+   ```
+3. **Comparison:** If the fetched `version` is newer than the running client version, a Fluent UI v9 `MessageBar` is rendered at the top of the taskpane.
+4. **Session Persistence:** Dismissing the notification stores `crf-xl-version-update-dismissed-v1` in `sessionStorage`, silencing the alert for the remainder of the active Excel session.
+5. **Fault Tolerance:** If the network request fails or returns a non-200 status, the engine fails silently, allowing the data manager to work uninterrupted.

@@ -28,6 +28,7 @@
     "manifest:production": "office-addin-manifest validate manifest.production.xml",
     "manifest:validate:office": "npm run manifest:dev && npm run manifest:staging && npm run manifest:production",
     "manifest:validate": "node ./scripts/validate-manifests.js",
+    "docs:validate": "node ./scripts/validate-docs.js",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "benchmark:mega-study": "jest test/serialization/mega-study.benchmark.test.ts --runInBand",
