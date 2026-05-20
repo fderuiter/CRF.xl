@@ -1,6 +1,15 @@
 import * as React from "react";
-import { Body1, Button, Card, Spinner, makeStyles, tokens } from "@fluentui/react-components";
-import { SubmissionMetadata } from "../../core/types";
+import {
+  Body1,
+  Button,
+  Card,
+  MessageBar,
+  MessageBarBody,
+  Spinner,
+  makeStyles,
+  tokens,
+} from "@fluentui/react-components";
+import { StudyDesign, SubmissionMetadata } from "../../core/types";
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
 import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
 
@@ -8,9 +17,12 @@ interface RegistryProps {
   onInit: () => Promise<void>;
   onSync: () => Promise<void>;
   onLoadSubmissionMetadata: () => Promise<void>;
+  onLoadBaselineWorkbook: (file: File) => Promise<void>;
   onSaveSubmissionMetadata: (submissionMetadata: SubmissionMetadata) => void;
   activeSheet: string;
   submissionMetadata?: SubmissionMetadata;
+  baselineStudy?: StudyDesign | null;
+  baselineError?: string | null;
   isProcessing: boolean;
 }
 
@@ -59,13 +71,24 @@ export const RegistryView: React.FC<RegistryProps> = ({
   onInit,
   onSync,
   onLoadSubmissionMetadata,
+  onLoadBaselineWorkbook,
   onSaveSubmissionMetadata,
   activeSheet,
   submissionMetadata,
+  baselineStudy,
+  baselineError,
   isProcessing,
 }) => {
   const styles = useStyles();
   const [showIngestionWizard, setShowIngestionWizard] = React.useState(false);
+  const baselineFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleBaselineFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    event.target.value = "";
+    if (!selectedFile) return;
+    await onLoadBaselineWorkbook(selectedFile);
+  };
 
   if (showIngestionWizard) {
     return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} />;
@@ -105,6 +128,24 @@ export const RegistryView: React.FC<RegistryProps> = ({
           <Button
             appearance="outline"
             className={styles.fullWidthButton}
+            onClick={() => baselineFileInputRef.current?.click()}
+            disabled={isProcessing}
+            icon={<span>🧭</span>}
+          >
+            Select Baseline Workbook…
+          </Button>
+          <input
+            ref={baselineFileInputRef}
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            style={{ display: "none" }}
+            onChange={(event) => {
+              void handleBaselineFileChange(event);
+            }}
+          />
+          <Button
+            appearance="outline"
+            className={styles.fullWidthButton}
             onClick={() => setShowIngestionWizard(true)}
             disabled={isProcessing}
             icon={<span>📥</span>}
@@ -113,6 +154,19 @@ export const RegistryView: React.FC<RegistryProps> = ({
           </Button>
         </div>
       </Card>
+      {baselineStudy && (
+        <MessageBar intent="success">
+          <MessageBarBody>
+            Baseline workbook loaded: <strong>{baselineStudy.metadata.protocolId}</strong> —{" "}
+            {baselineStudy.metadata.studyName} ({Object.keys(baselineStudy.forms).length} forms)
+          </MessageBarBody>
+        </MessageBar>
+      )}
+      {baselineError && (
+        <MessageBar intent="error">
+          <MessageBarBody>{baselineError}</MessageBarBody>
+        </MessageBar>
+      )}
       {activeSheet === "_Study" && (
         <SubmissionMetadataView
           submissionMetadata={submissionMetadata}

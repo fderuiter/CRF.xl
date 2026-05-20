@@ -38,6 +38,7 @@ interface MatrixProps {
   hasErrors: boolean;
   isLoaded: boolean;
   study: StudyDesign | null;
+  baselineStudy?: StudyDesign | null;
   onNavigate?: (sheetName: string, rowIndex: number) => void;
 }
 
@@ -331,6 +332,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
   hasErrors,
   isLoaded,
   study,
+  baselineStudy,
   onNavigate,
 }) => {
   const styles = useStyles();
@@ -415,6 +417,12 @@ export const MatrixView: React.FC<MatrixProps> = ({
           <div>
             <Body1 className={styles.cardTitle}>Visit Matrix</Body1>
             <Body1 className={styles.cardSubtitle}>Schedule &amp; Export</Body1>
+            {baselineStudy && (
+              <Body1 className={styles.cardSubtitle}>
+                Baseline ready: {baselineStudy.metadata.protocolId} (
+                {Object.keys(baselineStudy.forms).length} forms)
+              </Body1>
+            )}
           </div>
         </div>
 
