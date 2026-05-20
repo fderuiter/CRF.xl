@@ -1,19 +1,32 @@
 import ExcelJS from "exceljs";
 import { validateStudyDesign } from "../parser/validator";
 import { Codelist, DataType, StudyDesign } from "../types";
+import {
+  ImportDiagnostic,
+  ImportProvenance,
+  ImportStatus,
+  WorkbookProjection,
+} from "./migration-pipeline";
 
-export type OdmImportDiagnosticSeverity = "Error" | "Warning";
+/**
+ * Normalised severity for ODM import diagnostics.
+ * Lowercase to align with the shared ImportSeverity contract.
+ */
+export type OdmImportDiagnosticSeverity = "error" | "warning";
 export type OdmImportDiagnosticCategory = "Parse" | "Semantic" | "Unsupported";
 
-export interface OdmImportDiagnostic {
+/**
+ * ODM-specific diagnostic record.  Extends the shared ImportDiagnostic so
+ * that all import flows share a unified diagnostic contract while still
+ * carrying the ODM-specific `category` value.
+ */
+export interface OdmImportDiagnostic extends ImportDiagnostic {
   severity: OdmImportDiagnosticSeverity;
   category: OdmImportDiagnosticCategory;
-  message: string;
-  location?: string;
 }
 
 export interface OdmImportSummary {
-  status: "clean" | "warnings" | "conflicts";
+  status: ImportStatus;
   actionsCount: {
     addedForms: number;
     addedCodelists: number;
@@ -30,7 +43,11 @@ export interface OdmImportSummary {
   }>;
 }
 
-export interface OdmWorkbookProjection {
+/**
+ * ODM workbook projection.  Satisfies the shared WorkbookProjection contract
+ * (studyRows, formsRows, and codelistRows are all always present for ODM).
+ */
+export interface OdmWorkbookProjection extends WorkbookProjection {
   studyRows: string[][];
   formsRows: string[][];
   codelistRows: string[][];
@@ -41,6 +58,12 @@ export interface OdmImportPackage {
   diagnostics: OdmImportDiagnostic[];
   projection: OdmWorkbookProjection;
   summary: OdmImportSummary;
+  /**
+   * Provenance record for this import run.
+   * Populated when the caller supplies source metadata via createImportProvenance().
+   * Present after write-back is confirmed; absent during preview-only calls.
+   */
+  provenance?: ImportProvenance;
 }
 
 interface XmlElementMatch {
@@ -67,7 +90,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
   const parseError = detectStructuralParseError(xml);
   if (parseError) {
     diagnostics.push({
-      severity: "Error",
+      severity: "error",
       category: "Parse",
       message: parseError,
       location: "_ODM",
@@ -78,7 +101,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
   const studyMatch = findXmlElements(xml, "Study")[0];
   if (!studyMatch) {
     diagnostics.push({
-      severity: "Error",
+      severity: "error",
       category: "Semantic",
       message: "ODM Study element is missing.",
       location: "_Study",
@@ -89,7 +112,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
   const metaDataVersions = findXmlElements(studyMatch.innerXml, "MetaDataVersion");
   if (metaDataVersions.length === 0) {
     diagnostics.push({
-      severity: "Error",
+      severity: "error",
       category: "Semantic",
       message: "ODM MetaDataVersion element is missing.",
       location: "_Study",
@@ -99,7 +122,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
 
   if (metaDataVersions.length > 1) {
     diagnostics.push({
-      severity: "Warning",
+      severity: "warning",
       category: "Semantic",
       message: `Multiple MetaDataVersion elements were found (${metaDataVersions.length}); only the first version will be imported in v1.`,
       location: "_Study",
@@ -135,7 +158,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
     const formOid = nonEmpty(formMatch.attributes.OID);
     if (!formOid) {
       diagnostics.push({
-        severity: "Error",
+        severity: "error",
         category: "Semantic",
         message: "Encountered FormDef without an OID; the form cannot be mapped into _Forms.",
         location: "_Forms",
@@ -178,7 +201,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
     const codelistId = nonEmpty(codeListMatch.attributes.OID);
     if (!codelistId) {
       diagnostics.push({
-        severity: "Error",
+        severity: "error",
         category: "Semantic",
         message: "Encountered CodeList without an OID; the codelist cannot be mapped into _Codelists.",
         location: "_Codelists",
@@ -205,7 +228,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
       const codedValue = nonEmpty(itemMatch.attributes.CodedValue);
       if (!codedValue) {
         diagnostics.push({
-          severity: "Error",
+          severity: "error",
           category: "Semantic",
           message: `Codelist '${codelistId}' contains an item without CodedValue.`,
           location: "_Codelists",
@@ -217,7 +240,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
         getDecodeText(itemMatch.innerXml) || getPreferredTranslatedText(itemMatch.innerXml) || codedValue;
       if (decode === codedValue && itemMatch.innerXml.indexOf("Decode") === -1) {
         diagnostics.push({
-          severity: "Warning",
+          severity: "warning",
           category: "Semantic",
           message: `Codelist '${codelistId}' item '${codedValue}' has no Decode text; the coded value will be reused in _Codelists.`,
           location: "_Codelists",
@@ -243,7 +266,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
   const validationIssues = validateStudyDesign(study);
   validationIssues.forEach((issue) => {
     diagnostics.push({
-      severity: issue.level,
+      severity: (issue.level.toLowerCase() as OdmImportDiagnosticSeverity),
       category: "Semantic",
       message: issue.message,
       location: issue.sheetName || issue.location,
@@ -310,7 +333,7 @@ export function applyOdmImportToWorkbook(
   importPackage: OdmImportPackage
 ): void {
   const blockingDiagnostics = importPackage.diagnostics.filter(
-    (diagnostic) => diagnostic.severity === "Error"
+    (diagnostic) => diagnostic.severity === "error"
   );
   if (blockingDiagnostics.length > 0) {
     throw new Error("ODM import contains blocking diagnostics; review the import summary before write-back.");
@@ -323,8 +346,8 @@ export function applyOdmImportToWorkbook(
 
 function buildImportPackage(study: StudyDesign, diagnostics: OdmImportDiagnostic[]): OdmImportPackage {
   const projection = projectOdmImportToWorkbook(study);
-  const warningCount = diagnostics.filter((diagnostic) => diagnostic.severity === "Warning").length;
-  const errorCount = diagnostics.filter((diagnostic) => diagnostic.severity === "Error").length;
+  const warningCount = diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length;
+  const errorCount = diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
 
   return {
     study,
@@ -345,9 +368,9 @@ function buildImportPackage(study: StudyDesign, diagnostics: OdmImportDiagnostic
       details: diagnostics.map((diagnostic) => ({
         sheet: mapDiagnosticSheet(diagnostic.location),
         location: diagnostic.location || "_ODM",
-        severity: diagnostic.severity === "Error" ? "conflict" : "warning",
+        severity: diagnostic.severity === "error" ? "conflict" : "warning",
         message: diagnostic.message,
-        suggestedResolution: diagnostic.severity === "Error" ? "fix-source" : "review",
+        suggestedResolution: diagnostic.severity === "error" ? "fix-source" : "review",
       })),
     },
   };
@@ -424,7 +447,7 @@ function collectUnsupportedConstructDiagnostics(
     }
 
     diagnostics.push({
-      severity: "Warning",
+      severity: "warning",
       category: "Unsupported",
       message: `ODM ${localName} elements are not projected into the workbook in v1 (${count} found).`,
       location: "_ODM",
@@ -440,7 +463,7 @@ function collectLanguageDiagnostics(
   const languages = collectLanguages(xml);
   if (languages.length > 1) {
     diagnostics.push({
-      severity: "Warning",
+      severity: "warning",
       category: "Unsupported",
       message: `Multiple ODM languages were detected (${languages.join(", ")}); workbook projection will use '${defaultLanguage}' as the default language.`,
       location: "_Study",

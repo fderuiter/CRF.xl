@@ -15,6 +15,12 @@
  * No Excel.run / Office.js calls live here so the module is fully unit-testable.
  */
 
+import {
+  ImportDiagnostic,
+  ImportProvenance,
+  WorkbookProjection,
+} from "./migration-pipeline";
+
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
@@ -94,7 +100,7 @@ export type DiagnosticCategory =
   | "duplicate-identity";
 
 /** A single validation finding emitted by validateMappings(). */
-export interface IngestionDiagnostic {
+export interface IngestionDiagnostic extends ImportDiagnostic {
   severity: "error" | "warning" | "info";
   category: DiagnosticCategory;
   message: string;
@@ -122,13 +128,20 @@ export interface IngestionPreview {
   canCommit: boolean;
   /**
    * Row arrays representing the data that would be written to each target
-   * sheet (header row included).
+   * sheet (header row included).  Satisfies the shared WorkbookProjection
+   * contract so that UIs can use a unified projection type across all import
+   * flows.
    */
-  projectedRows: {
+  projectedRows: WorkbookProjection & {
     formItemRows: string[][];
     formsRows: string[][];
     codelistRows: string[][];
   };
+  /**
+   * Provenance record for this import run.
+   * Set after the user confirms and the write-back succeeds.
+   */
+  provenance?: ImportProvenance;
 }
 
 // ---------------------------------------------------------------------------

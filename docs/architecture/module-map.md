@@ -189,21 +189,66 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
-### `ct-import-service.ts`
+### `migration-pipeline.ts`
 
-**Purpose:** Orchestrates the controlled terminology import pipeline. Reads existing `_Codelists` rows, classifies incoming `CrfCodelistsRow[]` into auto-insert / auto-overwrite / skip / conflict buckets, resolves conflicts with a caller-supplied `ConflictResolution` map, and performs a single batched Office.js write that is either fully committed or fully rolled back.
+**Purpose:** Shared pipeline contract for all CRF.xl ingestion and migration flows. Defines the unified diagnostic, status, projection, provenance, and manifest types consumed by every import tool. Ensures all import flows share a coherent `scan → map → preview → commit → summarize` contract.
 
 **Public interface:**
 
-- `readExistingCodelistRows(): Promise<CrfCodelistsRow[]>`
-- `buildCtImportPlan(existingRows, incomingRows): CtImportPlan`
-- `executeCtImport(existingRows, plan, conflictResolutions, onProgress?): Promise<ImportSummary>`
+- `ImportSeverity` — normalised severity type (`"error" | "warning" | "info"`)
+- `ImportDiagnostic` — shared diagnostic record extended by all service-specific diagnostic types
+- `ImportStatus` — pipeline gate status (`"clean" | "warnings" | "conflicts"`)
+- `WorkbookProjection` — dry-run row projection across `_Study`, `_Forms`, `_Codelists`, and form-item sheets
+- `ImportSummary` — gate model (status + diagnostics + canCommit) used by all import UIs
+- `ImportSourceType` — source category (`"odm-xml" | "spreadsheet" | "cdisc-api"`)
+- `ImportProvenance` — GxP provenance record with sourceId, sourceType, sourceVersion, importedAt, importedBy
+- `ImportManifest` — full audit record combining provenance + summary + sheetsWritten + rowsWritten
+- `createImportProvenance(sourceId, sourceType, sourceVersion?, importedBy?): ImportProvenance`
+- `createImportManifest(provenance, summary, sheetsWritten, rowsWritten): ImportManifest`
+- `persistImportManifest(manifest): void` — writes to sessionStorage key `"crf-xl-import-manifest"`
+- `loadImportManifest(): ImportManifest | null` — reads from sessionStorage
 
-**Upstream:** Office.js Excel API, `services/cdisc-ct-mapping-service.ts`
-**Downstream:** `components/views/DictionarySidecar.tsx`
-**Owning issues:** #46
+**Upstream:** None (shared contract; no imports)
+**Downstream:** `services/odm-import-service.ts`, `services/spreadsheet-ingestion-service.ts`, `components/views/OdmImportWizard.tsx`
+**Owning issues:** #76 (epic), #63, #64, #93
 
 ---
+
+### `odm-import-service.ts`
+
+**Purpose:** ODM reverse parser. Parses a CDISC ODM XML string into a normalized `OdmImportPackage` containing a `StudyDesign`, structured diagnostics (extending `ImportDiagnostic`), a dry-run `OdmWorkbookProjection` (satisfying `WorkbookProjection`), a summary, and an optional provenance record. Write-back to an ExcelJS workbook is gated behind the absence of blocking diagnostics.
+
+**Public interface:**
+
+- `importOdmXml(xml: string): OdmImportPackage`
+- `projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProjection`
+- `applyOdmImportToWorkbook(workbook: ExcelJS.Workbook, importPackage: OdmImportPackage): void`
+
+**Upstream:** `services/migration-pipeline.ts`, `parser/validator.ts`, `core/types/`
+**Downstream:** `components/views/OdmImportWizard.tsx`
+**Owning issues:** #63, #76
+
+---
+
+### `spreadsheet-ingestion-service.ts`
+
+**Purpose:** Pure-logic service for the Spreadsheet Ingestion Wizard. Defines the target-field catalog, auto-detects column→field mappings from legacy sheet headers, validates completed mappings, and builds a dry-run projection. `IngestionDiagnostic` extends `ImportDiagnostic`; `IngestionPreview.projectedRows` satisfies `WorkbookProjection` from the shared pipeline contract.
+
+**Public interface:**
+
+- `buildSheetScanResult(sheetName, rows, sampleSize?): SheetScanResult`
+- `detectColumnMappings(columns, targetSheet): FieldMapping[]`
+- `validateMappings(mappings, targetSheet): IngestionDiagnostic[]`
+- `buildIngestionPreview(scanResult, mappings): IngestionPreview`
+- `TARGET_FIELDS: TargetFieldDescriptor[]`
+
+**Upstream:** `services/migration-pipeline.ts`
+**Downstream:** `components/views/SpreadsheetIngestionWizard.tsx`
+**Owning issues:** #64, #76
+
+---
+
+
 
 ### `dictionary-service.ts`
 
@@ -299,10 +344,9 @@ Shared utility types: localized strings, OID references, generic result wrappers
 
 These modules are planned but not yet implemented. They are blocked by the issues listed.
 
-| Expected Module                     | Purpose                                                               | Blocking Issue         | Planned Location              |
-| ----------------------------------- | --------------------------------------------------------------------- | ---------------------- | ----------------------------- |
-| `services/diff-engine.ts`           | Core metadata diff computation between two `StudyDesign` snapshots    | #129 (blocked by #130) | `src/taskpane/core/services/` |
-| `services/cdisc-mapping-service.ts` | Transform CDISC API responses to internal codelist/dataset structures | #93                    | `src/taskpane/core/services/` |
+| Expected Module           | Purpose                                                            | Blocking Issue         | Planned Location              |
+| ------------------------- | ------------------------------------------------------------------ | ---------------------- | ----------------------------- |
+| `services/diff-engine.ts` | Core metadata diff computation between two `StudyDesign` snapshots | #129 (blocked by #130) | `src/taskpane/core/services/` |
 
 ---
 

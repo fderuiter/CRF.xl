@@ -12,6 +12,7 @@ import {
 import { StudyDesign, SubmissionMetadata } from "../../core/types";
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
 import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
+import { OdmImportWizard } from "./OdmImportWizard";
 
 interface RegistryProps {
   onInit: () => Promise<void>;
@@ -81,6 +82,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
 }) => {
   const styles = useStyles();
   const [showIngestionWizard, setShowIngestionWizard] = React.useState(false);
+  const [showOdmWizard, setShowOdmWizard] = React.useState(false);
   const baselineFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleBaselineFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +94,10 @@ export const RegistryView: React.FC<RegistryProps> = ({
 
   if (showIngestionWizard) {
     return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} />;
+  }
+
+  if (showOdmWizard) {
+    return <OdmImportWizard onClose={() => setShowOdmWizard(false)} />;
   }
 
   return (
@@ -151,6 +157,15 @@ export const RegistryView: React.FC<RegistryProps> = ({
             icon={<span>📥</span>}
           >
             Import Legacy CRF…
+          </Button>
+          <Button
+            appearance="outline"
+            className={styles.fullWidthButton}
+            onClick={() => setShowOdmWizard(true)}
+            disabled={isProcessing}
+            icon={<span>🔄</span>}
+          >
+            Import ODM XML…
           </Button>
         </div>
       </Card>
