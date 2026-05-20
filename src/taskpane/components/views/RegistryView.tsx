@@ -2,6 +2,7 @@ import * as React from "react";
 import { Body1, Button, Card, Spinner, makeStyles, tokens } from "@fluentui/react-components";
 import { SubmissionMetadata } from "../../core/types";
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
+import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
 
 interface RegistryProps {
   onInit: () => Promise<void>;
@@ -64,6 +65,12 @@ export const RegistryView: React.FC<RegistryProps> = ({
   isProcessing,
 }) => {
   const styles = useStyles();
+  const [showIngestionWizard, setShowIngestionWizard] = React.useState(false);
+
+  if (showIngestionWizard) {
+    return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} />;
+  }
+
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -94,6 +101,15 @@ export const RegistryView: React.FC<RegistryProps> = ({
             icon={isProcessing ? <Spinner size="tiny" /> : <span>🔄</span>}
           >
             Sync Form Sheets
+          </Button>
+          <Button
+            appearance="outline"
+            className={styles.fullWidthButton}
+            onClick={() => setShowIngestionWizard(true)}
+            disabled={isProcessing}
+            icon={<span>📥</span>}
+          >
+            Import Legacy CRF…
           </Button>
         </div>
       </Card>
