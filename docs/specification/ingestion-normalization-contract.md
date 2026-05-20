@@ -39,6 +39,18 @@ Service adapters are responsible for raw data extraction. They isolate raw netwo
 * **Service Module:** Planned under reverse-parsing tasks.
 * **Extraction bounds:** Extracts schema structures from non-scaffolded or legacy clinical excel sheets, converting them into loose metadata trees.
 
+### 3. ODM XML Reverse Parser (v1 supported subset)
+* **Service Module:** `src/taskpane/core/services/odm-import-service.ts`
+* **Source contract:** CDISC ODM XML metadata files.
+* **Normalization target:** `StudyDesign` metadata with workbook projections for `_Study`, `_Forms`, and `_Codelists`.
+* **Supported ODM subset in v1:**
+  * `_Study` ← `Study/@OID`, `GlobalVariables/StudyName`, `GlobalVariables/ProtocolName`, first `MetaDataVersion`, and first detected `xml:lang`.
+  * `_Forms` ← `FormDef/@OID`, `FormDef/@Name`, `FormDef/@Repeating`, with ordering heuristically aligned from `FormRef/@OrderNumber` when present.
+  * `_Codelists` ← `CodeList/@OID`, `CodeList/@Name`, `CodeListItem/@CodedValue`, `EnumeratedItem/@CodedValue`, and `Decode/TranslatedText`.
+* **Visible non-destructive behavior:** workbook write-back must be gated behind an import summary, and only the target system sheets are rewritten.
+* **Unsupported constructs in v1:** `StudyEventDef`, `ItemGroupDef`, `ItemDef`, `MethodDef`, and `ConditionDef` are surfaced as warnings before write-back rather than silently imported.
+* **Error model:** malformed XML is reported as a parse error; missing required ODM identifiers or ambiguous source mappings are reported as semantic import diagnostics.
+
 ---
 
 ## ⚙️ Ingestion Normalizer Rules
