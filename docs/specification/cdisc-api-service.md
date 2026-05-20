@@ -10,7 +10,8 @@ The service currently calls these CDISC Library API endpoints:
 
 1. `GET /mdr/ct/packages`
 2. `GET /mdr/ct/packages/{packageOid}/codelists`
-3. `GET /mdr/ct/codelists/{codelistOid}/terms`
+3. `GET /mdr/ct/packages/{packageOid}/codelists/{codelistOid}/terms` (OpenAPI path)
+4. `GET /mdr/ct/codelists/{codelistOid}/terms` (legacy fallback path for compatibility)
 
 ## Authentication
 
@@ -31,7 +32,7 @@ If credentials are missing, callers receive a typed `auth` error with actionable
 
 - `listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>`
 - `listPackageCodelists(packageOid: string): Promise<CdiscApiResult<CdiscCtCodelist[]>>`
-- `listCodelistTerms(codelistOid: string): Promise<CdiscApiResult<CdiscCtTerm[]>>`
+- `listCodelistTerms(codelistOid: string, packageOid?: string): Promise<CdiscApiResult<CdiscCtTerm[]>>`
 
 ### Success shape
 
@@ -93,6 +94,8 @@ Committed fixtures:
 - `test/fixtures/cdisc-library/ct-packages.response.json`
 - `test/fixtures/cdisc-library/ct-package-codelists.response.json`
 - `test/fixtures/cdisc-library/ct-codelist-terms.response.json`
+
+Fixture payloads track OpenAPI shapes from `docs/cdisc-library-api.yaml`, including `_links.packages`, `_links.codelists`, and `_links.terms`.
 
 Unit tests in `src/taskpane/core/services/__tests__/cdisc-api-service.test.ts` cover:
 

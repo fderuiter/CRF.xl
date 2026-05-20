@@ -105,7 +105,7 @@ export type CdiscApiError =
 export interface CdiscApiService {
   listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>;
   listPackageCodelists(packageOid: string): Promise<CdiscApiResult<CdiscCtCodelist[]>>;
-  listCodelistTerms(codelistOid: string): Promise<CdiscApiResult<CdiscCtTerm[]>>;
+  listCodelistTerms(codelistOid: string, packageOid?: string): Promise<CdiscApiResult<CdiscCtTerm[]>>;
 }
 
 function asFailure<T>(result: CdiscApiResult<T>): CdiscApiFailure {
@@ -174,63 +174,110 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function normalizeArrayPayload(value: unknown): Record<string, unknown>[] | null {
-  if (Array.isArray(value)) {
-    const records = value.filter(isRecord);
-    return records.length === value.length ? records : null;
+function asRecordArray(value: unknown): Record<string, unknown>[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const records = value.filter(isRecord);
+  return records.length === value.length ? records : null;
+}
+
+function normalizeArrayPayload(
+  value: unknown,
+  listKeys: string[] = []
+): Record<string, unknown>[] | null {
+  const directArray = asRecordArray(value);
+  if (directArray) {
+    return directArray;
   }
 
-  if (isRecord(value)) {
-    const data = value.data;
-    if (!Array.isArray(data)) {
-      return null;
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const dataArray = asRecordArray(value.data);
+  if (dataArray) {
+    return dataArray;
+  }
+
+  for (const key of listKeys) {
+    const directList = asRecordArray(value[key]);
+    if (directList) {
+      return directList;
     }
-    const records = data.filter(isRecord);
-    return records.length === data.length ? records : null;
+  }
+
+  const links = isRecord(value._links) ? value._links : null;
+  if (!links) {
+    return null;
+  }
+
+  for (const key of listKeys) {
+    const linkedList = asRecordArray(links[key]);
+    if (linkedList) {
+      return linkedList;
+    }
   }
 
   return null;
 }
 
+function extractOidFromHref(href: unknown): string {
+  if (typeof href !== "string") {
+    return "";
+  }
+
+  const segments = href.split("/").filter((segment) => segment.length > 0);
+  if (segments.length === 0) {
+    return "";
+  }
+
+  return decodeURIComponent(segments[segments.length - 1]);
+}
+
+function normalizeOid(value: unknown, fallbackHref: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return extractOidFromHref(fallbackHref);
+}
+
+function normalizeArrayValue(primary: unknown, fallback: unknown): string | undefined {
+  if (typeof primary === "string") {
+    return primary;
+  }
+  return typeof fallback === "string" ? fallback : undefined;
+}
+
 function toPackage(value: Record<string, unknown>): CdiscCtPackage {
-  const packageOid =
-    typeof value.packageOid === "string"
-      ? value.packageOid
-      : typeof value.oid === "string"
-        ? value.oid
-        : "";
+  const packageOid = normalizeOid(value.packageOid ?? value.oid ?? value.name, value.href);
 
   return {
     ...value,
     packageOid,
+    title: normalizeArrayValue(value.title, value.label),
   };
 }
 
 function toCodelist(value: Record<string, unknown>): CdiscCtCodelist {
-  const codelistOid =
-    typeof value.codelistOid === "string"
-      ? value.codelistOid
-      : typeof value.oid === "string"
-        ? value.oid
-        : "";
+  const codelistOid = normalizeOid(value.codelistOid ?? value.oid ?? value.conceptId, value.href);
 
   return {
     ...value,
     codelistOid,
+    submissionValue: normalizeArrayValue(value.submissionValue, value.title),
   };
 }
 
 function toTerm(value: Record<string, unknown>): CdiscCtTerm {
-  const termOid =
-    typeof value.termOid === "string"
-      ? value.termOid
-      : typeof value.oid === "string"
-        ? value.oid
-        : "";
+  const termOid = normalizeOid(value.termOid ?? value.oid ?? value.conceptId, value.href);
 
   return {
     ...value,
     termOid,
+    codedValue: normalizeArrayValue(value.codedValue, value.submissionValue),
+    decode: normalizeArrayValue(value.decode, value.title),
   };
 }
 
@@ -402,7 +449,8 @@ export function createCdiscApiService(
   }
 
   async function requestJsonArray(
-    endpoint: string
+    endpoint: string,
+    listKeys: string[] = []
   ): Promise<CdiscApiResult<Record<string, unknown>[]>> {
     const tokenResult = await ensureToken();
     if (!tokenResult.ok) {
@@ -513,7 +561,7 @@ export function createCdiscApiService(
           };
         }
 
-        const normalized = normalizeArrayPayload(payload);
+        const normalized = normalizeArrayPayload(payload, listKeys);
         if (!normalized) {
           return {
             ok: false,
@@ -577,7 +625,7 @@ export function createCdiscApiService(
   }
 
   async function listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>> {
-    const result = await requestJsonArray("/mdr/ct/packages");
+    const result = await requestJsonArray("/mdr/ct/packages", ["packages"]);
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {
@@ -603,9 +651,9 @@ export function createCdiscApiService(
       };
     }
 
-    const result = await requestJsonArray(
-      `/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`
-    );
+    const result = await requestJsonArray(`/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`, [
+      "codelists",
+    ]);
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {
@@ -616,7 +664,10 @@ export function createCdiscApiService(
     };
   }
 
-  async function listCodelistTerms(codelistOid: string): Promise<CdiscApiResult<CdiscCtTerm[]>> {
+  async function listCodelistTerms(
+    codelistOid: string,
+    packageOid?: string
+  ): Promise<CdiscApiResult<CdiscCtTerm[]>> {
     if (!codelistOid.trim()) {
       return {
         ok: false,
@@ -629,9 +680,23 @@ export function createCdiscApiService(
       };
     }
 
-    const result = await requestJsonArray(
-      `/mdr/ct/codelists/${encodeURIComponent(codelistOid)}/terms`
-    );
+    if (packageOid !== undefined && !packageOid.trim()) {
+      return {
+        ok: false,
+        error: {
+          type: "configuration",
+          message: "packageOid cannot be empty when provided for codelist terms.",
+          endpoint: "/mdr/ct/packages/{packageOid}/codelists/{codelistOid}/terms",
+          retriable: false,
+        },
+      };
+    }
+
+    const endpoint = packageOid?.trim()
+      ? `/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists/${encodeURIComponent(codelistOid)}/terms`
+      : `/mdr/ct/codelists/${encodeURIComponent(codelistOid)}/terms`;
+
+    const result = await requestJsonArray(endpoint, ["terms"]);
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {

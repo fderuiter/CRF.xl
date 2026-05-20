@@ -4,6 +4,6 @@ Mock payloads for the CDISC Library controlled terminology endpoints used by the
 
 - `ct-packages.response.json` → `/mdr/ct/packages`
 - `ct-package-codelists.response.json` → `/mdr/ct/packages/{packageOid}/codelists`
-- `ct-codelist-terms.response.json` → `/mdr/ct/codelists/{codelistOid}/terms`
+- `ct-codelist-terms.response.json` → `/mdr/ct/packages/{packageOid}/codelists/{codelistOid}/terms`
 
-These fixtures are designed for service-level and mapping-layer tests (including issue #93 follow-up work).
+Fixtures intentionally mirror the OpenAPI response structures from `docs/cdisc-library-api.yaml` (`_links.packages`, `_links.codelists`, `_links.terms`) so service and mapping-layer tests exercise realistic payloads.

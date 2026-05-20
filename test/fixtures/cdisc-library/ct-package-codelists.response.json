@@ -1,9 +1,18 @@
 {
-  "data": [
-    {
-      "codelistOid": "C66741",
-      "href": "/mdr/ct/codelists/C66741",
-      "submissionValue": "SEX"
-    }
-  ]
+  "name": "NCI_CDISC_Terminology_2026-03-27",
+  "label": "CDISC Terminology 2026-03-27",
+  "_links": {
+    "self": {
+      "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27",
+      "title": "CDISC Terminology 2026-03-27",
+      "type": "application/json"
+    },
+    "codelists": [
+      {
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C66741",
+        "title": "SEX",
+        "type": "application/json"
+      }
+    ]
+  }
 }
