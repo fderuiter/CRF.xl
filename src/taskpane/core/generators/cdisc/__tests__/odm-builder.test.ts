@@ -343,7 +343,7 @@ describe("CDISC ODM XML Builder", () => {
   describe("VLM & Methods Serialization Integration", () => {
     it("should serialize study.methods to MethodDef elements", () => {
       mockStudy.methods = {
-        "M_BMI": {
+        M_BMI: {
           methodOid: "M_BMI",
           name: "BMI Derivation",
           type: "Computation",
@@ -354,9 +354,11 @@ describe("CDISC ODM XML Builder", () => {
 
       const xml = generateOdmXml(mockStudy);
       expect(xml).toContain('<MethodDef OID="M_BMI" Name="BMI Derivation" Type="Computation">');
-      expect(xml).toContain('<Description>');
+      expect(xml).toContain("<Description>");
       expect(xml).toContain('<TranslatedText xml:lang="en-US">Calculates BMI</TranslatedText>');
-      expect(xml).toContain('<FormalExpression Context="CRF.xl">[WEIGHT] / ([HEIGHT]/100)^2</FormalExpression>');
+      expect(xml).toContain(
+        '<FormalExpression Context="CRF.xl">[WEIGHT] / ([HEIGHT]/100)^2</FormalExpression>'
+      );
     });
 
     it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", () => {
@@ -366,11 +368,11 @@ describe("CDISC ODM XML Builder", () => {
       item.methodOid = "M_WT_COLLECT";
 
       mockStudy.methods = {
-        "M_WT_COLLECT": {
+        M_WT_COLLECT: {
           methodOid: "M_WT_COLLECT",
           name: "Collect Weight",
           type: "Interview",
-        }
+        },
       };
 
       const xml = generateOdmXml(mockStudy);
@@ -397,11 +399,11 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       mockStudy.methods = {
-        "M_EXPLICIT_BMI": {
+        M_EXPLICIT_BMI: {
           methodOid: "M_EXPLICIT_BMI",
           name: "Explicit BMI",
           type: "Computation",
-        }
+        },
       };
 
       const xml = generateOdmXml(mockStudy);

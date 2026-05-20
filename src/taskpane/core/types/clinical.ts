@@ -6,7 +6,17 @@
  */
 
 import { TranslatedText } from "./common";
-import { AdamCore, AdamDatasetClass, CodingTermType, DatasetPurpose, DataType, LabType, SdtmCore, SdtmDatasetClass, VariableOrigin } from "./enums";
+import {
+  AdamCore,
+  AdamDatasetClass,
+  CodingTermType,
+  DatasetPurpose,
+  DataType,
+  LabType,
+  SdtmCore,
+  SdtmDatasetClass,
+  VariableOrigin,
+} from "./enums";
 
 export interface SensorConfig {
   deviceType: string;

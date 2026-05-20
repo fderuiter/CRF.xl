@@ -409,23 +409,33 @@ function mapRowToItem(
     if (ch === "codelist id") item.codelistId = String(val).trim().toUpperCase();
     if (ch === "origin") item.origin = String(val).trim();
     if (ch === "methodoid" || ch === "method oid") item.methodOid = String(val).trim();
-    
+
     // SDTM Mapping
     if (ch === "sdtmdomain" || ch === "sdtm domain") item.sdtmMapping.domain = String(val).trim();
-    if (ch === "sdtmvariable" || ch === "sdtm variable") item.sdtmMapping.variable = String(val).trim();
-    if (ch === "sdtmncivariablecode" || ch === "sdtm nci variable code") item.sdtmMapping.nciVariableCode = String(val).trim();
-    if (ch === "sdtmsasfieldname" || ch === "sdtm sas field name") item.sdtmMapping.sasFieldName = String(val).trim();
-    if (ch === "sdtmsaslabel" || ch === "sdtm sas label") item.sdtmMapping.sasLabel = String(val).trim();
-    if (ch === "sdtmsasdatasetname" || ch === "sdtm sas dataset name") item.sdtmMapping.sasDatasetName = String(val).trim();
+    if (ch === "sdtmvariable" || ch === "sdtm variable")
+      item.sdtmMapping.variable = String(val).trim();
+    if (ch === "sdtmncivariablecode" || ch === "sdtm nci variable code")
+      item.sdtmMapping.nciVariableCode = String(val).trim();
+    if (ch === "sdtmsasfieldname" || ch === "sdtm sas field name")
+      item.sdtmMapping.sasFieldName = String(val).trim();
+    if (ch === "sdtmsaslabel" || ch === "sdtm sas label")
+      item.sdtmMapping.sasLabel = String(val).trim();
+    if (ch === "sdtmsasdatasetname" || ch === "sdtm sas dataset name")
+      item.sdtmMapping.sasDatasetName = String(val).trim();
     if (ch === "sdtmcore" || ch === "sdtm core") item.sdtmMapping.core = String(val).trim() as any;
     if (ch === "sdtmrole" || ch === "sdtm role") item.sdtmMapping.role = String(val).trim();
 
     // ADaM Mapping
-    if (ch === "adamdataset" || ch === "adam dataset") item.adamMapping.dataset = String(val).trim();
-    if (ch === "adamvariable" || ch === "adam variable") item.adamMapping.variable = String(val).trim();
-    if (ch === "adamncivariablecode" || ch === "adam nci variable code") item.adamMapping.nciVariableCode = String(val).trim();
-    if (ch === "adamsasfieldname" || ch === "adam sas field name") item.adamMapping.sasFieldName = String(val).trim();
-    if (ch === "adamsaslabel" || ch === "adam sas label") item.adamMapping.sasLabel = String(val).trim();
+    if (ch === "adamdataset" || ch === "adam dataset")
+      item.adamMapping.dataset = String(val).trim();
+    if (ch === "adamvariable" || ch === "adam variable")
+      item.adamMapping.variable = String(val).trim();
+    if (ch === "adamncivariablecode" || ch === "adam nci variable code")
+      item.adamMapping.nciVariableCode = String(val).trim();
+    if (ch === "adamsasfieldname" || ch === "adam sas field name")
+      item.adamMapping.sasFieldName = String(val).trim();
+    if (ch === "adamsaslabel" || ch === "adam sas label")
+      item.adamMapping.sasLabel = String(val).trim();
     if (ch === "adamcore" || ch === "adam core") item.adamMapping.core = String(val).trim();
     if (ch === "adamrole" || ch === "adam role") item.adamMapping.role = String(val).trim();
 

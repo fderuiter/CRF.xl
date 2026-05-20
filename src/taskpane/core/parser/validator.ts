@@ -219,7 +219,9 @@ export function validateStudyDesign(
 
         if (item.methodOid && item.methodOid.trim()) {
           const cleanMethodOid = item.methodOid.trim().toLowerCase();
-          const methodsKeys = study.methods ? Object.keys(study.methods).map(k => k.toLowerCase()) : [];
+          const methodsKeys = study.methods
+            ? Object.keys(study.methods).map((k) => k.toLowerCase())
+            : [];
           if (!methodsKeys.includes(cleanMethodOid)) {
             issues.push({
               level: "Error",
@@ -904,4 +906,3 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
 
   return issues;
 }
-

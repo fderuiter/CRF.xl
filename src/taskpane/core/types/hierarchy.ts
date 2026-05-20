@@ -22,7 +22,16 @@ import {
   SystemTriggerType,
 } from "./enums";
 import { DerivationConfig, ItemValidation, EditCheck } from "./validation";
-import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist, MethodDefinition, AdamMapping, SubmissionMetadata } from "./clinical";
+import {
+  LabConfig,
+  SensorConfig,
+  MedicalCodingLink,
+  SdtmMapping,
+  Codelist,
+  MethodDefinition,
+  AdamMapping,
+  SubmissionMetadata,
+} from "./clinical";
 import { AssetConfig, VasConfig } from "./ui";
 import { RuleDefinition } from "./rules-ast";
 

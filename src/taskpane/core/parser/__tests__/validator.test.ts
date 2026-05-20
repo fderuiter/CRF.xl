@@ -1,6 +1,17 @@
 /* eslint-disable no-undef */
-import { validateStudyDesign, ValidationIssue, validateSubmissionMetadataForRelease } from "../validator";
-import { StudyDesign, DataType, EventType, SdtmDatasetClass, AdamDatasetClass, AdamCore } from "../../types";
+import {
+  validateStudyDesign,
+  ValidationIssue,
+  validateSubmissionMetadataForRelease,
+} from "../validator";
+import {
+  StudyDesign,
+  DataType,
+  EventType,
+  SdtmDatasetClass,
+  AdamDatasetClass,
+  AdamCore,
+} from "../../types";
 
 describe("Clinical Validator Engine", () => {
   let mockStudy: StudyDesign;
@@ -609,7 +620,9 @@ describe("Clinical Validator Engine", () => {
     it("should raise an Error for an invalid Origin value", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].origin = "InvalidOrigin" as any;
       const issues = validateStudyDesign(mockStudy);
-      const error = issues.find((i) => i.level === "Error" && i.message.includes("Invalid Origin value"));
+      const error = issues.find(
+        (i) => i.level === "Error" && i.message.includes("Invalid Origin value")
+      );
       expect(error).toBeDefined();
     });
 
@@ -624,13 +637,17 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "";
       const issues1 = validateStudyDesign(mockStudy);
-      const err1 = issues1.find((i) => i.level === "Error" && i.message.includes("Method OID is required"));
+      const err1 = issues1.find(
+        (i) => i.level === "Error" && i.message.includes("Method OID is required")
+      );
       expect(err1).toBeDefined();
 
       mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Assigned" as any;
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "  ";
       const issues2 = validateStudyDesign(mockStudy);
-      const err2 = issues2.find((i) => i.level === "Error" && i.message.includes("Method OID is required"));
+      const err2 = issues2.find(
+        (i) => i.level === "Error" && i.message.includes("Method OID is required")
+      );
       expect(err2).toBeDefined();
     });
 
@@ -639,7 +656,9 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "M_UNKNOWN";
       mockStudy.methods = {};
       const issues = validateStudyDesign(mockStudy);
-      const err = issues.find((i) => i.level === "Error" && i.message.includes("does not exist in _Methods"));
+      const err = issues.find(
+        (i) => i.level === "Error" && i.message.includes("does not exist in _Methods")
+      );
       expect(err).toBeDefined();
     });
 
@@ -647,11 +666,11 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "m_bmi";
       mockStudy.methods = {
-        "M_BMI": {
+        M_BMI: {
           methodOid: "M_BMI",
           name: "BMI Method",
           type: "Computation",
-        }
+        },
       };
       const issues = validateStudyDesign(mockStudy);
       const vlmErrors = issues.filter((i) => i.level === "Error" && i.location?.includes("Item 1"));
@@ -664,7 +683,11 @@ describe("Clinical Validator Engine", () => {
         variable: "",
       };
       const issues1 = validateStudyDesign(mockStudy);
-      const warn1 = issues1.find((i) => i.level === "Warning" && i.message.includes("SDTM Domain is specified but companion SDTM Variable is missing"));
+      const warn1 = issues1.find(
+        (i) =>
+          i.level === "Warning" &&
+          i.message.includes("SDTM Domain is specified but companion SDTM Variable is missing")
+      );
       expect(warn1).toBeDefined();
 
       mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
@@ -672,7 +695,11 @@ describe("Clinical Validator Engine", () => {
         variable: "SUBJID",
       };
       const issues2 = validateStudyDesign(mockStudy);
-      const warn2 = issues2.find((i) => i.level === "Warning" && i.message.includes("SDTM Variable is specified but companion SDTM Domain is missing"));
+      const warn2 = issues2.find(
+        (i) =>
+          i.level === "Warning" &&
+          i.message.includes("SDTM Variable is specified but companion SDTM Domain is missing")
+      );
       expect(warn2).toBeDefined();
     });
 
@@ -692,13 +719,23 @@ describe("Clinical Validator Engine", () => {
       // Re-init mock study
       mockStudy.submissionMetadata = {
         sdtmDatasets: [
-          { domain: "DM", label: "Demographics", class: SdtmDatasetClass.SPECIAL_PURPOSE, structure: "One per subject" }
+          {
+            domain: "DM",
+            label: "Demographics",
+            class: SdtmDatasetClass.SPECIAL_PURPOSE,
+            structure: "One per subject",
+          },
         ],
         adamDatasets: [
-          { dataset: "ADSL", label: "Subject-Level Analysis", class: AdamDatasetClass.ADAM_BASIC_DATA_STRUCTURE, structure: "One per subject" }
+          {
+            dataset: "ADSL",
+            label: "Subject-Level Analysis",
+            class: AdamDatasetClass.ADAM_BASIC_DATA_STRUCTURE,
+            structure: "One per subject",
+          },
         ],
         sdtmDerivations: [],
-        adamDerivations: []
+        adamDerivations: [],
       };
       mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = undefined;
       mockStudy.forms["F1"].itemGroups[0].items[0].adamMapping = undefined;
@@ -716,12 +753,12 @@ describe("Clinical Validator Engine", () => {
       };
       const issues = validateSubmissionMetadataForRelease(mockStudy);
       const errors = issues.filter((i) => i.level === "Error" && i.message.includes("SUBJID"));
-      
+
       expect(errors.length).toBe(4); // Core, Role, SAS Field Name, SAS Label
-      expect(errors.find(e => e.message.includes("Core requiredness"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("Role"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("SAS Field Name"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("SAS Label"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("Core requiredness"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("Role"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("SAS Field Name"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("SAS Label"))).toBeDefined();
     });
 
     it("should raise Errors when required release fields (core, role, sasFieldName, sasLabel) are missing on ADaM mapping", () => {
@@ -731,12 +768,12 @@ describe("Clinical Validator Engine", () => {
       };
       const issues = validateSubmissionMetadataForRelease(mockStudy);
       const errors = issues.filter((i) => i.level === "Error" && i.message.includes("TRTP"));
-      
+
       expect(errors.length).toBe(4); // Core, Role, SAS Field Name, SAS Label
-      expect(errors.find(e => e.message.includes("Core requiredness"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("Role"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("SAS Field Name"))).toBeDefined();
-      expect(errors.find(e => e.message.includes("SAS Label"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("Core requiredness"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("Role"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("SAS Field Name"))).toBeDefined();
+      expect(errors.find((e) => e.message.includes("SAS Label"))).toBeDefined();
     });
 
     it("should raise an Error when SDTM variable references an undefined domain in central dataset metadata", () => {
@@ -749,7 +786,9 @@ describe("Clinical Validator Engine", () => {
         sasLabel: "Verbatim Result",
       };
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined domain 'VS'"));
+      const error = issues.find(
+        (i) => i.level === "Error" && i.message.includes("references undefined domain 'VS'")
+      );
       expect(error).toBeDefined();
     });
 
@@ -763,7 +802,9 @@ describe("Clinical Validator Engine", () => {
         sasLabel: "Analysis Value",
       };
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined dataset 'ADVS'"));
+      const error = issues.find(
+        (i) => i.level === "Error" && i.message.includes("references undefined dataset 'ADVS'")
+      );
       expect(error).toBeDefined();
     });
 
@@ -772,7 +813,11 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "DER_UNKNOWN";
       mockStudy.methods = {};
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined Method/Derivation OID 'DER_UNKNOWN'"));
+      const error = issues.find(
+        (i) =>
+          i.level === "Error" &&
+          i.message.includes("references undefined Method/Derivation OID 'DER_UNKNOWN'")
+      );
       expect(error).toBeDefined();
     });
 
@@ -781,10 +826,14 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "DER_TEST";
       mockStudy.methods = {};
       mockStudy.submissionMetadata!.sdtmDerivations = [
-        { derivationId: "DER_TEST", label: "Test Derivation", description: "This is a test derivation" }
+        {
+          derivationId: "DER_TEST",
+          label: "Test Derivation",
+          description: "This is a test derivation",
+        },
       ];
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = issues.find(i => i.level === "Error" && i.message.includes("DER_TEST"));
+      const error = issues.find((i) => i.level === "Error" && i.message.includes("DER_TEST"));
       expect(error).toBeUndefined();
     });
   });

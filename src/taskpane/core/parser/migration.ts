@@ -26,8 +26,10 @@ export function migrateStudyDesign(study: any): StudyDesign {
     study.submissionMetadata.adamDatasets = study.submissionMetadata.adamDatasets || [];
     study.submissionMetadata.sdtmDerivations = study.submissionMetadata.sdtmDerivations || [];
     study.submissionMetadata.adamDerivations = study.submissionMetadata.adamDerivations || [];
-    study.submissionMetadata.sdtmVariableMetadata = study.submissionMetadata.sdtmVariableMetadata || [];
-    study.submissionMetadata.adamVariableMetadata = study.submissionMetadata.adamVariableMetadata || [];
+    study.submissionMetadata.sdtmVariableMetadata =
+      study.submissionMetadata.sdtmVariableMetadata || [];
+    study.submissionMetadata.adamVariableMetadata =
+      study.submissionMetadata.adamVariableMetadata || [];
     study.submissionMetadata.comments = study.submissionMetadata.comments || [];
     study.submissionMetadata.standards = study.submissionMetadata.standards || [];
   }
