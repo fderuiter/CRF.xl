@@ -1,4 +1,6 @@
 import { StudyDesign } from "../types/index";
+import { validateRules } from "./rules-validator";
+
 
 export interface ValidationIssue {
   level: "Error" | "Warning";
@@ -173,6 +175,21 @@ export function validateStudyDesign(
       });
     });
   });
+
+  // 3. Validate Rules (_Rules sheet)
+  if (study.rules && study.rules.length > 0) {
+    const rulesResult = validateRules(study.rules, study);
+    rulesResult.errors.forEach((err) => {
+      issues.push({
+        level: err.level,
+        message: err.actionableExplanation || err.message,
+        location: `Rule ${err.ruleId}`,
+        rowIndex: err.rowIndex,
+        sheetName: "_Rules",
+      });
+    });
+  }
+
 
   // Contextual Filtering: If a filter is provided, only return issues for that sheet.
   // Allow system sheets to see everything, but CRF tabs only see their own errors.
