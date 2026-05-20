@@ -22,7 +22,7 @@ import {
   SystemTriggerType,
 } from "./enums";
 import { DerivationConfig, ItemValidation, EditCheck } from "./validation";
-import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist, MethodDefinition } from "./clinical";
+import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist, MethodDefinition, AdamMapping, SubmissionMetadata } from "./clinical";
 import { AssetConfig, VasConfig } from "./ui";
 import { RuleDefinition } from "./rules-ast";
 
@@ -90,6 +90,7 @@ export interface CrfItem {
 
   validation: ItemValidation;
   sdtmMapping?: SdtmMapping;
+  adamMapping?: AdamMapping;
   aliases?: SystemAlias[];
   defaultValue?: string;
   editChecks?: EditCheck[];
@@ -215,5 +216,6 @@ export interface StudyDesign {
   codelists: Record<string, Codelist>;
   rules?: RuleDefinition[];
   methods?: Record<string, MethodDefinition>;
+  submissionMetadata?: SubmissionMetadata;
   crossFormDependencies?: any[];
 }

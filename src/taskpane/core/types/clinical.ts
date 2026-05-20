@@ -65,3 +65,50 @@ export interface MethodDefinition {
   description?: string;
   expression?: string;
 }
+
+export interface AdamMapping {
+  dataset: string;
+  variable: string;
+  nciVariableCode?: string;
+  sasFieldName?: string;
+  sasLabel?: string;
+  core?: string;
+  role?: string;
+}
+
+export interface SdtmDatasetMetadata {
+  domain: string;
+  label: string;
+  class: string;
+  structure: string;
+  keyVariables?: string[];
+  repeating?: boolean;
+  description?: string;
+}
+
+export interface AdamDatasetMetadata {
+  dataset: string;
+  label: string;
+  class: string;
+  structure: string;
+  keyVariables?: string[];
+  repeating?: boolean;
+  description?: string;
+}
+
+export interface SubmissionDerivation {
+  derivationId: string;
+  label: string;
+  description: string;
+  expression?: string;
+  inputVariables?: string[];
+  methodOid?: string;
+}
+
+export interface SubmissionMetadata {
+  sdtmDatasets?: SdtmDatasetMetadata[];
+  adamDatasets?: AdamDatasetMetadata[];
+  sdtmDerivations?: SubmissionDerivation[];
+  adamDerivations?: SubmissionDerivation[];
+}
+

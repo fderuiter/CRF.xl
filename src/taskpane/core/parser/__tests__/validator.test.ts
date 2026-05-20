@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { validateStudyDesign } from "../validator";
+import { validateStudyDesign, ValidationIssue, validateSubmissionMetadataForRelease } from "../validator";
 import { StudyDesign, DataType, EventType } from "../../types";
 
 describe("Clinical Validator Engine", () => {
@@ -684,6 +684,108 @@ describe("Clinical Validator Engine", () => {
       const issues = validateStudyDesign(mockStudy);
       const warnings = issues.filter((i) => i.level === "Warning" && i.message.includes("SDTM"));
       expect(warnings.length).toBe(0);
+    });
+  });
+
+  describe("Submission Metadata Export/Release Validator Gate", () => {
+    beforeEach(() => {
+      // Re-init mock study
+      mockStudy.submissionMetadata = {
+        sdtmDatasets: [
+          { domain: "DM", label: "Demographics", class: "Special Purpose", structure: "One per subject" }
+        ],
+        adamDatasets: [
+          { dataset: "ADSL", label: "Subject-Level Analysis", class: "ADSL", structure: "One per subject" }
+        ],
+        sdtmDerivations: [],
+        adamDerivations: []
+      };
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = undefined;
+      mockStudy.forms["F1"].itemGroups[0].items[0].adamMapping = undefined;
+    });
+
+    it("should pass cleanly when no submission metadata mapping exists on items", () => {
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      expect(issues.length).toBe(0);
+    });
+
+    it("should raise Errors when required release fields (core, role, sasFieldName, sasLabel) are missing on SDTM mapping", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
+        domain: "DM",
+        variable: "SUBJID",
+      };
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const errors = issues.filter((i) => i.level === "Error" && i.message.includes("SUBJID"));
+      
+      expect(errors.length).toBe(4); // Core, Role, SAS Field Name, SAS Label
+      expect(errors.find(e => e.message.includes("Core requiredness"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("Role"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("SAS Field Name"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("SAS Label"))).toBeDefined();
+    });
+
+    it("should raise Errors when required release fields (core, role, sasFieldName, sasLabel) are missing on ADaM mapping", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].adamMapping = {
+        dataset: "ADSL",
+        variable: "TRTP",
+      };
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const errors = issues.filter((i) => i.level === "Error" && i.message.includes("TRTP"));
+      
+      expect(errors.length).toBe(4); // Core, Role, SAS Field Name, SAS Label
+      expect(errors.find(e => e.message.includes("Core requiredness"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("Role"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("SAS Field Name"))).toBeDefined();
+      expect(errors.find(e => e.message.includes("SAS Label"))).toBeDefined();
+    });
+
+    it("should raise an Error when SDTM variable references an undefined domain in central dataset metadata", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].sdtmMapping = {
+        domain: "VS", // not defined in sdtmDatasets
+        variable: "VSORRES",
+        core: "Required" as any,
+        role: "Topic",
+        sasFieldName: "VSORRES",
+        sasLabel: "Verbatim Result",
+      };
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined domain 'VS'"));
+      expect(error).toBeDefined();
+    });
+
+    it("should raise an Error when ADaM variable references an undefined dataset in central dataset metadata", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].adamMapping = {
+        dataset: "ADVS", // not defined in adamDatasets
+        variable: "AVAL",
+        core: "Required",
+        role: "Analysis Parameter",
+        sasFieldName: "AVAL",
+        sasLabel: "Analysis Value",
+      };
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined dataset 'ADVS'"));
+      expect(error).toBeDefined();
+    });
+
+    it("should raise an Error when Derived variable references an undefined method/derivation OID", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "DER_UNKNOWN";
+      mockStudy.methods = {};
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const error = issues.find(i => i.level === "Error" && i.message.includes("references undefined Method/Derivation OID 'DER_UNKNOWN'"));
+      expect(error).toBeDefined();
+    });
+
+    it("should pass when Derived variable references a valid central SDTM or ADaM derivation ID", () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "DER_TEST";
+      mockStudy.methods = {};
+      mockStudy.submissionMetadata!.sdtmDerivations = [
+        { derivationId: "DER_TEST", label: "Test Derivation", description: "This is a test derivation" }
+      ];
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const error = issues.find(i => i.level === "Error" && i.message.includes("DER_TEST"));
+      expect(error).toBeUndefined();
     });
   });
 });
