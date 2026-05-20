@@ -214,6 +214,22 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
+### `ct-import-service.ts`
+
+**Purpose:** Controlled terminology import service. Ingests mapped CDISC terminology payloads, converts them into workbook-ready codelist updates, emits import diagnostics and summary information using the shared import contracts, and supports gated write-back so terminology changes can be reviewed before commit.
+
+**Public interface:**
+
+- `importControlledTerminology(...): CtImportPackage`
+- `projectCtImportToWorkbook(...): WorkbookProjection`
+- `applyCtImportToWorkbook(workbook: ExcelJS.Workbook, importPackage: CtImportPackage): void`
+
+**Upstream:** `services/cdisc-ct-mapping-service.ts`, `services/import-contracts.ts`, `core/types/`
+**Downstream:** Controlled terminology import UI/workflows, Excel workbook write-back
+**Owning issues:** #76 (epic), controlled terminology import backlog
+
+---
+
 ### `odm-import-service.ts`
 
 **Purpose:** ODM reverse parser. Parses a CDISC ODM XML string into a normalized `OdmImportPackage` containing a `StudyDesign`, structured diagnostics (extending `ImportDiagnostic`), a dry-run `OdmWorkbookProjection` (satisfying `WorkbookProjection`), a summary, and an optional provenance record. Write-back to an ExcelJS workbook is gated behind the absence of blocking diagnostics.
