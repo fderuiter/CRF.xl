@@ -19,11 +19,14 @@ import {
   CrfForm,
   ItemGroup,
   CrfItem,
+  CrfFormElement,
+  CrfDisplayBlock,
   PaperLayoutFormat,
   DataType,
   PageLayout,
   GroupLayout,
   TranslatedText,
+  isCrfItem,
 } from "../../types/index";
 
 /**
@@ -31,6 +34,19 @@ import {
  * Orchestrates the conversion of clinical metadata into a handwriting-ready Word asset.
  */
 export async function generateDocx(study: StudyDesign): Promise<void> {
+  const doc = buildDocxDocument(study);
+
+  // Finalize as Blob and trigger browser download
+  const blob = await Packer.toBlob(doc);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${study.metadata.protocolId}_PaperCRF_v${study.metadata.version}.docx`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+export function buildDocxDocument(study: StudyDesign): Document {
   const sections = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
@@ -57,19 +73,14 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
     }
   }
 
-  const doc = new Document({
+  return new Document({
     title: `${study.metadata.studyName} - Paper CRF`,
     sections,
   });
+}
 
-  // Finalize as Blob and trigger browser download
-  const blob = await Packer.toBlob(doc);
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${study.metadata.protocolId}_PaperCRF_v${study.metadata.version}.docx`;
-  a.click();
-  window.URL.revokeObjectURL(url);
+export async function generateDocxBuffer(study: StudyDesign): Promise<Buffer> {
+  return Packer.toBuffer(buildDocxDocument(study));
 }
 
 /**
@@ -131,11 +142,14 @@ function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
 
     // Logic check: Repeating Groups (Logs) are rendered as Tables
     if (group.repeating || group.groupLayout === GroupLayout.MATRIX) {
-      children.push(renderRepeatingTable(group, study.metadata.defaultLanguage));
+      const table = renderRepeatingTable(group, study.metadata.defaultLanguage);
+      if (table) {
+        children.push(table);
+      }
     } else {
       // Standard vertical layout
       group.items.forEach((item) => {
-        children.push(...renderPhysicalItem(item, study));
+        children.push(...renderFormElement(item as CrfItem | CrfDisplayBlock, study));
       });
     }
   }
@@ -146,6 +160,14 @@ function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
 /**
  * Renders an Item with physical handwriting affordances (lines, boxes, or scales).
  */
+function renderFormElement(item: CrfFormElement, study: StudyDesign): any[] {
+  if (!isCrfItem(item)) {
+    return renderDisplayBlock(item);
+  }
+
+  return renderPhysicalItem(item, study);
+}
+
 function renderPhysicalItem(item: CrfItem, study: StudyDesign): any[] {
   const lang = study.metadata.defaultLanguage;
   const labelText = getTranslation(item.label, lang);
@@ -182,6 +204,35 @@ function renderPhysicalItem(item: CrfItem, study: StudyDesign): any[] {
   }
 
   return children;
+}
+
+function renderDisplayBlock(block: CrfDisplayBlock): any[] {
+  switch (block.displayType) {
+    case "heading":
+      return [
+        new Paragraph({
+          children: [new TextRun({ text: block.content, bold: true, size: 26 })],
+          spacing: { before: 250, after: 100 },
+        }),
+      ];
+    case "instruction":
+      return [
+        new Paragraph({
+          children: [
+            new TextRun({ text: block.content, italics: true, size: 18, color: "555555" }),
+          ],
+          spacing: { before: 100, after: 150 },
+        }),
+      ];
+    case "separator":
+      return [
+        new Paragraph({
+          text: block.content || "",
+          spacing: { before: 150, after: 150 },
+          border: { bottom: { color: "808080", space: 1, style: BorderStyle.SINGLE, size: 6 } },
+        }),
+      ];
+  }
 }
 
 /**
@@ -254,13 +305,18 @@ function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
 /**
  * Renders a Repeating Table for Logs (AE, ConMed, etc).
  */
-function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table {
+function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | null {
+  const items = group.items.filter(isCrfItem);
+  if (items.length === 0) {
+    return null;
+  }
+
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       // Header Row
       new TableRow({
-        children: group.items.map(
+        children: items.map(
           (item) =>
             new TableCell({
               children: [
@@ -280,7 +336,7 @@ function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table {
         () =>
           new TableRow({
             height: { value: 600, rule: "atLeast" },
-            children: group.items.map(() => new TableCell({ children: [] })),
+            children: items.map(() => new TableCell({ children: [] })),
           })
       ),
     ],

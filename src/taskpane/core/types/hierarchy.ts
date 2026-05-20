@@ -22,7 +22,16 @@ import {
   SystemTriggerType,
 } from "./enums";
 import { DerivationConfig, ItemValidation, EditCheck } from "./validation";
-import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist, MethodDefinition, AdamMapping, SubmissionMetadata } from "./clinical";
+import {
+  LabConfig,
+  SensorConfig,
+  MedicalCodingLink,
+  SdtmMapping,
+  Codelist,
+  MethodDefinition,
+  AdamMapping,
+  SubmissionMetadata,
+} from "./clinical";
 import { AssetConfig, VasConfig } from "./ui";
 import { RuleDefinition } from "./rules-ast";
 
@@ -39,6 +48,7 @@ export interface DataPipeSource {
 }
 
 export interface CrfItem {
+  nodeType?: "item";
   formOid: string;
   groupOid: string;
   itemOid: string;
@@ -116,6 +126,28 @@ export interface CrfItem {
   customProperties?: Record<string, any>;
 }
 
+export interface CrfDisplayBlock {
+  nodeType: "display";
+  displayType: "heading" | "instruction" | "separator";
+  content: string;
+  _sourceRowIndex: number;
+}
+
+export interface CrfDisplayBlockElement
+  extends CrfDisplayBlock, Partial<Omit<CrfItem, "nodeType">> {}
+
+export type CrfFormElement = CrfItem | CrfDisplayBlockElement;
+
+export function isCrfDisplayBlock(
+  element: CrfFormElement | Partial<CrfFormElement>
+): element is CrfDisplayBlockElement {
+  return element.nodeType === "display";
+}
+
+export function isCrfItem(element: CrfFormElement | Partial<CrfFormElement>): element is CrfItem {
+  return !isCrfDisplayBlock(element);
+}
+
 export interface ItemGroup {
   groupOid: string;
   name: string;
@@ -131,7 +163,7 @@ export interface ItemGroup {
   showIf?: string;
   orderNumber: number;
   aliases?: SystemAlias[];
-  items: CrfItem[];
+  items: CrfFormElement[];
 
   customProperties?: Record<string, any>;
 }

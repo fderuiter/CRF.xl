@@ -1,4 +1,4 @@
-import { StudyDesign } from "../../core/types";
+import { StudyDesign, isCrfItem } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";
 
@@ -51,7 +51,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
           if (!form) return null;
 
           const items = form.itemGroups.flatMap((group) =>
-            group.items.map((item) => {
+            group.items.filter(isCrfItem).map((item) => {
               const itemOid = item.itemOid || item.name || "";
               const itemLabel = item.label?.["en-US"] || item.name || item.itemOid || "";
               const dataType = item.dataType || "Unspecified";

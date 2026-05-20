@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { CRF_VARIABLE_TYPE_OPTIONS } from "../form-element-utils";
 import { getSheetProtectionConfigs } from "../template-generator";
 
 describe("Sheet protection configuration", () => {
@@ -20,5 +21,11 @@ describe("Sheet protection configuration", () => {
     expect(scheduleConfig?.protectionArea).toEqual("A1:XFD1000");
     expect(scheduleConfig?.lockedRanges).toEqual(["A1:XFD1", "A2:A1000"]);
     expect(scheduleConfig?.editableRanges).toEqual(["B2:XFD1000"]);
+  });
+
+  it("includes display-only form blocks in the Variable Type dropdown list", () => {
+    expect(CRF_VARIABLE_TYPE_OPTIONS).toEqual(
+      expect.arrayContaining(["Heading", "Instruction", "Separator"])
+    );
   });
 });

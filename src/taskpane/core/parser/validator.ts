@@ -1,4 +1,4 @@
-import { StudyDesign, RuleType, CrfItem, DataOrigin } from "../types/index";
+import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
 
@@ -53,6 +53,9 @@ export function validateStudyDesign(
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         const row = (item as any).rowIndex;
         const sheet = form.formOid;
 
@@ -219,7 +222,9 @@ export function validateStudyDesign(
 
         if (item.methodOid && item.methodOid.trim()) {
           const cleanMethodOid = item.methodOid.trim().toLowerCase();
-          const methodsKeys = study.methods ? Object.keys(study.methods).map(k => k.toLowerCase()) : [];
+          const methodsKeys = study.methods
+            ? Object.keys(study.methods).map((k) => k.toLowerCase())
+            : [];
           if (!methodsKeys.includes(cleanMethodOid)) {
             issues.push({
               level: "Error",
@@ -298,6 +303,9 @@ export function validateCrossFormDependencies(study: StudyDesign): {
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         if (item.itemOid) {
           variableMap.set(item.itemOid.toLowerCase(), {
             item,
@@ -569,6 +577,9 @@ export function validateCrossFormDependencies(study: StudyDesign): {
 
       // Analyze Item-level showIf
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         if (item.showIf) {
           analyzeExpression(
             form.formOid,
@@ -721,6 +732,9 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
     Object.values(study.forms).forEach((form) => {
       form.itemGroups.forEach((group) => {
         group.items.forEach((item) => {
+          if (!isCrfItem(item)) {
+            return;
+          }
           const row = (item as any).rowIndex;
           const sheet = form.formOid;
 
@@ -904,4 +918,3 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
 
   return issues;
 }
-
