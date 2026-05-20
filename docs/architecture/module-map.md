@@ -172,6 +172,22 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
+### `ct-import-service.ts`
+
+**Purpose:** Orchestrates the controlled terminology import pipeline. Reads existing `_Codelists` rows, classifies incoming `CrfCodelistsRow[]` into auto-insert / auto-overwrite / skip / conflict buckets, resolves conflicts with a caller-supplied `ConflictResolution` map, and performs a single batched Office.js write that is either fully committed or fully rolled back.
+
+**Public interface:**
+
+- `readExistingCodelistRows(): Promise<CrfCodelistsRow[]>`
+- `buildCtImportPlan(existingRows, incomingRows): CtImportPlan`
+- `executeCtImport(existingRows, plan, conflictResolutions, onProgress?): Promise<ImportSummary>`
+
+**Upstream:** Office.js Excel API, `services/cdisc-ct-mapping-service.ts`
+**Downstream:** `components/views/DictionarySidecar.tsx`
+**Owning issues:** #46
+
+---
+
 ### `dictionary-service.ts`
 
 **Purpose:** Codelist and dictionary write-back to Excel. Manages `_Codelists` sheet operations and codelist sync from sidecar selections.
