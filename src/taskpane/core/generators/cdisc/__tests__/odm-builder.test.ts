@@ -235,19 +235,19 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "RULE_A",
           ruleType: RuleType.VALIDATION,
-          expression: "RULE_B > 0",
+          expression: "RULE_B == true",
           _sourceRowIndex: 2,
         },
         {
           ruleId: "RULE_B",
           ruleType: RuleType.VALIDATION,
-          expression: "RULE_C > 0",
+          expression: "RULE_C == true",
           _sourceRowIndex: 3,
         },
         {
           ruleId: "RULE_C",
           ruleType: RuleType.VALIDATION,
-          expression: "100",
+          expression: "true",
           _sourceRowIndex: 4,
         },
       ];

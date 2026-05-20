@@ -9,14 +9,26 @@ import {
   ASTNode,
   RuleDefinition,
   RuleType,
-  StudyDesign
+  StudyDesign,
+  DataType
 } from "../types/index";
+import { validateExpression } from "./expression-validator";
 
 export interface RuleValidationError {
   level: "Error" | "Warning";
   ruleId: string;
   message: string;
-  type: "CYCLE" | "BROKEN_REFERENCE" | "PARSE_ERROR" | "DUPLICATE_RULE_ID" | "DUPLICATE_TARGET" | "UNRESOLVED_VARIABLE";
+  type:
+    | "CYCLE"
+    | "BROKEN_REFERENCE"
+    | "PARSE_ERROR"
+    | "DUPLICATE_RULE_ID"
+    | "DUPLICATE_TARGET"
+    | "UNRESOLVED_VARIABLE"
+    | "TYPE_ERROR"
+    | "UNSUPPORTED_FUNCTION"
+    | "NULLABILITY_WARNING"
+    | "DIVISION_BY_ZERO";
   cyclePath?: string[];
   actionableExplanation?: string;
   rowIndex?: number;
@@ -194,6 +206,35 @@ export function validateRules(
   // 5. Build Dependency Map and validate references
   const validRules = rules.filter((r) => !r.parseError && r.ruleId);
 
+  const variablesMap = new Map<string, DataType>();
+  if (study && study.forms) {
+    for (const form of Object.values(study.forms)) {
+      if (form.itemGroups) {
+        for (const group of form.itemGroups) {
+          if (group.items) {
+            for (const item of group.items) {
+              if (item.itemOid) {
+                variablesMap.set(item.itemOid, item.dataType);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Also include derived variable targets
+  for (const rule of rules) {
+    if (rule.ruleType === RuleType.DERIVATION && rule.target && !variablesMap.has(rule.target)) {
+      variablesMap.set(rule.target, DataType.FLOAT);
+    }
+  }
+
+  const knownRuleIdsSet = new Set<string>();
+  rules.forEach((r) => {
+    if (r.ruleId) knownRuleIdsSet.add(r.ruleId);
+  });
+
   for (const rule of validRules) {
     const deps = new Set<string>();
     if (!rule.ast) {
@@ -257,6 +298,25 @@ export function validateRules(
     }
 
     dependencyMap[rule.ruleId] = Array.from(deps);
+
+    // Run deep expression analysis and type checking
+    if (rule.ast) {
+      const exprDiagnostics = validateExpression(rule.ast, variablesMap, knownRuleIdsSet);
+      exprDiagnostics.forEach((diag) => {
+        // Skip unresolved variable checks inside the expression validator loop here
+        // to avoid duplicate warnings or false positives on standalone test rules.
+        if (diag.type === "UNRESOLVED_VARIABLE") {
+          return;
+        }
+        errors.push({
+          level: diag.level,
+          ruleId: rule.ruleId,
+          message: `Rule '${rule.ruleId}' expression issue: ${diag.message}`,
+          type: diag.type as any,
+          rowIndex: rule._sourceRowIndex,
+        });
+      });
+    }
   }
 
   // 6. Execute cycle detection and topological sorting

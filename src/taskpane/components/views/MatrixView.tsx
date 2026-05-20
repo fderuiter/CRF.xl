@@ -14,6 +14,7 @@ import {
     MessageBar,
     MessageBarBody,
     Option,
+    shorthands,
 } from '@fluentui/react-components';
 import {
     ArrowRightRegular,
@@ -228,15 +229,15 @@ const useStyles = makeStyles({
         outline: 'none',
         ':hover': {
             backgroundColor: tokens.colorNeutralBackground1Hover,
-            borderColor: tokens.colorBrandStroke1,
+            ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
         },
         ':focus-visible': {
-            outline: `2px solid ${tokens.colorBrandStroke1}`,
-            borderColor: tokens.colorBrandStroke1,
+            outline: `2px solid ${tokens.colorCompoundBrandStroke}`,
+            ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
         },
     },
     depItemActive: {
-        borderColor: tokens.colorBrandStroke1,
+        ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
         backgroundColor: tokens.colorBrandBackground2,
         boxShadow: tokens.shadow2,
     },
@@ -277,7 +278,7 @@ const useStyles = makeStyles({
     },
     detailPanel: {
         backgroundColor: tokens.colorNeutralBackground1,
-        border: `1px solid ${tokens.colorBrandStroke1}`,
+        border: `1px solid ${tokens.colorCompoundBrandStroke}`,
         borderRadius: tokens.borderRadiusLarge,
         padding: '16px',
         display: 'flex',

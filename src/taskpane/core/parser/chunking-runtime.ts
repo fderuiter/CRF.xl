@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-export type ParsePhase = "metadata" | "codelists" | "forms" | "items" | "schedule" | "complete";
+export type ParsePhase = "metadata" | "codelists" | "forms" | "items" | "schedule" | "rules" | "complete";
 
 export interface ParseProgressUpdate {
   phase: ParsePhase;
