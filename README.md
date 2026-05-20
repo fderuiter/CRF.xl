@@ -85,27 +85,27 @@ See `docs/architecture/module-map.md` for the complete module inventory and `doc
   - **Locked:** `A1:XFD1` (header row), `A2:A1000` (formula-driven form OID column)
   - **Editable:** `B2:XFD1000` (visit matrix user input)
 
-## 📋 Compliance Documentation
-- **Security posture (CIS control mapping with access/data/audit evidence):** `SECURITY.md`
-- **21 CFR Part 11 mapping (Excel versioning/audit trail walkthrough):** `docs/compliance/21-cfr-part-11-excel-versioning.md`
-- **CDISC Library standards fetcher contract (OAuth, endpoints, retries, typed errors):** `docs/specification/cdisc-api-service.md`
-- **GitHub issue taxonomy and hierarchy rules:** `docs/github/issue-governance.md`
-- **Milestone policy (M1–M7 canonical model):** `docs/github/milestones.md`
-- **Backlog-to-codebase alignment audit:** `docs/github/codebase-alignment.md`
-- **Dependency management and encoding convention:** `docs/github/dependency-management.md`
-- **Roadmap dashboard operations guide:** `docs/github/roadmap-operations.md`
-- **Definition of Ready and Done (quality gates by issue type):** `docs/github/definition-of-ready-done.md`
-- **Module map (full core/ module inventory):** `docs/architecture/module-map.md`
-- **Architecture Decision Record index:** `docs/architecture/adr-index.md`
+## 📖 Project Documentation
+
+All project documentation is structured and maintained under the [docs/](./docs/) directory. To explore specific documents, consult the canonical [CRF.xl Documentation Map](./docs/README.md).
+
+### 🔍 Documentation Source of Truth Guidelines
+To maintain alignment across teams and prevent drift, developers must consult the appropriate documentation directory based on the nature of their work:
+* **Where stable technical contracts live:** Technical interface specs, rules grammar, and schemas are defined in [docs/specification/](./docs/specification/). When code modifications alter a public signature or type definition, the corresponding spec must be updated in the same PR.
+* **Where design decisions live:** Major structural choices, architectural boundaries, and technology selections are recorded in [docs/architecture/adr-index.md](./docs/architecture/adr-index.md).
+* **Where regulatory mappings live:** GxP audits, Part 11 alignments, and security evidence live in [docs/compliance/](./docs/compliance/) and `SECURITY.md`.
+* **Where fast-changing requirements live:** Milestone scopes, feature sequencing, and backlog tickets live in [docs/github/](./docs/github/) and active GitHub issue templates. Evolving planning details belong in issues rather than specifications.
+
+---
 
 ## 🚢 Manifest & Deployment
-- Environment manifests:
-  - `manifest.dev.xml`
-  - `manifest.staging.xml`
-  - `manifest.production.xml`
-- Validate manifests before release: `npm run manifest:validate`
-- Deployment runbook: `docs/deployment/manifests.md`
-- Version update notification mechanism and cadence: `docs/deployment/manifests.md#taskpane-version-update-notification-mechanism`
+* Environment manifests:
+  * [manifest.dev.xml](./manifest.dev.xml)
+  * [manifest.staging.xml](./manifest.staging.xml)
+  * [manifest.production.xml](./manifest.production.xml)
+* Validate manifests before release: `npm run manifest:validate`
+* Deployment runbook & version notifications: [docs/deployment/manifests.md](./docs/deployment/manifests.md)
+
 
 ## 💾 Local Recovery Snapshot Scope
 - Stored in browser `localStorage` as a recovery snapshot for accidental refresh/crash recovery.

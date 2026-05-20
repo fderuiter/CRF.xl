@@ -35,6 +35,9 @@ jobs:
     - name: 🧾 Validate Office add-in manifests
       run: npm run manifest:validate
 
+    - name: 📚 Validate Documentation Links
+      run: npm run docs:validate
+
     - name: 🔎 Type Checking
       run: npx tsc --noEmit
 

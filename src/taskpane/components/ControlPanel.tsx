@@ -1,56 +1,65 @@
-import * as React from 'react';
-import { Button, Spinner, Divider, MessageBar, MessageBarBody, makeStyles, tokens, Text } from '@fluentui/react-components';
+import * as React from "react";
+import {
+  Button,
+  Spinner,
+  Divider,
+  MessageBar,
+  MessageBarBody,
+  makeStyles,
+  tokens,
+  Text,
+} from "@fluentui/react-components";
 
 interface ControlPanelProps {
-    onInit: () => Promise<void>;
-    onDocx: () => Promise<void>;
-    onOdm: () => Promise<void>;
-    onAnalyze: () => Promise<any>;
-    isProcessing: boolean;
-    hasErrors: boolean;
-    isLoaded: boolean;
+  onInit: () => Promise<void>;
+  onDocx: () => Promise<void>;
+  onOdm: () => Promise<void>;
+  onAnalyze: () => Promise<any>;
+  isProcessing: boolean;
+  hasErrors: boolean;
+  isLoaded: boolean;
 }
 
 const useStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-    },
-    buttonGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-    },
-    fullWidth: {
-        width: '100%',
-    },
-    exportGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '10px',
-    },
-    exportButton: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '4px',
-        height: 'auto',
-        padding: '12px 8px',
-    },
-    exportIcon: {
-        fontSize: '20px',
-        lineHeight: '1',
-    },
-    awaitingText: {
-        textAlign: 'center',
-        fontSize: tokens.fontSizeBase100,
-        color: tokens.colorNeutralForeground3,
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        fontWeight: tokens.fontWeightSemibold,
-        marginTop: '4px',
-    },
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  buttonGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  fullWidth: {
+    width: "100%",
+  },
+  exportGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px",
+  },
+  exportButton: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px",
+    height: "auto",
+    padding: "12px 8px",
+  },
+  exportIcon: {
+    fontSize: "20px",
+    lineHeight: "1",
+  },
+  awaitingText: {
+    textAlign: "center",
+    fontSize: tokens.fontSizeBase100,
+    color: tokens.colorNeutralForeground3,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    fontWeight: tokens.fontWeightSemibold,
+    marginTop: "4px",
+  },
 });
 
 /**
@@ -58,66 +67,72 @@ const useStyles = makeStyles({
  * Migrated to Fluent UI v9.
  */
 export const ControlPanel: React.FC<ControlPanelProps> = ({
-    onInit, onDocx, onOdm, onAnalyze, isProcessing, hasErrors, isLoaded
+  onInit,
+  onDocx,
+  onOdm,
+  onAnalyze,
+  isProcessing,
+  hasErrors,
+  isLoaded,
 }) => {
-    const styles = useStyles();
-    return (
-        <div className={styles.root}>
-            <div className={styles.buttonGroup}>
-                <Button
-                    appearance="secondary"
-                    className={styles.fullWidth}
-                    onClick={onInit}
-                    disabled={isProcessing}
-                    icon={isProcessing ? <Spinner size="tiny" /> : <span>✨</span>}
-                >
-                    Initialize Workbook
-                </Button>
+  const styles = useStyles();
+  return (
+    <div className={styles.root}>
+      <div className={styles.buttonGroup}>
+        <Button
+          appearance="secondary"
+          className={styles.fullWidth}
+          onClick={onInit}
+          disabled={isProcessing}
+          icon={isProcessing ? <Spinner size="tiny" /> : <span>✨</span>}
+        >
+          Initialize Workbook
+        </Button>
 
-                <Button
-                    appearance="primary"
-                    className={styles.fullWidth}
-                    onClick={onAnalyze}
-                    disabled={isProcessing}
-                    icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
-                >
-                    {isProcessing ? 'Analyzing Metadata...' : 'Run Workbook Analysis'}
-                </Button>
-            </div>
+        <Button
+          appearance="primary"
+          className={styles.fullWidth}
+          onClick={onAnalyze}
+          disabled={isProcessing}
+          icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
+        >
+          {isProcessing ? "Analyzing Metadata..." : "Run Workbook Analysis"}
+        </Button>
+      </div>
 
-            <Divider />
+      <Divider />
 
-            <div className={styles.exportGrid}>
-                <Button
-                    appearance="outline"
-                    className={styles.exportButton}
-                    onClick={onDocx}
-                    disabled={isProcessing || hasErrors || !isLoaded}
-                >
-                    <span className={styles.exportIcon}>📄</span>
-                    <span>Paper CRF</span>
-                </Button>
+      <div className={styles.exportGrid}>
+        <Button
+          appearance="outline"
+          className={styles.exportButton}
+          onClick={onDocx}
+          disabled={isProcessing || hasErrors || !isLoaded}
+        >
+          <span className={styles.exportIcon}>📄</span>
+          <span>Paper CRF</span>
+        </Button>
 
-                <Button
-                    appearance="outline"
-                    className={styles.exportButton}
-                    onClick={onOdm}
-                    disabled={isProcessing || hasErrors || !isLoaded}
-                >
-                    <span className={styles.exportIcon}>⚛️</span>
-                    <span>ODM XML</span>
-                </Button>
-            </div>
+        <Button
+          appearance="outline"
+          className={styles.exportButton}
+          onClick={onOdm}
+          disabled={isProcessing || hasErrors || !isLoaded}
+        >
+          <span className={styles.exportIcon}>⚛️</span>
+          <span>ODM XML</span>
+        </Button>
+      </div>
 
-            {hasErrors && (
-                <MessageBar intent="error">
-                    <MessageBarBody>Critical errors detected. Resolve highlighted issues in Excel to unlock export.</MessageBarBody>
-                </MessageBar>
-            )}
+      {hasErrors && (
+        <MessageBar intent="error">
+          <MessageBarBody>
+            Critical errors detected. Resolve highlighted issues in Excel to unlock export.
+          </MessageBarBody>
+        </MessageBar>
+      )}
 
-            {!isLoaded && !hasErrors && (
-                <Text className={styles.awaitingText}>Awaiting Analysis</Text>
-            )}
-        </div>
-    );
+      {!isLoaded && !hasErrors && <Text className={styles.awaitingText}>Awaiting Analysis</Text>}
+    </div>
+  );
 };

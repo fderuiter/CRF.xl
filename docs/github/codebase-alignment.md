@@ -8,7 +8,7 @@ This document records the current codebase evidence for high-impact backlog item
 | --- | --- | --- | --- |
 | `#129` Diff Engine | Absent | `src/taskpane/core/types/hierarchy.ts` | No diff engine or diff report types exist yet; expected new module is `src/taskpane/core/services/diff-engine.ts`. |
 | `#130` Baseline Workbook Ingestion UX | Absent | `src/taskpane/core/parser/excel-parser.ts` | Active workbook parsing exists, but no external/baseline workbook ingestion flow or UI is present. |
-| `#137` `_Rules` Parser & AST Generator | Absent | `src/taskpane/core/types/hierarchy.ts`, `src/taskpane/core/parser/validator.ts` | Rule strings exist inline on items; no `_Rules` parser or AST model exists. |
+| `#137` `_Rules` Parser & AST Generator | Present | `src/taskpane/core/parser/rules-parser.ts`, `src/taskpane/core/types/rules-ast.ts` | Tokenizer and AST parser engine, standard operator precedence parser, custom ParseError spans, and excel-parser sheet integration are fully implemented and verified with 100% unit test coverage. |
 | `#138` DAG / Cycle Detection | Absent | `src/taskpane/core/parser/validator.ts` | Referential validation exists, but no dependency-graph or cycle detection implementation exists. |
 | `#139` ODM `ConditionDef` / `MethodDef` serialization | Partial | `src/taskpane/core/generators/cdisc/odm-builder.ts` | Basic `ConditionDef` handling exists for item visibility; generalized rule/method export does not. |
 | `#118` Display-only content blocks | Partial | `src/taskpane/core/parser/excel-parser.ts`, `src/taskpane/core/generators/docx/docx-builder.ts` | Rendering infrastructure exists, but parser/model support for display-only block types is still missing. |
@@ -33,8 +33,6 @@ The following modules are planned but not yet created. Their owning issues are l
 | Expected module | Owning issue(s) | Notes |
 | --- | --- | --- |
 | `src/taskpane/core/services/diff-engine.ts` | `#129` | Core metadata diff computation service |
-| `src/taskpane/core/parser/rules-parser.ts` | `#137` | `_Rules` sheet parser producing rule tokens |
-| `src/taskpane/core/parser/rules-ast.ts` | `#137` | AST type definitions for parsed rule expressions |
 | `src/taskpane/core/parser/dag-validator.ts` | `#138` | DAG topological sort and cycle detection |
 | `src/taskpane/core/services/cdisc-mapping-service.ts` | `#93` | Transform contract between CDISC Library API and internal types |
 
