@@ -177,18 +177,21 @@ export enum VariableOrigin {
 }
 
 /**
- * Covers both SDTM and ADaM dataset class vocabularies.
- * SDTM classes: SpecialPurpose, Interventions, Events, Findings,
- *   FindingsAboutEvents, TrialDesign.
- * ADaM classes: ADaMBasicDataStructure, OCCDS, ADTTE, ADEG.
+ * SDTM dataset class vocabulary per SDTMIG.
  */
-export enum DatasetClass {
+export enum SdtmDatasetClass {
   SPECIAL_PURPOSE = "SpecialPurpose",
   INTERVENTIONS = "Interventions",
   EVENTS = "Events",
   FINDINGS = "Findings",
   FINDINGS_ABOUT_EVENTS = "FindingsAboutEvents",
   TRIAL_DESIGN = "TrialDesign",
+}
+
+/**
+ * ADaM dataset class vocabulary per ADaMIG.
+ */
+export enum AdamDatasetClass {
   ADAM_BASIC_DATA_STRUCTURE = "ADaMBasicDataStructure",
   OCCDS = "OCCDS",
   ADTTE = "ADTTE",

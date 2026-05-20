@@ -97,4 +97,95 @@ describe("Schema Migration Utility", () => {
     expect(item.sdtmMapping).toEqual({});
     expect(item.adamMapping).toEqual({});
   });
+
+  it("should initialize all eight submissionMetadata sub-arrays for a legacy study", () => {
+    const legacyStudy: any = {
+      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      events: [],
+      forms: {},
+      codelists: {},
+    };
+
+    const migrated = migrateStudyDesign(legacyStudy);
+    const sm = migrated.submissionMetadata!;
+
+    // Original four
+    expect(sm.sdtmDatasets).toEqual([]);
+    expect(sm.adamDatasets).toEqual([]);
+    expect(sm.sdtmDerivations).toEqual([]);
+    expect(sm.adamDerivations).toEqual([]);
+    // New four
+    expect(sm.sdtmVariableMetadata).toEqual([]);
+    expect(sm.adamVariableMetadata).toEqual([]);
+    expect(sm.comments).toEqual([]);
+    expect(sm.standards).toEqual([]);
+  });
+
+  it("should preserve existing sub-arrays and default only the absent new ones", () => {
+    const partialStudy: any = {
+      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      events: [],
+      forms: {},
+      codelists: {},
+      submissionMetadata: {
+        sdtmDatasets: [
+          { domain: "DM", label: "Demographics", class: "SpecialPurpose", structure: "One per subject" },
+        ],
+        comments: [
+          { commentOid: "CMT.DM.SUBJID", text: "Collected as screen number" },
+        ],
+      },
+    };
+
+    const migrated = migrateStudyDesign(partialStudy);
+    const sm = migrated.submissionMetadata!;
+
+    // Pre-existing data preserved
+    expect(sm.sdtmDatasets?.length).toBe(1);
+    expect(sm.sdtmDatasets?.[0].domain).toBe("DM");
+    expect(sm.comments?.length).toBe(1);
+    expect(sm.comments?.[0].commentOid).toBe("CMT.DM.SUBJID");
+    // Absent arrays defaulted
+    expect(sm.adamDatasets).toEqual([]);
+    expect(sm.sdtmDerivations).toEqual([]);
+    expect(sm.adamDerivations).toEqual([]);
+    expect(sm.sdtmVariableMetadata).toEqual([]);
+    expect(sm.adamVariableMetadata).toEqual([]);
+    expect(sm.standards).toEqual([]);
+  });
+
+  it("should preserve pre-populated VLM rows and standards through migration", () => {
+    const studyWithVlm: any = {
+      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      events: [],
+      forms: {},
+      codelists: {},
+      submissionMetadata: {
+        sdtmVariableMetadata: [
+          {
+            vlmOid: "VLM.DM.RACE.WHITE",
+            parentItemOid: "IT.DM.RACE",
+            whereClause: "RACE = 'WHITE'",
+            sdtmMapping: { domain: "DM", variable: "RACE" },
+          },
+        ],
+        standards: [
+          { standardOid: "STD.1", name: "SDTMIG", version: "3.4", status: "Final" },
+        ],
+      },
+    };
+
+    const migrated = migrateStudyDesign(studyWithVlm);
+    const sm = migrated.submissionMetadata!;
+
+    expect(sm.sdtmVariableMetadata?.length).toBe(1);
+    expect(sm.sdtmVariableMetadata?.[0].vlmOid).toBe("VLM.DM.RACE.WHITE");
+    expect(sm.sdtmVariableMetadata?.[0].whereClause).toBe("RACE = 'WHITE'");
+    expect(sm.standards?.length).toBe(1);
+    expect(sm.standards?.[0].standardOid).toBe("STD.1");
+    expect(sm.standards?.[0].version).toBe("3.4");
+    // Absent arrays still defaulted
+    expect(sm.adamVariableMetadata).toEqual([]);
+    expect(sm.comments).toEqual([]);
+  });
 });

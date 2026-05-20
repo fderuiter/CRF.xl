@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { validateStudyDesign, ValidationIssue, validateSubmissionMetadataForRelease } from "../validator";
-import { StudyDesign, DataType, EventType } from "../../types";
+import { StudyDesign, DataType, EventType, SdtmDatasetClass, AdamDatasetClass, AdamCore } from "../../types";
 
 describe("Clinical Validator Engine", () => {
   let mockStudy: StudyDesign;
@@ -692,10 +692,10 @@ describe("Clinical Validator Engine", () => {
       // Re-init mock study
       mockStudy.submissionMetadata = {
         sdtmDatasets: [
-          { domain: "DM", label: "Demographics", class: "Special Purpose", structure: "One per subject" }
+          { domain: "DM", label: "Demographics", class: SdtmDatasetClass.SPECIAL_PURPOSE, structure: "One per subject" }
         ],
         adamDatasets: [
-          { dataset: "ADSL", label: "Subject-Level Analysis", class: "ADSL", structure: "One per subject" }
+          { dataset: "ADSL", label: "Subject-Level Analysis", class: AdamDatasetClass.ADAM_BASIC_DATA_STRUCTURE, structure: "One per subject" }
         ],
         sdtmDerivations: [],
         adamDerivations: []
@@ -757,7 +757,7 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F1"].itemGroups[0].items[0].adamMapping = {
         dataset: "ADVS", // not defined in adamDatasets
         variable: "AVAL",
-        core: "Required",
+        core: AdamCore.REQUIRED,
         role: "Analysis Parameter",
         sasFieldName: "AVAL",
         sasLabel: "Analysis Value",
