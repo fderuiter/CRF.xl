@@ -23,7 +23,7 @@ import {
   navigateToSource,
   syncRegistry,
 } from "../core/parser/template-generator";
-import { StudyDesign } from "../core/types/index";
+import { StudyDesign, SubmissionMetadata } from "../core/types/index";
 import {
   RecoverySnapshot,
   RECOVERY_APP_VERSION,
@@ -521,6 +521,18 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
+  const handleSaveSubmissionMetadata = (submissionMetadata: SubmissionMetadata) => {
+    setStudy((current) =>
+      current
+        ? {
+            ...current,
+            submissionMetadata,
+          }
+        : current
+    );
+    setStatus("Submission metadata draft saved in session");
+  };
+
   // 3. View Router Logic
   const renderContextualView = () => {
     // STATE 1: Checking status on startup
@@ -572,7 +584,17 @@ export const App: React.FC<{ title?: string }> = () => {
     // STATE 4: The Contextual Routing
     if (activeSheet === "_Study" || activeSheet === "_Forms") {
       return (
-        <RegistryView onInit={handleInitialize} onSync={handleSync} isProcessing={isProcessing} />
+        <RegistryView
+          onInit={handleInitialize}
+          onSync={handleSync}
+          onLoadSubmissionMetadata={async () => {
+            await performAnalysis();
+          }}
+          onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
+          activeSheet={activeSheet}
+          submissionMetadata={study?.submissionMetadata}
+          isProcessing={isProcessing}
+        />
       );
     }
     if (activeSheet === "_Schedule" || activeSheet === "_Codelists") {
