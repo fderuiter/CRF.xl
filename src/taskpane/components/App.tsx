@@ -25,6 +25,10 @@ import {
 } from "../core/parser/template-generator";
 import { StudyDesign, SubmissionMetadata } from "../core/types/index";
 import {
+  BaselineWorkbookParseError,
+  parseBaselineWorkbookFile,
+} from "../core/services/baseline-workbook-service";
+import {
   RecoverySnapshot,
   RECOVERY_APP_VERSION,
   WorkbookFingerprint,
@@ -187,6 +191,8 @@ export const App: React.FC<{ title?: string }> = () => {
 
   // 2. Application State
   const [study, setStudy] = useState<StudyDesign | null>(null);
+  const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
+  const [baselineError, setBaselineError] = useState<string | null>(null);
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const [studySummary, setStudySummary] = useState<{
     formCount: number;
@@ -533,6 +539,26 @@ export const App: React.FC<{ title?: string }> = () => {
     setStatus("Submission metadata draft saved in session");
   };
 
+  const handleLoadBaselineWorkbook = async (file: File) => {
+    setIsProcessing(true);
+    setBaselineError(null);
+    setStatus("Loading baseline workbook...");
+    try {
+      const parsedBaseline = await parseBaselineWorkbookFile(file);
+      setBaselineStudy(parsedBaseline);
+      setStatus(`Baseline loaded (${parsedBaseline.metadata.protocolId})`);
+    } catch (error) {
+      if (error instanceof BaselineWorkbookParseError) {
+        setBaselineError(error.userMessage);
+      } else {
+        setBaselineError("Could not parse selected baseline workbook.");
+      }
+      setStatus("Baseline load failed");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // 3. View Router Logic
   const renderContextualView = () => {
     // STATE 1: Checking status on startup
@@ -590,9 +616,12 @@ export const App: React.FC<{ title?: string }> = () => {
           onLoadSubmissionMetadata={async () => {
             await performAnalysis();
           }}
+          onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
           onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
           activeSheet={activeSheet}
           submissionMetadata={study?.submissionMetadata}
+          baselineStudy={baselineStudy}
+          baselineError={baselineError}
           isProcessing={isProcessing}
         />
       );
@@ -607,6 +636,7 @@ export const App: React.FC<{ title?: string }> = () => {
           hasErrors={issues.some((i) => i.level === "Error")}
           isLoaded={!!studySummary}
           study={study}
+          baselineStudy={baselineStudy}
           onNavigate={(sheetName, rowIndex) => {
             if (rowIndex !== undefined && sheetName) {
               navigateToSource(sheetName, rowIndex);
