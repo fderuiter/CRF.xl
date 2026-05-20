@@ -137,6 +137,43 @@ describe("cdisc-api-service", () => {
     expect(fourthCall[1]?.headers).toMatchObject({ Authorization: "Bearer new-token" });
   });
 
+  it("fetches codelist terms from the package-scoped OpenAPI endpoint", async () => {
+    const token = new Response(JSON.stringify({ access_token: "token-1", expires_in: 3600 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+    const terms = new Response(JSON.stringify(loadFixture("ct-codelist-terms.response.json")), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const fetchMock: MockFetch = jest.fn().mockResolvedValueOnce(token).mockResolvedValueOnce(terms);
+
+    const service = createCdiscApiService(
+      {
+        baseUrl: "https://api.cdisc.org",
+        tokenUrl: "https://api.cdisc.org/oauth/token",
+        credentials: { clientId: "client", clientSecret: "secret" },
+      },
+      createMockClient(fetchMock)
+    );
+
+    const result = await service.listCodelistTerms(
+      "C66741",
+      "NCI_CDISC_Terminology_2026-03-27"
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success result");
+    }
+    expect(result.data[0].termOid).toBe("C20197");
+    expect(result.data[0].decode).toBe("Male");
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      "https://api.cdisc.org/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C66741/terms"
+    );
+  });
+
   it("returns typed network error on request failure", async () => {
     const token = new Response(JSON.stringify({ access_token: "token-1", expires_in: 3600 }), {
       status: 200,
