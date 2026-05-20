@@ -1,0 +1,79 @@
+{
+  "package": {
+    "name": "NCI_CDISC_Terminology_2026-03-27",
+    "label": "CDISC Terminology 2026-03-27",
+    "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27",
+    "effectiveDate": "2026-03-27",
+    "publisher": "NCI"
+  },
+  "codelists": [
+    {
+      "conceptId": "C66741",
+      "submissionValue": "SEX",
+      "title": "Sex",
+      "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C66741"
+    },
+    {
+      "conceptId": "C81224",
+      "submissionValue": "NY",
+      "title": "Yes No",
+      "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C81224",
+      "extensible": false
+    },
+    {
+      "conceptId": "C71620",
+      "submissionValue": "SEV",
+      "title": "Severity",
+      "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C71620"
+    }
+  ],
+  "termsByCodelistOid": {
+    "C66741": [
+      {
+        "conceptId": "C20197",
+        "codedValue": "M",
+        "decode": "Male",
+        "title": "Male",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C66741/terms/C20197"
+      },
+      {
+        "conceptId": "C16576",
+        "codedValue": "F",
+        "decode": "Female",
+        "title": "Female",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C66741/terms/C16576"
+      }
+    ],
+    "C81224": [
+      {
+        "conceptId": "C49487",
+        "codedValue": "N",
+        "decode": "No",
+        "title": "No",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C81224/terms/C49487"
+      },
+      {
+        "conceptId": "C49488",
+        "codedValue": "Y",
+        "decode": "Yes",
+        "title": "Yes (affirmative)",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C81224/terms/C49488"
+      }
+    ],
+    "C71620": [
+      {
+        "conceptId": "C25271",
+        "submissionValue": "MILD",
+        "title": "Mild",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C71620/terms/C25271",
+        "synonyms": ["Low"]
+      },
+      {
+        "conceptId": "C41357",
+        "submissionValue": "SEVERE",
+        "title": "Severe",
+        "href": "/mdr/ct/packages/NCI_CDISC_Terminology_2026-03-27/codelists/C71620/terms/C41357"
+      }
+    ]
+  }
+}

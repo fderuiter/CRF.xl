@@ -94,6 +94,7 @@ Committed fixtures:
 - `test/fixtures/cdisc-library/ct-packages.response.json`
 - `test/fixtures/cdisc-library/ct-package-codelists.response.json`
 - `test/fixtures/cdisc-library/ct-codelist-terms.response.json`
+- `test/fixtures/cdisc-library/ct-mapping-bundle.response.json` (consumed by mapping-layer tests)
 
 Fixture payloads track OpenAPI shapes from `docs/cdisc-library-api.yaml`, including `_links.packages`, `_links.codelists`, and `_links.terms`.
 
@@ -130,3 +131,11 @@ if (!packages.ok) {
   console.error(packages.error.type, packages.error.message);
 }
 ```
+
+## Related mapping layer
+
+The dedicated response-to-row transform contract is documented in:
+
+- `docs/specification/cdisc-ct-mapping-layer.md`
+
+That layer consumes fetch outputs and returns typed `_Codelists` rows, warnings, and lifecycle decisions.
