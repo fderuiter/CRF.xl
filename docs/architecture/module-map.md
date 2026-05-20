@@ -159,16 +159,33 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ### `cdisc-api-service.ts`
 
-**Purpose:** CDISC Library API client. Handles OAuth token acquisition, endpoint calls, typed error handling, and retry logic. Fetches controlled terminology and dataset metadata.
+**Purpose:** CDISC Library API client. Handles OAuth2 client-credentials token acquisition, retry/backoff, rate-limit handling, and timeout enforcement. Exposes typed results (`CdiscApiResult<T>`) for all error scenarios (auth, network, HTTP, rate-limit, invalid-response).
+
+**Public interface (factory):**
+
+- `createCdiscApiService(config?, httpClient?, logger?): CdiscApiService`
+  - `listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>`
+  - `listPackageCodelists(packageOid): Promise<CdiscApiResult<CdiscCtCodelist[]>>`
+  - `listCodelistTerms(codelistOid, packageOid?): Promise<CdiscApiResult<CdiscCtTerm[]>>`
+
+**Upstream:** CDISC Library REST API (external)
+**Downstream:** `services/cdisc-ct-mapping-service.ts`
+**Owning issues:** #44, #45
+
+---
+
+### `cdisc-ct-mapping-service.ts`
+
+**Purpose:** Pure transform layer. Normalizes raw CDISC CT API payloads (`CdiscCtMappingInput`) into typed `_Codelists` row objects (`CrfCodelistsRow[]`), emitting structured warnings and errors. Also enforces lifecycle rules (insert / overwrite / skip-identical / prompt-user) on incoming vs. existing rows.
 
 **Public interface:**
 
-- `fetchCodelist(oid: string): Promise<CdiscCodelist>`
-- `fetchDatasetMetadata(datasetName: string): Promise<CdiscDataset>`
+- `mapCdiscApiResponseToCrfCodelists(input): CdiscCtMappingResult`
+- `applyCodelistLifecycle(existingRows, incomingRows): LifecycleResult`
 
-**Upstream:** CDISC Library REST API (external)
-**Downstream:** `components/views/DictionarySidecar.tsx`, `services/dictionary-service.ts`, mapping layer (`#93`, absent)
-**Owning issues:** #44, #93
+**Upstream:** `services/cdisc-api-service.ts` (typed fetch outputs)
+**Downstream:** `services/ct-import-service.ts`, `components/views/DictionarySidecar.tsx`
+**Owning issues:** #93
 
 ---
 
