@@ -32,6 +32,20 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
+### `rules-parser.ts`
+**Purpose:** Tokenizer and recursive descent parser for the rules logic grammar. Parses raw rule expressions into AST nodes, and workbook rows from the `_Rules` sheet into a standard `RuleDefinition[]` array.
+
+**Public interface:**
+- `tokenize(expression: string): Token[]`
+- `parseRuleExpression(expression: string): ASTNode`
+- `parseRulesSheetRows(rows: any[][], _studyVersion: string): { rules: RuleDefinition[]; errors: ParseError[] }`
+
+**Upstream:** `core/types/index.ts`
+**Downstream:** `excel-parser.ts`, graph validator (`#138`), serialization
+**Owning issues:** #137
+
+---
+
 ### `template-generator.ts`
 **Purpose:** Workbook initialization, sheet scaffolding, navigation to source, and workbook sync/registry operations.
 
@@ -184,6 +198,9 @@ Hierarchical structure types: form/item/codelist relationships, OID registry, pa
 ### `validation.ts`
 Validation types: `ValidationIssue`, `ValidationLevel`, `ValidationResult`, `ParseResult`.
 
+### `rules-ast.ts`
+AST node types (Literal, Identifier, Unary, Binary, Conditional, Call, and Grouped Expression), location tracking interfaces (`SourcePosition`, `SourceLocation`), `RuleDefinition` structures, and the custom `ParseError` diagnostic class.
+
 ### `ui.ts`
 UI state types: navigation context, filter state, view mode, sidecar state.
 
@@ -201,8 +218,6 @@ These modules are planned but not yet implemented. They are blocked by the issue
 
 | Expected Module | Purpose | Blocking Issue | Planned Location |
 |-----------------|---------|----------------|-----------------|
-| `parser/rules-parser.ts` | Parse `_Rules` sheet into a validated AST | #137 | `src/taskpane/core/parser/` |
-| `types/rules-ast.ts` | AST node types for rule expressions and methods | #137 | `src/taskpane/core/types/` |
 | `parser/dag-validator.ts` | Topological sort and cycle detection on item dependency graph | #138 (blocked by #137) | `src/taskpane/core/parser/` |
 | `services/diff-engine.ts` | Core metadata diff computation between two `StudyDesign` snapshots | #129 (blocked by #130) | `src/taskpane/core/services/` |
 | `services/cdisc-mapping-service.ts` | Transform CDISC API responses to internal codelist/dataset structures | #93 | `src/taskpane/core/services/` |

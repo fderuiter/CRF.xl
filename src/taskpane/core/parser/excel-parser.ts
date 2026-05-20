@@ -2,6 +2,8 @@
 /* global Excel */
 import { StudyDesign, DataType, CrfItem, EventType, StudyEvent } from "../types/index";
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
+import { parseRulesSheetRows } from "./rules-parser";
+
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -267,6 +269,42 @@ export async function parseExcelToStudyDesign(
         });
       }
     }
+
+    // 6. Parse _Rules Sheet
+    runtime.reportProgress({
+      phase: "rules",
+      completed: 0,
+      total: 1,
+      message: "Reading _Rules sheet",
+    });
+    runtime.throwIfStopped("rules");
+    const rulesSheet = sheets.getItemOrNullObject("_Rules");
+    await context.sync();
+    if (!rulesSheet.isNullObject) {
+      try {
+        const vals = await getValues(rulesSheet);
+        if (vals && vals.length > 0) {
+          const { rules, errors } = parseRulesSheetRows(vals, study.metadata.version);
+          study.rules = rules;
+
+          // Log each parse error as a workbook parse warning
+          errors.forEach((err) => {
+            parseWarnings.push(`_Rules Row ${err.line}: ${err.message}`);
+          });
+        }
+      } catch (error) {
+        if (!allowPartialSheetFailures) throw error;
+        parseWarnings.push(
+          `Sheet "_Rules" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+    runtime.reportProgress({
+      phase: "rules",
+      completed: 1,
+      total: 1,
+      message: "Completed _Rules sheet",
+    });
 
     if (parseWarnings.length > 0) {
       study.metadata.customProperties = {

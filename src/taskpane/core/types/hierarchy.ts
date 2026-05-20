@@ -24,6 +24,8 @@ import {
 import { DerivationConfig, ItemValidation, EditCheck } from "./validation";
 import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist } from "./clinical";
 import { AssetConfig, VasConfig } from "./ui";
+import { RuleDefinition } from "./rules-ast";
+
 
 export interface SystemTrigger {
   triggerType: SystemTriggerType;
@@ -210,4 +212,6 @@ export interface StudyDesign {
   events: StudyEvent[];
   forms: Record<string, CrfForm>;
   codelists: Record<string, Codelist>;
+  rules?: RuleDefinition[];
 }
+
