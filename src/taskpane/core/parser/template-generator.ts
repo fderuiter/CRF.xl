@@ -1,5 +1,6 @@
 /* global Excel */
 import { CRF_VARIABLE_TYPE_OPTIONS } from "./form-element-utils";
+import { DATA_ORIGIN_OPTIONS } from "./metadata-utils";
 
 interface SheetProtectionConfig {
   sheetName: "_Forms" | "_Schedule";
@@ -68,7 +69,7 @@ export async function initializeWorkbook(): Promise<void> {
       },
       {
         name: "_Methods",
-        headers: ["Method OID", "Name", "Type", "Description", "Expression"],
+        headers: ["Method OID", "Name", "Type", "Description", "Expression", "Referenced Variables"],
         data: [
           [
             "M_DERIVED_BMI",
@@ -76,6 +77,7 @@ export async function initializeWorkbook(): Promise<void> {
             "Computation",
             "Body Mass Index",
             "[WEIGHT] / ([HEIGHT]/100)^2",
+            "WEIGHT, HEIGHT",
           ],
         ],
       },
@@ -231,7 +233,7 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
       crfSheet.getRange("K3:K1000").dataValidation.rule = {
         list: {
           inCellDropDown: true,
-          source: "Protocol,Investigator,Subject,Derived,Assigned,eDT",
+          source: DATA_ORIGIN_OPTIONS.join(","),
         },
       };
 

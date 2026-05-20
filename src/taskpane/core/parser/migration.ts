@@ -1,4 +1,5 @@
 import { StudyDesign } from "../types/hierarchy";
+import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
 
 /**
  * Migrates a parsed study design object to ensure all new submission metadata
@@ -53,9 +54,18 @@ export function migrateStudyDesign(study: any): StudyDesign {
               if (!item.adamMapping) {
                 item.adamMapping = {};
               }
+              item.origin = normalizeDataOrigin(item.origin);
             });
           }
         });
+      }
+    });
+  }
+
+  if (study.methods) {
+    Object.values(study.methods).forEach((method: any) => {
+      if (typeof method.referencedVariables === "string") {
+        method.referencedVariables = parseReferencedVariables(method.referencedVariables);
       }
     });
   }

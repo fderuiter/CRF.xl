@@ -12,6 +12,7 @@ import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./
 import { parseRulesSheetRows } from "./rules-parser";
 import { migrateStudyDesign } from "./migration";
 import { mapRowToFormElement } from "./form-element-utils";
+import { parseReferencedVariables } from "./metadata-utils";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -334,7 +335,7 @@ export async function parseExcelToStudyDesign(
           const rows = vals.slice(1);
           await processRowsInChunks(rows, runtime, "methods", (row) => {
             runtime.throwIfStopped("methods");
-            const [oid, name, type, description, expression] = row;
+            const [oid, name, type, description, expression, referencedVariables] = row;
             if (!oid) return;
             const strOid = String(oid).trim();
             study.methods![strOid] = {
@@ -343,6 +344,7 @@ export async function parseExcelToStudyDesign(
               type: String(type || "").trim(),
               description: description ? String(description).trim() : undefined,
               expression: expression ? String(expression).trim() : undefined,
+              referencedVariables: parseReferencedVariables(referencedVariables),
             };
           });
         }

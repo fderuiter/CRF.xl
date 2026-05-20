@@ -36,13 +36,31 @@ Constraints: Repeating column supports Yes/No.
 
 Description: The primary metadata repository.
 
-Required Columns: Form, Page, Variable Name, Label, Variable Type, Sequence, SAS Label, Required Field, Minimum Value, Maximum Value, Show If, Derivation, Dependencies, Required If, Validation Script.
+Required Columns: Variable Name, Label, Variable Type, Required, Length, Significant Digits, Minimum, Maximum, Show If, Codelist ID, Origin, Method OID, SDTM Domain, SDTM Variable, Comment.
+
+Variable-Level Metadata rules:
+
+- `Origin` must use the controlled vocabulary `Collected`, `Derived`, `Assigned`, `Pre-Specified`, `External`, or `Other`.
+- `Method OID` is required when `Origin` is `Derived` or `Assigned`.
+- `Length` and `Significant Digits` are stored as positive/non-negative integers for export-ready numeric metadata.
+- `SDTM Domain` and `SDTM Variable` are an optional paired mapping used by downstream ODM/Define-oriented export logic.
 
 ### 2.5 Codelists (Dictionaries)
 
 Description: Definitions for dropdowns/radio buttons.
 
 Required Columns: Codelist ID, Codelist Name, Coded Value, Decode, Sequence.
+
+### 2.6 Methods
+
+Description: Central registry of reusable derivation or assignment definitions referenced from item-level metadata.
+
+Required Columns: Method OID, Name, Type, Description, Expression, Referenced Variables.
+
+Clinical/regulatory rationale:
+
+- Narrative method metadata and executable expressions must stay attached to stable method identifiers for downstream ODM/Define generation.
+- `Referenced Variables` is stored as structured metadata so export builders and internal JSON consumers do not need ad hoc string parsing later.
 
 ## 3. Native Excel Data Validation
 
@@ -53,6 +71,8 @@ Variable Type: Text, Integer, Float, Date, Time, Datetime, Boolean, Codelist, Fi
 Required Field: Yes, No.
 
 Repeating (Forms): Yes, No.
+
+Origin: Collected, Derived, Assigned, Pre-Specified, External, Other.
 
 ## 4. Visual Styles
 

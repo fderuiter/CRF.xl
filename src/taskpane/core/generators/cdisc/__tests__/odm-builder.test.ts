@@ -361,7 +361,7 @@ describe("CDISC ODM XML Builder", () => {
 
     it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", () => {
       const item = mockStudy.forms["F1"].itemGroups[0].items[0];
-      item.origin = "Protocol" as any;
+      item.origin = "Pre-Specified" as any;
       item.comment = "Collected weight at baseline";
       item.methodOid = "M_WT_COLLECT";
 
@@ -374,7 +374,7 @@ describe("CDISC ODM XML Builder", () => {
       };
 
       const xml = generateOdmXml(mockStudy);
-      expect(xml).toContain('Origin="Protocol"');
+      expect(xml).toContain('Origin="Pre-Specified"');
       expect(xml).toContain('Comment="Collected weight at baseline"');
       expect(xml).toContain('MethodOID="M_WT_COLLECT"');
     });

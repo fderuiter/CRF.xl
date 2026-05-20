@@ -188,4 +188,62 @@ describe("Schema Migration Utility", () => {
     expect(sm.adamVariableMetadata).toEqual([]);
     expect(sm.comments).toEqual([]);
   });
+
+  it("should normalize legacy origins and method referenced variables during migration", () => {
+    const legacyStudy: any = {
+      metadata: {
+        protocolId: "T101",
+        studyName: "Test Study",
+        version: "1.0",
+        defaultLanguage: "en-US",
+      },
+      events: [],
+      forms: {
+        F1: {
+          formOid: "F1",
+          formName: "Form 1",
+          repeating: false,
+          orderNumber: 1,
+          effectiveVersion: "1.0",
+          itemGroups: [
+            {
+              groupOid: "G1",
+              name: "Group 1",
+              orderNumber: 1,
+              repeating: false,
+              items: [
+                {
+                  formOid: "F1",
+                  groupOid: "G1",
+                  itemOid: "IT1",
+                  name: "IT1",
+                  label: { "en-US": "Item 1" },
+                  dataType: "Text",
+                  orderNumber: 1,
+                  effectiveVersion: "1.0",
+                  origin: "Protocol",
+                  validation: { required: false },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      codelists: {},
+      methods: {
+        M_BMI: {
+          methodOid: "M_BMI",
+          name: "BMI",
+          type: "Computation",
+          referencedVariables: "WEIGHT, HEIGHT",
+        },
+      },
+    };
+
+    const migrated = migrateStudyDesign(legacyStudy);
+    const item = migrated.forms["F1"].itemGroups[0].items[0];
+
+    expect(item.origin).toBe("Pre-Specified");
+    expect(migrated.methods?.M_BMI.referencedVariables).toEqual(["WEIGHT", "HEIGHT"]);
+  });
 });
