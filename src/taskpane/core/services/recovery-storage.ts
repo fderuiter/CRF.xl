@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { StudyDesign } from "../types";
+import { StudyDesign, isCrfItem } from "../types";
 import { ValidationIssue } from "../parser/validator";
 
 export const RECOVERY_STORAGE_KEY = "crf-xl-recovery-snapshot-v1";
@@ -80,7 +80,7 @@ export function summarizeStudyDesign(study: StudyDesign): StudyDesignSummary {
     (total, form) =>
       total +
       (form.itemGroups ?? []).reduce(
-        (groupTotal, group) => groupTotal + (group.items?.length ?? 0),
+        (groupTotal, group) => groupTotal + (group.items?.filter(isCrfItem).length ?? 0),
         0
       ),
     0

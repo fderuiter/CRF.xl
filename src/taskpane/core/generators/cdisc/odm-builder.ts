@@ -1,5 +1,12 @@
 /* eslint-disable no-undef */
-import { StudyDesign, DataType, TranslatedText, CrfItem, RuleType } from "../../types/index";
+import {
+  StudyDesign,
+  DataType,
+  TranslatedText,
+  CrfItem,
+  RuleType,
+  isCrfItem,
+} from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/rules-validator";
 
 /**
@@ -61,6 +68,9 @@ export function generateOdmXml(study: StudyDesign): string {
     Object.values(study.forms).forEach((form) => {
       form.itemGroups.forEach((group) => {
         group.items.forEach((item) => {
+          if (!isCrfItem(item)) {
+            return;
+          }
           if (item.itemOid) {
             studyItemOids.add(item.itemOid.toLowerCase());
           }
@@ -162,6 +172,9 @@ export function generateOdmXml(study: StudyDesign): string {
       xml += `
       <ItemGroupDef OID="${group.groupOid}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         // Find matching centralized SHOW_IF rule
         const showIfRule = study.rules?.find(
           (r) =>
@@ -189,6 +202,9 @@ export function generateOdmXml(study: StudyDesign): string {
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         if (processedItems.has(item.itemOid)) return;
         processedItems.add(item.itemOid);
 
@@ -262,6 +278,9 @@ export function generateOdmXml(study: StudyDesign): string {
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
+        if (!isCrfItem(item)) {
+          return;
+        }
         if (!item.showIf) return;
 
         const conditionOid = `COND.${item.itemOid}`;

@@ -1,9 +1,17 @@
 /* eslint-disable office-addins/call-sync-before-read, office-addins/call-sync-after-load */
 /* global Excel */
-import { StudyDesign, DataType, CrfItem, EventType, StudyEvent } from "../types/index";
+import {
+  StudyDesign,
+  DataType,
+  CrfItem,
+  EventType,
+  StudyEvent,
+  isCrfDisplayBlock,
+} from "../types/index";
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
 import { parseRulesSheetRows } from "./rules-parser";
 import { migrateStudyDesign } from "./migration";
+import { mapRowToFormElement } from "./form-element-utils";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -196,8 +204,10 @@ export async function parseExcelToStudyDesign(
 
           await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
             runtime.throwIfStopped("items");
-            const item = mapRowToItem(headers, row, oid, rowIndex + 2); // +1 because Excel rows are 1-based, and +1 for header
-            if (item.itemOid) targetGroup.items.push(item as CrfItem);
+            const element = mapRowToFormElement(headers, row, oid, rowIndex + 2); // +1 because Excel rows are 1-based, and +1 for header
+            if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
+              targetGroup.items.push(element as any);
+            }
           });
         }
       } catch (error) {
@@ -322,7 +332,7 @@ export async function parseExcelToStudyDesign(
         const vals = await getValues(methodsSheet);
         if (vals && vals.length > 1) {
           const rows = vals.slice(1);
-          await processRowsInChunks(rows, runtime, "methods", (row, _rowIndex) => {
+          await processRowsInChunks(rows, runtime, "methods", (row) => {
             runtime.throwIfStopped("methods");
             const [oid, name, type, description, expression] = row;
             if (!oid) return;
@@ -373,70 +383,4 @@ async function getValues(sheet: Excel.Worksheet) {
   range.load("values");
   await range.context.sync();
   return range.values;
-}
-
-function mapRowToItem(
-  headers: string[],
-  row: any[],
-  formOid: string,
-  excelRowIndex: number
-): Partial<CrfItem> {
-  const item: any = {
-    formOid,
-    label: {},
-    validation: { required: false },
-    sdtmMapping: {},
-    adamMapping: {},
-    rowIndex: excelRowIndex,
-  };
-  headers.forEach((h, i) => {
-    const val = row[i];
-    if (val === undefined || val === null || val === "") return;
-    const ch = h.toLowerCase().trim();
-
-    // Map to Matrix CRF Columns
-    if (ch === "variable name") {
-      item.itemOid = String(val).trim().toUpperCase();
-      item.name = item.itemOid;
-    }
-    if (ch === "label") item.label["en-US"] = String(val);
-    if (ch === "variable type") item.dataType = String(val).toLowerCase() as any;
-    if (ch === "length") item.length = parseNumericMetadata(val);
-    if (ch === "significant digits" || ch === "precision")
-      item.significantDigits = parseNumericMetadata(val);
-    if (ch === "required") item.validation.required = String(val).toLowerCase() === "yes";
-    if (ch === "show if") item.showIf = String(val);
-    if (ch === "codelist id") item.codelistId = String(val).trim().toUpperCase();
-    if (ch === "origin") item.origin = String(val).trim();
-    if (ch === "methodoid" || ch === "method oid") item.methodOid = String(val).trim();
-    
-    // SDTM Mapping
-    if (ch === "sdtmdomain" || ch === "sdtm domain") item.sdtmMapping.domain = String(val).trim();
-    if (ch === "sdtmvariable" || ch === "sdtm variable") item.sdtmMapping.variable = String(val).trim();
-    if (ch === "sdtmncivariablecode" || ch === "sdtm nci variable code") item.sdtmMapping.nciVariableCode = String(val).trim();
-    if (ch === "sdtmsasfieldname" || ch === "sdtm sas field name") item.sdtmMapping.sasFieldName = String(val).trim();
-    if (ch === "sdtmsaslabel" || ch === "sdtm sas label") item.sdtmMapping.sasLabel = String(val).trim();
-    if (ch === "sdtmsasdatasetname" || ch === "sdtm sas dataset name") item.sdtmMapping.sasDatasetName = String(val).trim();
-    if (ch === "sdtmcore" || ch === "sdtm core") item.sdtmMapping.core = String(val).trim() as any;
-    if (ch === "sdtmrole" || ch === "sdtm role") item.sdtmMapping.role = String(val).trim();
-
-    // ADaM Mapping
-    if (ch === "adamdataset" || ch === "adam dataset") item.adamMapping.dataset = String(val).trim();
-    if (ch === "adamvariable" || ch === "adam variable") item.adamMapping.variable = String(val).trim();
-    if (ch === "adamncivariablecode" || ch === "adam nci variable code") item.adamMapping.nciVariableCode = String(val).trim();
-    if (ch === "adamsasfieldname" || ch === "adam sas field name") item.adamMapping.sasFieldName = String(val).trim();
-    if (ch === "adamsaslabel" || ch === "adam sas label") item.adamMapping.sasLabel = String(val).trim();
-    if (ch === "adamcore" || ch === "adam core") item.adamMapping.core = String(val).trim();
-    if (ch === "adamrole" || ch === "adam role") item.adamMapping.role = String(val).trim();
-
-    if (ch === "comment") item.comment = String(val).trim();
-  });
-  return item;
-}
-
-function parseNumericMetadata(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === "") {
-    return undefined;
-  }
-  return Number(value);
 }

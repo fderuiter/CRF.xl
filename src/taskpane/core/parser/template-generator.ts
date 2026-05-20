@@ -1,4 +1,5 @@
 /* global Excel */
+import { CRF_VARIABLE_TYPE_OPTIONS } from "./form-element-utils";
 
 interface SheetProtectionConfig {
   sheetName: "_Forms" | "_Schedule";
@@ -69,7 +70,13 @@ export async function initializeWorkbook(): Promise<void> {
         name: "_Methods",
         headers: ["Method OID", "Name", "Type", "Description", "Expression"],
         data: [
-          ["M_DERIVED_BMI", "BMI Derivation", "Computation", "Body Mass Index", "[WEIGHT] / ([HEIGHT]/100)^2"],
+          [
+            "M_DERIVED_BMI",
+            "BMI Derivation",
+            "Computation",
+            "Body Mass Index",
+            "[WEIGHT] / ([HEIGHT]/100)^2",
+          ],
         ],
       },
     ];
@@ -208,7 +215,7 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
       crfSheet.getRange("C3:C1000").dataValidation.rule = {
         list: {
           inCellDropDown: true,
-          source: "Text,Integer,Float,Date,Time,Datetime,Boolean,Codelist",
+          source: CRF_VARIABLE_TYPE_OPTIONS.join(","),
         },
       };
       crfSheet.getRange("D3:D1000").dataValidation.rule = {

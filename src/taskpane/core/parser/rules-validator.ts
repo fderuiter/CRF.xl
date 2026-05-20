@@ -5,7 +5,14 @@
  * Dependency Graph Validator and Topological Sorter for CRF.xl Rules.
  */
 
-import { ASTNode, RuleDefinition, RuleType, StudyDesign, DataType } from "../types/index";
+import {
+  ASTNode,
+  RuleDefinition,
+  RuleType,
+  StudyDesign,
+  DataType,
+  isCrfItem,
+} from "../types/index";
 import { validateExpression } from "./expression-validator";
 
 export interface RuleValidationError {
@@ -184,6 +191,9 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign): Rul
         for (const group of form.itemGroups) {
           if (group.items) {
             for (const item of group.items) {
+              if (!isCrfItem(item)) {
+                continue;
+              }
               if (item.itemOid) {
                 knownFormVariables.add(item.itemOid.toLowerCase());
               }
@@ -204,6 +214,9 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign): Rul
         for (const group of form.itemGroups) {
           if (group.items) {
             for (const item of group.items) {
+              if (!isCrfItem(item)) {
+                continue;
+              }
               if (item.itemOid) {
                 variablesMap.set(item.itemOid, item.dataType);
               }
