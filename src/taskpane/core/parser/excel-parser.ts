@@ -322,7 +322,7 @@ export async function parseExcelToStudyDesign(
         const vals = await getValues(methodsSheet);
         if (vals && vals.length > 1) {
           const rows = vals.slice(1);
-          await processRowsInChunks(rows, runtime, "methods", (row, rowIndex) => {
+          await processRowsInChunks(rows, runtime, "methods", (row, _rowIndex) => {
             runtime.throwIfStopped("methods");
             const [oid, name, type, description, expression] = row;
             if (!oid) return;

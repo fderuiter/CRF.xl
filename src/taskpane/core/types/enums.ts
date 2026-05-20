@@ -150,3 +150,47 @@ export enum DateImputationRule {
   MID_YEAR = "MidYear",
   LAST_OF_YEAR = "LastOfYear",
 }
+
+export enum AdamCore {
+  REQUIRED = "Required",
+  EXPECTED = "Expected",
+  PERMISSIBLE = "Permissible",
+  CONDITIONALLY_REQUIRED = "ConditionallyRequired",
+}
+
+export enum DatasetPurpose {
+  TABULATION = "Tabulation",
+  ANALYSIS = "Analysis",
+}
+
+/**
+ * Define-XML 2.1 origin vocabulary for submission-layer variable metadata.
+ * Distinct from DataOrigin (CRF collection context) — this reflects the
+ * dataset-level origin element used in a regulatory submission define file.
+ */
+export enum VariableOrigin {
+  COLLECTED = "Collected",
+  DERIVED = "Derived",
+  ASSIGNED = "Assigned",
+  PROTOCOL = "Protocol",
+  EDT = "eDT",
+}
+
+/**
+ * Covers both SDTM and ADaM dataset class vocabularies.
+ * SDTM classes: SpecialPurpose, Interventions, Events, Findings,
+ *   FindingsAboutEvents, TrialDesign.
+ * ADaM classes: ADaMBasicDataStructure, OCCDS, ADTTE, ADEG.
+ */
+export enum DatasetClass {
+  SPECIAL_PURPOSE = "SpecialPurpose",
+  INTERVENTIONS = "Interventions",
+  EVENTS = "Events",
+  FINDINGS = "Findings",
+  FINDINGS_ABOUT_EVENTS = "FindingsAboutEvents",
+  TRIAL_DESIGN = "TrialDesign",
+  ADAM_BASIC_DATA_STRUCTURE = "ADaMBasicDataStructure",
+  OCCDS = "OCCDS",
+  ADTTE = "ADTTE",
+  ADEG = "ADEG",
+}
