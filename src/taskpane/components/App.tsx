@@ -515,7 +515,22 @@ export const App: React.FC<{ title?: string }> = () => {
             return <RegistryView onInit={handleInitialize} onSync={handleSync} isProcessing={isProcessing} />;
         }
         if (activeSheet === "_Schedule" || activeSheet === "_Codelists") {
-            return <MatrixView onAnalyze={() => performAnalysis()} onDocx={handleDocxExport} onOdm={handleOdmExport} isProcessing={isProcessing} hasErrors={issues.some(i => i.level === 'Error')} isLoaded={!!studySummary} study={study} />;
+            return (
+                <MatrixView
+                    onAnalyze={() => performAnalysis()}
+                    onDocx={handleDocxExport}
+                    onOdm={handleOdmExport}
+                    isProcessing={isProcessing}
+                    hasErrors={issues.some(i => i.level === 'Error')}
+                    isLoaded={!!studySummary}
+                    study={study}
+                    onNavigate={(sheetName, rowIndex) => {
+                        if (rowIndex !== undefined && sheetName) {
+                            navigateToSource(sheetName, rowIndex);
+                        }
+                    }}
+                />
+            );
         }
         if (!activeSheet.startsWith("_")) {
             return <AuthoringView sheetName={activeSheet} onValidate={() => performAnalysis(activeSheet)} isProcessing={isProcessing} />;

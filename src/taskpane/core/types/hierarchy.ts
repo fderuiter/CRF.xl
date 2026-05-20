@@ -213,5 +213,7 @@ export interface StudyDesign {
   forms: Record<string, CrfForm>;
   codelists: Record<string, Codelist>;
   rules?: RuleDefinition[];
+  crossFormDependencies?: any[];
 }
+
 

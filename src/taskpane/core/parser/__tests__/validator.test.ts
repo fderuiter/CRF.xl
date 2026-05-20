@@ -404,4 +404,195 @@ describe("Clinical Validator Engine", () => {
       ])
     );
   });
+
+  describe("Cross-Form Dependencies", () => {
+    beforeEach(() => {
+      // Add form F2 and F3 to mockStudy
+      mockStudy.forms["F2"] = {
+        formOid: "F2",
+        formName: "Form 2",
+        orderNumber: 2,
+        repeating: false,
+        effectiveVersion: "1.0",
+        itemGroups: [
+          {
+            groupOid: "G2",
+            name: "Group 2",
+            repeating: false,
+            orderNumber: 1,
+            items: [
+              {
+                itemOid: "I2",
+                name: "Item 2",
+                formOid: "F2",
+                groupOid: "G2",
+                orderNumber: 1,
+                dataType: DataType.TEXT,
+                label: { "en-US": "Item 2" },
+                effectiveVersion: "1.0",
+                validation: { required: false },
+              },
+            ],
+          },
+        ],
+      };
+
+      mockStudy.forms["F3"] = {
+        formOid: "F3",
+        formName: "Form 3",
+        orderNumber: 3,
+        repeating: true, // Repeating form!
+        effectiveVersion: "1.0",
+        itemGroups: [
+          {
+            groupOid: "G3",
+            name: "Group 3",
+            repeating: false,
+            orderNumber: 1,
+            items: [
+              {
+                itemOid: "I3",
+                name: "Item 3",
+                formOid: "F3",
+                groupOid: "G3",
+                orderNumber: 1,
+                dataType: DataType.TEXT,
+                label: { "en-US": "Item 3" },
+                effectiveVersion: "1.0",
+                validation: { required: false },
+              },
+            ],
+          },
+        ],
+      };
+
+      // Set up schedule: V1 contains F1, F2 is in V2, F3 is in V3
+      mockStudy.events.push(
+        {
+          eventOid: "V2",
+          eventName: "Visit 2",
+          orderNumber: 2,
+          eventType: EventType.SCHEDULED,
+          forms: [{ formOid: "F2", orderNumber: 1, mandatory: true }],
+        },
+        {
+          eventOid: "V3",
+          eventName: "Visit 3",
+          orderNumber: 3,
+          eventType: EventType.SCHEDULED,
+          forms: [{ formOid: "F3", orderNumber: 1, mandatory: true }],
+        }
+      );
+    });
+
+    it("should allow a valid cross-form reference", () => {
+      // F2.I2 references F1.I1 which is scheduled before F2
+      mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.I1 == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const crossFormErrors = issues.filter(i => i.level === "Error" && i.message.includes("reference"));
+      expect(crossFormErrors.length).toBe(0);
+      expect(mockStudy.crossFormDependencies).toBeDefined();
+      expect(mockStudy.crossFormDependencies?.length).toBe(1);
+      expect(mockStudy.crossFormDependencies?.[0].status).toBe("Valid");
+    });
+
+    it("should raise an Error for a broken reference", () => {
+      // F2.I2 references a non-existent variable F1.MISSING
+      mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.MISSING == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const brokenErr = issues.find(i => i.level === "Error" && i.message.includes("Broken reference"));
+      expect(brokenErr).toBeDefined();
+      expect(brokenErr?.location).toContain("F2 > Row");
+    });
+
+    it("should raise an Error for an unsupported target type reference", () => {
+      // F1.I1 is set to File type
+      mockStudy.forms["F1"].itemGroups[0].items[0].dataType = "File" as any;
+      // F2.I2 references F1.I1
+      mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.I1 == 'File'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const unsupportedErr = issues.find(
+        i => i.level === "Error" && i.message.includes("unsupported target type")
+      );
+      expect(unsupportedErr).toBeDefined();
+    });
+
+    it("should raise an Error for an unreachable target (scheduled after source)", () => {
+      // F1.I1 (scheduled in Visit 1) references F2.I2 (scheduled in Visit 2)
+      mockStudy.forms["F1"].itemGroups[0].items[0].showIf = "F2.I2 == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const unreachableErr = issues.find(
+        i => i.level === "Error" && i.message.toLowerCase().includes("unreachable target") && i.message.includes("scheduled after")
+      );
+      expect(unreachableErr).toBeDefined();
+    });
+
+    it("should raise an Error for an unreachable target (not scheduled at all)", () => {
+      // Remove F2 from all events
+      mockStudy.events = mockStudy.events.filter(e => e.eventOid !== "V2");
+      // F1.I1 references F2.I2
+      mockStudy.forms["F1"].itemGroups[0].items[0].showIf = "F2.I2 == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const unreachableErr = issues.find(
+        i => i.level === "Error" && i.message.includes("is not scheduled in any event")
+      );
+      expect(unreachableErr).toBeDefined();
+    });
+
+    it("should raise a Warning for an unqualified cross-form reference", () => {
+      // F2.I2 references I1 unqualified (which resides in F1)
+      mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "I1 == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const warning = issues.find(
+        i => i.level === "Warning" && i.message.includes("high-risk unqualified reference")
+      );
+      expect(warning).toBeDefined();
+    });
+
+    it("should raise a Warning when a non-repeating form references a repeating form variable", () => {
+      // Set F3 to be scheduled before F2 to avoid Unreachable target error
+      mockStudy.events = [
+        {
+          eventOid: "V1",
+          eventName: "Visit 1",
+          orderNumber: 1,
+          eventType: EventType.SCHEDULED,
+          forms: [{ formOid: "F1", orderNumber: 1, mandatory: true }],
+        },
+        {
+          eventOid: "V2",
+          eventName: "Visit 2",
+          orderNumber: 2,
+          eventType: EventType.SCHEDULED,
+          forms: [
+            { formOid: "F3", orderNumber: 1, mandatory: true },
+            { formOid: "F2", orderNumber: 2, mandatory: true }
+          ],
+        }
+      ];
+
+      // F2 (non-repeating) references F3.I3 (repeating)
+      mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F3.I3 == 'Yes'";
+
+      const issues = validateStudyDesign(mockStudy);
+      const warning = issues.find(
+        i => i.level === "Warning" && i.message.includes("repeating variable")
+      );
+      expect(warning).toBeDefined();
+    });
+
+    it("should remain issues-free and have no dependencies in single-form study", () => {
+      // Reset mockStudy to single form and check
+      const issues = validateStudyDesign(mockStudy);
+      const crossFormIssues = issues.filter(i => i.message.includes("reference") || i.message.includes("target"));
+      expect(crossFormIssues.length).toBe(0);
+      expect(mockStudy.crossFormDependencies?.length).toBe(0);
+    });
+  });
 });
