@@ -65,6 +65,13 @@ export async function initializeWorkbook(): Promise<void> {
           ["GENDER", "Gender", "F", "Female"],
         ],
       },
+      {
+        name: "_Methods",
+        headers: ["Method OID", "Name", "Type", "Description", "Expression"],
+        data: [
+          ["M_DERIVED_BMI", "BMI Derivation", "Computation", "Body Mass Index", "[WEIGHT] / ([HEIGHT]/100)^2"],
+        ],
+      },
     ];
 
     for (const config of controlConfigs) {
@@ -185,6 +192,11 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
         "Maximum",
         "Show If",
         "Codelist ID",
+        "Origin",
+        "Method OID",
+        "SDTM Domain",
+        "SDTM Variable",
+        "Comment",
       ];
       const headerRange = crfSheet.getRangeByIndexes(1, 0, 1, headers.length);
       headerRange.values = [headers];
@@ -206,6 +218,14 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
       // Connect to Dynamic Codelist Named Range
       crfSheet.getRange("J3:J1000").dataValidation.rule = {
         list: { inCellDropDown: true, source: "=CodelistDictionary" },
+      };
+
+      // Apply Origin Validation to Column K
+      crfSheet.getRange("K3:K1000").dataValidation.rule = {
+        list: {
+          inCellDropDown: true,
+          source: "Protocol,Investigator,Subject,Derived,Assigned,eDT",
+        },
       };
 
       headerRange.format.autofitColumns();

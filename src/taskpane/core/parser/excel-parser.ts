@@ -3,6 +3,7 @@
 import { StudyDesign, DataType, CrfItem, EventType, StudyEvent } from "../types/index";
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
 import { parseRulesSheetRows } from "./rules-parser";
+import { migrateStudyDesign } from "./migration";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -305,6 +306,50 @@ export async function parseExcelToStudyDesign(
       message: "Completed _Rules sheet",
     });
 
+    // 7. Parse _Methods Sheet
+    runtime.reportProgress({
+      phase: "methods",
+      completed: 0,
+      total: 1,
+      message: "Reading _Methods sheet",
+    });
+    runtime.throwIfStopped("methods");
+    const methodsSheet = sheets.getItemOrNullObject("_Methods");
+    await context.sync();
+    study.methods = {};
+    if (!methodsSheet.isNullObject) {
+      try {
+        const vals = await getValues(methodsSheet);
+        if (vals && vals.length > 1) {
+          const rows = vals.slice(1);
+          await processRowsInChunks(rows, runtime, "methods", (row, _rowIndex) => {
+            runtime.throwIfStopped("methods");
+            const [oid, name, type, description, expression] = row;
+            if (!oid) return;
+            const strOid = String(oid).trim();
+            study.methods![strOid] = {
+              methodOid: strOid,
+              name: String(name || "").trim(),
+              type: String(type || "").trim(),
+              description: description ? String(description).trim() : undefined,
+              expression: expression ? String(expression).trim() : undefined,
+            };
+          });
+        }
+      } catch (error) {
+        if (!allowPartialSheetFailures) throw error;
+        parseWarnings.push(
+          `Sheet "_Methods" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+    runtime.reportProgress({
+      phase: "methods",
+      completed: 1,
+      total: 1,
+      message: "Completed _Methods sheet",
+    });
+
     if (parseWarnings.length > 0) {
       study.metadata.customProperties = {
         ...(study.metadata.customProperties ?? {}),
@@ -319,7 +364,7 @@ export async function parseExcelToStudyDesign(
       message: "Workbook analysis completed",
     });
 
-    return study;
+    return migrateStudyDesign(study);
   });
 }
 
@@ -341,6 +386,7 @@ function mapRowToItem(
     label: {},
     validation: { required: false },
     sdtmMapping: {},
+    adamMapping: {},
     rowIndex: excelRowIndex,
   };
   headers.forEach((h, i) => {
@@ -361,6 +407,29 @@ function mapRowToItem(
     if (ch === "required") item.validation.required = String(val).toLowerCase() === "yes";
     if (ch === "show if") item.showIf = String(val);
     if (ch === "codelist id") item.codelistId = String(val).trim().toUpperCase();
+    if (ch === "origin") item.origin = String(val).trim();
+    if (ch === "methodoid" || ch === "method oid") item.methodOid = String(val).trim();
+    
+    // SDTM Mapping
+    if (ch === "sdtmdomain" || ch === "sdtm domain") item.sdtmMapping.domain = String(val).trim();
+    if (ch === "sdtmvariable" || ch === "sdtm variable") item.sdtmMapping.variable = String(val).trim();
+    if (ch === "sdtmncivariablecode" || ch === "sdtm nci variable code") item.sdtmMapping.nciVariableCode = String(val).trim();
+    if (ch === "sdtmsasfieldname" || ch === "sdtm sas field name") item.sdtmMapping.sasFieldName = String(val).trim();
+    if (ch === "sdtmsaslabel" || ch === "sdtm sas label") item.sdtmMapping.sasLabel = String(val).trim();
+    if (ch === "sdtmsasdatasetname" || ch === "sdtm sas dataset name") item.sdtmMapping.sasDatasetName = String(val).trim();
+    if (ch === "sdtmcore" || ch === "sdtm core") item.sdtmMapping.core = String(val).trim() as any;
+    if (ch === "sdtmrole" || ch === "sdtm role") item.sdtmMapping.role = String(val).trim();
+
+    // ADaM Mapping
+    if (ch === "adamdataset" || ch === "adam dataset") item.adamMapping.dataset = String(val).trim();
+    if (ch === "adamvariable" || ch === "adam variable") item.adamMapping.variable = String(val).trim();
+    if (ch === "adamncivariablecode" || ch === "adam nci variable code") item.adamMapping.nciVariableCode = String(val).trim();
+    if (ch === "adamsasfieldname" || ch === "adam sas field name") item.adamMapping.sasFieldName = String(val).trim();
+    if (ch === "adamsaslabel" || ch === "adam sas label") item.adamMapping.sasLabel = String(val).trim();
+    if (ch === "adamcore" || ch === "adam core") item.adamMapping.core = String(val).trim();
+    if (ch === "adamrole" || ch === "adam role") item.adamMapping.role = String(val).trim();
+
+    if (ch === "comment") item.comment = String(val).trim();
   });
   return item;
 }

@@ -284,7 +284,7 @@ export function generateOdmXml(study: StudyDesign): string {
     });
   });
 
-  // 8. Method Definitions (centralized derivation rules)
+  // 8. Method Definitions (both rules and registry)
   const processedMethods = new Set<string>();
   if (study.rules && study.rules.length > 0) {
     const validationResult = validateRules(study.rules, study);
@@ -313,6 +313,34 @@ export function generateOdmXml(study: StudyDesign): string {
         <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
       </MethodDef>`;
       }
+    });
+  }
+
+  // 8b. Centralized Method Definitions from _Methods sheet
+  if (study.methods) {
+    Object.values(study.methods).forEach((method) => {
+      const cleanOid = method.methodOid.trim();
+      if (processedMethods.has(cleanOid)) return;
+      processedMethods.add(cleanOid);
+
+      let descElement = "";
+      if (method.description) {
+        descElement = `
+        <Description>
+          <TranslatedText xml:lang="en-US">${escapeXml(method.description)}</TranslatedText>
+        </Description>`;
+      }
+
+      const typeAttr = method.type ? escapeXml(method.type) : "Computation";
+      let formalExpressionElement = "";
+      if (method.expression) {
+        formalExpressionElement = `
+        <FormalExpression Context="CRF.xl">${escapeXml(method.expression)}</FormalExpression>`;
+      }
+
+      xml += `
+      <MethodDef OID="${cleanOid}" Name="${escapeXml(method.name || cleanOid)}" Type="${typeAttr}">${descElement}${formalExpressionElement}
+      </MethodDef>`;
     });
   }
 
@@ -352,8 +380,17 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
     output += ` SASFieldName="${escapeXml(item.sdtmMapping.sasFieldName)}"`;
   }
 
-  if (derivationMethodOid) {
-    output += ` MethodOID="${derivationMethodOid}"`;
+  if (item.origin) {
+    output += ` Origin="${escapeXml(item.origin)}"`;
+  }
+
+  const effectiveMethodOid = item.methodOid || derivationMethodOid;
+  if (effectiveMethodOid) {
+    output += ` MethodOID="${escapeXml(effectiveMethodOid)}"`;
+  }
+
+  if (item.comment) {
+    output += ` Comment="${escapeXml(item.comment)}"`;
   }
 
   output += `>

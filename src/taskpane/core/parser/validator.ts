@@ -1,4 +1,4 @@
-import { StudyDesign, RuleType, CrfItem } from "../types/index";
+import { StudyDesign, RuleType, CrfItem, DataOrigin } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
 
@@ -184,6 +184,67 @@ export function validateStudyDesign(
           issues.push({
             level: "Error",
             message: "Significant Digits cannot exceed Length.",
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        }
+
+        // VLM & Methods Validation
+        const validOrigins = Object.values(DataOrigin) as string[];
+        if (item.origin) {
+          if (!validOrigins.includes(item.origin)) {
+            issues.push({
+              level: "Error",
+              message: `Invalid Origin value: '${item.origin}'. Must be one of: ${validOrigins.join(", ")}.`,
+              location: `${sheet} > ${item.itemOid || item.name}`,
+              rowIndex: row,
+              sheetName: sheet,
+            });
+          }
+        }
+
+        if (
+          (item.origin === DataOrigin.DERIVED || item.origin === DataOrigin.ASSIGNED) &&
+          (!item.methodOid || !item.methodOid.trim())
+        ) {
+          issues.push({
+            level: "Error",
+            message: `Method OID is required when Origin is '${item.origin}'.`,
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        }
+
+        if (item.methodOid && item.methodOid.trim()) {
+          const cleanMethodOid = item.methodOid.trim().toLowerCase();
+          const methodsKeys = study.methods ? Object.keys(study.methods).map(k => k.toLowerCase()) : [];
+          if (!methodsKeys.includes(cleanMethodOid)) {
+            issues.push({
+              level: "Error",
+              message: `Referenced Method OID '${item.methodOid}' does not exist in _Methods.`,
+              location: `${sheet} > ${item.itemOid || item.name}`,
+              rowIndex: row,
+              sheetName: sheet,
+            });
+          }
+        }
+
+        const hasDomain = !!item.sdtmMapping?.domain && !!item.sdtmMapping.domain.trim();
+        const hasVariable = !!item.sdtmMapping?.variable && !!item.sdtmMapping.variable.trim();
+        if (hasDomain && !hasVariable) {
+          issues.push({
+            level: "Warning",
+            message: "SDTM Domain is specified but companion SDTM Variable is missing.",
+            location: `${sheet} > ${item.itemOid || item.name}`,
+            rowIndex: row,
+            sheetName: sheet,
+          });
+        } else if (hasVariable && !hasDomain) {
+          issues.push({
+            level: "Warning",
+            message: "SDTM Variable is specified but companion SDTM Domain is missing.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
             sheetName: sheet,
@@ -553,3 +614,294 @@ function isNumericDataType(dataType: unknown): boolean {
   const normalized = String(dataType ?? "").toLowerCase();
   return normalized === "integer" || normalized === "float";
 }
+
+export function validateSubmissionMetadataForRelease(study: StudyDesign): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  const sdtmDatasetDomains = new Set<string>();
+  const adamDatasetNames = new Set<string>();
+  const sdtmDerivationIds = new Set<string>();
+  const adamDerivationIds = new Set<string>();
+
+  // Collect defined datasets and derivations
+  if (study.submissionMetadata) {
+    if (study.submissionMetadata.sdtmDatasets) {
+      study.submissionMetadata.sdtmDatasets.forEach((ds) => {
+        if (ds.domain) {
+          sdtmDatasetDomains.add(ds.domain.toUpperCase());
+          // Validate dataset metadata required fields
+          if (!ds.label) {
+            issues.push({
+              level: "Error",
+              message: `SDTM Dataset Metadata '${ds.domain}' is missing a label.`,
+              sheetName: "_Study",
+            });
+          }
+          if (!ds.structure) {
+            issues.push({
+              level: "Error",
+              message: `SDTM Dataset Metadata '${ds.domain}' is missing structure details.`,
+              sheetName: "_Study",
+            });
+          }
+          if (!ds.class) {
+            issues.push({
+              level: "Error",
+              message: `SDTM Dataset Metadata '${ds.domain}' is missing class designation.`,
+              sheetName: "_Study",
+            });
+          }
+        }
+      });
+    }
+
+    if (study.submissionMetadata.adamDatasets) {
+      study.submissionMetadata.adamDatasets.forEach((ds) => {
+        if (ds.dataset) {
+          adamDatasetNames.add(ds.dataset.toUpperCase());
+          // Validate dataset metadata required fields
+          if (!ds.label) {
+            issues.push({
+              level: "Error",
+              message: `ADaM Dataset Metadata '${ds.dataset}' is missing a label.`,
+              sheetName: "_Study",
+            });
+          }
+          if (!ds.structure) {
+            issues.push({
+              level: "Error",
+              message: `ADaM Dataset Metadata '${ds.dataset}' is missing structure details.`,
+              sheetName: "_Study",
+            });
+          }
+          if (!ds.class) {
+            issues.push({
+              level: "Error",
+              message: `ADaM Dataset Metadata '${ds.dataset}' is missing class designation.`,
+              sheetName: "_Study",
+            });
+          }
+        }
+      });
+    }
+
+    if (study.submissionMetadata.sdtmDerivations) {
+      study.submissionMetadata.sdtmDerivations.forEach((der) => {
+        if (der.derivationId) {
+          sdtmDerivationIds.add(der.derivationId.toUpperCase());
+          if (!der.description) {
+            issues.push({
+              level: "Error",
+              message: `SDTM Derivation '${der.derivationId}' is missing a description.`,
+              sheetName: "_Study",
+            });
+          }
+        }
+      });
+    }
+
+    if (study.submissionMetadata.adamDerivations) {
+      study.submissionMetadata.adamDerivations.forEach((der) => {
+        if (der.derivationId) {
+          adamDerivationIds.add(der.derivationId.toUpperCase());
+          if (!der.description) {
+            issues.push({
+              level: "Error",
+              message: `ADaM Derivation '${der.derivationId}' is missing a description.`,
+              sheetName: "_Study",
+            });
+          }
+        }
+      });
+    }
+  }
+
+  // Validate items
+  if (study.forms) {
+    Object.values(study.forms).forEach((form) => {
+      form.itemGroups.forEach((group) => {
+        group.items.forEach((item) => {
+          const row = (item as any).rowIndex;
+          const sheet = form.formOid;
+
+          // 1. Validate SDTM Variable Mapping
+          if (item.sdtmMapping) {
+            const hasDomain = !!item.sdtmMapping.domain && !!item.sdtmMapping.domain.trim();
+            const hasVar = !!item.sdtmMapping.variable && !!item.sdtmMapping.variable.trim();
+
+            if (hasDomain || hasVar) {
+              if (!hasDomain) {
+                issues.push({
+                  level: "Error",
+                  message: `SDTM variable '${item.sdtmMapping.variable}' is mapped but SDTM domain is missing.`,
+                  location: `${sheet} > Row ${row}`,
+                  rowIndex: row,
+                  sheetName: sheet,
+                });
+              } else if (!hasVar) {
+                issues.push({
+                  level: "Error",
+                  message: `SDTM domain '${item.sdtmMapping.domain}' is mapped but SDTM variable name is missing.`,
+                  location: `${sheet} > Row ${row}`,
+                  rowIndex: row,
+                  sheetName: sheet,
+                });
+              } else {
+                // Both domain and variable are present
+                const domainUpper = item.sdtmMapping.domain.toUpperCase();
+                // Check if references a valid defined dataset
+                if (sdtmDatasetDomains.size > 0 && !sdtmDatasetDomains.has(domainUpper)) {
+                  issues.push({
+                    level: "Error",
+                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+
+                // Check other required variable fields for release
+                if (!item.sdtmMapping.core) {
+                  issues.push({
+                    level: "Error",
+                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Core requiredness designation.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.sdtmMapping.role) {
+                  issues.push({
+                    level: "Error",
+                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Role designation.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.sdtmMapping.sasFieldName) {
+                  issues.push({
+                    level: "Error",
+                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Field Name.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.sdtmMapping.sasLabel) {
+                  issues.push({
+                    level: "Error",
+                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Label.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+              }
+            }
+          }
+
+          // 2. Validate ADaM Variable Mapping
+          if (item.adamMapping) {
+            const hasDs = !!item.adamMapping.dataset && !!item.adamMapping.dataset.trim();
+            const hasVar = !!item.adamMapping.variable && !!item.adamMapping.variable.trim();
+
+            if (hasDs || hasVar) {
+              if (!hasDs) {
+                issues.push({
+                  level: "Error",
+                  message: `ADaM variable '${item.adamMapping.variable}' is mapped but ADaM dataset is missing.`,
+                  location: `${sheet} > Row ${row}`,
+                  rowIndex: row,
+                  sheetName: sheet,
+                });
+              } else if (!hasVar) {
+                issues.push({
+                  level: "Error",
+                  message: `ADaM dataset '${item.adamMapping.dataset}' is mapped but ADaM variable name is missing.`,
+                  location: `${sheet} > Row ${row}`,
+                  rowIndex: row,
+                  sheetName: sheet,
+                });
+              } else {
+                // Both dataset and variable are present
+                const dsUpper = item.adamMapping.dataset.toUpperCase();
+                // Check if references a valid defined dataset
+                if (adamDatasetNames.size > 0 && !adamDatasetNames.has(dsUpper)) {
+                  issues.push({
+                    level: "Error",
+                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+
+                // Check other required variable fields for release
+                if (!item.adamMapping.core) {
+                  issues.push({
+                    level: "Error",
+                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Core requiredness designation.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.adamMapping.role) {
+                  issues.push({
+                    level: "Error",
+                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Role designation.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.adamMapping.sasFieldName) {
+                  issues.push({
+                    level: "Error",
+                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Field Name.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+                if (!item.adamMapping.sasLabel) {
+                  issues.push({
+                    level: "Error",
+                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Label.`,
+                    location: `${sheet} > Row ${row}`,
+                    rowIndex: row,
+                    sheetName: sheet,
+                  });
+                }
+              }
+            }
+          }
+
+          // 3. Validate derivation reference consistency for Derived origin variables
+          if (item.origin === DataOrigin.DERIVED) {
+            // If item has a methodOid, it must be defined in central derivations/methods
+            if (item.methodOid) {
+              const hasCoreMethod = study.methods && study.methods[item.methodOid];
+              const hasSdtmDer = sdtmDerivationIds.has(item.methodOid.toUpperCase());
+              const hasAdamDer = adamDerivationIds.has(item.methodOid.toUpperCase());
+
+              if (!hasCoreMethod && !hasSdtmDer && !hasAdamDer) {
+                issues.push({
+                  level: "Error",
+                  message: `Derived variable '${item.itemOid}' references undefined Method/Derivation OID '${item.methodOid}'.`,
+                  location: `${sheet} > Row ${row}`,
+                  rowIndex: row,
+                  sheetName: sheet,
+                });
+              }
+            }
+          }
+        });
+      });
+    });
+  }
+
+  return issues;
+}
+

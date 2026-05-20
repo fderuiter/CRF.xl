@@ -84,12 +84,12 @@ export enum CodingTermType {
 }
 
 export enum DataOrigin {
-  CRF = "CRF",
+  PROTOCOL = "Protocol",
+  INVESTIGATOR = "Investigator",
+  SUBJECT = "Subject",
   DERIVED = "Derived",
-  EPRO = "ePRO",
-  CENTRAL_LAB = "CentralLab",
-  WEARABLE_SENSOR = "Sensor",
-  PRE_POPULATED = "PrePopulated",
+  ASSIGNED = "Assigned",
+  EDT = "eDT",
 }
 
 export enum CollectionMethod {
@@ -149,4 +149,51 @@ export enum DateImputationRule {
   FIRST_OF_YEAR = "FirstOfYear",
   MID_YEAR = "MidYear",
   LAST_OF_YEAR = "LastOfYear",
+}
+
+export enum AdamCore {
+  REQUIRED = "Required",
+  EXPECTED = "Expected",
+  PERMISSIBLE = "Permissible",
+  CONDITIONALLY_REQUIRED = "ConditionallyRequired",
+}
+
+export enum DatasetPurpose {
+  TABULATION = "Tabulation",
+  ANALYSIS = "Analysis",
+}
+
+/**
+ * Define-XML 2.1 origin vocabulary for submission-layer variable metadata.
+ * Distinct from DataOrigin (CRF collection context) — this reflects the
+ * dataset-level origin element used in a regulatory submission define file.
+ */
+export enum VariableOrigin {
+  COLLECTED = "Collected",
+  DERIVED = "Derived",
+  ASSIGNED = "Assigned",
+  PROTOCOL = "Protocol",
+  EDT = "eDT",
+}
+
+/**
+ * SDTM dataset class vocabulary per SDTMIG.
+ */
+export enum SdtmDatasetClass {
+  SPECIAL_PURPOSE = "SpecialPurpose",
+  INTERVENTIONS = "Interventions",
+  EVENTS = "Events",
+  FINDINGS = "Findings",
+  FINDINGS_ABOUT_EVENTS = "FindingsAboutEvents",
+  TRIAL_DESIGN = "TrialDesign",
+}
+
+/**
+ * ADaM dataset class vocabulary per ADaMIG.
+ */
+export enum AdamDatasetClass {
+  ADAM_BASIC_DATA_STRUCTURE = "ADaMBasicDataStructure",
+  OCCDS = "OCCDS",
+  ADTTE = "ADTTE",
+  ADEG = "ADEG",
 }

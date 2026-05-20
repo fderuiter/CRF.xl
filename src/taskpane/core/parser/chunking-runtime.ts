@@ -6,6 +6,7 @@ export type ParsePhase =
   | "items"
   | "schedule"
   | "rules"
+  | "methods"
   | "complete";
 
 export interface ParseProgressUpdate {
