@@ -1,4 +1,31 @@
-import { StudyDesign, DataType, TranslatedText, CrfItem } from "../../types/index";
+import { StudyDesign, DataType, TranslatedText, CrfItem, RuleDefinition, RuleType } from "../../types/index";
+import { validateRules, RuleValidationError } from "../../parser/rules-validator";
+
+/**
+ * Error thrown when rules pre-serialization validation fails.
+ */
+export class OdmSerializationError extends Error {
+  public readonly errors: RuleValidationError[];
+  constructor(message: string, errors: RuleValidationError[]) {
+    super(message);
+    this.name = "OdmSerializationError";
+    this.errors = errors;
+    Object.setPrototypeOf(this, OdmSerializationError.prototype);
+  }
+}
+
+/**
+ * Helper to match a rule target against an item OID.
+ * Matches case-insensitively, supporting either the exact variable name
+ * or the final dot-separated segment (e.g., "VS.WT" matches "WT").
+ */
+function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
+  if (!target) return false;
+  const targetLower = target.trim().toLowerCase();
+  const itemLower = itemOid.trim().toLowerCase();
+  if (targetLower === itemLower) return true;
+  return targetLower.endsWith("." + itemLower);
+}
 
 /**
  * Main entry point for CDISC ODM v1.3.2 Metadata generation.
@@ -7,6 +34,73 @@ import { StudyDesign, DataType, TranslatedText, CrfItem } from "../../types/inde
 export function generateOdmXml(study: StudyDesign): string {
   const timestamp = new Date().toISOString();
   const metadata = study.metadata;
+
+  const serializationWarnings: string[] = [];
+
+  // Run pre-serialization validation if rules are present
+  if (study.rules && study.rules.length > 0) {
+    const validationResult = validateRules(study.rules, study);
+
+    // Check for any blocking errors
+    const errors = validationResult.errors.filter((e) => e.level === "Error");
+    if (errors.length > 0) {
+      throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
+    }
+
+    // Collect validation warnings
+    const warnings = validationResult.errors.filter((e) => e.level === "Warning");
+    warnings.forEach((w) => {
+      const warningMsg = `Rule '${w.ruleId}': ${w.message}`;
+      console.warn(warningMsg);
+      serializationWarnings.push(warningMsg);
+    });
+
+    // Check if targets exist in study design for SHOW_IF and DERIVATION rules
+    const studyItemOids = new Set<string>();
+    Object.values(study.forms).forEach((form) => {
+      form.itemGroups.forEach((group) => {
+        group.items.forEach((item) => {
+          if (item.itemOid) {
+            studyItemOids.add(item.itemOid.toLowerCase());
+          }
+        });
+      });
+    });
+
+    study.rules.forEach((rule) => {
+      if (rule.target) {
+        const targetLower = rule.target.trim().toLowerCase();
+        let exists = studyItemOids.has(targetLower);
+        if (!exists) {
+          // Check if targetLower matches as a suffix (e.g. "vis.vs.wt" ends with ".wt")
+          const lastSegment = targetLower.includes(".") ? targetLower.split(".").pop()! : targetLower;
+          exists = studyItemOids.has(lastSegment);
+        }
+
+        if (!exists) {
+          if (rule.ruleType === RuleType.DERIVATION) {
+            const warnMsg = `Derivation target '${rule.target}' not found in study design; MethodDef will be serialized but not linked to any ItemDef.`;
+            console.warn(warnMsg);
+            serializationWarnings.push(warnMsg);
+          } else if (rule.ruleType === RuleType.SHOW_IF) {
+            const warnMsg = `ShowIf target '${rule.target}' not found in study design; ConditionDef will be serialized but not linked to any ItemRef.`;
+            console.warn(warnMsg);
+            serializationWarnings.push(warnMsg);
+          }
+        }
+      } else {
+        if (rule.ruleType === RuleType.DERIVATION) {
+          const warnMsg = `Derivation rule '${rule.ruleId}' has no target variable; MethodDef will be serialized but not linked.`;
+          console.warn(warnMsg);
+          serializationWarnings.push(warnMsg);
+        } else if (rule.ruleType === RuleType.SHOW_IF) {
+          const warnMsg = `ShowIf rule '${rule.ruleId}' has no target variable; ConditionDef will be serialized but not linked.`;
+          console.warn(warnMsg);
+          serializationWarnings.push(warnMsg);
+        }
+      }
+    });
+  }
 
   // Header & Root Entity
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -65,9 +159,18 @@ export function generateOdmXml(study: StudyDesign): string {
       xml += `
       <ItemGroupDef OID="${group.groupOid}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
       group.items.forEach((item) => {
-        const conditionAttr = item.showIf
-          ? ` CollectionExceptionConditionOID="COND.${item.itemOid}"`
-          : "";
+        // Find matching centralized SHOW_IF rule
+        const showIfRule = study.rules?.find(
+          (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+        );
+
+        let conditionAttr = "";
+        if (showIfRule) {
+          conditionAttr = ` CollectionExceptionConditionOID="${showIfRule.ruleId}"`;
+        } else if (item.showIf) {
+          conditionAttr = ` CollectionExceptionConditionOID="COND.${item.itemOid}"`;
+        }
+
         xml += `
         <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}/>`;
       });
@@ -84,26 +187,13 @@ export function generateOdmXml(study: StudyDesign): string {
       group.items.forEach((item) => {
         if (processedItems.has(item.itemOid)) return;
         processedItems.add(item.itemOid);
-        xml += renderItemDef(item);
-      });
-    });
-  });
 
-  // 5b. Condition Definitions
-  const processedConditions = new Set<string>();
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (!item.showIf) return;
+        // Find matching derivation rule
+        const derivationRule = study.rules?.find(
+          (r) => r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+        );
 
-        const conditionOid = `COND.${item.itemOid}`;
-        if (processedConditions.has(conditionOid)) return;
-        processedConditions.add(conditionOid);
-
-        xml += `
-      <ConditionDef OID="${conditionOid}" Name="Show condition for ${escapeXml(item.name)}">
-        <FormalExpression Context="CRF.xl">${item.showIf}</FormalExpression>
-      </ConditionDef>`;
+        xml += renderItemDef(item, derivationRule?.ruleId);
       });
     });
   });
@@ -123,10 +213,111 @@ export function generateOdmXml(study: StudyDesign): string {
       </CodeList>`;
   });
 
+  // 7. Condition Definitions (both inline and centralized rules)
+  const processedConditions = new Set<string>();
+
+  // 7a. Centralized SHOW_IF and VALIDATION rules in topological order
+  if (study.rules && study.rules.length > 0) {
+    const validationResult = validateRules(study.rules, study);
+    const topOrder = validationResult.topologicalOrder;
+
+    // Sort rules based on topological order
+    const sortedRules = [...study.rules].sort((a, b) => {
+      return topOrder.indexOf(a.ruleId) - topOrder.indexOf(b.ruleId);
+    });
+
+    sortedRules.forEach((rule) => {
+      if (rule.ruleType === RuleType.SHOW_IF || rule.ruleType === RuleType.VALIDATION) {
+        if (processedConditions.has(rule.ruleId)) return;
+        processedConditions.add(rule.ruleId);
+
+        let descElement = "";
+        const descText =
+          rule.ruleType === RuleType.VALIDATION ? rule.errorMessage || rule.description || "" : rule.description || "";
+        if (descText) {
+          descElement = `
+        <Description>
+          <TranslatedText xml:lang="en-US">${escapeXml(descText)}</TranslatedText>
+        </Description>`;
+        }
+
+        xml += `
+      <ConditionDef OID="${rule.ruleId}" Name="${escapeXml(rule.name || rule.ruleId)}">${descElement}
+        <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
+      </ConditionDef>`;
+      }
+    });
+  }
+
+  // 7b. Inline showIf conditions
+  Object.values(study.forms).forEach((form) => {
+    form.itemGroups.forEach((group) => {
+      group.items.forEach((item) => {
+        if (!item.showIf) return;
+
+        const conditionOid = `COND.${item.itemOid}`;
+        if (processedConditions.has(conditionOid)) return;
+
+        // Centralized rule takes precedence if it targets this item
+        const hasCentralRule = study.rules?.some(
+          (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+        );
+        if (hasCentralRule) return;
+
+        processedConditions.add(conditionOid);
+
+        xml += `
+      <ConditionDef OID="${conditionOid}" Name="Show condition for ${escapeXml(item.name)}">
+        <FormalExpression Context="CRF.xl">${item.showIf}</FormalExpression>
+      </ConditionDef>`;
+      });
+    });
+  });
+
+  // 8. Method Definitions (centralized derivation rules)
+  const processedMethods = new Set<string>();
+  if (study.rules && study.rules.length > 0) {
+    const validationResult = validateRules(study.rules, study);
+    const topOrder = validationResult.topologicalOrder;
+
+    // Sort rules based on topological order
+    const sortedRules = [...study.rules].sort((a, b) => {
+      return topOrder.indexOf(a.ruleId) - topOrder.indexOf(b.ruleId);
+    });
+
+    sortedRules.forEach((rule) => {
+      if (rule.ruleType === RuleType.DERIVATION) {
+        if (processedMethods.has(rule.ruleId)) return;
+        processedMethods.add(rule.ruleId);
+
+        let descElement = "";
+        if (rule.description) {
+          descElement = `
+        <Description>
+          <TranslatedText xml:lang="en-US">${escapeXml(rule.description)}</TranslatedText>
+        </Description>`;
+        }
+
+        xml += `
+      <MethodDef OID="${rule.ruleId}" Name="${escapeXml(rule.name || rule.ruleId)}" Type="Computation">${descElement}
+        <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
+      </MethodDef>`;
+      }
+    });
+  }
+
   xml += `
     </MetaDataVersion>
   </Study>
 </ODM>`;
+
+  if (serializationWarnings.length > 0) {
+    xml += `
+<!--
+  CRF.xl Serialization Warnings:
+${serializationWarnings.map((w) => `  - ${w}`).join("\n")}
+-->`;
+  }
 
   return xml;
 }
@@ -134,7 +325,7 @@ export function generateOdmXml(study: StudyDesign): string {
 /**
  * Renders an <ItemDef> block with clinical attributes and SDTM Aliases.
  */
-function renderItemDef(item: CrfItem): string {
+function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
   const odmType = mapDataTypeToOdm(item.dataType);
   let output = `
       <ItemDef OID="${item.itemOid}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
@@ -149,6 +340,10 @@ function renderItemDef(item: CrfItem): string {
 
   if (item.sdtmMapping?.sasFieldName) {
     output += ` SASFieldName="${escapeXml(item.sdtmMapping.sasFieldName)}"`;
+  }
+
+  if (derivationMethodOid) {
+    output += ` MethodOID="${derivationMethodOid}"`;
   }
 
   output += `>
@@ -220,6 +415,6 @@ function escapeXml(unsafe: string): string {
         return "&apos;";
       default:
         return c;
-    }
+      }
   });
 }
