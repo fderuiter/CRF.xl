@@ -490,7 +490,9 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.I1 == 'Yes'";
 
       const issues = validateStudyDesign(mockStudy);
-      const crossFormErrors = issues.filter(i => i.level === "Error" && i.message.includes("reference"));
+      const crossFormErrors = issues.filter(
+        (i) => i.level === "Error" && i.message.includes("reference")
+      );
       expect(crossFormErrors.length).toBe(0);
       expect(mockStudy.crossFormDependencies).toBeDefined();
       expect(mockStudy.crossFormDependencies?.length).toBe(1);
@@ -502,7 +504,9 @@ describe("Clinical Validator Engine", () => {
       mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.MISSING == 'Yes'";
 
       const issues = validateStudyDesign(mockStudy);
-      const brokenErr = issues.find(i => i.level === "Error" && i.message.includes("Broken reference"));
+      const brokenErr = issues.find(
+        (i) => i.level === "Error" && i.message.includes("Broken reference")
+      );
       expect(brokenErr).toBeDefined();
       expect(brokenErr?.location).toContain("F2 > Row");
     });
@@ -515,7 +519,7 @@ describe("Clinical Validator Engine", () => {
 
       const issues = validateStudyDesign(mockStudy);
       const unsupportedErr = issues.find(
-        i => i.level === "Error" && i.message.includes("unsupported target type")
+        (i) => i.level === "Error" && i.message.includes("unsupported target type")
       );
       expect(unsupportedErr).toBeDefined();
     });
@@ -526,20 +530,23 @@ describe("Clinical Validator Engine", () => {
 
       const issues = validateStudyDesign(mockStudy);
       const unreachableErr = issues.find(
-        i => i.level === "Error" && i.message.toLowerCase().includes("unreachable target") && i.message.includes("scheduled after")
+        (i) =>
+          i.level === "Error" &&
+          i.message.toLowerCase().includes("unreachable target") &&
+          i.message.includes("scheduled after")
       );
       expect(unreachableErr).toBeDefined();
     });
 
     it("should raise an Error for an unreachable target (not scheduled at all)", () => {
       // Remove F2 from all events
-      mockStudy.events = mockStudy.events.filter(e => e.eventOid !== "V2");
+      mockStudy.events = mockStudy.events.filter((e) => e.eventOid !== "V2");
       // F1.I1 references F2.I2
       mockStudy.forms["F1"].itemGroups[0].items[0].showIf = "F2.I2 == 'Yes'";
 
       const issues = validateStudyDesign(mockStudy);
       const unreachableErr = issues.find(
-        i => i.level === "Error" && i.message.includes("is not scheduled in any event")
+        (i) => i.level === "Error" && i.message.includes("is not scheduled in any event")
       );
       expect(unreachableErr).toBeDefined();
     });
@@ -550,7 +557,7 @@ describe("Clinical Validator Engine", () => {
 
       const issues = validateStudyDesign(mockStudy);
       const warning = issues.find(
-        i => i.level === "Warning" && i.message.includes("high-risk unqualified reference")
+        (i) => i.level === "Warning" && i.message.includes("high-risk unqualified reference")
       );
       expect(warning).toBeDefined();
     });
@@ -572,9 +579,9 @@ describe("Clinical Validator Engine", () => {
           eventType: EventType.SCHEDULED,
           forms: [
             { formOid: "F3", orderNumber: 1, mandatory: true },
-            { formOid: "F2", orderNumber: 2, mandatory: true }
+            { formOid: "F2", orderNumber: 2, mandatory: true },
           ],
-        }
+        },
       ];
 
       // F2 (non-repeating) references F3.I3 (repeating)
@@ -582,7 +589,7 @@ describe("Clinical Validator Engine", () => {
 
       const issues = validateStudyDesign(mockStudy);
       const warning = issues.find(
-        i => i.level === "Warning" && i.message.includes("repeating variable")
+        (i) => i.level === "Warning" && i.message.includes("repeating variable")
       );
       expect(warning).toBeDefined();
     });
@@ -590,7 +597,9 @@ describe("Clinical Validator Engine", () => {
     it("should remain issues-free and have no dependencies in single-form study", () => {
       // Reset mockStudy to single form and check
       const issues = validateStudyDesign(mockStudy);
-      const crossFormIssues = issues.filter(i => i.message.includes("reference") || i.message.includes("target"));
+      const crossFormIssues = issues.filter(
+        (i) => i.message.includes("reference") || i.message.includes("target")
+      );
       expect(crossFormIssues.length).toBe(0);
       expect(mockStudy.crossFormDependencies?.length).toBe(0);
     });

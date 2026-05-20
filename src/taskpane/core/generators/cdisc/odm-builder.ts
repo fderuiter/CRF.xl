@@ -1,4 +1,5 @@
-import { StudyDesign, DataType, TranslatedText, CrfItem, RuleDefinition, RuleType } from "../../types/index";
+/* eslint-disable no-undef */
+import { StudyDesign, DataType, TranslatedText, CrfItem, RuleType } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/rules-validator";
 
 /**
@@ -73,7 +74,9 @@ export function generateOdmXml(study: StudyDesign): string {
         let exists = studyItemOids.has(targetLower);
         if (!exists) {
           // Check if targetLower matches as a suffix (e.g. "vis.vs.wt" ends with ".wt")
-          const lastSegment = targetLower.includes(".") ? targetLower.split(".").pop()! : targetLower;
+          const lastSegment = targetLower.includes(".")
+            ? targetLower.split(".").pop()!
+            : targetLower;
           exists = studyItemOids.has(lastSegment);
         }
 
@@ -161,7 +164,8 @@ export function generateOdmXml(study: StudyDesign): string {
       group.items.forEach((item) => {
         // Find matching centralized SHOW_IF rule
         const showIfRule = study.rules?.find(
-          (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+          (r) =>
+            r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
         );
 
         let conditionAttr = "";
@@ -190,7 +194,10 @@ export function generateOdmXml(study: StudyDesign): string {
 
         // Find matching derivation rule
         const derivationRule = study.rules?.find(
-          (r) => r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+          (r) =>
+            r.ruleType === RuleType.DERIVATION &&
+            r.target &&
+            targetMatchesItem(r.target, item.itemOid)
         );
 
         xml += renderItemDef(item, derivationRule?.ruleId);
@@ -233,7 +240,9 @@ export function generateOdmXml(study: StudyDesign): string {
 
         let descElement = "";
         const descText =
-          rule.ruleType === RuleType.VALIDATION ? rule.errorMessage || rule.description || "" : rule.description || "";
+          rule.ruleType === RuleType.VALIDATION
+            ? rule.errorMessage || rule.description || ""
+            : rule.description || "";
         if (descText) {
           descElement = `
         <Description>
@@ -260,7 +269,8 @@ export function generateOdmXml(study: StudyDesign): string {
 
         // Centralized rule takes precedence if it targets this item
         const hasCentralRule = study.rules?.some(
-          (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+          (r) =>
+            r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
         );
         if (hasCentralRule) return;
 
@@ -415,6 +425,6 @@ function escapeXml(unsafe: string): string {
         return "&apos;";
       default:
         return c;
-      }
+    }
   });
 }

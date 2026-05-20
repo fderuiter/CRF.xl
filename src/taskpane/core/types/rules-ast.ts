@@ -7,7 +7,7 @@
 
 export interface SourcePosition {
   offset: number; // 0-based character offset
-  line: number;   // 1-based line number
+  line: number; // 1-based line number
   column: number; // 1-based column number
 }
 

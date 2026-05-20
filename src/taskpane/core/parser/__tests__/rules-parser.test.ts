@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { tokenize, parseRuleExpression, parseRulesSheetRows } from "../rules-parser";
 import { ParseError, RuleType } from "../../types/index";
 
@@ -17,7 +18,7 @@ describe("CRF.xl Rules Lexer & Tokenizer", () => {
   });
 
   it("should support escaped quotes in string literals", () => {
-    const tokens = tokenize("'It\\'s correct' \"a \\\"double\\\" quote\"");
+    const tokens = tokenize('\'It\\\'s correct\' "a \\"double\\" quote"');
     expect(tokens.length).toBe(3);
     expect(tokens[0]).toMatchObject({ type: "STRING", value: "It's correct" });
     expect(tokens[1]).toMatchObject({ type: "STRING", value: 'a "double" quote' });
@@ -38,9 +39,28 @@ describe("CRF.xl Rules Lexer & Tokenizer", () => {
 
   it("should tokenize operators and punctuation", () => {
     const tokens = tokenize("== != <= >= <> && || + - * / % ? : ( ) ,");
-    const operators = tokens.filter(t => t.type === "OPERATOR" || t.type === "LPAREN" || t.type === "RPAREN" || t.type === "COMMA");
-    expect(operators.map(o => o.value)).toEqual([
-      "==", "!=", "<=", ">=", "<>", "&&", "||", "+", "-", "*", "/", "%", "?", ":", "(", ")", ","
+    const operators = tokens.filter(
+      (t) =>
+        t.type === "OPERATOR" || t.type === "LPAREN" || t.type === "RPAREN" || t.type === "COMMA"
+    );
+    expect(operators.map((o) => o.value)).toEqual([
+      "==",
+      "!=",
+      "<=",
+      ">=",
+      "<>",
+      "&&",
+      "||",
+      "+",
+      "-",
+      "*",
+      "/",
+      "%",
+      "?",
+      ":",
+      "(",
+      ")",
+      ",",
     ]);
   });
 
@@ -241,9 +261,7 @@ describe("CRF.xl Rules Parser & AST Generator", () => {
 
   it("should throw ParseError on malformed syntax with exact location", () => {
     // Unclosed parenthesis
-    expect(() => parseRuleExpression("(WT + 5")).toThrow(
-      "Expected ')' after expression. (1:8)"
-    );
+    expect(() => parseRuleExpression("(WT + 5")).toThrow("Expected ')' after expression. (1:8)");
 
     // Missing then in IF
     expect(() => parseRuleExpression("if AGE > 18 'Adult' else 'Minor'")).toThrow(
@@ -256,9 +274,7 @@ describe("CRF.xl Rules Parser & AST Generator", () => {
     );
 
     // Trailing unrecognized tokens
-    expect(() => parseRuleExpression("WT + 5 )")).toThrow(
-      "Unexpected extra token: ')'"
-    );
+    expect(() => parseRuleExpression("WT + 5 )")).toThrow("Unexpected extra token: ')'");
   });
 });
 
@@ -266,9 +282,25 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
   it("should parse valid workbook sheet rows", () => {
     const mockRows = [
       ["Rule ID", "Rule Name", "Rule Type", "Target", "Expression", "Error Message", "Description"],
-      ["R_001", "Weight Range", "VALIDATION", "WT", "WT > 0 && WT < 300", "Weight out of range", "Verify weight is logical"],
+      [
+        "R_001",
+        "Weight Range",
+        "VALIDATION",
+        "WT",
+        "WT > 0 && WT < 300",
+        "Weight out of range",
+        "Verify weight is logical",
+      ],
       ["R_002", "Compute BMI", "Derivation", "BMI", "WT / (HT * HT)", "", "BMI calculation"],
-      ["R_003", "Show If Pregnant", "show_if", "PREG", "SEX == 'F'", "", "Conditional pregnancy check"]
+      [
+        "R_003",
+        "Show If Pregnant",
+        "show_if",
+        "PREG",
+        "SEX == 'F'",
+        "",
+        "Conditional pregnancy check",
+      ],
     ];
 
     const { rules, errors } = parseRulesSheetRows(mockRows, "1.0");
@@ -284,7 +316,7 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       expression: "WT > 0 && WT < 300",
       errorMessage: "Weight out of range",
       description: "Verify weight is logical",
-      _sourceRowIndex: 2
+      _sourceRowIndex: 2,
     });
     expect(rules[0].ast).toBeDefined();
     expect(rules[0].ast?.type).toBe("BinaryExpression");
@@ -295,7 +327,7 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       ruleType: RuleType.DERIVATION,
       target: "BMI",
       expression: "WT / (HT * HT)",
-      _sourceRowIndex: 3
+      _sourceRowIndex: 3,
     });
 
     expect(rules[2]).toMatchObject({
@@ -303,7 +335,7 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       ruleType: RuleType.SHOW_IF,
       target: "PREG",
       expression: "SEX == 'F'",
-      _sourceRowIndex: 4
+      _sourceRowIndex: 4,
     });
   });
 
@@ -312,7 +344,7 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       ["Rule ID", "Expression"],
       ["R_001", "WT + * 5"], // syntax error
       ["R_002", ""], // missing expression
-      ["", "WT > 0"] // empty rule ID
+      ["", "WT > 0"], // empty rule ID
     ];
 
     const { rules, errors } = parseRulesSheetRows(mockRows, "1.0");
@@ -325,7 +357,9 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
 
     // 2 errors reported: syntax error in R_001, missing expression in R_002
     expect(errors.length).toBe(2);
-    expect(errors[0].message).toContain("Rule 'R_001' parse error: Expected expression, found token: '*'");
+    expect(errors[0].message).toContain(
+      "Rule 'R_001' parse error: Expected expression, found token: '*'"
+    );
     expect(errors[0].line).toBe(2); // row index 2
 
     expect(errors[1].message).toContain("Rule 'R_002' is missing an expression.");

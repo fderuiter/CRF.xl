@@ -1,10 +1,10 @@
+/* eslint-disable no-undef */
 import { validateRules } from "../rules-validator";
 import { parseRuleExpression } from "../rules-parser";
-import { RuleDefinition, RuleType, StudyDesign, DataType, EventType } from "../../types/index";
+import { RuleDefinition, RuleType, StudyDesign, DataType } from "../../types/index";
 import { validateStudyDesign } from "../validator";
 
 describe("CRF.xl Rules Dependency & Graph Validator", () => {
-  
   // Helper to quickly build valid ASTs for test rules
   function makeRule(
     ruleId: string,
@@ -27,7 +27,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
     it("should sort an independent set of rules with no dependencies", () => {
       const r1 = makeRule("R_001", "WT > 0");
       const r2 = makeRule("R_002", "AGE >= 18");
-      
+
       const result = validateRules([r1, r2]);
 
       expect(result.isValid).toBe(true);
@@ -42,7 +42,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       // R_002 depends directly on R_001's verification outcome
       const r1 = makeRule("R_001", "WT > 0");
       const r2 = makeRule("R_002", "R_001 && AGE >= 18");
-      
+
       const result = validateRules([r1, r2]);
 
       expect(result.isValid).toBe(true);
@@ -65,7 +65,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(result.isValid).toBe(true);
       expect(result.errors.length).toBe(0);
       expect(result.dependencyMap["R_003"]).toContain("R_002");
-      
+
       const indexWT = result.topologicalOrder.indexOf("R_002");
       const indexBMI = result.topologicalOrder.indexOf("R_003");
       expect(indexWT).toBeLessThan(indexBMI);
@@ -91,7 +91,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1]);
 
       expect(result.isValid).toBe(false);
-      const cycleError = result.errors.find(e => e.type === "CYCLE");
+      const cycleError = result.errors.find((e) => e.type === "CYCLE");
       expect(cycleError).toBeDefined();
       expect(cycleError?.message).toContain("R_001 -> R_001");
       expect(cycleError?.actionableExplanation).toContain("Rule 'R_001' -> Rule 'R_001'");
@@ -105,7 +105,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
-      const cycleError = result.errors.find(e => e.type === "CYCLE");
+      const cycleError = result.errors.find((e) => e.type === "CYCLE");
       expect(cycleError).toBeDefined();
       expect(cycleError?.cyclePath).toEqual(["R_001", "R_002", "R_001"]);
       expect(cycleError?.actionableExplanation).toContain("Rule 'R_001' -> Rule 'R_002'");
@@ -116,7 +116,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const r1 = makeRule("R_001", "R_002 && WT > 0");
       const r2 = makeRule("R_002", "BMI > 25", RuleType.DERIVATION, "BMI"); // BMI references BMI, but let's make it loop to HT
       const r3 = makeRule("R_003", "R_001", RuleType.DERIVATION, "HT");
-      
+
       // Let R_002 depend on HT (R_003)
       r2.expression = "HT * 2";
       r2.ast = parseRuleExpression("HT * 2");
@@ -124,7 +124,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1, r2, r3]);
 
       expect(result.isValid).toBe(false);
-      const cycleError = result.errors.find(e => e.type === "CYCLE");
+      const cycleError = result.errors.find((e) => e.type === "CYCLE");
       expect(cycleError).toBeDefined();
       // Canonicalized sequence contains all participating rules
       expect(cycleError?.message).toContain("R_001 -> R_002 -> R_003 -> R_001");
@@ -138,9 +138,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1]);
 
       expect(result.isValid).toBe(false);
-      const brokenError = result.errors.find(e => e.type === "BROKEN_REFERENCE");
+      const brokenError = result.errors.find((e) => e.type === "BROKEN_REFERENCE");
       expect(brokenError).toBeDefined();
-      expect(brokenError?.message).toBe("Rule 'R_001' depends on rule 'R_999' which does not exist.");
+      expect(brokenError?.message).toBe(
+        "Rule 'R_001' depends on rule 'R_999' which does not exist."
+      );
       expect(brokenError?.rowIndex).toBe(2);
     });
 
@@ -152,35 +154,51 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
         events: [],
         forms: {
           F1: {
-            formOid: "F1", formName: "Form 1", orderNumber: 1, repeating: false, effectiveVersion: "1.0",
+            formOid: "F1",
+            formName: "Form 1",
+            orderNumber: 1,
+            repeating: false,
+            effectiveVersion: "1.0",
             itemGroups: [
               {
-                groupOid: "G1", name: "Group 1", repeating: false, orderNumber: 1,
+                groupOid: "G1",
+                name: "Group 1",
+                repeating: false,
+                orderNumber: 1,
                 items: [
                   {
-                    itemOid: "WT", name: "Weight", formOid: "F1", groupOid: "G1", orderNumber: 1,
-                    dataType: DataType.FLOAT, label: { "en": "WT" }, effectiveVersion: "1.0", validation: { required: false }
-                  }
-                ]
-              }
-            ]
-          }
+                    itemOid: "WT",
+                    name: "Weight",
+                    formOid: "F1",
+                    groupOid: "G1",
+                    orderNumber: 1,
+                    dataType: DataType.FLOAT,
+                    label: { en: "WT" },
+                    effectiveVersion: "1.0",
+                    validation: { required: false },
+                  },
+                ],
+              },
+            ],
+          },
         },
-        codelists: {}
+        codelists: {},
       };
 
       const result = validateRules([r1], mockStudy);
 
       expect(result.isValid).toBe(false);
-      
+
       // WT exists in forms -> should NOT raise an error
-      const wtError = result.errors.find(e => e.message.includes("WT"));
+      const wtError = result.errors.find((e) => e.message.includes("WT"));
       expect(wtError).toBeUndefined();
 
       // UNKNOWN_FIELD does not exist anywhere -> should raise an UNRESOLVED_VARIABLE error
-      const unknownError = result.errors.find(e => e.type === "UNRESOLVED_VARIABLE");
+      const unknownError = result.errors.find((e) => e.type === "UNRESOLVED_VARIABLE");
       expect(unknownError).toBeDefined();
-      expect(unknownError?.message).toBe("Rule 'R_001' references unresolved variable/dependency 'UNKNOWN_FIELD'.");
+      expect(unknownError?.message).toBe(
+        "Rule 'R_001' references unresolved variable/dependency 'UNKNOWN_FIELD'."
+      );
     });
   });
 
@@ -192,7 +210,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
-      const duplicateErrors = result.errors.filter(e => e.type === "DUPLICATE_RULE_ID");
+      const duplicateErrors = result.errors.filter((e) => e.type === "DUPLICATE_RULE_ID");
       expect(duplicateErrors.length).toBe(2);
       expect(duplicateErrors[0].message).toContain("Duplicate Rule ID: 'R_001'");
     });
@@ -204,9 +222,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       const result = validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
-      const targetErrors = result.errors.filter(e => e.type === "DUPLICATE_TARGET");
+      const targetErrors = result.errors.filter((e) => e.type === "DUPLICATE_TARGET");
       expect(targetErrors.length).toBe(2);
-      expect(targetErrors[0].message).toContain("Duplicate Derivation Target: Variable 'WT' is derived by multiple rules");
+      expect(targetErrors[0].message).toContain(
+        "Duplicate Derivation Target: Variable 'WT' is derived by multiple rules"
+      );
     });
   });
 
@@ -220,12 +240,14 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
         events: [],
         forms: {},
         codelists: {},
-        rules: [r1, r2]
+        rules: [r1, r2],
       };
 
       const issues = validateStudyDesign(mockStudy);
-      const cycleIssue = issues.find(i => i.sheetName === "_Rules" && i.message.includes("Circular logic loop detected"));
-      
+      const cycleIssue = issues.find(
+        (i) => i.sheetName === "_Rules" && i.message.includes("Circular logic loop detected")
+      );
+
       expect(cycleIssue).toBeDefined();
       expect(cycleIssue?.level).toBe("Error");
       expect(cycleIssue?.location).toBe("Rule R_001");

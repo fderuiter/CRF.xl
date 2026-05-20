@@ -13,7 +13,6 @@ import {
   RuleType,
   ParseError,
   SourcePosition,
-  SourceLocation
 } from "../types/index";
 
 /**
@@ -25,8 +24,9 @@ export function tokenize(expression: string): Token[] {
   let line = 1;
   let column = 1;
 
-  const peekChar = (offset = 0) => (index + offset < expression.length ? expression[index + offset] : "");
-  
+  const peekChar = (offset = 0) =>
+    index + offset < expression.length ? expression[index + offset] : "";
+
   const consumeChar = () => {
     const char = peekChar();
     if (char === "\n") {
@@ -564,6 +564,7 @@ export function parseRulesSheetRows(
   rows: any[][],
   _studyVersion: string
 ): { rules: RuleDefinition[]; errors: ParseError[] } {
+  void _studyVersion;
   const rules: RuleDefinition[] = [];
   const errors: ParseError[] = [];
 

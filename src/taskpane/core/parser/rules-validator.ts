@@ -5,13 +5,7 @@
  * Dependency Graph Validator and Topological Sorter for CRF.xl Rules.
  */
 
-import {
-  ASTNode,
-  RuleDefinition,
-  RuleType,
-  StudyDesign,
-  DataType
-} from "../types/index";
+import { ASTNode, RuleDefinition, RuleType, StudyDesign, DataType } from "../types/index";
 import { validateExpression } from "./expression-validator";
 
 export interface RuleValidationError {
@@ -98,10 +92,7 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export function validateRules(
-  rules: RuleDefinition[],
-  study?: StudyDesign
-): RuleValidationResult {
+export function validateRules(rules: RuleDefinition[], study?: StudyDesign): RuleValidationResult {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -118,7 +109,7 @@ export function validateRules(
     if (!rule.ruleId) continue;
     const ruleIdUpper = rule.ruleId.trim();
     knownRuleIds.add(ruleIdUpper);
-    
+
     const list = ruleMap.get(ruleIdUpper) || [];
     list.push(rule);
     ruleMap.set(ruleIdUpper, list);
@@ -257,7 +248,11 @@ export function validateRules(
 
       // Check if identifier references a derived target
       for (const otherRule of validRules) {
-        if (otherRule.ruleType === RuleType.DERIVATION && otherRule.target && matchesRef(ident, otherRule.target)) {
+        if (
+          otherRule.ruleType === RuleType.DERIVATION &&
+          otherRule.target &&
+          matchesRef(ident, otherRule.target)
+        ) {
           deps.add(otherRule.ruleId);
           isResolved = true;
         }
@@ -283,8 +278,10 @@ export function validateRules(
       // If StudyDesign is available, verify if it references a valid form variable
       if (study) {
         const lastSegment = ident.includes(".") ? ident.split(".").pop()! : ident;
-        const existsInForms = knownFormVariables.has(ident.toLowerCase()) || knownFormVariables.has(lastSegment.toLowerCase());
-        
+        const existsInForms =
+          knownFormVariables.has(ident.toLowerCase()) ||
+          knownFormVariables.has(lastSegment.toLowerCase());
+
         if (!existsInForms) {
           errors.push({
             level: "Error",
@@ -344,7 +341,7 @@ export function validateRules(
       if (cycleStart !== -1) {
         const rawCyclePath = currentPath.slice(cycleStart);
         rawCyclePath.push(nodeId);
-        
+
         const canonicalKey = getCanonicalCycleKey(rawCyclePath);
         if (!cycles.has(canonicalKey)) {
           cycles.add(canonicalKey);
@@ -402,6 +399,6 @@ export function validateRules(
     isValid,
     errors,
     topologicalOrder: hasCycle ? [] : topologicalOrder,
-    dependencyMap
+    dependencyMap,
   };
 }

@@ -4,7 +4,6 @@ import { StudyDesign, DataType, CrfItem, EventType, StudyEvent } from "../types/
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
 import { parseRulesSheetRows } from "./rules-parser";
 
-
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
 }

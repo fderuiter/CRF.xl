@@ -259,8 +259,16 @@ export function validateExpression(
 
         if (["+", "-", "*", "/", "%"].includes(op)) {
           // Numeric check
-          const leftOk = isNumeric(leftType) || leftType === "Null" || leftType === "Unknown" || leftType === "Any";
-          const rightOk = isNumeric(rightType) || rightType === "Null" || rightType === "Unknown" || rightType === "Any";
+          const leftOk =
+            isNumeric(leftType) ||
+            leftType === "Null" ||
+            leftType === "Unknown" ||
+            leftType === "Any";
+          const rightOk =
+            isNumeric(rightType) ||
+            rightType === "Null" ||
+            rightType === "Unknown" ||
+            rightType === "Any";
 
           if (!leftOk || !rightOk) {
             diagnostics.push({
@@ -283,8 +291,10 @@ export function validateExpression(
             }
           }
         } else if (["&&", "||", "and", "or"].includes(op)) {
-          const leftOk = leftType === DataType.BOOLEAN || leftType === "Unknown" || leftType === "Any";
-          const rightOk = rightType === DataType.BOOLEAN || rightType === "Unknown" || rightType === "Any";
+          const leftOk =
+            leftType === DataType.BOOLEAN || leftType === "Unknown" || leftType === "Any";
+          const rightOk =
+            rightType === DataType.BOOLEAN || rightType === "Unknown" || rightType === "Any";
 
           if (!leftOk || !rightOk) {
             diagnostics.push({
@@ -297,17 +307,31 @@ export function validateExpression(
         } else if (["<", "<=", ">", ">="].includes(op)) {
           // Relational check
           const leftNumeric = isNumeric(leftType) || leftType === "Unknown" || leftType === "Any";
-          const rightNumeric = isNumeric(rightType) || rightType === "Unknown" || rightType === "Any";
+          const rightNumeric =
+            isNumeric(rightType) || rightType === "Unknown" || rightType === "Any";
 
-          const leftDate = leftType === DataType.DATE || leftType === DataType.DATETIME || leftType === DataType.TIME;
-          const rightDate = rightType === DataType.DATE || rightType === DataType.DATETIME || rightType === DataType.TIME;
+          const leftDate =
+            leftType === DataType.DATE ||
+            leftType === DataType.DATETIME ||
+            leftType === DataType.TIME;
+          const rightDate =
+            rightType === DataType.DATE ||
+            rightType === DataType.DATETIME ||
+            rightType === DataType.TIME;
 
           const leftText = leftType === DataType.TEXT;
           const rightText = rightType === DataType.TEXT;
 
-          const compatible = (leftNumeric && rightNumeric) || (leftDate && rightDate) || (leftText && rightText);
+          const compatible =
+            (leftNumeric && rightNumeric) || (leftDate && rightDate) || (leftText && rightText);
 
-          if (!compatible && leftType !== "Unknown" && rightType !== "Unknown" && leftType !== "Any" && rightType !== "Any") {
+          if (
+            !compatible &&
+            leftType !== "Unknown" &&
+            rightType !== "Unknown" &&
+            leftType !== "Any" &&
+            rightType !== "Any"
+          ) {
             diagnostics.push({
               level: "Error",
               message: `Comparison '${n.operator}' is not valid between types ${leftType} and ${rightType}.`,

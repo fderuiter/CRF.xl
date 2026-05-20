@@ -1,4 +1,4 @@
-import { StudyDesign, RuleDefinition, RuleType, CrfItem } from "../types/index";
+import { StudyDesign, RuleType, CrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
 
@@ -415,7 +415,12 @@ export function validateCrossFormDependencies(study: StudyDesign): {
         const targetItem = resolved.targetItem;
         if (targetItem) {
           const dt = String(targetItem.dataType).toLowerCase();
-          if (dt === "file" || dt === "annotation" || dt === "displayonly" || dt === "display only") {
+          if (
+            dt === "file" ||
+            dt === "annotation" ||
+            dt === "displayonly" ||
+            dt === "display only"
+          ) {
             status = "Unsupported";
             severity = "Error";
             message = `Cross-form reference to unsupported target type '${targetItem.dataType}' for variable '${targetOid}'.`;
@@ -498,14 +503,7 @@ export function validateCrossFormDependencies(study: StudyDesign): {
     form.itemGroups.forEach((group) => {
       // Analyze Group-level showIf
       if (group.showIf) {
-        analyzeExpression(
-          form.formOid,
-          group.groupOid,
-          "Group",
-          undefined,
-          group.showIf,
-          "ShowIf"
-        );
+        analyzeExpression(form.formOid, group.groupOid, "Group", undefined, group.showIf, "ShowIf");
       }
 
       // Analyze Item-level showIf
@@ -555,4 +553,3 @@ function isNumericDataType(dataType: unknown): boolean {
   const normalized = String(dataType ?? "").toLowerCase();
   return normalized === "integer" || normalized === "float";
 }
-

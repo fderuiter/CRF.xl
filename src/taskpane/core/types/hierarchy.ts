@@ -26,7 +26,6 @@ import { LabConfig, SensorConfig, MedicalCodingLink, SdtmMapping, Codelist } fro
 import { AssetConfig, VasConfig } from "./ui";
 import { RuleDefinition } from "./rules-ast";
 
-
 export interface SystemTrigger {
   triggerType: SystemTriggerType;
   triggerTiming: "OnSave" | "OnSign";
@@ -215,5 +214,3 @@ export interface StudyDesign {
   rules?: RuleDefinition[];
   crossFormDependencies?: any[];
 }
-
-

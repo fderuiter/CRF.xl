@@ -111,9 +111,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      expect(() => generateOdmXml(mockStudy)).toThrow(
-        "Rule pre-serialization validation failed"
-      );
+      expect(() => generateOdmXml(mockStudy)).toThrow("Rule pre-serialization validation failed");
     });
 
     it("should throw OdmSerializationError on duplicate rule IDs", () => {
@@ -136,9 +134,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      expect(() => generateOdmXml(mockStudy)).toThrow(
-        "Rule pre-serialization validation failed"
-      );
+      expect(() => generateOdmXml(mockStudy)).toThrow("Rule pre-serialization validation failed");
     });
   });
 
@@ -216,17 +212,25 @@ describe("CDISC ODM XML Builder", () => {
 
       // Check ConditionDefs
       expect(xml).toContain('<ConditionDef OID="VAL_WT" Name="VAL_WT">');
-      expect(xml).toContain("<TranslatedText xml:lang=\"en-US\">Weight must be positive</TranslatedText>");
-      expect(xml).toContain("<FormalExpression Context=\"CRF.xl\">IT_WT &gt; 0</FormalExpression>");
+      expect(xml).toContain(
+        '<TranslatedText xml:lang="en-US">Weight must be positive</TranslatedText>'
+      );
+      expect(xml).toContain('<FormalExpression Context="CRF.xl">IT_WT &gt; 0</FormalExpression>');
 
       expect(xml).toContain('<ConditionDef OID="SHOW_WT" Name="SHOW_WT">');
-      expect(xml).toContain("<TranslatedText xml:lang=\"en-US\">Show weight only if not pregnant</TranslatedText>");
-      expect(xml).toContain("<FormalExpression Context=\"CRF.xl\">IT_PREG == &apos;N&apos;</FormalExpression>");
+      expect(xml).toContain(
+        '<TranslatedText xml:lang="en-US">Show weight only if not pregnant</TranslatedText>'
+      );
+      expect(xml).toContain(
+        '<FormalExpression Context="CRF.xl">IT_PREG == &apos;N&apos;</FormalExpression>'
+      );
 
       // Check MethodDef
       expect(xml).toContain('<MethodDef OID="DERIVE_BMI" Name="DERIVE_BMI" Type="Computation">');
-      expect(xml).toContain("<TranslatedText xml:lang=\"en-US\">Compute BMI from WT and HT</TranslatedText>");
-      expect(xml).toContain("<FormalExpression Context=\"CRF.xl\">WT / (HT * HT)</FormalExpression>");
+      expect(xml).toContain(
+        '<TranslatedText xml:lang="en-US">Compute BMI from WT and HT</TranslatedText>'
+      );
+      expect(xml).toContain('<FormalExpression Context="CRF.xl">WT / (HT * HT)</FormalExpression>');
     });
 
     it("should sort ConditionDef and MethodDef according to topological dependency order", () => {
@@ -284,7 +288,9 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       const xml = generateOdmXml(mockStudy);
-      expect(xml).toContain('<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT" MethodOID="DERIVE_WT">');
+      expect(xml).toContain(
+        '<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT" MethodOID="DERIVE_WT">'
+      );
     });
 
     it("should link show-if rules via CollectionExceptionConditionOID in ItemRef", () => {
@@ -302,7 +308,9 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       const xml = generateOdmXml(mockStudy);
-      expect(xml).toContain('<ItemRef ItemOID="IT_WT" OrderNumber="1" Mandatory="Yes" CollectionExceptionConditionOID="SHOW_WT"/>');
+      expect(xml).toContain(
+        '<ItemRef ItemOID="IT_WT" OrderNumber="1" Mandatory="Yes" CollectionExceptionConditionOID="SHOW_WT"/>'
+      );
     });
 
     it("should log warnings and embed comment warnings for unresolved rule targets", () => {
@@ -332,4 +340,3 @@ describe("CDISC ODM XML Builder", () => {
     });
   });
 });
-
