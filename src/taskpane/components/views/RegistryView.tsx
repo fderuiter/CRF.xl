@@ -1,9 +1,15 @@
 import * as React from "react";
 import { Body1, Button, Card, Spinner, makeStyles, tokens } from "@fluentui/react-components";
+import { SubmissionMetadata } from "../../core/types";
+import { SubmissionMetadataView } from "./SubmissionMetadataView";
 
 interface RegistryProps {
   onInit: () => Promise<void>;
   onSync: () => Promise<void>;
+  onLoadSubmissionMetadata: () => Promise<void>;
+  onSaveSubmissionMetadata: (submissionMetadata: SubmissionMetadata) => void;
+  activeSheet: string;
+  submissionMetadata?: SubmissionMetadata;
   isProcessing: boolean;
 }
 
@@ -48,7 +54,15 @@ const useStyles = makeStyles({
   },
 });
 
-export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProcessing }) => {
+export const RegistryView: React.FC<RegistryProps> = ({
+  onInit,
+  onSync,
+  onLoadSubmissionMetadata,
+  onSaveSubmissionMetadata,
+  activeSheet,
+  submissionMetadata,
+  isProcessing,
+}) => {
   const styles = useStyles();
   return (
     <div className={styles.container}>
@@ -83,6 +97,14 @@ export const RegistryView: React.FC<RegistryProps> = ({ onInit, onSync, isProces
           </Button>
         </div>
       </Card>
+      {activeSheet === "_Study" && (
+        <SubmissionMetadataView
+          submissionMetadata={submissionMetadata}
+          isProcessing={isProcessing}
+          onLoad={onLoadSubmissionMetadata}
+          onSave={onSaveSubmissionMetadata}
+        />
+      )}
     </div>
   );
 };
