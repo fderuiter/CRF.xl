@@ -60,6 +60,27 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
   isProcessing,
 }) => {
   const styles = useStyles();
+  const [isInsertingDate, setIsInsertingDate] = React.useState(false);
+  const [isInsertingAE, setIsInsertingAE] = React.useState(false);
+
+  const handleInsertDate = async () => {
+    setIsInsertingDate(true);
+    try {
+      await insertDateBlock();
+    } finally {
+      setIsInsertingDate(false);
+    }
+  };
+
+  const handleInsertAE = async () => {
+    setIsInsertingAE(true);
+    try {
+      await insertAEBlock();
+    } finally {
+      setIsInsertingAE(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -72,20 +93,22 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertDateBlock}
-            icon={<span>📅</span>}
+            onClick={handleInsertDate}
+            disabled={isInsertingDate || isProcessing}
+            icon={isInsertingDate ? <Spinner size="tiny" /> : <span>📅</span>}
           >
-            Insert Date Group
-            <span className={styles.tagLabel}>CDISC</span>
+            {isInsertingDate ? "Inserting..." : "Insert Date Group"}
+            {!isInsertingDate && <span className={styles.tagLabel}>CDISC</span>}
           </Button>
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertAEBlock}
-            icon={<span>⚠️</span>}
+            onClick={handleInsertAE}
+            disabled={isInsertingAE || isProcessing}
+            icon={isInsertingAE ? <Spinner size="tiny" /> : <span>⚠️</span>}
           >
-            Insert AE Block
-            <span className={styles.tagLabel}>Log</span>
+            {isInsertingAE ? "Inserting..." : "Insert AE Block"}
+            {!isInsertingAE && <span className={styles.tagLabel}>Log</span>}
           </Button>
         </div>
       </Card>
