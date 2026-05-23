@@ -60,6 +60,27 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
   isProcessing,
 }) => {
   const styles = useStyles();
+  const [insertingDate, setInsertingDate] = React.useState(false);
+  const [insertingAE, setInsertingAE] = React.useState(false);
+
+  const handleInsertDateBlock = async () => {
+    setInsertingDate(true);
+    try {
+      await insertDateBlock();
+    } finally {
+      setInsertingDate(false);
+    }
+  };
+
+  const handleInsertAEBlock = async () => {
+    setInsertingAE(true);
+    try {
+      await insertAEBlock();
+    } finally {
+      setInsertingAE(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -72,20 +93,22 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertDateBlock}
-            icon={<span>📅</span>}
+            onClick={handleInsertDateBlock}
+            disabled={isProcessing || insertingDate || insertingAE}
+            icon={insertingDate ? <Spinner size="tiny" /> : <span>📅</span>}
           >
-            Insert Date Group
-            <span className={styles.tagLabel}>CDISC</span>
+            {insertingDate ? "Inserting..." : "Insert Date Group"}
+            {!insertingDate && <span className={styles.tagLabel}>CDISC</span>}
           </Button>
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertAEBlock}
-            icon={<span>⚠️</span>}
+            onClick={handleInsertAEBlock}
+            disabled={isProcessing || insertingDate || insertingAE}
+            icon={insertingAE ? <Spinner size="tiny" /> : <span>⚠️</span>}
           >
-            Insert AE Block
-            <span className={styles.tagLabel}>Log</span>
+            {insertingAE ? "Inserting..." : "Insert AE Block"}
+            {!insertingAE && <span className={styles.tagLabel}>Log</span>}
           </Button>
         </div>
       </Card>
