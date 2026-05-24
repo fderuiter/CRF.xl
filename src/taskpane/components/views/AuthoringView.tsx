@@ -60,6 +60,28 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
   isProcessing,
 }) => {
   const styles = useStyles();
+  const [insertingType, setInsertingType] = React.useState<"date" | "ae" | null>(null);
+
+  const handleInsertDateBlock = async () => {
+    setInsertingType("date");
+    try {
+      await insertDateBlock();
+    } finally {
+      setInsertingType(null);
+    }
+  };
+
+  const handleInsertAEBlock = async () => {
+    setInsertingType("ae");
+    try {
+      await insertAEBlock();
+    } finally {
+      setInsertingType(null);
+    }
+  };
+
+  const isInsertingAny = insertingType !== null;
+
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -72,8 +94,9 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertDateBlock}
-            icon={<span>📅</span>}
+            onClick={handleInsertDateBlock}
+            disabled={isInsertingAny || isProcessing}
+            icon={insertingType === "date" ? <Spinner size="tiny" /> : <span>📅</span>}
           >
             Insert Date Group
             <span className={styles.tagLabel}>CDISC</span>
@@ -81,8 +104,9 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
           <Button
             appearance="outline"
             className={styles.actionButton}
-            onClick={insertAEBlock}
-            icon={<span>⚠️</span>}
+            onClick={handleInsertAEBlock}
+            disabled={isInsertingAny || isProcessing}
+            icon={insertingType === "ae" ? <Spinner size="tiny" /> : <span>⚠️</span>}
           >
             Insert AE Block
             <span className={styles.tagLabel}>Log</span>
