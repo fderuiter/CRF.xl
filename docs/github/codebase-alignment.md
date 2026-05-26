@@ -6,8 +6,9 @@ This document records the current codebase evidence for high-impact backlog item
 
 | Issue | Status in code | Strongest evidence | Notes |
 | --- | --- | --- | --- |
-| `#129` Diff Engine | Absent | `src/taskpane/core/types/hierarchy.ts` | No diff engine or diff report types exist yet; expected new module is `src/taskpane/core/services/diff-engine.ts`. |
-| `#130` Baseline Workbook Ingestion UX | Absent | `src/taskpane/core/parser/excel-parser.ts` | Active workbook parsing exists, but no external/baseline workbook ingestion flow or UI is present. |
+| `#129` Diff Engine | Present | `src/taskpane/core/services/diff-engine.ts`, `src/taskpane/core/types/diff.ts` | Pure diff engine implemented. `diffStudyDesigns()` produces a deterministic `StudyDiffReport` covering Forms, Items, Codelists, Rules, and top-level metadata. Full unit test coverage in `__tests__/diff-engine.test.ts`. |
+| `#130` Baseline Workbook Ingestion UX | Present | `src/taskpane/core/services/baseline-workbook-service.ts`, `src/taskpane/core/parser/baseline-workbook-parser.ts`, `src/taskpane/components/views/RegistryView.tsx` | File-picker flow wired in `RegistryView`; `parseBaselineWorkbookFile` parses an `.xlsx` into a `StudyDesign` without mutating the active workbook. Invalid files surface a `BaselineWorkbookParseError` with a user-friendly message. |
+| `#128` Diff Visualization UI | Present | `src/taskpane/components/views/StudyDiffView.tsx`, `src/taskpane/components/views/study-diff-view-utils.ts` | Fluent UI v9 visualization renders all four change classes (added, removed, modified, moved/renamed) grouped by entity type with filtering, pagination, and detail drill-down. |
 | `#137` `_Rules` Parser & AST Generator | Present | `src/taskpane/core/parser/rules-parser.ts`, `src/taskpane/core/types/rules-ast.ts` | Tokenizer and AST parser engine, standard operator precedence parser, custom ParseError spans, and excel-parser sheet integration are fully implemented and verified with 100% unit test coverage. |
 | `#138` DAG / Cycle Detection | Absent | `src/taskpane/core/parser/validator.ts` | Referential validation exists, but no dependency-graph or cycle detection implementation exists. |
 | `#139` ODM `ConditionDef` / `MethodDef` serialization | Partial | `src/taskpane/core/generators/cdisc/odm-builder.ts` | Basic `ConditionDef` handling exists for item visibility; generalized rule/method export does not. |
@@ -23,7 +24,7 @@ This document records the current codebase evidence for high-impact backlog item
 
 1. **Standards import:** fetcher (`cdisc-api-service.ts`) -> mapper (`#93`, new module expected) -> UI/write (`DictionarySidecar.tsx`, `dictionary-service.ts`)
 2. **Advanced logic:** rule parsing (`#137`) -> graph validation (`#138`) -> downstream validation/export (`#54`, `#55`, `#139`)
-3. **Diff/comparison:** baseline ingestion (`#130`) -> diff engine (`#129`) -> visualization (`#128`)
+3. **Diff/comparison:** baseline ingestion (`#130`) -> diff engine (`#129`) -> visualization (`#128`) — fully implemented
 4. **Enterprise hardening:** manifests + validation scripts + deployment runbook live in the repo already; provisioning is the external dependency
 
 ## Expected-but-absent modules
@@ -32,7 +33,6 @@ The following modules are planned but not yet created. Their owning issues are l
 
 | Expected module | Owning issue(s) | Notes |
 | --- | --- | --- |
-| `src/taskpane/core/services/diff-engine.ts` | `#129` | Core metadata diff computation service |
 | `src/taskpane/core/parser/dag-validator.ts` | `#138` | DAG topological sort and cycle detection |
 | `src/taskpane/core/services/cdisc-mapping-service.ts` | `#93` | Transform contract between CDISC Library API and internal types |
 

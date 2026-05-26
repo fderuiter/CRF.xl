@@ -69,6 +69,21 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
+### `baseline-workbook-parser.ts`
+
+**Purpose:** Parses raw sheet value arrays (from an ExcelJS workbook) into a `StudyDesign`. Mirrors the logic of `excel-parser.ts` but operates on pre-loaded sheet values rather than the live Office.js Excel API context, enabling safe out-of-process parsing of external baseline workbooks.
+
+**Public interface:**
+
+- `parseWorkbookSheetValuesToStudyDesign(provider: WorkbookSheetValuesProvider, options?: ParseWorkbookSheetValuesOptions): Promise<StudyDesign>`
+- `WorkbookSheetValuesProvider` — interface abstracting raw sheet value access
+
+**Upstream:** `core/types/`, `parser/form-element-utils.ts`, `parser/migration.ts`, `parser/metadata-utils.ts`, `parser/rules-parser.ts`
+**Downstream:** `services/baseline-workbook-service.ts`
+**Owning issues:** #130, #85
+
+---
+
 ### `template-generator.ts`
 
 **Purpose:** Workbook initialization, sheet scaffolding, navigation to source, and workbook sync/registry operations.
@@ -128,6 +143,36 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 ---
 
 ## Service modules (`src/taskpane/core/services/`)
+
+### `diff-engine.ts`
+
+**Purpose:** Pure, side-effect-free engine that semantically compares two `StudyDesign` objects and produces a deterministic `StudyDiffReport`. Compares Forms, Items, Codelists, Rules, and top-level metadata fields. Detects added, removed, modified, and moved/renamed entities. No side effects on the active workbook or session.
+
+**Public interface:**
+
+- `diffStudyDesigns(baseline: StudyDesign, current: StudyDesign): StudyDiffReport`
+
+**Upstream:** `core/types/diff.ts`, `core/types/hierarchy.ts`, `core/types/clinical.ts`, `core/types/rules-ast.ts`
+**Downstream:** `App.tsx` (computes diff report from baseline + current study), `components/views/StudyDiffView.tsx` (visualization consumer)
+**Owning issues:** #129, #85
+
+---
+
+### `baseline-workbook-service.ts`
+
+**Purpose:** Parses a user-selected `.xlsx` workbook file into an in-memory baseline `StudyDesign` without mutating the active workbook or session. Validates that the selected file is a compatible CRF.xl workbook and surfaces user-friendly errors via `BaselineWorkbookParseError`.
+
+**Public interface:**
+
+- `parseBaselineWorkbookFile(file: BaselineWorkbookFileLike): Promise<StudyDesign>`
+- `parseBaselineWorkbookBuffer(buffer: ArrayBuffer, sourceName?: string): Promise<StudyDesign>`
+- `BaselineWorkbookParseError` — error class with `.userMessage` for taskpane display
+
+**Upstream:** `exceljs`, `parser/baseline-workbook-parser.ts`
+**Downstream:** `App.tsx` (wires file-input change handler), `components/views/RegistryView.tsx` (file selector button)
+**Owning issues:** #130, #85
+
+---
 
 ### `authoring-service.ts`
 
@@ -354,15 +399,19 @@ Enumerated values: data types, validation levels, form types, status values.
 
 Shared utility types: localized strings, OID references, generic result wrappers.
 
+### `diff.ts`
+
+Diff payload contracts: `StudyDiffReport`, `FormDiffEntry`, `ItemDiffEntry`, `CodelistDiffEntry`, `RuleDiffEntry`, `StudyMetadataDiff`, and the `DiffOperation` union type. Produced by `diff-engine.ts` and consumed by `StudyDiffView.tsx`.
+
 ---
 
 ## Expected-but-absent modules
 
 These modules are planned but not yet implemented. They are blocked by the issues listed.
 
-| Expected Module           | Purpose                                                            | Blocking Issue         | Planned Location              |
-| ------------------------- | ------------------------------------------------------------------ | ---------------------- | ----------------------------- |
-| `services/diff-engine.ts` | Core metadata diff computation between two `StudyDesign` snapshots | #129 (blocked by #130) | `src/taskpane/core/services/` |
+| Expected Module                        | Purpose                                           | Blocking Issue | Planned Location              |
+| -------------------------------------- | ------------------------------------------------- | -------------- | ----------------------------- |
+| `src/taskpane/core/parser/dag-validator.ts` | DAG topological sort and cycle detection for rules | #138      | `src/taskpane/core/parser/`   |
 
 ---
 
