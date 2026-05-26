@@ -23,12 +23,13 @@ import {
   ErrorCircleRegular,
   CheckmarkCircleRegular,
 } from "@fluentui/react-icons";
-import { StudyDesign } from "../../core/types";
+import { StudyDesign, StudyDiffReport } from "../../core/types";
 import {
   buildMatrixSearchIndex,
   filterMatrixSearchIndex,
   MatrixRequiredFilter,
 } from "./matrix-view-utils";
+import { StudyDiffView } from "./StudyDiffView";
 
 interface MatrixProps {
   onAnalyze: () => Promise<any>;
@@ -39,6 +40,7 @@ interface MatrixProps {
   isLoaded: boolean;
   study: StudyDesign | null;
   baselineStudy?: StudyDesign | null;
+  studyDiffReport?: StudyDiffReport | null;
   onNavigate?: (sheetName: string, rowIndex: number) => void;
 }
 
@@ -333,6 +335,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
   isLoaded,
   study,
   baselineStudy,
+  studyDiffReport,
   onNavigate,
 }) => {
   const styles = useStyles();
@@ -767,6 +770,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
           </div>
         </Card>
       )}
+      <StudyDiffView report={studyDiffReport ?? null} />
     </div>
   );
 };
