@@ -18,6 +18,7 @@ import { ValidationIssue, validateStudyDesign } from "../core/parser/validator";
 import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
 import { generateDocx } from "../core/generators/docx/docx-builder";
 import { generateOdmXml } from "../core/generators/cdisc/odm-builder";
+import { diffStudyDesigns } from "../core/services/diff-engine";
 import {
   initializeWorkbook,
   navigateToSource,
@@ -559,6 +560,11 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
+  const studyDiffReport = React.useMemo(() => {
+    if (!baselineStudy || !study) return null;
+    return diffStudyDesigns(baselineStudy, study);
+  }, [baselineStudy, study]);
+
   // 3. View Router Logic
   const renderContextualView = () => {
     // STATE 1: Checking status on startup
@@ -637,6 +643,7 @@ export const App: React.FC<{ title?: string }> = () => {
           isLoaded={!!studySummary}
           study={study}
           baselineStudy={baselineStudy}
+          studyDiffReport={studyDiffReport}
           onNavigate={(sheetName, rowIndex) => {
             if (rowIndex !== undefined && sheetName) {
               navigateToSource(sheetName, rowIndex);
