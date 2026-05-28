@@ -8,8 +8,18 @@ import {
   Spinner,
   makeStyles,
   tokens,
+  Dialog,
+  DialogTrigger,
+  DialogSurface,
+  DialogTitle,
+  DialogContent,
+  DialogBody,
+  DialogActions,
 } from "@fluentui/react-components";
 import { StudyDesign, SubmissionMetadata } from "../../core/types";
+import { VaultService } from "../../core/services/vault-service";
+import * as CryptoJS from "crypto-js";
+
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
 import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
 import { OdmImportWizard } from "./OdmImportWizard";
@@ -25,6 +35,8 @@ interface RegistryProps {
   baselineStudy?: StudyDesign | null;
   baselineError?: string | null;
   isProcessing: boolean;
+  study?: StudyDesign | null;
+  issues?: any[];
 }
 
 const useStyles = makeStyles({
@@ -79,11 +91,31 @@ export const RegistryView: React.FC<RegistryProps> = ({
   baselineStudy,
   baselineError,
   isProcessing,
+  study,
+  issues,
 }) => {
   const styles = useStyles();
   const [showIngestionWizard, setShowIngestionWizard] = React.useState(false);
   const [showOdmWizard, setShowOdmWizard] = React.useState(false);
   const baselineFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [historyItems, setHistoryItems] = React.useState<any[]>([]);
+  
+  const handleFreeze = async () => {
+    if (!study) return;
+    const vaultService = new VaultService();
+    const studyHash = CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex);
+    await vaultService.freezeVersion(study.metadata.protocolId || "UNKNOWN", study.metadata.version || "1.0", studyHash, issues || []);
+    alert("Version frozen in Vault!");
+  };
+
+  const handleHistory = async () => {
+    if (!study) return;
+    const vaultService = new VaultService();
+    const items = await vaultService.getHistory(study.metadata.protocolId || "UNKNOWN");
+    setHistoryItems(items);
+    setShowHistory(true);
+  };
 
   const handleBaselineFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -167,6 +199,25 @@ export const RegistryView: React.FC<RegistryProps> = ({
           >
             Import ODM XML…
           </Button>
+
+          <Button
+            appearance="outline"
+            className={styles.fullWidthButton}
+            onClick={handleFreeze}
+            disabled={isProcessing || !study}
+            icon={<span>❄️</span>}
+          >
+            Freeze Version
+          </Button>
+          <Button
+            appearance="outline"
+            className={styles.fullWidthButton}
+            onClick={handleHistory}
+            disabled={isProcessing || !study}
+            icon={<span>🕰️</span>}
+          >
+            View Vault History
+          </Button>
         </div>
       </Card>
       {baselineStudy && (
@@ -190,6 +241,29 @@ export const RegistryView: React.FC<RegistryProps> = ({
           onSave={onSaveSubmissionMetadata}
         />
       )}
+      <Dialog open={showHistory} onOpenChange={(_, data) => setShowHistory(data.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Vault History</DialogTitle>
+            <DialogContent>
+              {historyItems.length === 0 ? <p>No history found.</p> : (
+                <ul>
+                  {historyItems.map((h, i) => (
+                    <li key={i}>
+                      <strong>Version {h.version}</strong> - {new Date(h.timestamp).toLocaleString()}
+                      <br/>
+                      Hash: {h.studyHash.substring(0, 8)}...
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="primary" onClick={() => setShowHistory(false)}>Close</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   );
 };
