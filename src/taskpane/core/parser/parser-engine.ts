@@ -9,6 +9,7 @@ import {
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
 import { parseRulesSheetRows } from "./rules-parser";
 import { migrateStudyDesign } from "./migration";
+import { getLocaleConfig } from "../locale-config";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables } from "./metadata-utils";
 
@@ -26,7 +27,7 @@ export async function parseRawDataToStudyDesign(
       protocolId: "PROT-XXXX",
       studyName: "Untitled",
       version: "1.0",
-      defaultLanguage: "en-US",
+      defaultLanguage: getLocaleConfig().currentLocale,
     },
     events: [],
     forms: {},
@@ -49,6 +50,7 @@ export async function parseRawDataToStudyDesign(
     study.metadata.protocolId = String(metaSheetVals[1][0] || study.metadata.protocolId);
     study.metadata.studyName = String(metaSheetVals[1][1] || study.metadata.studyName);
     study.metadata.version = String(metaSheetVals[1][2] || study.metadata.version);
+    study.metadata.defaultLanguage = String(metaSheetVals[1][3] || study.metadata.defaultLanguage);
   }
 
   runtime.reportProgress({
@@ -92,7 +94,7 @@ export async function parseRawDataToStudyDesign(
       study.codelists[strId].items.push({
         codelistId: strId,
         codedValue: String(code),
-        decodedText: { "en-US": String(decode) },
+        decodedText: { [study.metadata.defaultLanguage]: String(decode) },
         orderNumber: study.codelists[strId].items.length + 1,
       });
       runtime.reportProgress({

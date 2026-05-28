@@ -3,6 +3,7 @@ import { mapRowToFormElement } from "./form-element-utils";
 import { migrateStudyDesign } from "./migration";
 import { parseReferencedVariables } from "./metadata-utils";
 import { parseRulesSheetRows } from "./rules-parser";
+import { getLocaleConfig } from "../locale-config";
 
 export interface WorkbookSheetValuesProvider {
   getSheetValues(sheetName: string): Promise<unknown[][] | null>;
@@ -21,7 +22,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
       protocolId: "PROT-XXXX",
       studyName: "Untitled",
       version: "1.0",
-      defaultLanguage: "en-US",
+      defaultLanguage: getLocaleConfig().currentLocale,
     },
     events: [],
     forms: {},
@@ -35,6 +36,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
     study.metadata.protocolId = String(metadataRows[1][0] || study.metadata.protocolId);
     study.metadata.studyName = String(metadataRows[1][1] || study.metadata.studyName);
     study.metadata.version = String(metadataRows[1][2] || study.metadata.version);
+    study.metadata.defaultLanguage = String(metadataRows[1][3] || study.metadata.defaultLanguage);
   }
 
   const codelistRows = await provider.getSheetValues("_Codelists");
@@ -54,7 +56,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
       study.codelists[strId].items.push({
         codelistId: strId,
         codedValue: String(code),
-        decodedText: { "en-US": String(decode) },
+        decodedText: { [study.metadata.defaultLanguage]: String(decode) },
         orderNumber: study.codelists[strId].items.length + 1,
       });
     }
