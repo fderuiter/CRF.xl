@@ -1,5 +1,6 @@
 import { highlightErrorsOnCanvas, clearAllAnnotations, getOrphanedAnnotationsCount } from "../core/services/annotation-service";
 import * as React from "react";
+import * as CryptoJS from "crypto-js";
 import { useState, useEffect, useRef } from "react";
 import {
   makeStyles,
@@ -24,6 +25,8 @@ import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue, validateStudyDesign } from "../core/parser/validator";
 import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
 import { ComplianceExportService } from "../core/services/compliance-export-service";
+import { VaultService } from "../core/services/vault-service";
+
 import { diffStudyDesigns } from "../core/services/diff-engine";
 import {
   initializeWorkbook,
@@ -458,6 +461,13 @@ export const App: React.FC<{ title?: string }> = () => {
       }
       setStudy(freshStudy);
       const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
+      
+      // Sync to Vault
+      const vaultService = new VaultService();
+      const studyHashInput = JSON.stringify(freshStudy);
+      // We must dynamically import crypto-js or require it. Wait, we can just let App.tsx import it? No, we shouldn't use crypto-js directly in App.tsx if we don't import it. We can do it inside vaultService!
+      vaultService.syncValidationResults(freshStudy.metadata.protocolId || "UNKNOWN", freshStudy.metadata.version || "1.0", validationIssues, CryptoJS.SHA256(JSON.stringify(freshStudy)).toString(CryptoJS.enc.Hex));
+
       setIssues(validationIssues);
       setStudySummary(summarizeStudyDesign(freshStudy));
       setCurrentFilter(sheetFilter ?? null);
@@ -540,7 +550,7 @@ export const App: React.FC<{ title?: string }> = () => {
     setShowGate(false);
     setIsProcessing(true);
     try {
-      const zipBlob = await ComplianceExportService.createExportPackage(currentStudy, baselineStudy);
+      const zipBlob = await ComplianceExportService.createExportPackage(currentStudy, baselineStudy, issues);
       const url = window.URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
       a.href = url;
@@ -655,6 +665,8 @@ export const App: React.FC<{ title?: string }> = () => {
           baselineStudy={baselineStudy}
           baselineError={baselineError}
           isProcessing={isProcessing}
+          study={study}
+          issues={issues}
         />
       );
     }

@@ -4,6 +4,8 @@ import { StudyDesign } from "../types/hierarchy";
 import { StudyDiffReport } from "../types/diff";
 import { generateOdmXml } from "../generators/cdisc/odm-builder";
 import { generateDocxBlob } from "../generators/docx/docx-builder";
+import { generatePdfBlob } from "../generators/pdf/pdf-builder";
+
 import { diffStudyDesigns } from "./diff-engine";
 
 export interface VerificationManifest {
@@ -21,7 +23,8 @@ export class ComplianceExportService {
    */
   static async createExportPackage(
     currentStudy: StudyDesign,
-    baselineStudy: StudyDesign | null
+    baselineStudy: StudyDesign | null,
+    validationIssues: any[] = []
   ): Promise<Blob> {
     const zip = new JSZip();
 
@@ -36,13 +39,26 @@ export class ComplianceExportService {
     const docxWord = CryptoJS.lib.WordArray.create(docxArrayBuffer as any);
     const docxHash = CryptoJS.SHA256(docxWord).toString(CryptoJS.enc.Hex);
 
-    zip.file("Paper_CRF.docx", docxBlob);
+    const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
+    zip.file(`${protocolId}_Annotated_CRF.docx`, docxBlob);
+
+    // PDF Generation
+    const pdfBlob = await generatePdfBlob(currentStudy, validationIssues);
+    const pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(pdfBlob);
+    });
+    const pdfWord = CryptoJS.lib.WordArray.create(pdfArrayBuffer as any);
+    const pdfHash = CryptoJS.SHA256(pdfWord).toString(CryptoJS.enc.Hex);
+    zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
 
     // 2. Generate ODM XML
     const odmXml = generateOdmXml(currentStudy);
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
 
-    zip.file("ODM_Export.xml", odmXml);
+    zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);
 
     // 3. Generate Audit Summary
     let auditSummary: StudyDiffReport;
@@ -58,8 +74,9 @@ export class ComplianceExportService {
       protocolId: currentStudy.metadata.protocolId || "UNKNOWN",
       exportedAt: new Date().toISOString(),
       fileHashes: {
-        "Paper_CRF.docx": docxHash,
-        "ODM_Export.xml": odmHash,
+        [`${protocolId || "UNKNOWN"}_Annotated_CRF.docx`]: docxHash,
+        [`${protocolId || "UNKNOWN"}_Annotated_CRF.pdf`]: pdfHash,
+        [`${protocolId || "UNKNOWN"}_ODM_Specification.xml`]: odmHash,
       },
       auditSummary,
     };
