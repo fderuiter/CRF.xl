@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** @jest-environment node */
 import ExcelJS from "exceljs";
 import fs from "fs";

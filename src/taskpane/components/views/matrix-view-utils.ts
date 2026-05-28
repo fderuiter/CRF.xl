@@ -1,3 +1,4 @@
+import { StudyRepository } from "../../core/repository";
 import { StudyDesign, isCrfItem } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";
@@ -39,8 +40,8 @@ export function normalizeMatrixSearch(value: string): string {
 }
 
 export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] {
-  return study.events
-    .slice()
+  const repo = new StudyRepository(study);
+  return repo.getEvents()
     .sort((left, right) => left.orderNumber - right.orderNumber)
     .flatMap((event) =>
       event.forms
@@ -50,8 +51,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
           const form = study.forms[formRef.formOid];
           if (!form) return null;
 
-          const items = form.itemGroups.flatMap((group) =>
-            group.items.filter(isCrfItem).map((item) => {
+          const items = repo.getItemsForForm(form.formOid).filter(isCrfItem).map((item) => {
               const itemOid = item.itemOid || item.name || "";
               const itemLabel = item.label?.["en-US"] || item.name || item.itemOid || "";
               const dataType = item.dataType || "Unspecified";
@@ -62,7 +62,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
                 required: !!item.validation?.required,
                 searchText: normalizeMatrixSearch(`${itemOid} ${itemLabel} ${dataType}`),
               };
-            })
+            }
           );
 
           return {

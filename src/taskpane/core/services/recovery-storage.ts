@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import { StudyDesign, isCrfItem } from "../types";
+import { StudyRepository } from "../repository";
 import { ValidationIssue } from "../parser/validator";
 
 export const RECOVERY_STORAGE_KEY = "crf-xl-recovery-snapshot-v1";
@@ -75,20 +76,12 @@ function isQuotaError(error: unknown): boolean {
 }
 
 export function summarizeStudyDesign(study: StudyDesign): StudyDesignSummary {
-  const forms = Object.values(study.forms ?? {});
-  const variableCount = forms.reduce(
-    (total, form) =>
-      total +
-      (form.itemGroups ?? []).reduce(
-        (groupTotal, group) => groupTotal + (group.items?.filter(isCrfItem).length ?? 0),
-        0
-      ),
-    0
-  );
+  const repo = new StudyRepository(study);
+  const variableCount = repo.getAllItems().filter(isCrfItem).length;
   return {
-    formCount: forms.length,
+    formCount: Object.keys(study.forms || {}).length,
     variableCount,
-    visitCount: study.events?.length ?? 0,
+    visitCount: Object.keys(study.events || {}).length,
   };
 }
 

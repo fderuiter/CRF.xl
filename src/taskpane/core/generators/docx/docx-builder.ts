@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { StudyRepository } from "../../repository";
 import {
   Document,
   Packer,
@@ -55,7 +56,7 @@ export function buildDocxDocument(study: StudyDesign): Document {
   const sections = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
-  for (const event of study.events) {
+  for (const event of new StudyRepository(study).getEvents()) {
     for (const formRef of event.forms) {
       const form = study.forms[formRef.formOid];
       if (!form) continue;
@@ -128,7 +129,7 @@ function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfFo
 function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
   const children: any[] = [];
 
-  for (const group of form.itemGroups) {
+  for (const group of new StudyRepository(study).getGroupsForForm(form.formOid)) {
     // Group Header
     if (group.label) {
       children.push(
@@ -147,13 +148,13 @@ function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
 
     // Logic check: Repeating Groups (Logs) are rendered as Tables
     if (group.repeating || group.groupLayout === GroupLayout.MATRIX) {
-      const table = renderRepeatingTable(group, study.metadata.defaultLanguage);
+      const table = renderRepeatingTable(group, study.metadata.defaultLanguage, study);
       if (table) {
         children.push(table);
       }
     } else {
       // Standard vertical layout
-      group.items.forEach((item) => {
+      new StudyRepository(study).getItemsForGroup(group.groupOid).forEach((item) => {
         children.push(...renderFormElement(item as CrfItem | CrfDisplayBlock, study));
       });
     }
@@ -310,8 +311,8 @@ function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
 /**
  * Renders a Repeating Table for Logs (AE, ConMed, etc).
  */
-function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | null {
-  const items = group.items.filter(isCrfItem);
+function renderRepeatingTable(group: ItemGroup, defaultLang: string, study: StudyDesign): Table | null {
+  const items = new StudyRepository(study).getItemsForGroup(group.groupOid).filter(isCrfItem);
   if (items.length === 0) {
     return null;
   }

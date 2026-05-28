@@ -176,15 +176,13 @@ export function importOdmXml(xml: string): OdmImportPackage {
       repeating: normalizeOdmBoolean(formMatch.attributes.Repeating),
       orderNumber,
       effectiveVersion: study.metadata.version,
-      itemGroups: [
-        {
-          groupOid: `${formOid}_GRP`,
-          name: "Default Group",
-          repeating: false,
-          orderNumber: 1,
-          items: [],
-        },
-      ],
+    };
+    study.groups[`${formOid}_GRP`] = {
+      groupOid: `${formOid}_GRP`,
+      formOid: formOid,
+      name: "Default Group",
+      repeating: false,
+      orderNumber: 1,
     };
     mappedForms.push({ orderNumber, formOid });
   }
@@ -384,7 +382,9 @@ function createEmptyStudy(): StudyDesign {
       version: "1.0",
       defaultLanguage: "en-US",
     },
-    events: [],
+    events: {},
+    groups: {},
+    items: {},
     forms: {},
     codelists: {},
   };

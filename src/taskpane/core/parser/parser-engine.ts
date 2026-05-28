@@ -23,14 +23,17 @@ export async function parseRawDataToStudyDesign(
 ): Promise<StudyDesign> {
   const runtime = createParseRuntime(options);
   const study: StudyDesign = {
+    schemaVersion: "1.0.0",
     metadata: {
       protocolId: "PROT-XXXX",
       studyName: "Untitled",
       version: "1.0",
       defaultLanguage: getLocaleConfig().currentLocale,
     },
-    events: [],
+    events: {},
     forms: {},
+    groups: {},
+    items: {},
     codelists: {},
   };
   const parseWarnings: string[] = [];
@@ -138,15 +141,7 @@ export async function parseRawDataToStudyDesign(
         formName: String(name),
         orderNumber: i,
         repeating: String(rep).toLowerCase() === "yes",
-        itemGroups: [
-          {
-            groupOid: `${strId}_GRP`,
-            name: "Default Group",
-            repeating: false,
-            orderNumber: 1,
-            items: [],
-          },
-        ],
+        
         effectiveVersion: study.metadata.version,
       };
       runtime.reportProgress({
@@ -189,14 +184,13 @@ export async function parseRawDataToStudyDesign(
     try {
       if (crfSheetVals.length > 1) {
         const headers = crfSheetVals[0] as string[];
-        const targetGroup = study.forms[oid].itemGroups[0];
         const rows = crfSheetVals.slice(1);
 
         await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
           runtime.throwIfStopped("items");
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
           if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+            study.items[((element as CrfItem).itemOid) || `display_${Date.now()}_${Math.random()}`] = { ...element, formOid: oid, groupOid: `${oid}_GRP` } as any;
           }
         });
       }
@@ -256,7 +250,7 @@ export async function parseRawDataToStudyDesign(
           event.forms.push({ formOid, orderNumber: event.forms.length + 1, mandatory: true });
         }
       }
-      study.events.push(event);
+      study.events[event.eventOid] = event;
       runtime.reportProgress({
         phase: "schedule",
         completed: colIndex + 1,

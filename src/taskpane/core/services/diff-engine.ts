@@ -1,3 +1,4 @@
+import { StudyRepository } from "../repository";
 /**
  * ============================================================================
  * diff-engine.ts
@@ -110,13 +111,9 @@ function diffForms(
  */
 function collectItems(study: StudyDesign): Map<string, CrfItem> {
   const map = new Map<string, CrfItem>();
-  for (const form of Object.values(study.forms)) {
-    for (const group of form.itemGroups) {
-      for (const element of group.items) {
-        if (isCrfItem(element)) {
-          map.set(`${element.formOid}::${element.itemOid}`, element);
-        }
-      }
+  for (const element of new StudyRepository(study).getAllItems()) {
+    if (isCrfItem(element)) {
+      map.set(`${element.formOid}::${element.itemOid}`, element);
     }
   }
   return map;

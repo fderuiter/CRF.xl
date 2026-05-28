@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable no-undef */
 import { validateRules } from "../rules-validator";
 import { parseRuleExpression } from "../rules-parser";

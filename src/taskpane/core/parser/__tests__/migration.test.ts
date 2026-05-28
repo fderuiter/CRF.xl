@@ -92,7 +92,7 @@ describe("Schema Migration Utility", () => {
     };
 
     const migrated = migrateStudyDesign(legacyStudy);
-    const item = migrated.forms["F1"].itemGroups[0].items[0];
+    const item = Object.values(migrated.items)[0] as any;
 
     expect(item.sdtmMapping).toEqual({});
     expect(item.adamMapping).toEqual({});
@@ -241,7 +241,7 @@ describe("Schema Migration Utility", () => {
     };
 
     const migrated = migrateStudyDesign(legacyStudy);
-    const item = migrated.forms["F1"].itemGroups[0].items[0];
+    const item = Object.values(migrated.items)[0] as any;
 
     expect(item.origin).toBe("Pre-Specified");
     expect(migrated.methods?.M_BMI.referencedVariables).toEqual(["WEIGHT", "HEIGHT"]);

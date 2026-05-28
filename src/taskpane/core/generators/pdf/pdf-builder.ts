@@ -1,6 +1,7 @@
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from "pdfmake/build/vfs_fonts";
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
+import { StudyRepository } from "../../repository";
 import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";
 
@@ -55,8 +56,8 @@ export function generatePdfBlob(study: StudyDesign, validationIssues: any[] = []
         margin: [0, 0, 0, 15]
       });
 
-      form.itemGroups.forEach(group => {
-        group.items.forEach(item => {
+      new StudyRepository(study).getGroupsForForm(form.formOid).forEach(group => {
+        new StudyRepository(study).getItemsForGroup(group.groupOid).forEach(item => {
           if (isCrfItem(item)) {
             // Determine callout bubble color
             let bubbleStyle = 'bubbleBlue'; // SDTM Variable Mappings (Default)

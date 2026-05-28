@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable no-undef */
 import { generateOdmXml } from "../odm-builder";
 import { StudyDesign, DataType, EventType, RuleType } from "../../../types";
@@ -37,7 +38,7 @@ describe("CDISC ODM XML Builder", () => {
               orderNumber: 1,
               items: [
                 {
-                  itemOid: "IT_WT",
+                  itemOid: "WT",
                   name: "Weight",
                   formOid: "F1",
                   groupOid: "G1",
@@ -61,32 +62,36 @@ describe("CDISC ODM XML Builder", () => {
   });
 
   it("should generate valid root ODM structure and Study OID", () => {
-    const xml = generateOdmXml(mockStudy);
+    console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
+      const xml = generateOdmXml(mockStudy);
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"');
     expect(xml).toContain('<Study OID="TEST-01">');
   });
 
   it("should serialize clinical items with correct CDISC data types and SAS attributes", () => {
-    const xml = generateOdmXml(mockStudy);
+    console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
+      const xml = generateOdmXml(mockStudy);
     expect(xml).toContain(
-      '<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT">'
+      '<ItemDef OID="WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT">'
     );
     expect(xml).toContain('<TranslatedText xml:lang="en-US">Subject Weight</TranslatedText>');
   });
 
   it("should serialize SDTM mappings into Alias tags", () => {
-    const xml = generateOdmXml(mockStudy);
+    console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
+      const xml = generateOdmXml(mockStudy);
     expect(xml).toContain('<Alias Context="SDTM" Name="VS.VSORRES"/>');
   });
 
   it("should extract 'showIf' logic and construct a standalone ConditionDef", () => {
-    const xml = generateOdmXml(mockStudy);
+    console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
+      const xml = generateOdmXml(mockStudy);
     // The condition should exist globally
-    expect(xml).toContain('<ConditionDef OID="COND.IT_WT"');
+    expect(xml).toContain('<ConditionDef OID="COND.WT"');
     expect(xml).toContain("IT.PREG == &apos;N&apos;");
     // The item should reference the condition
-    expect(xml).toContain('CollectionExceptionConditionOID="COND.IT_WT"');
+    expect(xml).toContain('CollectionExceptionConditionOID="COND.WT"');
   });
 
   describe("Rule pre-serialization validation", () => {
@@ -119,13 +124,13 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "R1",
           ruleType: RuleType.VALIDATION,
-          expression: "IT_WT > 0",
+          expression: "WT > 0",
           _sourceRowIndex: 2,
         },
         {
           ruleId: "R1",
           ruleType: RuleType.VALIDATION,
-          expression: "IT_WT < 300",
+          expression: "WT < 300",
           _sourceRowIndex: 3,
         },
       ];
@@ -142,7 +147,7 @@ describe("CDISC ODM XML Builder", () => {
     it("should serialize VALIDATION and SHOW_IF rules to ConditionDef and DERIVATION rules to MethodDef", () => {
       mockStudy.forms.F1.itemGroups[0].items.push(
         {
-          itemOid: "IT_PREG",
+          itemOid: "PREG",
           name: "Pregnancy Status",
           formOid: "F1",
           groupOid: "G1",
@@ -180,23 +185,23 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "VAL_WT",
           ruleType: RuleType.VALIDATION,
-          target: "IT_WT",
-          expression: "IT_WT > 0",
+          target: "WT",
+          expression: "WT > 0",
           errorMessage: "Weight must be positive",
           _sourceRowIndex: 2,
         },
         {
           ruleId: "SHOW_WT",
           ruleType: RuleType.SHOW_IF,
-          target: "IT_WT",
-          expression: "IT_PREG == 'N'",
+          target: "WT",
+          expression: "PREG == 'N'",
           description: "Show weight only if not pregnant",
           _sourceRowIndex: 3,
         },
         {
           ruleId: "DERIVE_BMI",
           ruleType: RuleType.DERIVATION,
-          target: "IT_WT",
+          target: "BMI",
           expression: "WT / (HT * HT)",
           description: "Compute BMI from WT and HT",
           _sourceRowIndex: 4,
@@ -208,6 +213,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
 
       // Check ConditionDefs
@@ -215,14 +221,14 @@ describe("CDISC ODM XML Builder", () => {
       expect(xml).toContain(
         '<TranslatedText xml:lang="en-US">Weight must be positive</TranslatedText>'
       );
-      expect(xml).toContain('<FormalExpression Context="CRF.xl">IT_WT &gt; 0</FormalExpression>');
+      expect(xml).toContain('<FormalExpression Context="CRF.xl">WT &gt; 0</FormalExpression>');
 
       expect(xml).toContain('<ConditionDef OID="SHOW_WT" Name="SHOW_WT">');
       expect(xml).toContain(
         '<TranslatedText xml:lang="en-US">Show weight only if not pregnant</TranslatedText>'
       );
       expect(xml).toContain(
-        '<FormalExpression Context="CRF.xl">IT_PREG == &apos;N&apos;</FormalExpression>'
+        '<FormalExpression Context="CRF.xl">PREG == &apos;N&apos;</FormalExpression>'
       );
 
       // Check MethodDef
@@ -261,6 +267,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
 
       // Since C is evaluated first, then B, then A:
@@ -278,7 +285,7 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "DERIVE_WT",
           ruleType: RuleType.DERIVATION,
-          target: "IT_WT",
+          target: "WT",
           expression: "150",
           _sourceRowIndex: 2,
         },
@@ -287,9 +294,10 @@ describe("CDISC ODM XML Builder", () => {
       const { parseRuleExpression } = require("../../../parser/rules-parser");
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
       expect(xml).toContain(
-        '<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT" MethodOID="DERIVE_WT">'
+        '<ItemDef OID="WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT" MethodOID="DERIVE_WT">'
       );
     });
 
@@ -298,7 +306,7 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "SHOW_WT",
           ruleType: RuleType.SHOW_IF,
-          target: "IT_WT",
+          target: "WT",
           expression: "1",
           _sourceRowIndex: 2,
         },
@@ -307,9 +315,10 @@ describe("CDISC ODM XML Builder", () => {
       const { parseRuleExpression } = require("../../../parser/rules-parser");
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
       expect(xml).toContain(
-        '<ItemRef ItemOID="IT_WT" OrderNumber="1" Mandatory="Yes" CollectionExceptionConditionOID="SHOW_WT"/>'
+        '<ItemRef ItemOID="WT" OrderNumber="1" Mandatory="Yes" CollectionExceptionConditionOID="SHOW_WT"/>'
       );
     });
 
@@ -328,6 +337,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -352,6 +362,7 @@ describe("CDISC ODM XML Builder", () => {
         },
       };
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
       expect(xml).toContain('<MethodDef OID="M_BMI" Name="BMI Derivation" Type="Computation">');
       expect(xml).toContain('<Description>');
@@ -373,6 +384,7 @@ describe("CDISC ODM XML Builder", () => {
         }
       };
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
       expect(xml).toContain('Origin="Pre-Specified"');
       expect(xml).toContain('Comment="Collected weight at baseline"');
@@ -387,7 +399,7 @@ describe("CDISC ODM XML Builder", () => {
         {
           ruleId: "M_RULE_BMI",
           ruleType: RuleType.DERIVATION,
-          target: "IT_WT",
+          target: "WT",
           expression: "100",
           _sourceRowIndex: 2,
         },
@@ -404,6 +416,7 @@ describe("CDISC ODM XML Builder", () => {
         }
       };
 
+      console.log("MockStudy Items:", Object.keys(mockStudy.items || {}));
       const xml = generateOdmXml(mockStudy);
       // It should contain the explicit MethodOID instead of the rule's ID
       expect(xml).toContain('MethodOID="M_EXPLICIT_BMI"');

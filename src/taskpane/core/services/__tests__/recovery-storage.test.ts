@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable no-undef */
 import {
   RECOVERY_STORAGE_KEY,

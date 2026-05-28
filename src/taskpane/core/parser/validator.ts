@@ -1,4 +1,5 @@
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
+import { StudyRepository } from "../repository";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
 
@@ -32,9 +33,10 @@ export function validateStudyDesign(
   activeSheetFilter?: string
 ): ValidationIssue[] {
   let issues: ValidationIssue[] = [];
+  const repo = new StudyRepository(study);
 
   // 1. Validate Schedule (_Schedule sheet)
-  study.events.forEach((event) => {
+  repo.getEvents().forEach((event) => {
     event.forms.forEach((fRef) => {
       if (!study.forms[fRef.formOid]) {
         issues.push({
@@ -50,9 +52,9 @@ export function validateStudyDesign(
   // 2. Validate CRF Forms (Individual tabs)
   const globalVariables = new Set<string>();
 
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
+  repo.getAllItems().forEach((item) => {
+        const form = repo.getForm((item as any).formOid);
+        if (!form) return;
         if (!isCrfItem(item)) {
           return;
         }
@@ -255,8 +257,6 @@ export function validateStudyDesign(
             sheetName: sheet,
           });
         }
-      });
-    });
   });
 
   // 3. Validate Rules (_Rules sheet)
@@ -292,6 +292,7 @@ export function validateCrossFormDependencies(study: StudyDesign): {
   dependencies: CrossFormDependency[];
 } {
   const issues: ValidationIssue[] = [];
+  const repo = new StudyRepository(study);
   const dependencies: CrossFormDependency[] = [];
 
   // Gather all variables and their locations for quick lookup
@@ -300,9 +301,9 @@ export function validateCrossFormDependencies(study: StudyDesign): {
     { item: CrfItem; formOid: string; groupOid: string; rowIndex?: number }
   >();
 
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
+  repo.getAllItems().forEach((item) => {
+        const form = repo.getForm((item as any).formOid);
+        if (!form) return;
         if (!isCrfItem(item)) {
           return;
         }
@@ -310,12 +311,10 @@ export function validateCrossFormDependencies(study: StudyDesign): {
           variableMap.set(item.itemOid.toLowerCase(), {
             item,
             formOid: form.formOid,
-            groupOid: group.groupOid,
+            groupOid: (item as any).groupOid,
             rowIndex: (item as any).rowIndex,
           });
         }
-      });
-    });
   });
 
   // Helper to resolve an identifier to its target
@@ -384,7 +383,7 @@ export function validateCrossFormDependencies(study: StudyDesign): {
     const sourceSched: { eventOrder: number; formOrder: number }[] = [];
     const targetSched: { eventOrder: number; formOrder: number }[] = [];
 
-    study.events.forEach((evt) => {
+    repo.getEvents().forEach((evt) => {
       evt.forms.forEach((fRef) => {
         if (fRef.formOid === sourceFormOid) {
           sourceSched.push({ eventOrder: evt.orderNumber, formOrder: fRef.orderNumber });
@@ -502,7 +501,7 @@ export function validateCrossFormDependencies(study: StudyDesign): {
           if (!scheduled) {
             status = "Unreachable";
             severity = "Error";
-            const targetFormScheduled = study.events.some((e) =>
+            const targetFormScheduled = repo.getEvents().some((e) =>
               e.forms.some((fr) => fr.formOid === targetFormOid)
             );
             if (!targetFormScheduled) {
@@ -568,30 +567,27 @@ export function validateCrossFormDependencies(study: StudyDesign): {
   }
 
   // 2. Parse and analyze showIf expressions in all Forms
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
+  repo.getForms().forEach((form) => {
+    repo.getGroupsForForm(form.formOid).forEach((group) => {
       // Analyze Group-level showIf
       if (group.showIf) {
         analyzeExpression(form.formOid, group.groupOid, "Group", undefined, group.showIf, "ShowIf");
       }
-
-      // Analyze Item-level showIf
-      group.items.forEach((item) => {
-        if (!isCrfItem(item)) {
-          return;
-        }
-        if (item.showIf) {
-          analyzeExpression(
-            form.formOid,
-            item.itemOid,
-            "Item",
-            (item as any).rowIndex,
-            item.showIf,
-            "ShowIf"
-          );
-        }
-      });
     });
+  });
+  
+  repo.getAllItems().forEach((item) => {
+    if (!isCrfItem(item)) return;
+    if (item.showIf) {
+      analyzeExpression(
+        item.formOid,
+        item.itemOid,
+        "Item",
+        (item as any).rowIndex,
+        item.showIf,
+        "ShowIf"
+      );
+    }
   });
 
   // 3. Parse and analyze rules from _Rules sheet
@@ -628,6 +624,7 @@ function isNumericDataType(dataType: unknown): boolean {
 
 export function validateSubmissionMetadataForRelease(study: StudyDesign): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  const repo = new StudyRepository(study);
 
   const sdtmDatasetDomains = new Set<string>();
   const adamDatasetNames = new Set<string>();
@@ -729,12 +726,12 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
 
   // Validate items
   if (study.forms) {
-    Object.values(study.forms).forEach((form) => {
-      form.itemGroups.forEach((group) => {
-        group.items.forEach((item) => {
+    repo.getAllItems().forEach((item) => {
           if (!isCrfItem(item)) {
             return;
           }
+          const form = repo.getForm(item.formOid);
+          if (!form) return;
           const row = (item as any).rowIndex;
           const sheet = form.formOid;
 
@@ -911,8 +908,6 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
               }
             }
           }
-        });
-      });
     });
   }
 

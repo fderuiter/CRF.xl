@@ -150,6 +150,7 @@ export function isCrfItem(element: CrfFormElement | Partial<CrfFormElement>): el
 
 export interface ItemGroup {
   groupOid: string;
+  formOid: string;
   name: string;
   label?: TranslatedText;
   tabLabel?: TranslatedText;
@@ -163,7 +164,6 @@ export interface ItemGroup {
   showIf?: string;
   orderNumber: number;
   aliases?: SystemAlias[];
-  items: CrfFormElement[];
 
   customProperties?: Record<string, any>;
 }
@@ -189,7 +189,6 @@ export interface CrfForm {
   footerText?: TranslatedText;
 
   aliases?: SystemAlias[];
-  itemGroups: ItemGroup[];
 
   customProperties?: Record<string, any>;
 }
@@ -242,9 +241,12 @@ export interface StudyMetadata {
 }
 
 export interface StudyDesign {
+  schemaVersion?: string;
   metadata: StudyMetadata;
-  events: StudyEvent[];
+  events: Record<string, StudyEvent>;
   forms: Record<string, CrfForm>;
+  groups: Record<string, ItemGroup>;
+  items: Record<string, CrfFormElement>;
   codelists: Record<string, Codelist>;
   rules?: RuleDefinition[];
   methods?: Record<string, MethodDefinition>;

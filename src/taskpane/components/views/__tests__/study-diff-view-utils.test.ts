@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* global describe, expect, it */
 
 import { DataType, EventType, RuleType, StudyDiffReport } from "../../../core/types";

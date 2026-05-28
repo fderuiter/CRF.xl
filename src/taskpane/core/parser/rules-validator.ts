@@ -5,6 +5,7 @@
  * Dependency Graph Validator and Topological Sorter for CRF.xl Rules.
  */
 
+import { StudyRepository } from "../repository";
 import {
   ASTNode,
   RuleDefinition,
@@ -185,46 +186,26 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign): Rul
 
   // 4. Extract form variables if StudyDesign is provided
   const knownFormVariables = new Set<string>();
-  if (study && study.forms) {
-    for (const form of Object.values(study.forms)) {
-      if (form.itemGroups) {
-        for (const group of form.itemGroups) {
-          if (group.items) {
-            for (const item of group.items) {
-              if (!isCrfItem(item)) {
-                continue;
-              }
-              if (item.itemOid) {
-                knownFormVariables.add(item.itemOid.toLowerCase());
-              }
-            }
-          }
-        }
+  if (study) {
+    const repo = new StudyRepository(study);
+    repo.getAllItems().forEach(item => {
+      if (isCrfItem(item) && item.itemOid) {
+        knownFormVariables.add(item.itemOid.toLowerCase());
       }
-    }
+    });
   }
 
   // 5. Build Dependency Map and validate references
   const validRules = rules.filter((r) => !r.parseError && r.ruleId);
 
   const variablesMap = new Map<string, DataType>();
-  if (study && study.forms) {
-    for (const form of Object.values(study.forms)) {
-      if (form.itemGroups) {
-        for (const group of form.itemGroups) {
-          if (group.items) {
-            for (const item of group.items) {
-              if (!isCrfItem(item)) {
-                continue;
-              }
-              if (item.itemOid) {
-                variablesMap.set(item.itemOid, item.dataType);
-              }
-            }
-          }
-        }
+  if (study) {
+    const repo = new StudyRepository(study);
+    repo.getAllItems().forEach(item => {
+      if (isCrfItem(item) && item.itemOid) {
+        variablesMap.set(item.itemOid, item.dataType);
       }
-    }
+    });
   }
 
   // Also include derived variable targets

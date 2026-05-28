@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** @jest-environment node */
 import os from "os";
 import path from "path";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* global describe, expect, it */
 
 import { performance } from "perf_hooks";

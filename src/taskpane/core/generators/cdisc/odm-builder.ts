@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { StudyRepository } from "../../repository";
 import {
   StudyDesign,
   DataType,
@@ -52,7 +53,7 @@ export function generateOdmXml(study: StudyDesign): string {
     // Check for any blocking errors
     const errors = validationResult.errors.filter((e) => e.level === "Error");
     if (errors.length > 0) {
-      throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
+      console.error(errors); throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
     }
 
     // Collect validation warnings
@@ -66,8 +67,8 @@ export function generateOdmXml(study: StudyDesign): string {
     // Check if targets exist in study design for SHOW_IF and DERIVATION rules
     const studyItemOids = new Set<string>();
     Object.values(study.forms).forEach((form) => {
-      form.itemGroups.forEach((group) => {
-        group.items.forEach((item) => {
+      new StudyRepository(study).getGroupsForForm(form.formOid).forEach((group) => {
+        new StudyRepository(study).getItemsForGroup(group.groupOid).forEach((item) => {
           if (!isCrfItem(item)) {
             return;
           }
@@ -135,7 +136,7 @@ export function generateOdmXml(study: StudyDesign): string {
   // 1. Protocol / Event References
   xml += `
       <Protocol>`;
-  study.events.forEach((event) => {
+  new StudyRepository(study).getEvents().forEach((event) => {
     xml += `
         <StudyEventRef StudyEventOID="${escapeXml(event.eventOid)}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
   });
@@ -143,7 +144,7 @@ export function generateOdmXml(study: StudyDesign): string {
       </Protocol>`;
 
   // 2. Study Event Definitions (Visits)
-  study.events.forEach((event) => {
+  new StudyRepository(study).getEvents().forEach((event) => {
     xml += `
       <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
     event.forms.forEach((fRef) => {
@@ -158,7 +159,7 @@ export function generateOdmXml(study: StudyDesign): string {
   Object.values(study.forms).forEach((form) => {
     xml += `
       <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
-    form.itemGroups.forEach((group) => {
+    new StudyRepository(study).getGroupsForForm(form.formOid).forEach((group) => {
       xml += `
         <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
     });
@@ -168,10 +169,10 @@ export function generateOdmXml(study: StudyDesign): string {
 
   // 4. ItemGroup Definitions (Sections/Grids)
   Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
+    new StudyRepository(study).getGroupsForForm(form.formOid).forEach((group) => {
       xml += `
       <ItemGroupDef OID="${escapeXml(group.groupOid)}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
-      group.items.forEach((item) => {
+      new StudyRepository(study).getItemsForGroup(group.groupOid).forEach((item) => {
         if (!isCrfItem(item)) {
           return;
         }
@@ -200,8 +201,8 @@ export function generateOdmXml(study: StudyDesign): string {
   // Use a Set to ensure ItemDefs are unique (Shared across forms/groups)
   const processedItems = new Set<string>();
   Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
+    new StudyRepository(study).getGroupsForForm(form.formOid).forEach((group) => {
+      new StudyRepository(study).getItemsForGroup(group.groupOid).forEach((item) => {
         if (!isCrfItem(item)) {
           return;
         }
@@ -276,8 +277,8 @@ export function generateOdmXml(study: StudyDesign): string {
 
   // 7b. Inline showIf conditions
   Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
+    new StudyRepository(study).getGroupsForForm(form.formOid).forEach((group) => {
+      new StudyRepository(study).getItemsForGroup(group.groupOid).forEach((item) => {
         if (!isCrfItem(item)) {
           return;
         }

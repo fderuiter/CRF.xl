@@ -24,8 +24,10 @@ export async function parseWorkbookSheetValuesToStudyDesign(
       version: "1.0",
       defaultLanguage: getLocaleConfig().currentLocale,
     },
-    events: [],
+    events: {},
     forms: {},
+    groups: {},
+    items: {},
     codelists: {},
   };
   const parseWarnings: string[] = [];
@@ -77,15 +79,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         formName: String(name),
         orderNumber: rowIndex + 1,
         repeating: String(rep).toLowerCase() === "yes",
-        itemGroups: [
-          {
-            groupOid: `${strId}_GRP`,
-            name: "Default Group",
-            repeating: false,
-            orderNumber: 1,
-            items: [],
-          },
-        ],
+        
         effectiveVersion: study.metadata.version,
       };
     }
@@ -97,12 +91,11 @@ export async function parseWorkbookSheetValuesToStudyDesign(
     try {
       if (crfRows.length > 1) {
         const headers = crfRows[0] as string[];
-        const targetGroup = study.forms[oid].itemGroups[0];
         for (let rowIndex = 0; rowIndex < crfRows.slice(1).length; rowIndex += 1) {
           const row = crfRows[rowIndex + 1];
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
           if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+            study.items[((element as CrfItem).itemOid) || `display_${Date.now()}_${Math.random()}`] = { ...element, formOid: oid, groupOid: `${oid}_G1` } as any;
           }
         }
       }
@@ -135,7 +128,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
           event.forms.push({ formOid, orderNumber: event.forms.length + 1, mandatory: true });
         }
       }
-      study.events.push(event);
+      study.events[event.eventOid] = event;
     }
   }
 
