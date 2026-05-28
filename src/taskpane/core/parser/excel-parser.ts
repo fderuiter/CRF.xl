@@ -33,13 +33,15 @@ async function fetchRawDataFromExcel(
     });
   }
 
+  const PAGE_SIZE = 500;
+
   return await Excel.run(async (context) => {
     const sheets = context.workbook.worksheets;
     sheets.load("items/name");
     await context.sync();
 
     const rawData: Record<string, any[][]> = {};
-    const ranges: { name: string; range: Excel.Range }[] = [];
+    const rangesInfo: { name: string; sheet: Excel.Worksheet; range: Excel.Range }[] = [];
 
     for (const sheet of sheets.items) {
       // Check cancellation during setup
@@ -47,17 +49,62 @@ async function fetchRawDataFromExcel(
         throw new Error("Parsing cancelled during Excel extraction");
       }
       const range = sheet.getUsedRangeOrNullObject();
-      range.load("values");
-      ranges.push({ name: sheet.name, range });
+      range.load(["rowIndex", "columnIndex", "rowCount", "columnCount"]);
+      rangesInfo.push({ name: sheet.name, sheet, range });
     }
 
-    // Execute single batch fetch
+    // Execute single batch fetch to get all dimensions
     await context.sync();
 
-    for (const r of ranges) {
-      if (!r.range.isNullObject) {
-        rawData[r.name] = r.range.values;
+    let totalRows = 0;
+    for (const info of rangesInfo) {
+      if (!info.range.isNullObject) {
+        totalRows += info.range.rowCount;
       }
+    }
+
+    let completedRows = 0;
+
+    for (const info of rangesInfo) {
+      if (info.range.isNullObject) {
+        continue;
+      }
+
+      const rows = info.range.rowCount;
+      const cols = info.range.columnCount;
+      const startR = info.range.rowIndex;
+      const startC = info.range.columnIndex;
+
+      const sheetData: any[][] = [];
+
+      for (let i = 0; i < rows; i += PAGE_SIZE) {
+        if (options.cancellationToken?.isCancelled()) {
+          throw new Error("Parsing cancelled during Excel extraction");
+        }
+
+        const pageRows = Math.min(PAGE_SIZE, rows - i);
+        const subRange = info.sheet.getRangeByIndexes(startR + i, startC, pageRows, cols);
+        subRange.load("values");
+
+        await context.sync();
+
+        sheetData.push(...subRange.values);
+        completedRows += pageRows;
+
+        if (options.onProgress) {
+          options.onProgress({
+            phase: "metadata",
+            completed: completedRows,
+            total: totalRows || 1,
+            message: `Extracting data from ${info.name}...`,
+          });
+        }
+
+        // Cooperative yield to keep UI thread responsive
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+
+      rawData[info.name] = sheetData;
     }
 
     if (options.onProgress) {
