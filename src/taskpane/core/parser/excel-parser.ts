@@ -1,388 +1,129 @@
-/* eslint-disable office-addins/call-sync-before-read, office-addins/call-sync-after-load */
-/* global Excel */
-import {
-  StudyDesign,
-  DataType,
-  CrfItem,
-  EventType,
-  StudyEvent,
-  isCrfDisplayBlock,
-} from "../types/index";
-import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
-import { parseRulesSheetRows } from "./rules-parser";
-import { migrateStudyDesign } from "./migration";
-import { mapRowToFormElement } from "./form-element-utils";
-import { parseReferencedVariables } from "./metadata-utils";
+/* global Excel, window, Worker, URL, MessageEvent */
+import { StudyDesign } from "../types/index";
+import { ParseRuntimeOptions } from "./chunking-runtime";
+import { parseRawDataToStudyDesign } from "./parser-engine";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
 }
 
-/**
- * The Matrix-First Parser Engine
- * 1. Reads global metadata & dictionaries.
- * 2. Reads the _Forms registry to map active CRF tabs.
- * 3. Loops through each CRF tab to harvest questions.
- * 4. Transposes the _Schedule grid into visit events.
- */
 export async function parseExcelToStudyDesign(
   options: ParseExcelToStudyDesignOptions = {}
 ): Promise<StudyDesign> {
-  const runtime = createParseRuntime(options);
+  const rawData = await fetchRawDataFromExcel(options);
+
+  if (typeof window !== "undefined" && typeof Worker !== "undefined") {
+    // 2. Delegate to Worker
+    return await runInWorker(rawData, options);
+  } else {
+    // 3. Fallback to main thread execution
+    return await parseRawDataToStudyDesign(rawData, options);
+  }
+}
+
+async function fetchRawDataFromExcel(
+  options: ParseExcelToStudyDesignOptions
+): Promise<Record<string, any[][]>> {
+  if (options.onProgress) {
+    options.onProgress({
+      phase: "metadata",
+      completed: 0,
+      total: 1,
+      message: "Extracting raw data from Excel host...",
+    });
+  }
+
   return await Excel.run(async (context) => {
     const sheets = context.workbook.worksheets;
-    const study: StudyDesign = {
-      metadata: {
-        protocolId: "PROT-XXXX",
-        studyName: "Untitled",
-        version: "1.0",
-        defaultLanguage: "en-US",
-      },
-      events: [],
-      forms: {},
-      codelists: {},
-    };
-    const parseWarnings: string[] = [];
-    const allowPartialSheetFailures = options.allowPartialSheetFailures ?? true;
-
-    // 1. Parse _Study Metadata
-    runtime.reportProgress({
-      phase: "metadata",
-      completed: 0,
-      total: 1,
-      message: "Reading _Study metadata",
-    });
-    runtime.throwIfStopped("metadata");
-    const metaSheet = sheets.getItemOrNullObject("_Study");
+    sheets.load("items/name");
     await context.sync();
-    if (!metaSheet.isNullObject) {
-      const vals = await getValues(metaSheet);
-      if (vals && vals.length > 1) {
-        study.metadata.protocolId = String(vals[1][0] || study.metadata.protocolId);
-        study.metadata.studyName = String(vals[1][1] || study.metadata.studyName);
-        study.metadata.version = String(vals[1][2] || study.metadata.version);
+
+    const rawData: Record<string, any[][]> = {};
+    const ranges: { name: string; range: Excel.Range }[] = [];
+
+    for (const sheet of sheets.items) {
+      // Check cancellation during setup
+      if (options.cancellationToken?.isCancelled()) {
+        throw new Error("Parsing cancelled during Excel extraction");
+      }
+      const range = sheet.getUsedRangeOrNullObject();
+      range.load("values");
+      ranges.push({ name: sheet.name, range });
+    }
+
+    // Execute single batch fetch
+    await context.sync();
+
+    for (const r of ranges) {
+      if (!r.range.isNullObject) {
+        rawData[r.name] = r.range.values;
       }
     }
-    runtime.reportProgress({
-      phase: "metadata",
-      completed: 1,
-      total: 1,
-      message: "Completed _Study metadata",
-    });
-    await runtime.yieldToHost();
 
-    // 2. Parse _Codelists
-    runtime.reportProgress({
-      phase: "codelists",
-      completed: 0,
-      total: 1,
-      message: "Reading _Codelists",
-    });
-    runtime.throwIfStopped("codelists");
-    const clSheet = sheets.getItemOrNullObject("_Codelists");
-    await context.sync();
-    if (!clSheet.isNullObject) {
-      const vals = await getValues(clSheet);
-      if (vals) {
-        const rows = vals.slice(1);
-        runtime.reportProgress({
-          phase: "codelists",
-          completed: 0,
-          total: rows.length,
-          message: "Processing codelist rows",
-        });
-        await processRowsInChunks(rows, runtime, "codelists", (row, rowIndex) => {
-          runtime.throwIfStopped("codelists");
-          const [id, name, code, decode] = row;
-          if (!id) return;
-          const strId = String(id).trim();
-          if (!study.codelists[strId]) {
-            study.codelists[strId] = {
-              codelistId: strId,
-              codelistName: String(name),
-              dataType: DataType.TEXT,
-              items: [],
-            };
-          }
-          study.codelists[strId].items.push({
-            codelistId: strId,
-            codedValue: String(code),
-            decodedText: { "en-US": String(decode) },
-            orderNumber: study.codelists[strId].items.length + 1,
-          });
-          runtime.reportProgress({
-            phase: "codelists",
-            completed: rowIndex + 1,
-            total: rows.length,
-            message: "Processing codelist rows",
-          });
-        });
-      }
-    }
-    runtime.reportProgress({
-      phase: "codelists",
-      completed: 1,
-      total: 1,
-      message: "Completed _Codelists",
-    });
-
-    // 3. Parse _Forms (The Registry)
-    runtime.reportProgress({
-      phase: "forms",
-      completed: 0,
-      total: 1,
-      message: "Reading _Forms registry",
-    });
-    runtime.throwIfStopped("forms");
-    const formSheet = sheets.getItemOrNullObject("_Forms");
-    await context.sync();
-    const activeFormOids: string[] = [];
-
-    if (!formSheet.isNullObject) {
-      const vals = await getValues(formSheet);
-      if (vals) {
-        const rows = vals.slice(1);
-        await processRowsInChunks(rows, runtime, "forms", (row, rowIndex) => {
-          runtime.throwIfStopped("forms");
-          const i = rowIndex + 1;
-          const [id, name, rep] = row;
-          if (!id) return;
-          const strId = String(id).trim();
-          activeFormOids.push(strId);
-
-          study.forms[strId] = {
-            formOid: strId,
-            formName: String(name),
-            orderNumber: i,
-            repeating: String(rep).toLowerCase() === "yes",
-            itemGroups: [
-              {
-                groupOid: `${strId}_GRP`,
-                name: "Default Group",
-                repeating: false,
-                orderNumber: 1,
-                items: [],
-              },
-            ],
-            effectiveVersion: study.metadata.version,
-          };
-          runtime.reportProgress({
-            phase: "forms",
-            completed: rowIndex + 1,
-            total: rows.length,
-            message: "Processing forms registry",
-          });
-        });
-      }
-    }
-    runtime.reportProgress({
-      phase: "forms",
-      completed: activeFormOids.length,
-      total: activeFormOids.length || 1,
-      message: "Completed _Forms registry",
-    });
-
-    // 4. Dynamic Multi-Pass: Parse Individual CRF Sheets
-    for (let formIndex = 0; formIndex < activeFormOids.length; formIndex++) {
-      runtime.throwIfStopped("items");
-      const oid = activeFormOids[formIndex];
-      runtime.reportProgress({
-        phase: "items",
-        completed: formIndex,
-        total: activeFormOids.length,
-        message: `Reading form sheet ${oid} (${formIndex + 1}/${activeFormOids.length})`,
+    if (options.onProgress) {
+      options.onProgress({
+        phase: "metadata",
+        completed: 1,
+        total: 1,
+        message: "Excel data extraction complete",
       });
-      const crfSheet = sheets.getItemOrNullObject(oid);
-      await context.sync();
-      if (crfSheet.isNullObject) continue;
-
-      try {
-        const vals = await getValues(crfSheet);
-        if (vals && vals.length > 1) {
-          const headers = vals[0] as string[];
-          const targetGroup = study.forms[oid].itemGroups[0];
-          const rows = vals.slice(1);
-
-          await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
-            runtime.throwIfStopped("items");
-            const element = mapRowToFormElement(headers, row, oid, rowIndex + 2); // +1 because Excel rows are 1-based, and +1 for header
-            if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-              targetGroup.items.push(element as any);
-            }
-          });
-        }
-      } catch (error) {
-        if (!allowPartialSheetFailures) throw error;
-        parseWarnings.push(
-          `Sheet "${oid}" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-      runtime.reportProgress({
-        phase: "items",
-        completed: formIndex + 1,
-        total: activeFormOids.length || 1,
-        message: `Processed form sheet ${oid} (${formIndex + 1}/${activeFormOids.length})`,
-      });
-      await runtime.yieldToHost();
     }
 
-    // 5. Parse _Schedule (Transposing Matrix to Events)
-    runtime.reportProgress({
-      phase: "schedule",
-      completed: 0,
-      total: 1,
-      message: "Reading _Schedule matrix",
-    });
-    runtime.throwIfStopped("schedule");
-    const schedSheet = sheets.getItemOrNullObject("_Schedule");
-    await context.sync();
-    if (!schedSheet.isNullObject) {
-      const vals = await getValues(schedSheet);
-      if (vals && vals.length > 0) {
-        const headers = vals[0];
-
-        // Create Events based on Matrix Columns (Starting from Col 1)
-        const scheduleColumns = Array.from(
-          { length: Math.max(headers.length - 1, 0) },
-          (_, index) => index + 1
-        );
-        await processRowsInChunks(scheduleColumns, runtime, "schedule", (col, colIndex) => {
-          runtime.throwIfStopped("schedule");
-          const eventName = String(headers[col]).trim();
-          if (!eventName) return;
-
-          const eventOid = `VISIT_${col}`;
-          const event: StudyEvent = {
-            eventOid,
-            eventName,
-            orderNumber: col,
-            eventType: EventType.SCHEDULED,
-            forms: [],
-            rowIndex: 0, // Location tracker for schedule
-          } as any;
-
-          // Look down the column for 'X'
-          for (let row = 1; row < vals.length; row++) {
-            const formOid = String(vals[row][0]).trim();
-            const marker = String(vals[row][col]).trim().toUpperCase();
-
-            if (marker === "X" || marker === "1") {
-              event.forms.push({ formOid, orderNumber: event.forms.length + 1, mandatory: true });
-            }
-          }
-          study.events.push(event);
-          runtime.reportProgress({
-            phase: "schedule",
-            completed: colIndex + 1,
-            total: scheduleColumns.length || 1,
-            message: "Processing schedule matrix",
-          });
-        });
-      }
-    }
-
-    // 6. Parse _Rules Sheet
-    runtime.reportProgress({
-      phase: "rules",
-      completed: 0,
-      total: 1,
-      message: "Reading _Rules sheet",
-    });
-    runtime.throwIfStopped("rules");
-    const rulesSheet = sheets.getItemOrNullObject("_Rules");
-    await context.sync();
-    if (!rulesSheet.isNullObject) {
-      try {
-        const vals = await getValues(rulesSheet);
-        if (vals && vals.length > 0) {
-          const { rules, errors } = parseRulesSheetRows(vals, study.metadata.version);
-          study.rules = rules;
-
-          // Log each parse error as a workbook parse warning
-          errors.forEach((err) => {
-            parseWarnings.push(`_Rules Row ${err.line}: ${err.message}`);
-          });
-        }
-      } catch (error) {
-        if (!allowPartialSheetFailures) throw error;
-        parseWarnings.push(
-          `Sheet "_Rules" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    }
-    runtime.reportProgress({
-      phase: "rules",
-      completed: 1,
-      total: 1,
-      message: "Completed _Rules sheet",
-    });
-
-    // 7. Parse _Methods Sheet
-    runtime.reportProgress({
-      phase: "methods",
-      completed: 0,
-      total: 1,
-      message: "Reading _Methods sheet",
-    });
-    runtime.throwIfStopped("methods");
-    const methodsSheet = sheets.getItemOrNullObject("_Methods");
-    await context.sync();
-    study.methods = {};
-    if (!methodsSheet.isNullObject) {
-      try {
-        const vals = await getValues(methodsSheet);
-        if (vals && vals.length > 1) {
-          const rows = vals.slice(1);
-          await processRowsInChunks(rows, runtime, "methods", (row) => {
-            runtime.throwIfStopped("methods");
-            const [oid, name, type, description, expression, referencedVariables] = row;
-            if (!oid) return;
-            const strOid = String(oid).trim();
-            study.methods![strOid] = {
-              methodOid: strOid,
-              name: String(name || "").trim(),
-              type: String(type || "").trim(),
-              description: description ? String(description).trim() : undefined,
-              expression: expression ? String(expression).trim() : undefined,
-              referencedVariables: parseReferencedVariables(referencedVariables),
-            };
-          });
-        }
-      } catch (error) {
-        if (!allowPartialSheetFailures) throw error;
-        parseWarnings.push(
-          `Sheet "_Methods" failed to parse and was skipped: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    }
-    runtime.reportProgress({
-      phase: "methods",
-      completed: 1,
-      total: 1,
-      message: "Completed _Methods sheet",
-    });
-
-    if (parseWarnings.length > 0) {
-      study.metadata.customProperties = {
-        ...(study.metadata.customProperties ?? {}),
-        parseWarnings,
-      };
-    }
-
-    runtime.reportProgress({
-      phase: "complete",
-      completed: 1,
-      total: 1,
-      message: "Workbook analysis completed",
-    });
-
-    return migrateStudyDesign(study);
+    return rawData;
   });
 }
 
-async function getValues(sheet: Excel.Worksheet) {
-  const range = sheet.getUsedRange();
-  range.load("values");
-  await range.context.sync();
-  return range.values;
+function runInWorker(
+  rawData: Record<string, any[][]>,
+  options: ParseExcelToStudyDesignOptions
+): Promise<StudyDesign> {
+  return new Promise((resolve, reject) => {
+    // Webpack 5 standard worker creation
+    const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
+
+    // Handle incoming messages
+    worker.onmessage = (event: MessageEvent) => {
+      const { type, payload } = event.data;
+
+      if (type === "PROGRESS") {
+        if (options.onProgress) {
+          options.onProgress(payload);
+        }
+        // Proxy cancellation state to the worker
+        if (options.cancellationToken?.isCancelled()) {
+          worker.postMessage({ type: "CANCEL_PARSING" });
+        }
+      } else if (type === "SUCCESS") {
+        worker.terminate();
+        resolve(payload as StudyDesign);
+      } else if (type === "ERROR") {
+        worker.terminate();
+        reject(new Error(payload));
+      } else if (type === "CANCELLED") {
+        worker.terminate();
+        reject(new Error("Parsing cancelled"));
+      }
+    };
+
+    worker.onerror = (error) => {
+      worker.terminate();
+      reject(error);
+    };
+
+    // Serialize options (without functions) to pass to worker
+    const serializableOptions = {
+      chunkSize: options.chunkSize,
+      timeoutMs: options.timeoutMs,
+      allowPartialSheetFailures: options.allowPartialSheetFailures,
+    };
+
+    // Start parsing
+    worker.postMessage({
+      type: "START_PARSING",
+      payload: {
+        rawData,
+        options: serializableOptions,
+      },
+    });
+  });
 }
