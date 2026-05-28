@@ -84,7 +84,7 @@ describe("CDISC ODM XML Builder", () => {
     const xml = generateOdmXml(mockStudy);
     // The condition should exist globally
     expect(xml).toContain('<ConditionDef OID="COND.IT_WT"');
-    expect(xml).toContain("IT.PREG == 'N'");
+    expect(xml).toContain("IT.PREG == &apos;N&apos;");
     // The item should reference the condition
     expect(xml).toContain('CollectionExceptionConditionOID="COND.IT_WT"');
   });

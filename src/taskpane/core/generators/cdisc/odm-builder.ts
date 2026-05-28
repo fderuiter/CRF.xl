@@ -119,25 +119,25 @@ export function generateOdmXml(study: StudyDesign): string {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" 
      FileType="Snapshot" 
-     FileOID="${metadata.protocolId}_${metadata.version}_${timestamp.replace(/[:.-]/g, "")}" 
+     FileOID="${escapeXml(metadata.protocolId)}_${escapeXml(metadata.version)}_${timestamp.replace(/[:.-]/g, "")}" 
      CreationDateTime="${timestamp}" 
      ODMVersion="1.3.2">`;
 
   xml += `
-  <Study OID="${metadata.protocolId}">
+  <Study OID="${escapeXml(metadata.protocolId)}">
     <GlobalVariables>
       <StudyName>${escapeXml(metadata.studyName)}</StudyName>
-      <StudyDescription>Metadata export for Protocol ${metadata.protocolId}</StudyDescription>
+      <StudyDescription>Metadata export for Protocol ${escapeXml(metadata.protocolId)}</StudyDescription>
       <ProtocolName>${escapeXml(metadata.protocolId)}</ProtocolName>
     </GlobalVariables>
-    <MetaDataVersion OID="MV.${metadata.version}" Name="Version ${metadata.version}">`;
+    <MetaDataVersion OID="MV.${escapeXml(metadata.version)}" Name="Version ${escapeXml(metadata.version)}">`;
 
   // 1. Protocol / Event References
   xml += `
       <Protocol>`;
   study.events.forEach((event) => {
     xml += `
-        <StudyEventRef StudyEventOID="${event.eventOid}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
+        <StudyEventRef StudyEventOID="${escapeXml(event.eventOid)}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
   });
   xml += `
       </Protocol>`;
@@ -145,10 +145,10 @@ export function generateOdmXml(study: StudyDesign): string {
   // 2. Study Event Definitions (Visits)
   study.events.forEach((event) => {
     xml += `
-      <StudyEventDef OID="${event.eventOid}" Name="${escapeXml(event.eventName)}" Type="${event.eventType || "Scheduled"}" Repeating="No">`;
+      <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
     event.forms.forEach((fRef) => {
       xml += `
-        <FormRef FormOID="${fRef.formOid}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? "Yes" : "No"}"/>`;
+        <FormRef FormOID="${escapeXml(fRef.formOid)}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? "Yes" : "No"}"/>`;
     });
     xml += `
       </StudyEventDef>`;
@@ -157,10 +157,10 @@ export function generateOdmXml(study: StudyDesign): string {
   // 3. Form Definitions (Pages)
   Object.values(study.forms).forEach((form) => {
     xml += `
-      <FormDef OID="${form.formOid}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
+      <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
     form.itemGroups.forEach((group) => {
       xml += `
-        <ItemGroupRef ItemGroupOID="${group.groupOid}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
+        <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
     });
     xml += `
       </FormDef>`;
@@ -170,7 +170,7 @@ export function generateOdmXml(study: StudyDesign): string {
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       xml += `
-      <ItemGroupDef OID="${group.groupOid}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
+      <ItemGroupDef OID="${escapeXml(group.groupOid)}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
       group.items.forEach((item) => {
         if (!isCrfItem(item)) {
           return;
@@ -183,13 +183,13 @@ export function generateOdmXml(study: StudyDesign): string {
 
         let conditionAttr = "";
         if (showIfRule) {
-          conditionAttr = ` CollectionExceptionConditionOID="${showIfRule.ruleId}"`;
+          conditionAttr = ` CollectionExceptionConditionOID="${escapeXml(showIfRule.ruleId)}"`;
         } else if (item.showIf) {
-          conditionAttr = ` CollectionExceptionConditionOID="COND.${item.itemOid}"`;
+          conditionAttr = ` CollectionExceptionConditionOID="COND.${escapeXml(item.itemOid)}"`;
         }
 
         xml += `
-        <ItemRef ItemOID="${item.itemOid}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}/>`;
+        <ItemRef ItemOID="${escapeXml(item.itemOid)}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}/>`;
       });
       xml += `
       </ItemGroupDef>`;
@@ -225,7 +225,7 @@ export function generateOdmXml(study: StudyDesign): string {
   Object.values(study.codelists).forEach((cl) => {
     const odmType = mapDataTypeToOdm(cl.dataType);
     xml += `
-      <CodeList OID="${cl.codelistId}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
+      <CodeList OID="${escapeXml(cl.codelistId)}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
     cl.items.forEach((clItem) => {
       xml += `
         <CodeListItem CodedValue="${escapeXml(clItem.codedValue)}">
@@ -267,7 +267,7 @@ export function generateOdmXml(study: StudyDesign): string {
         }
 
         xml += `
-      <ConditionDef OID="${rule.ruleId}" Name="${escapeXml(rule.name || rule.ruleId)}">${descElement}
+      <ConditionDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}">${descElement}
         <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
       </ConditionDef>`;
       }
@@ -296,8 +296,8 @@ export function generateOdmXml(study: StudyDesign): string {
         processedConditions.add(conditionOid);
 
         xml += `
-      <ConditionDef OID="${conditionOid}" Name="Show condition for ${escapeXml(item.name)}">
-        <FormalExpression Context="CRF.xl">${item.showIf}</FormalExpression>
+      <ConditionDef OID="${escapeXml(conditionOid)}" Name="Show condition for ${escapeXml(item.name)}">
+        <FormalExpression Context="CRF.xl">${escapeXml(item.showIf)}</FormalExpression>
       </ConditionDef>`;
       });
     });
@@ -328,7 +328,7 @@ export function generateOdmXml(study: StudyDesign): string {
         }
 
         xml += `
-      <MethodDef OID="${rule.ruleId}" Name="${escapeXml(rule.name || rule.ruleId)}" Type="Computation">${descElement}
+      <MethodDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}" Type="Computation">${descElement}
         <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
       </MethodDef>`;
       }
@@ -358,7 +358,7 @@ export function generateOdmXml(study: StudyDesign): string {
       }
 
       xml += `
-      <MethodDef OID="${cleanOid}" Name="${escapeXml(method.name || cleanOid)}" Type="${typeAttr}">${descElement}${formalExpressionElement}
+      <MethodDef OID="${escapeXml(cleanOid)}" Name="${escapeXml(method.name || cleanOid)}" Type="${typeAttr}">${descElement}${formalExpressionElement}
       </MethodDef>`;
     });
   }
@@ -369,10 +369,12 @@ export function generateOdmXml(study: StudyDesign): string {
 </ODM>`;
 
   if (serializationWarnings.length > 0) {
+    // XML 1.0 prohibits '--' inside comments
+    const safeWarnings = serializationWarnings.map((w) => w.replace(/--/g, "- -"));
     xml += `
 <!--
   CRF.xl Serialization Warnings:
-${serializationWarnings.map((w) => `  - ${w}`).join("\n")}
+${safeWarnings.map((w) => `  - ${w}`).join("\n")}
 -->`;
   }
 
@@ -385,7 +387,7 @@ ${serializationWarnings.map((w) => `  - ${w}`).join("\n")}
 function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
   const odmType = mapDataTypeToOdm(item.dataType);
   let output = `
-      <ItemDef OID="${item.itemOid}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
+      <ItemDef OID="${escapeXml(item.itemOid)}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
 
   if (Number.isInteger(item.length) && Number(item.length) > 0) {
     output += ` Length="${item.length}"`;
@@ -417,13 +419,13 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
 
   if (item.codelistId) {
     output += `
-        <CodeListRef CodeListOID="${item.codelistId}"/>`;
+        <CodeListRef CodeListOID="${escapeXml(item.codelistId)}"/>`;
   }
 
   // SDTM Metadata Alias
   if (item.sdtmMapping?.domain && item.sdtmMapping?.variable) {
     output += `
-        <Alias Context="SDTM" Name="${item.sdtmMapping.domain}.${item.sdtmMapping.variable}"/>`;
+        <Alias Context="SDTM" Name="${escapeXml(item.sdtmMapping.domain + "." + item.sdtmMapping.variable)}"/>`;
   }
 
   output += `
@@ -467,7 +469,12 @@ function renderTranslatedText(text: TranslatedText): string {
  */
 function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
-  return unsafe.replace(/[<>&"']/g, (c) => {
+  
+  // 1. Strip prohibited control characters in U+0000-U+001F (excluding allowed XML 1.0 whitespace)
+  const stripped = unsafe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+
+  // 2. Escape the 5 standard XML entities
+  return stripped.replace(/[<>&"']/g, (c) => {
     switch (c) {
       case "<":
         return "&lt;";
