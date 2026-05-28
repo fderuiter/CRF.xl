@@ -3,6 +3,30 @@
 import { ValidationIssue } from "../parser/validator";
 
 /**
+ * Checks for orphaned annotations (comments) across the active sheets.
+ */
+export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise<number> {
+  let count = 0;
+  await Excel.run(async (context) => {
+    for (const name of sheetNames) {
+      const sheet = context.workbook.worksheets.getItemOrNullObject(name);
+      await context.sync();
+      if (sheet.isNullObject) continue;
+
+      try {
+        const comments = sheet.comments;
+        comments.load("items");
+        await context.sync();
+        count += comments.items.length;
+      } catch (e) {
+        console.warn(`[AnnotationService] Could not count comments on sheet: ${name}`, e);
+      }
+    }
+  });
+  return count;
+}
+
+/**
  * High-performance canvas cleaner.
  * Surgically wipes red highlights and cell comments from active study sheets without harming data or headers.
  */
