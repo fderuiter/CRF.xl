@@ -144,9 +144,61 @@ export interface IngestionPreview {
   provenance?: ImportProvenance;
 }
 
-// ---------------------------------------------------------------------------
-// Target field catalog
-// ---------------------------------------------------------------------------
+export function mapRow(
+  sourceRow: string[],
+  mappings: FieldMapping[],
+  targetStructure: TargetSheet
+): string[] {
+  const getColIndex = (field: TargetField): number | null =>
+    mappings.find((m) => m.targetField === field)?.sourceColumn?.columnIndex ?? null;
+
+  const getValue = (field: TargetField): string => {
+    const idx = getColIndex(field);
+    if (idx === null || idx < 0 || idx >= sourceRow.length) return "";
+    return String(sourceRow[idx] ?? "").trim();
+  };
+
+  if (targetStructure === "form_item") {
+    return [
+      getValue("variable_name"),
+      getValue("label"),
+      getValue("variable_type"),
+      getValue("required"),
+      getValue("length"),
+      getValue("significant_digits"),
+      getValue("minimum"),
+      getValue("maximum"),
+      getValue("show_if"),
+      getValue("codelist_id"),
+      getValue("origin"),
+      getValue("method_oid"),
+      getValue("sdtm_domain"),
+      getValue("sdtm_variable"),
+      getValue("comment"),
+    ];
+  }
+
+  if (targetStructure === "forms_registry") {
+    return [
+      getValue("form_oid"),
+      getValue("form_name"),
+      getValue("repeating"),
+      getValue("page_layout"),
+    ];
+  }
+
+  if (targetStructure === "codelists") {
+    return [
+      getValue("cl_codelist_id"),
+      getValue("cl_codelist_name"),
+      getValue("cl_coded_value"),
+      getValue("cl_decode"),
+    ];
+  }
+
+  return [];
+}
+
 
 /** Full catalog of all mappable CRF.xl target fields. */
 export const TARGET_FIELDS: TargetFieldDescriptor[] = [
@@ -855,7 +907,8 @@ export function buildIngestionPreview(
 export function buildSheetScanResult(
   sheetName: string,
   rows: string[][],
-  sampleSize = 5
+  sampleSize = 5,
+  totalRowCount?: number
 ): SheetScanResult {
   if (!rows || rows.length === 0) {
     return {
@@ -886,7 +939,7 @@ export function buildSheetScanResult(
   return {
     sheetName,
     columnCandidates,
-    rowCount: bodyRows.length,
+    rowCount: totalRowCount !== undefined ? totalRowCount : bodyRows.length,
     detectedStructure: detectSheetStructure(columnCandidates),
   };
 }

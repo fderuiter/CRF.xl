@@ -26,6 +26,7 @@ import {
   MessageBar,
   MessageBarBody,
   Option,
+  ProgressBar,
   Spinner,
   Text,
   makeStyles,
@@ -35,6 +36,7 @@ import {
   buildIngestionPreview,
   buildSheetScanResult,
   detectColumnMappings,
+  mapRow,
   ColumnCandidate,
   FieldMapping,
   IngestionPreview,
@@ -74,6 +76,11 @@ interface WizardState {
     message: string;
     warnings: number;
   } | null;
+  syncProgress: {
+    processed: number;
+    total: number;
+    cancelRequested: boolean;
+  } | null;
   isProcessing: boolean;
   error: string | null;
 }
@@ -88,6 +95,7 @@ const INITIAL_STATE: WizardState = {
   preview: null,
   targetFormSheet: null,
   importResult: null,
+  syncProgress: null,
   isProcessing: false,
   error: null,
 };
@@ -394,14 +402,23 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     if (!state.selectedSheet) return;
     patch({ isProcessing: true, error: null, stage: "workbook-scan" });
     try {
-      const rawRows = await Excel.run(async (ctx) => {
+      let rawRows: string[][] = [];
+      let totalRows = 0;
+      await Excel.run(async (ctx) => {
         const sheet = ctx.workbook.worksheets.getItem(state.selectedSheet!);
         const used = sheet.getUsedRange();
-        used.load("values");
+        used.load(["rowCount", "columnCount"]);
         await ctx.sync();
-        return (used.values as string[][]) || [];
+        totalRows = used.rowCount > 0 ? used.rowCount - 1 : 0; // -1 for header
+        const rowsToRead = Math.min(50, used.rowCount);
+        if (rowsToRead > 0) {
+          const range = sheet.getRangeByIndexes(0, 0, rowsToRead, used.columnCount);
+          range.load("values");
+          await ctx.sync();
+          rawRows = range.values as string[][];
+        }
       });
-      const scanResult = buildSheetScanResult(state.selectedSheet, rawRows, 5);
+      const scanResult = buildSheetScanResult(state.selectedSheet, rawRows, 5, totalRows);
       const confirmedStructure = detectedStructureToTargetSheet(scanResult.detectedStructure);
       patch({
         scanResult,
@@ -478,70 +495,141 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   // Stage 6: commit the import to the active workbook
   // -------------------------------------------------------------------------
   const handleCommit = async () => {
-    if (!state.preview || !state.confirmedStructure) return;
-    patch({ isProcessing: true, error: null });
+    if (!state.preview || !state.confirmedStructure || !state.scanResult) return;
+    patch({
+      isProcessing: true,
+      error: null,
+      syncProgress: { processed: 0, total: state.scanResult.rowCount, cancelRequested: false }
+    });
 
     try {
-      const { projectedRows, mappings } = state.preview;
+      const { mappings } = state.preview;
+      const totalRows = state.scanResult.rowCount;
+      const pageSize = 500;
       let rowsWritten = 0;
       let targetSheetName = "";
 
-      await Excel.run(async (ctx) => {
-        const sheets = ctx.workbook.worksheets;
+      const maxColIndex = Math.max(
+        0,
+        ...state.scanResult.columnCandidates.map((c) => c.columnIndex)
+      );
+      const colCount = maxColIndex + 1;
 
-        if (state.confirmedStructure === "codelists" && projectedRows.codelistRows.length > 1) {
-          const clSheet = sheets.getItem("_Codelists");
-          const used = clSheet.getUsedRange();
-          used.load("rowCount");
-          await ctx.sync();
-          const startRow = used.rowCount;
-          const dataRows = projectedRows.codelistRows.slice(1); // skip header
-          const range = clSheet.getRangeByIndexes(startRow, 0, dataRows.length, 4);
-          range.values = dataRows as string[][];
-          rowsWritten = dataRows.length;
-          targetSheetName = "_Codelists";
-        } else if (
-          state.confirmedStructure === "forms_registry" &&
-          projectedRows.formsRows.length > 1
-        ) {
-          const formsSheet = sheets.getItem("_Forms");
-          const used = formsSheet.getUsedRange();
-          used.load("rowCount");
-          await ctx.sync();
-          const startRow = used.rowCount;
-          const dataRows = projectedRows.formsRows.slice(1);
-          const range = formsSheet.getRangeByIndexes(startRow, 0, dataRows.length, 4);
-          range.values = dataRows as string[][];
-          rowsWritten = dataRows.length;
-          targetSheetName = "_Forms";
-        } else if (
-          state.confirmedStructure === "form_item" &&
-          projectedRows.formItemRows.length > 1
-        ) {
-          const formSheetName = state.targetFormSheet ?? state.selectedSheet ?? "ImportedForm";
-          let formSheet = sheets.getItemOrNullObject(formSheetName);
-          await ctx.sync();
-          if (formSheet.isNullObject) {
-            formSheet = sheets.add(formSheetName);
+      for (let i = 0; i < totalRows; i += pageSize) {
+        // Provide an opportunity to cancel and yield to UI thread
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        let canceled = false;
+        setState((current) => {
+          if (current.syncProgress?.cancelRequested) {
+            canceled = true;
           }
-          const used = formSheet.getUsedRange();
-          used.load("rowCount");
-          await ctx.sync();
-          // If sheet is truly empty (rowCount==0 when getUsedRange fails), start at 0
-          const startRow = used.rowCount > 0 ? used.rowCount : 0;
-          const dataRows = projectedRows.formItemRows.slice(1);
-          const range = formSheet.getRangeByIndexes(startRow, 0, dataRows.length, dataRows[0].length);
-          range.values = dataRows as string[][];
-          rowsWritten = dataRows.length;
-          targetSheetName = formSheetName;
-        }
+          return current;
+        });
+        if (canceled) break;
 
-        await ctx.sync();
+        const currentChunkSize = Math.min(pageSize, totalRows - i);
+
+        await Excel.run(async (ctx) => {
+          const sheets = ctx.workbook.worksheets;
+          const sourceSheet = sheets.getItem(state.selectedSheet!);
+          // +1 to skip header row
+          const sourceRange = sourceSheet.getRangeByIndexes(i + 1, 0, currentChunkSize, colCount);
+          sourceRange.load("values");
+          await ctx.sync();
+
+          const sourceRows = sourceRange.values as string[][];
+          const mappedRows = sourceRows.map((r) =>
+            mapRow(r, mappings, state.confirmedStructure!)
+          );
+
+          if (state.confirmedStructure === "codelists") {
+            const clSheet = sheets.getItem("_Codelists");
+            const used = clSheet.getUsedRange();
+            used.load("rowCount");
+            await ctx.sync();
+            const startRow = used.rowCount > 0 ? used.rowCount : 0;
+            const range = clSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
+            range.values = mappedRows as string[][];
+            targetSheetName = "_Codelists";
+          } else if (state.confirmedStructure === "forms_registry") {
+            const formsSheet = sheets.getItem("_Forms");
+            const used = formsSheet.getUsedRange();
+            used.load("rowCount");
+            await ctx.sync();
+            const startRow = used.rowCount > 0 ? used.rowCount : 0;
+            const range = formsSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
+            range.values = mappedRows as string[][];
+            targetSheetName = "_Forms";
+          } else if (state.confirmedStructure === "form_item") {
+            const formSheetName = state.targetFormSheet ?? state.selectedSheet ?? "ImportedForm";
+            let formSheet = sheets.getItemOrNullObject(formSheetName);
+            await ctx.sync();
+            if (formSheet.isNullObject) {
+              formSheet = sheets.add(formSheetName);
+              // Add headers if new sheet
+              const headers = [
+                "Variable Name", "Label", "Variable Type", "Required", "Length", "Significant Digits",
+                "Minimum", "Maximum", "Show If", "Codelist ID", "Origin", "Method OID", "SDTM Domain",
+                "SDTM Variable", "Comment",
+              ];
+              formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
+            }
+            const used = formSheet.getUsedRange();
+            used.load("rowCount");
+            await ctx.sync();
+            const startRow = used.rowCount > 0 ? used.rowCount : 0;
+            const range = formSheet.getRangeByIndexes(startRow, 0, mappedRows.length, mappedRows[0].length);
+            range.values = mappedRows as string[][];
+            targetSheetName = formSheetName;
+          }
+
+          await ctx.sync();
+        });
+
+        rowsWritten += currentChunkSize;
+        setState((current) => {
+          if (current.syncProgress) {
+            return {
+              ...current,
+              syncProgress: { ...current.syncProgress, processed: rowsWritten },
+            };
+          }
+          return current;
+        });
+      }
+
+      // Check if completely cancelled
+      let finalCanceled = false;
+      setState((current) => {
+        if (current.syncProgress?.cancelRequested) {
+          finalCanceled = true;
+        }
+        return current;
       });
+
+      if (finalCanceled) {
+        patch({
+          isProcessing: false,
+          syncProgress: null,
+          importResult: {
+            success: false,
+            rowsWritten,
+            targetSheet: targetSheetName,
+            message: `Partial import: ${rowsWritten} row(s) imported before cancellation.`,
+            warnings: (state.preview.diagnostics || []).filter(
+              (d) => d.severity === "warning"
+            ).length,
+          },
+          stage: "post-import-summary"
+        });
+        return;
+      }
 
       const warnings = (state.preview.diagnostics || []).filter(
         (d) => d.severity === "warning"
       ).length;
+
       patch({
         importResult: {
           success: true,
@@ -551,12 +639,14 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
           warnings,
         },
         isProcessing: false,
+        syncProgress: null,
         stage: "post-import-summary",
       });
     } catch (e) {
       patch({
         error: `Import failed: ${e instanceof Error ? e.message : String(e)}`,
         isProcessing: false,
+        syncProgress: null,
       });
     }
   };
@@ -911,21 +1001,48 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
           <Body1 className={styles.desc}>…and {dataRows.length - 10} more row(s).</Body1>
         )}
 
+        {state.syncProgress && (
+          <div style={{ marginTop: "16px" }}>
+            <Text>
+              Syncing: {state.syncProgress.processed} / {state.syncProgress.total} rows
+            </Text>
+            <ProgressBar value={state.syncProgress.processed} max={state.syncProgress.total} />
+          </div>
+        )}
+
         <div className={styles.actions}>
           <Button
             appearance="secondary"
+            disabled={state.isProcessing}
             onClick={() => patch({ stage: "validation-preview" })}
           >
             ← Back
           </Button>
-          <Button
-            appearance="primary"
-            disabled={state.isProcessing}
-            icon={state.isProcessing ? <Spinner size="tiny" /> : undefined}
-            onClick={handleCommit}
-          >
-            {state.isProcessing ? "Importing…" : "Confirm Import ✓"}
-          </Button>
+          {!state.isProcessing ? (
+            <Button
+              appearance="primary"
+              onClick={handleCommit}
+            >
+              Confirm Import ✓
+            </Button>
+          ) : (
+            <Button
+              appearance="primary"
+              onClick={() => {
+                setState((current) => {
+                  if (current.syncProgress) {
+                    return {
+                      ...current,
+                      syncProgress: { ...current.syncProgress, cancelRequested: true }
+                    };
+                  }
+                  return current;
+                });
+              }}
+            >
+              {state.syncProgress?.cancelRequested ? "Canceling..." : "Cancel Sync"}
+            </Button>
+          )}
         </div>
       </>
     );
