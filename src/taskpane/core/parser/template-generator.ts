@@ -2,6 +2,8 @@
 import { CRF_VARIABLE_TYPE_OPTIONS } from "./form-element-utils";
 import { DATA_ORIGIN_OPTIONS } from "./metadata-utils";
 
+import { getLocaleConfig } from "../locale-config";
+
 interface SheetProtectionConfig {
   sheetName: "_Forms" | "_Schedule";
   protectionArea: string;
@@ -39,12 +41,14 @@ export async function initializeWorkbook(): Promise<void> {
     existingNames.load("items");
     await context.sync();
 
+    const locale = getLocaleConfig().currentLocale;
+
     // System Control Sheets Definition
     const controlConfigs = [
       {
         name: "_Study",
         headers: ["Protocol ID", "Study Name", "Version", "Default Language"],
-        data: [["PROT-001", "Matrix Clinical Trial", "1.0", "en-US"]],
+        data: [["PROT-001", "Matrix Clinical Trial", "1.0", locale]],
       },
       {
         name: "_Forms",
@@ -165,7 +169,7 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
       scheduleFormulas.push([`='_Forms'!A${i + 1}`]);
     }
     const scheduleRange = scheduleSheet.getRangeByIndexes(1, 0, rowCount - 1, 1);
-    scheduleRange.formulas = scheduleFormulas;
+    scheduleRange.formulasLocal = scheduleFormulas;
     scheduleRange.format.font.bold = true;
     scheduleRange.format.fill.color = "#f8fafc"; // Light slate to indicate formula
   }

@@ -14,6 +14,7 @@ import {
   ParseError,
   SourcePosition,
 } from "../types/index";
+import { getLocaleConfig } from "../locale-config";
 
 /**
  * Tokenizes a raw rule expression string.
@@ -71,11 +72,12 @@ export function tokenize(expression: string): Token[] {
       });
       continue;
     }
-    if (char === ",") {
+    const argSep = getLocaleConfig().argSeparator;
+    if (char === argSep) {
       consumeChar();
       tokens.push({
         type: "COMMA",
-        value: ",",
+        value: argSep,
         start: startPos,
         end: { offset: index, line, column },
       });
@@ -150,8 +152,10 @@ export function tokenize(expression: string): Token[] {
       while (index < expression.length && /\d/.test(peekChar())) {
         numStr += consumeChar();
       }
-      if (peekChar() === "." && /\d/.test(peekChar(1))) {
-        numStr += consumeChar(); // '.'
+      const decSep = getLocaleConfig().decimalSeparator;
+      if (peekChar() === decSep && /\d/.test(peekChar(1))) {
+        consumeChar(); // consume the localized decimal separator
+        numStr += "."; // normalize to '.' for the internal AST
         while (index < expression.length && /\d/.test(peekChar())) {
           numStr += consumeChar();
         }
