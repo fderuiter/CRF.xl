@@ -12,8 +12,7 @@ import {
 
 interface ControlPanelProps {
   onInit: () => Promise<void>;
-  onDocx: () => Promise<void>;
-  onOdm: () => Promise<void>;
+  onComplianceExport: () => Promise<void>;
   onAnalyze: () => Promise<any>;
   isProcessing: boolean;
   hasErrors: boolean;
@@ -34,11 +33,6 @@ const useStyles = makeStyles({
   fullWidth: {
     width: "100%",
   },
-  exportGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-  },
   exportButton: {
     display: "flex",
     flexDirection: "column",
@@ -46,6 +40,7 @@ const useStyles = makeStyles({
     gap: "4px",
     height: "auto",
     padding: "12px 8px",
+    width: "100%",
   },
   exportIcon: {
     fontSize: "20px",
@@ -68,8 +63,7 @@ const useStyles = makeStyles({
  */
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   onInit,
-  onDocx,
-  onOdm,
+  onComplianceExport,
   onAnalyze,
   isProcessing,
   hasErrors,
@@ -102,27 +96,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
       <Divider />
 
-      <div className={styles.exportGrid}>
-        <Button
-          appearance="outline"
-          className={styles.exportButton}
-          onClick={onDocx}
-          disabled={isProcessing || hasErrors || !isLoaded}
-        >
-          <span className={styles.exportIcon}>📄</span>
-          <span>Paper CRF</span>
-        </Button>
-
-        <Button
-          appearance="outline"
-          className={styles.exportButton}
-          onClick={onOdm}
-          disabled={isProcessing || hasErrors || !isLoaded}
-        >
-          <span className={styles.exportIcon}>⚛️</span>
-          <span>ODM XML</span>
-        </Button>
-      </div>
+      <Button
+        appearance="primary"
+        className={styles.exportButton}
+        onClick={onComplianceExport}
+        disabled={isProcessing || hasErrors || !isLoaded}
+      >
+        <span className={styles.exportIcon}>📦</span>
+        <span>Compliance Export</span>
+      </Button>
 
       {hasErrors && (
         <MessageBar intent="error">

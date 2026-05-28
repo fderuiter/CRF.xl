@@ -33,6 +33,11 @@ import {
  * Main entry point for the Paper CRF Generation.
  * Orchestrates the conversion of clinical metadata into a handwriting-ready Word asset.
  */
+export async function generateDocxBlob(study: StudyDesign): Promise<Blob> {
+  const doc = buildDocxDocument(study);
+  return await Packer.toBlob(doc);
+}
+
 export async function generateDocx(study: StudyDesign): Promise<void> {
   const doc = buildDocxDocument(study);
 

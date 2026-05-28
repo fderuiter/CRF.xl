@@ -33,8 +33,7 @@ import { StudyDiffView } from "./StudyDiffView";
 
 interface MatrixProps {
   onAnalyze: () => Promise<any>;
-  onDocx: () => Promise<void>;
-  onOdm: () => Promise<void>;
+  onComplianceExport: () => Promise<void>;
   isProcessing: boolean;
   hasErrors: boolean;
   isLoaded: boolean;
@@ -99,6 +98,7 @@ const useStyles = makeStyles({
     gap: "4px",
     height: "auto",
     padding: "12px 8px",
+    width: "100%",
   },
   exportIcon: {
     fontSize: "20px",
@@ -328,8 +328,7 @@ const SEARCH_DEBOUNCE_MS = 150;
 
 export const MatrixView: React.FC<MatrixProps> = ({
   onAnalyze,
-  onDocx,
-  onOdm,
+  onComplianceExport,
   isProcessing,
   hasErrors,
   isLoaded,
@@ -441,26 +440,15 @@ export const MatrixView: React.FC<MatrixProps> = ({
 
         <Divider />
 
-        <div className={styles.exportGrid}>
-          <Button
-            appearance="outline"
-            className={styles.exportButton}
-            onClick={onDocx}
-            disabled={isProcessing || hasErrors || !isLoaded}
-          >
-            <span className={styles.exportIcon}>📄</span>
-            <span>Paper CRF</span>
-          </Button>
-          <Button
-            appearance="outline"
-            className={styles.exportButton}
-            onClick={onOdm}
-            disabled={isProcessing || hasErrors || !isLoaded}
-          >
-            <span className={styles.exportIcon}>⚛️</span>
-            <span>ODM XML</span>
-          </Button>
-        </div>
+        <Button
+          appearance="primary"
+          className={styles.exportButton}
+          onClick={onComplianceExport}
+          disabled={isProcessing || hasErrors || !isLoaded}
+        >
+          <span className={styles.exportIcon}>📦</span>
+          <span>Compliance Export</span>
+        </Button>
 
         {hasErrors && (
           <MessageBar intent="error" style={{ marginTop: "12px" }}>

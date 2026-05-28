@@ -1,4 +1,4 @@
-import { highlightErrorsOnCanvas, clearAllAnnotations } from "../core/services/annotation-service";
+import { highlightErrorsOnCanvas, clearAllAnnotations, getOrphanedAnnotationsCount } from "../core/services/annotation-service";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -10,14 +10,20 @@ import {
   Button,
   MessageBar,
   MessageBarBody,
+  Dialog,
+  DialogTrigger,
+  DialogSurface,
+  DialogTitle,
+  DialogContent,
+  DialogBody,
+  DialogActions,
 } from "@fluentui/react-components";
 
 // Core Logic
 import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue, validateStudyDesign } from "../core/parser/validator";
 import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
-import { generateDocx } from "../core/generators/docx/docx-builder";
-import { generateOdmXml } from "../core/generators/cdisc/odm-builder";
+import { ComplianceExportService } from "../core/services/compliance-export-service";
 import { diffStudyDesigns } from "../core/services/diff-engine";
 import {
   initializeWorkbook,
@@ -195,6 +201,8 @@ export const App: React.FC<{ title?: string }> = () => {
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
+  const [showGate, setShowGate] = useState(false);
+  const [orphanedCount, setOrphanedCount] = useState(0);
   const [studySummary, setStudySummary] = useState<{
     formCount: number;
     variableCount: number;
@@ -512,19 +520,37 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
-  const handleDocxExport = async () => {
+  const handleComplianceExport = async () => {
     const s = await performAnalysis();
-    if (s && !issues.some((i) => i.level === "Error")) await generateDocx(s);
+    if (!s || issues.some((i) => i.level === "Error")) return;
+
+    // Check for orphaned annotations
+    const sheets = ["_Study", "_Schedule", "_Codelists", "_Dictionaries", "_Rules"];
+    Object.keys(s.forms).forEach(f => sheets.push(f));
+    const count = await getOrphanedAnnotationsCount(sheets);
+    if (count > 0) {
+      setOrphanedCount(count);
+      setShowGate(true);
+    } else {
+      await confirmComplianceExport(s);
+    }
   };
 
-  const handleOdmExport = async () => {
-    const s = await performAnalysis();
-    if (s && !issues.some((i) => i.level === "Error")) {
-      const xml = generateOdmXml(s);
+  const confirmComplianceExport = async (currentStudy: StudyDesign) => {
+    setShowGate(false);
+    setIsProcessing(true);
+    try {
+      const zipBlob = await ComplianceExportService.createExportPackage(currentStudy, baselineStudy);
+      const url = window.URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }));
-      a.download = `${s.metadata.protocolId}_ODM.xml`;
+      a.href = url;
+      a.download = `${currentStudy.metadata.protocolId}_ComplianceExport_v${currentStudy.metadata.version}.zip`;
       a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -636,8 +662,7 @@ export const App: React.FC<{ title?: string }> = () => {
       return (
         <MatrixView
           onAnalyze={() => performAnalysis()}
-          onDocx={handleDocxExport}
-          onOdm={handleOdmExport}
+          onComplianceExport={handleComplianceExport}
           isProcessing={isProcessing}
           hasErrors={issues.some((i) => i.level === "Error")}
           isLoaded={!!studySummary}
@@ -760,6 +785,22 @@ export const App: React.FC<{ title?: string }> = () => {
             }}
           />
         )}
+
+        <Dialog open={showGate} onOpenChange={(_, data) => setShowGate(data.open)}>
+          <DialogSurface>
+            <DialogBody>
+              <DialogTitle>Resolve Annotations</DialogTitle>
+              <DialogContent>
+                <p>There are {orphanedCount} unresolved annotations or comments in the workbook.</p>
+                <p>Would you like to proceed with the export and sign the Verification Manifest anyway?</p>
+              </DialogContent>
+              <DialogActions>
+                <Button appearance="secondary" onClick={() => setShowGate(false)}>Cancel</Button>
+                <Button appearance="primary" onClick={() => confirmComplianceExport(study!)}>Acknowledge & Export</Button>
+              </DialogActions>
+            </DialogBody>
+          </DialogSurface>
+        </Dialog>
       </main>
     </div>
   );
