@@ -362,7 +362,14 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
         canCommit: importPackage.summary.status !== "conflicts",
       };
       const manifest = createImportManifest(provenance, summary, sheetsWritten, rowsWritten);
-      persistImportManifest(manifest);
+      const isPersisted = persistImportManifest(manifest);
+
+      if (!isPersisted) {
+        patch({
+          error: "Import succeeded, but the audit manifest could not be saved to local storage. Regulatory traceability may be incomplete.",
+          isProcessing: false,
+        });
+      }
 
       patch({ importManifest: manifest, isProcessing: false, stage: "summary" });
     } catch (e) {

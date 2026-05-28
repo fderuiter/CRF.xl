@@ -55,7 +55,7 @@ type PersistResult =
   | { saved: true }
   | { saved: false; reason: "storage-unavailable" | "quota-exceeded" | "unknown" };
 
-function resolveStorage(storage?: StorageLike): StorageLike | null {
+export function resolveStorage(storage?: StorageLike): StorageLike | null {
   if (storage) return storage;
   if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) return null;
   try {

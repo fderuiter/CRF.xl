@@ -46,6 +46,7 @@ import {
   readRecoverySnapshot,
   summarizeStudyDesign,
 } from "../core/services/recovery-storage";
+import { loadImportManifest, ImportManifest } from "../core/services/migration-pipeline";
 import {
   createOfficeErrorPresentation,
   OfficeErrorPresentation,
@@ -219,6 +220,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
+  const [recentManifest, setRecentManifest] = useState<ImportManifest | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("Ready");
   const [uiError, setUiError] = useState<
@@ -281,6 +283,12 @@ export const App: React.FC<{ title?: string }> = () => {
       }
     };
     checkInit();
+    
+    // Check for recent manifest
+    const manifest = loadImportManifest();
+    if (manifest) {
+      setRecentManifest(manifest);
+    }
   }, []);
 
   useEffect(() => {
@@ -371,6 +379,17 @@ export const App: React.FC<{ title?: string }> = () => {
     if (!versionUpdate) return;
     dismissVersionNotification(versionUpdate.version);
     setVersionUpdate(null);
+  };
+
+  const handleExportManifest = () => {
+    if (!recentManifest) return;
+    const blob = new Blob([JSON.stringify(recentManifest, null, 2)], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `import-manifest-${recentManifest.provenance.importedAt.replace(/[:.]/g, "-")}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -722,6 +741,22 @@ export const App: React.FC<{ title?: string }> = () => {
               )}
               <div className={styles.recoveryActions}>
                 <Button size="small" appearance="subtle" onClick={handleDismissVersionUpdate}>
+                  Dismiss
+                </Button>
+              </div>
+            </MessageBarBody>
+          </MessageBar>
+        )}
+        {recentManifest && (
+          <MessageBar intent="info">
+            <MessageBarBody>
+              <strong>Migration Traceability:</strong> A recent data import ({recentManifest.provenance.sourceType}) 
+              was completed on {new Date(recentManifest.provenance.importedAt).toLocaleString()}.
+              <div className={styles.recoveryActions}>
+                <Button appearance="primary" size="small" onClick={handleExportManifest}>
+                  Export Manifest
+                </Button>
+                <Button appearance="secondary" size="small" onClick={() => setRecentManifest(null)}>
                   Dismiss
                 </Button>
               </div>

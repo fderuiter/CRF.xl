@@ -176,21 +176,39 @@ describe("WorkbookProjection type contract", () => {
 });
 
 // ---------------------------------------------------------------------------
-// persistImportManifest / loadImportManifest (sessionStorage integration)
+// persistImportManifest / loadImportManifest (storage integration)
 // ---------------------------------------------------------------------------
 
 describe("persistImportManifest / loadImportManifest", () => {
-  // Node environment doesn't have sessionStorage — verify graceful no-op
-  it("gracefully handles missing sessionStorage", () => {
+  it("gracefully handles missing storage wrapper", () => {
     const { persistImportManifest, loadImportManifest } = require("../migration-pipeline");
 
     const prov = createImportProvenance("test.xml", "odm-xml");
     const summary: ImportSummary = { status: "clean", diagnostics: [], canCommit: true };
     const manifest = createImportManifest(prov, summary, [], 0);
 
-    // In node (no sessionStorage), persistImportManifest must not throw
-    expect(() => persistImportManifest(manifest)).not.toThrow();
-    // loadImportManifest must return null (sessionStorage absent)
+    // In node, resolveStorage will return null by default, so persist returns false
+    expect(persistImportManifest(manifest)).toBe(false);
     expect(loadImportManifest()).toBeNull();
+  });
+
+  it("persists and loads using provided storage", () => {
+    const { persistImportManifest, loadImportManifest } = require("../migration-pipeline");
+
+    const store: Record<string, string> = {};
+    const mockStorage = {
+      getItem: (key: string) => store[key] || null,
+      setItem: (key: string, value: string) => { store[key] = value; },
+      removeItem: (key: string) => { delete store[key]; },
+    };
+
+    const prov = createImportProvenance("test2.xml", "spreadsheet");
+    const summary: ImportSummary = { status: "clean", diagnostics: [], canCommit: true };
+    const manifest = createImportManifest(prov, summary, [], 0);
+
+    expect(persistImportManifest(manifest, mockStorage)).toBe(true);
+    const loaded = loadImportManifest(mockStorage);
+    expect(loaded).not.toBeNull();
+    expect(loaded?.provenance.sourceId).toBe("test2.xml");
   });
 });

@@ -1,3 +1,5 @@
+import { resolveStorage, StorageLike } from "./recovery-storage";
+
 /**
  * ============================================================================
  * migration-pipeline.ts
@@ -179,24 +181,32 @@ export function createImportManifest(
 }
 
 /**
- * Persist an import manifest to sessionStorage.
+ * Persist an import manifest to persistent storage.
  * Overwrites any previously stored manifest for the session.
+ * Returns true if successful, false otherwise.
  */
-export function persistImportManifest(manifest: ImportManifest): void {
+export function persistImportManifest(manifest: ImportManifest, storage?: StorageLike): boolean {
+  const resolvedStorage = resolveStorage(storage);
+  if (!resolvedStorage) return false;
+
   try {
-    sessionStorage.setItem("crf-xl-import-manifest", JSON.stringify(manifest));
+    resolvedStorage.setItem("crf-xl-import-manifest", JSON.stringify(manifest));
+    return true;
   } catch {
-    // sessionStorage may be unavailable in test environments; swallow silently.
+    return false;
   }
 }
 
 /**
- * Load the most recent import manifest from sessionStorage.
+ * Load the most recent import manifest from persistent storage.
  * Returns null if no manifest is stored or the stored value is malformed.
  */
-export function loadImportManifest(): ImportManifest | null {
+export function loadImportManifest(storage?: StorageLike): ImportManifest | null {
+  const resolvedStorage = resolveStorage(storage);
+  if (!resolvedStorage) return null;
+
   try {
-    const raw = sessionStorage.getItem("crf-xl-import-manifest");
+    const raw = resolvedStorage.getItem("crf-xl-import-manifest");
     if (!raw) return null;
     return JSON.parse(raw) as ImportManifest;
   } catch {

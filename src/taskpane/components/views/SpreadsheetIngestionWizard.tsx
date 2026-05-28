@@ -43,6 +43,11 @@ import {
   TargetField,
   TargetSheet,
 } from "../../core/services/spreadsheet-ingestion-service";
+import {
+  createImportManifest,
+  createImportProvenance,
+  persistImportManifest,
+} from "../../core/services/migration-pipeline";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -542,6 +547,27 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       const warnings = (state.preview.diagnostics || []).filter(
         (d) => d.severity === "warning"
       ).length;
+
+      const provenance = createImportProvenance(
+        state.selectedSheet || "unknown-sheet",
+        "spreadsheet"
+      );
+      const summary = {
+        status: (warnings > 0 ? "warnings" : "clean") as any,
+        diagnostics: state.preview.diagnostics,
+        canCommit: true,
+      };
+      const manifest = createImportManifest(provenance, summary, [targetSheetName], rowsWritten);
+      const isPersisted = persistImportManifest(manifest);
+
+      if (!isPersisted) {
+        patch({
+          error: "Import succeeded, but the audit manifest could not be saved to local storage. Regulatory traceability may be incomplete.",
+          isProcessing: false,
+        });
+        // We still transition to the summary so they know the data was written, but with an error
+      }
+
       patch({
         importResult: {
           success: true,
