@@ -1,6 +1,7 @@
 /* global Worker, self, MessageEvent, setTimeout */
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ParseProgressUpdate } from "../parser/chunking-runtime";
+import { validateStudyDesign } from "../parser/validator";
 
 const ctx: Worker = self as any;
 
@@ -36,7 +37,13 @@ ctx.onmessage = async (event: MessageEvent) => {
 
     try {
       const studyDesign = await parseRawDataToStudyDesign(rawData, workerOptions);
-      ctx.postMessage({ type: "SUCCESS", payload: studyDesign });
+      if (isCancelled) {
+        ctx.postMessage({ type: "CANCELLED" });
+        return;
+      }
+      ctx.postMessage({ type: "PROGRESS", payload: { phase: "validation", completed: 0, total: 1, message: "Validating study design..." } });
+      const validationIssues = validateStudyDesign(studyDesign);
+      ctx.postMessage({ type: "SUCCESS", payload: { studyDesign, validationIssues } });
     } catch (error) {
       if (isCancelled) {
         ctx.postMessage({ type: "CANCELLED" });

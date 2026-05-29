@@ -9,7 +9,7 @@ export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
 
 export async function parseExcelToStudyDesign(
   options: ParseExcelToStudyDesignOptions = {}
-): Promise<StudyDesign> {
+): Promise<{ studyDesign: StudyDesign; validationIssues: import("../parser/validator").ValidationIssue[] }> {
   const rawData = await fetchRawDataFromExcel(options);
 
   if (typeof window !== "undefined" && typeof Worker !== "undefined") {
@@ -17,7 +17,10 @@ export async function parseExcelToStudyDesign(
     return await runInWorker(rawData, options);
   } else {
     // 3. Fallback to main thread execution
-    return await parseRawDataToStudyDesign(rawData, options);
+    const studyDesign = await parseRawDataToStudyDesign(rawData, options);
+    const { validateStudyDesign } = await import("../parser/validator");
+    const validationIssues = validateStudyDesign(studyDesign);
+    return { studyDesign, validationIssues };
   }
 }
 
@@ -123,7 +126,7 @@ async function fetchRawDataFromExcel(
 function runInWorker(
   rawData: Record<string, any[][]>,
   options: ParseExcelToStudyDesignOptions
-): Promise<StudyDesign> {
+): Promise<{ studyDesign: StudyDesign; validationIssues: import("../parser/validator").ValidationIssue[] }> {
   return new Promise((resolve, reject) => {
     // Webpack 5 standard worker creation
     const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
@@ -142,7 +145,7 @@ function runInWorker(
         }
       } else if (type === "SUCCESS") {
         worker.terminate();
-        resolve(payload as StudyDesign);
+        resolve(payload);
       } else if (type === "ERROR") {
         worker.terminate();
         reject(new Error(payload));

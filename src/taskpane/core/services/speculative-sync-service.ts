@@ -152,7 +152,8 @@ class SpeculativeSyncManager {
         } catch (e: any) {
           if (e.message === "FINGERPRINT_MISMATCH") {
              try {
-                const currentStudy = await parseExcelToStudyDesign();
+                const currentStudyResult = await parseExcelToStudyDesign();
+      const currentStudy = currentStudyResult.studyDesign;
                 const diff = diffStudyDesigns(predictedStudy, currentStudy);
                 this.notify("conflict", { diff, recoverySnapshot });
              } catch (parseErr) {
