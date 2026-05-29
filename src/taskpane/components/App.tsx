@@ -489,7 +489,7 @@ export const App: React.FC<{ title?: string }> = () => {
     setStudySummary(recoverySnapshot.snapshot.studySummary);
     setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
     if (recoverySnapshot.snapshot.justifications) {
-      setJustifications(recoverySnapshot.snapshot.justifications);
+      handleSaveJustifications(recoverySnapshot.snapshot.justifications);
     }
     setAppStatus(
       `Recovered snapshot from ${new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}`
@@ -594,6 +594,45 @@ export const App: React.FC<{ title?: string }> = () => {
     });
   }, [studyDiffReport]);
 
+  const handleSaveJustifications = async (newJustifs: Record<string, AuditJustification>) => {
+    setJustifications(newJustifs);
+    try {
+      await complianceGovernanceService.saveJustificationsToWorkbook(newJustifs);
+      
+      const documentUrl = await new Promise<string>((resolve) => {
+        Office.context.document.getFilePropertiesAsync((result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value.url || "local://document");
+          } else {
+            resolve("local://document");
+          }
+        });
+      });
+      
+      if (complianceGovernanceService.isAuthenticated) {
+        await complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
+      } else {
+         complianceGovernanceService.initialize().then(() => {
+            if (complianceGovernanceService.isAuthenticated) {
+               complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
+            }
+         }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn("Failed to persist/sync justifications", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isInitialized) {
+      complianceGovernanceService.loadJustificationsFromWorkbook().then(loaded => {
+        if (Object.keys(loaded).length > 0) {
+          setJustifications(prev => ({ ...prev, ...loaded }));
+        }
+      }).catch(console.warn);
+    }
+  }, [isInitialized]);
+
   // We need an effect to pop the modal after diffing is computed (since performAnalysis updates study, which triggers studyDiffReport update).
   React.useEffect(() => {
     if (studyDiffReport && hasMissingJustifications) {
@@ -671,7 +710,8 @@ export const App: React.FC<{ title?: string }> = () => {
         issues,
         {
           signedOffAt: signOffTimestamp,
-          source_provenance: manifest?.provenance
+          source_provenance: manifest?.provenance,
+          justifications: justifications
         }
       );
       const url = window.URL.createObjectURL(zipBlob);
@@ -987,7 +1027,7 @@ export const App: React.FC<{ title?: string }> = () => {
           onOpenChange={setShowAuditModal}
           report={studyDiffReport}
           justifications={justifications}
-          onSaveJustifications={setJustifications}
+          onSaveJustifications={handleSaveJustifications}
         />
 
         <Dialog open={showGate} onOpenChange={(_, data) => setShowGate(data.open)}>
