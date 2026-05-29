@@ -45,42 +45,67 @@ export interface RuleValidationResult {
 export function evaluateStaticCondition(node: ASTNode): boolean | null {
   if (!node) return null;
 
-  if (node.type === "Literal") {
-    if (typeof node.value === "boolean") return node.value;
-    if (typeof node.value === "number") return node.value !== 0;
-    if (typeof node.value === "string") return node.value.length > 0;
-    if (node.value === null) return false;
+  // Since static evaluation of small expressions is typically not deep enough to cause stack overflows,
+  // we can use a bottom-up iterative post-order traversal to be perfectly safe, or just keep it simple.
+  // We'll refactor it to an iterative approach using a stack.
+  
+  const postOrder: ASTNode[] = [];
+  const stack = [node];
+  while (stack.length > 0) {
+    const curr = stack.pop();
+    if (!curr) continue;
+    postOrder.push(curr);
+    
+    if (curr.type === "UnaryExpression") {
+      stack.push(curr.argument);
+    } else if (curr.type === "BinaryExpression") {
+      stack.push(curr.left);
+      stack.push(curr.right);
+    } else if (curr.type === "GroupedExpression") {
+      stack.push(curr.expression);
+    }
   }
 
-  if (node.type === "UnaryExpression") {
-    const arg = evaluateStaticCondition(node.argument);
-    if (arg !== null) {
-      if (node.operator === "!" || node.operator.toLowerCase() === "not") {
-        return !arg;
+  // We have nodes in roughly top-down order. Let's reverse for bottom-up.
+  postOrder.reverse();
+
+  const results = new Map<ASTNode, boolean | null>();
+
+  for (const n of postOrder) {
+    if (n.type === "Literal") {
+      let val: boolean | null = null;
+      if (typeof n.value === "boolean") val = n.value;
+      else if (typeof n.value === "number") val = n.value !== 0;
+      else if (typeof n.value === "string") val = n.value.length > 0;
+      else if (n.value === null) val = false;
+      results.set(n, val);
+    } else if (n.type === "UnaryExpression") {
+      const arg = results.get(n.argument) ?? null;
+      if (arg !== null && (n.operator === "!" || n.operator.toLowerCase() === "not")) {
+        results.set(n, !arg);
+      } else {
+        results.set(n, null);
       }
+    } else if (n.type === "BinaryExpression") {
+      const left = results.get(n.left) ?? null;
+      const right = results.get(n.right) ?? null;
+      let val: boolean | null = null;
+      if (n.operator === "&&" || n.operator.toLowerCase() === "and") {
+        if (left === false || right === false) val = false;
+        else if (left === true && right === true) val = true;
+      } else if (n.operator === "||" || n.operator.toLowerCase() === "or") {
+        if (left === true || right === true) val = true;
+        else if (left === false && right === false) val = false;
+      }
+      results.set(n, val);
+    } else if (n.type === "GroupedExpression") {
+      results.set(n, results.get(n.expression) ?? null);
+    } else {
+      results.set(n, null);
     }
   }
 
-  if (node.type === "BinaryExpression") {
-    const left = evaluateStaticCondition(node.left);
-    const right = evaluateStaticCondition(node.right);
-    
-    if (node.operator === "&&" || node.operator.toLowerCase() === "and") {
-      if (left === false || right === false) return false;
-      if (left === true && right === true) return true;
-    }
-    
-    if (node.operator === "||" || node.operator.toLowerCase() === "or") {
-      if (left === true || right === true) return true;
-      if (left === false && right === false) return false;
-    }
-  }
-
-  if (node.type === "GroupedExpression") {
-    return evaluateStaticCondition(node.expression);
-  }
-
-  return null;
+  return results.get(node) ?? null;
 }
 
 /**
@@ -89,45 +114,50 @@ export function evaluateStaticCondition(node: ASTNode): boolean | null {
 export function collectIdentifiers(node: ASTNode): string[] {
   const idents = new Set<string>();
 
-  function traverse(n: ASTNode) {
-    if (!n) return;
+  const stack: ASTNode[] = [node];
+
+  while (stack.length > 0) {
+    const n = stack.pop();
+    if (!n) continue;
+
     switch (n.type) {
       case "Identifier":
         idents.add(n.name);
         break;
       case "UnaryExpression":
-        traverse(n.argument);
+        stack.push(n.argument);
         break;
       case "BinaryExpression":
-        traverse(n.left);
-        traverse(n.right);
+        stack.push(n.right);
+        stack.push(n.left);
         break;
       case "ConditionalExpression":
-        traverse(n.test);
+        stack.push(n.test);
         const testEval = evaluateStaticCondition(n.test);
         if (testEval === true) {
-          traverse(n.consequent);
+          stack.push(n.consequent);
         } else if (testEval === false) {
-          traverse(n.alternate);
+          stack.push(n.alternate);
         } else {
-          traverse(n.consequent);
-          traverse(n.alternate);
+          stack.push(n.alternate);
+          stack.push(n.consequent);
         }
         break;
       case "CallExpression":
         if (n.arguments) {
-          n.arguments.forEach(traverse);
+          for (let i = n.arguments.length - 1; i >= 0; i--) {
+            stack.push(n.arguments[i]);
+          }
         }
         break;
       case "GroupedExpression":
-        traverse(n.expression);
+        stack.push(n.expression);
         break;
       case "Literal":
         break;
     }
   }
 
-  traverse(node);
   return Array.from(idents);
 }
 
@@ -147,7 +177,7 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void> }): Promise<RuleValidationResult> {
+export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void>, cancellationToken?: { isCancelled: () => boolean } }): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -288,6 +318,9 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
   });
 
   for (let i = 0; i < validRules.length; i++) {
+    if (options?.cancellationToken?.isCancelled?.()) {
+      break;
+    }
     const rule = validRules[i];
     
     // Chunking to prevent blocking UI during dependency map build
@@ -408,6 +441,9 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
   let dfsIterations = 0;
 
   for (const rule of validRules) {
+    if (options?.cancellationToken?.isCancelled?.()) {
+      break;
+    }
     if (visited.has(rule.ruleId)) continue;
     
     const stack: { nodeId: string, originRowIndex?: number, deps: string[], depIndex: number }[] = [];
