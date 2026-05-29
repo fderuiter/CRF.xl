@@ -1,6 +1,7 @@
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";
+import { DependencyGraph } from "./dependency-graph";
 
 export interface ValidationIssue {
   level: "Error" | "Warning";
@@ -30,8 +31,11 @@ export interface CrossFormDependency {
 export function validateStudyDesign(
   study: StudyDesign,
   activeSheetFilter?: string,
-  options?: { isExport?: boolean }
+  options?: { isExport?: boolean; graph?: DependencyGraph }
 ): ValidationIssue[] {
+  const graph = options?.graph || new DependencyGraph();
+  graph.buildSync(study);
+
   let issues: ValidationIssue[] = [];
 
   // 1. Validate Schedule (_Schedule sheet)
@@ -223,10 +227,7 @@ export function validateStudyDesign(
 
         if (item.methodOid && item.methodOid.trim()) {
           const cleanMethodOid = item.methodOid.trim().toLowerCase();
-          const methodsKeys = study.methods
-            ? Object.keys(study.methods).map((k) => k.toLowerCase())
-            : [];
-          if (!methodsKeys.includes(cleanMethodOid)) {
+          if (!graph.hasMethod(cleanMethodOid)) {
             issues.push({
               level: "Error",
               message: `Referenced Method OID '${item.methodOid}' does not exist in _Methods.`,
@@ -288,36 +289,15 @@ export function validateStudyDesign(
   return issues;
 }
 
-export function validateCrossFormDependencies(study: StudyDesign, options?: { isExport?: boolean }): {
+export function validateCrossFormDependencies(study: StudyDesign, options?: { isExport?: boolean; graph?: DependencyGraph }): {
   issues: ValidationIssue[];
   dependencies: CrossFormDependency[];
 } {
+  const graph = options?.graph || new DependencyGraph();
+  graph.buildSync(study);
+
   const issues: ValidationIssue[] = [];
   const dependencies: CrossFormDependency[] = [];
-
-  // Gather all variables and their locations for quick lookup
-  const variableMap = new Map<
-    string,
-    { item: CrfItem; formOid: string; groupOid: string; rowIndex?: number }
-  >();
-
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (!isCrfItem(item)) {
-          return;
-        }
-        if (item.itemOid) {
-          variableMap.set(item.itemOid.toLowerCase(), {
-            item,
-            formOid: form.formOid,
-            groupOid: group.groupOid,
-            rowIndex: (item as any).rowIndex,
-          });
-        }
-      });
-    });
-  });
 
   // Helper to resolve an identifier to its target
   function resolveIdent(ident: string) {
@@ -325,26 +305,24 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
     const lowercaseIdent = ident.toLowerCase();
 
     // 1. Try rule ID match
-    if (study.rules) {
-      const matchedRule = study.rules.find((r) => r.ruleId.toLowerCase() === lowercaseIdent);
-      if (matchedRule) {
-        if (matchedRule.target) {
-          const varRes = variableMap.get(matchedRule.target.toLowerCase());
-          return {
-            targetRule: matchedRule,
-            targetItem: varRes?.item,
-            targetFormOid: varRes?.formOid,
-            targetRowIndex: varRes?.rowIndex,
-            isRuleLike: true,
-            type: "Rule" as const,
-          };
-        }
-        return { targetRule: matchedRule, isRuleLike: true, type: "Rule" as const };
+    const matchedRule = graph.getRule(lowercaseIdent);
+    if (matchedRule) {
+      if (matchedRule.target) {
+        const varRes = graph.getItem(matchedRule.target.toLowerCase());
+        return {
+          targetRule: matchedRule,
+          targetItem: varRes?.item,
+          targetFormOid: varRes?.formOid,
+          targetRowIndex: varRes?.rowIndex,
+          isRuleLike: true,
+          type: "Rule" as const,
+        };
       }
+      return { targetRule: matchedRule, isRuleLike: true, type: "Rule" as const };
     }
 
     // 2. Try exact variable match
-    const varRes = variableMap.get(lowercaseIdent);
+    const varRes = graph.getItem(lowercaseIdent);
     if (varRes) {
       return {
         targetItem: varRes.item,
@@ -362,7 +340,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
       const possibleFormOid = segments[0].toUpperCase();
       const form = study.forms[possibleFormOid];
       if (form) {
-        const itemRes = variableMap.get(varName);
+        const itemRes = graph.getItem(varName);
         if (itemRes && itemRes.formOid === possibleFormOid) {
           return {
             targetItem: itemRes.item,
@@ -380,32 +358,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
 
   // Helper to check if target form is scheduled before or with source form
   function isScheduledBeforeOrWith(sourceFormOid: string, targetFormOid: string): boolean {
-    if (sourceFormOid === targetFormOid) return true;
-
-    const sourceSched: { eventOrder: number; formOrder: number }[] = [];
-    const targetSched: { eventOrder: number; formOrder: number }[] = [];
-
-    study.events.forEach((evt) => {
-      evt.forms.forEach((fRef) => {
-        if (fRef.formOid === sourceFormOid) {
-          sourceSched.push({ eventOrder: evt.orderNumber, formOrder: fRef.orderNumber });
-        }
-        if (fRef.formOid === targetFormOid) {
-          targetSched.push({ eventOrder: evt.orderNumber, formOrder: fRef.orderNumber });
-        }
-      });
-    });
-
-    if (targetSched.length === 0) return false; // Target not scheduled at all
-    if (sourceSched.length === 0) return true; // Source not scheduled, so we don't block
-
-    for (const s of sourceSched) {
-      for (const t of targetSched) {
-        if (t.eventOrder < s.eventOrder) return true;
-        if (t.eventOrder === s.eventOrder && t.formOrder <= s.formOrder) return true;
-      }
-    }
-    return false;
+    return graph.isScheduledBeforeOrWith(sourceFormOid, targetFormOid);
   }
 
   // Helper to analyze a list of identifiers in an expression

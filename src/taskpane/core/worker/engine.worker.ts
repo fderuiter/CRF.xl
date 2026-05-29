@@ -2,6 +2,7 @@
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ParseProgressUpdate } from "../parser/chunking-runtime";
 import { validateStudyDesign } from "../parser/validator";
+import { DependencyGraph } from "../parser/dependency-graph";
 
 const ctx: Worker = self as any;
 
@@ -41,8 +42,12 @@ ctx.onmessage = async (event: MessageEvent) => {
         ctx.postMessage({ type: "CANCELLED" });
         return;
       }
+      ctx.postMessage({ type: "PROGRESS", payload: { phase: "validation", completed: 0, total: 1, message: "Indexing graph..." } });
+      const graph = new DependencyGraph();
+      await graph.buildAsync(studyDesign);
+
       ctx.postMessage({ type: "PROGRESS", payload: { phase: "validation", completed: 0, total: 1, message: "Validating study design..." } });
-      const validationIssues = validateStudyDesign(studyDesign);
+      const validationIssues = validateStudyDesign(studyDesign, undefined, { graph });
       ctx.postMessage({ type: "SUCCESS", payload: { studyDesign, validationIssues } });
     } catch (error) {
       if (isCancelled) {

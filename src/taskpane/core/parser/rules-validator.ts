@@ -235,8 +235,17 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign, opti
   }
 
   const knownRuleIdsSet = new Set<string>();
+  const ruleIdMap = new Map<string, string>();
+  const derivedTargetMap = new Map<string, string>();
+  
   rules.forEach((r) => {
-    if (r.ruleId) knownRuleIdsSet.add(r.ruleId);
+    if (r.ruleId) {
+      knownRuleIdsSet.add(r.ruleId);
+      ruleIdMap.set(r.ruleId.toLowerCase(), r.ruleId);
+    }
+    if (r.ruleType === RuleType.DERIVATION && r.target) {
+      derivedTargetMap.set(r.target.toLowerCase(), r.ruleId);
+    }
   });
 
   for (const rule of validRules) {
@@ -250,23 +259,21 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign, opti
 
     for (const ident of identifiers) {
       let isResolved = false;
+      const identLower = ident.toLowerCase();
+      const lastSegment = identLower.includes(".") ? identLower.split(".").pop()! : identLower;
 
       // Check if identifier references a rule ID
-      for (const otherRule of validRules) {
-        if (matchesRef(ident, otherRule.ruleId)) {
-          deps.add(otherRule.ruleId);
-          isResolved = true;
-        }
+      const matchedRuleId = ruleIdMap.get(identLower) || ruleIdMap.get(lastSegment);
+      if (matchedRuleId) {
+        deps.add(matchedRuleId);
+        isResolved = true;
       }
 
       // Check if identifier references a derived target
-      for (const otherRule of validRules) {
-        if (
-          otherRule.ruleType === RuleType.DERIVATION &&
-          otherRule.target &&
-          matchesRef(ident, otherRule.target)
-        ) {
-          deps.add(otherRule.ruleId);
+      if (!isResolved) {
+        const derivedRuleId = derivedTargetMap.get(identLower) || derivedTargetMap.get(lastSegment);
+        if (derivedRuleId) {
+          deps.add(derivedRuleId);
           isResolved = true;
         }
       }
