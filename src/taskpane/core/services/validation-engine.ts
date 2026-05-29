@@ -45,6 +45,12 @@ class BackgroundValidationEngine {
       window.clearTimeout(this.validationTimeout);
     }
     
+    // Immediately mark as processing to indicate UI is stale
+    this.updateState(() => ({ 
+      isProcessing: true,
+      status: "Validation pending..."
+    }));
+    
     this.validationTimeout = window.setTimeout(() => {
       this.runValidation(this.latestSheetFilter);
     }, delayMs);
