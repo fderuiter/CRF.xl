@@ -29,7 +29,8 @@ export interface CrossFormDependency {
 
 export function validateStudyDesign(
   study: StudyDesign,
-  activeSheetFilter?: string
+  activeSheetFilter?: string,
+  options?: { isExport?: boolean }
 ): ValidationIssue[] {
   let issues: ValidationIssue[] = [];
 
@@ -261,7 +262,7 @@ export function validateStudyDesign(
 
   // 3. Validate Rules (_Rules sheet)
   if (study.rules && study.rules.length > 0) {
-    const rulesResult = validateRules(study.rules, study);
+    const rulesResult = validateRules(study.rules, study, options);
     rulesResult.errors.forEach((err) => {
       issues.push({
         level: err.level,
@@ -274,7 +275,7 @@ export function validateStudyDesign(
   }
 
   // 4. Validate Cross-Form Dependencies
-  const crossFormResult = validateCrossFormDependencies(study);
+  const crossFormResult = validateCrossFormDependencies(study, options);
   issues.push(...crossFormResult.issues);
   study.crossFormDependencies = crossFormResult.dependencies;
 
@@ -287,7 +288,7 @@ export function validateStudyDesign(
   return issues;
 }
 
-export function validateCrossFormDependencies(study: StudyDesign): {
+export function validateCrossFormDependencies(study: StudyDesign, options?: { isExport?: boolean }): {
   issues: ValidationIssue[];
   dependencies: CrossFormDependency[];
 } {
@@ -443,6 +444,10 @@ export function validateCrossFormDependencies(study: StudyDesign): {
         const isCrossFormSuspect =
           segments.length > 1 && study.forms[segments[0].toUpperCase()] !== undefined;
 
+        const isLocal = !ident.includes(".");
+        const isExport = options?.isExport === true;
+        const missingSeverity = (isExport || isLocal) ? "Error" : "Warning";
+
         dependencies.push({
           id: `${sourceFormOid}_${sourceOid}_to_${ident}_${dependencyType}`.replace(/\s+/g, "_"),
           sourceFormOid,
@@ -455,12 +460,12 @@ export function validateCrossFormDependencies(study: StudyDesign): {
           expression,
           dependencyType,
           status: "Broken",
-          severity: "Error",
+          severity: missingSeverity,
           message: `Broken reference: target '${ident}' does not exist.`,
         });
 
         issues.push({
-          level: "Error",
+          level: missingSeverity,
           message: `Broken reference: target '${ident}' does not exist.`,
           location: `${sourceFormOid} > Row ${sourceRowIndex ?? "unknown"}`,
           rowIndex: sourceRowIndex,
