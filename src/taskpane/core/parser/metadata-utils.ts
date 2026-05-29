@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { DataOrigin } from "../types";
 
 export const DATA_ORIGIN_OPTIONS = Object.values(DataOrigin);

@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /* eslint-disable no-undef */
 import {
   DATA_ORIGIN_OPTIONS,

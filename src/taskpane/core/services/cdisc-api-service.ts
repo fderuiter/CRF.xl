@@ -1,3 +1,6 @@
+/**
+ * @issue #44, #45
+ */
 /* eslint-disable no-undef */
 export interface CdiscCredentials {
   clientId: string;

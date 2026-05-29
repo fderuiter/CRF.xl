@@ -1,4 +1,8 @@
 /* global describe, expect, it */
+/**
+ * @issue #28
+ */
+
 
 import {
   AdamDatasetClass,

@@ -1,3 +1,6 @@
+/**
+ * @issue #63, #76
+ */
 import ExcelJS from "exceljs";
 import { validateStudyDesign } from "../parser/validator";
 import { Codelist, DataType, StudyDesign } from "../types";

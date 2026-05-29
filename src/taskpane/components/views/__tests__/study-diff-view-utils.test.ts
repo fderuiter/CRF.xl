@@ -1,4 +1,8 @@
 /* global describe, expect, it */
+/**
+ * @issue #28
+ */
+
 
 import { DataType, EventType, RuleType, StudyDiffReport } from "../../../core/types";
 import {

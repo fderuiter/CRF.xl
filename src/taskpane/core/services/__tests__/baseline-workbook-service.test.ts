@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /** @jest-environment node */
 /* global describe, it, expect, process */
 import ExcelJS from "exceljs";

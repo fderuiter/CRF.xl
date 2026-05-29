@@ -1,4 +1,8 @@
 /* global Excel */
+/**
+ * @issue #76
+ */
+
 import { applyCodelistLifecycle, CrfCodelistsRow, LifecycleAction } from "./cdisc-ct-mapping-service";
 
 export type ConflictResolution = "skip" | "overwrite" | "append";

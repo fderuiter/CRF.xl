@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { CodelistGroup, CodelistItem } from "../../core/services/dictionary-service";
 
 export interface DictionaryPreview {

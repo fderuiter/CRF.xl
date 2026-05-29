@@ -1,3 +1,6 @@
+/**
+ * @issue #46, #44
+ */
 import * as React from "react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {

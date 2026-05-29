@@ -1,4 +1,8 @@
 /* global Excel */
+/**
+ * @issue #46, #93
+ */
+
 
 export interface CodelistItem {
   codedValue: string;

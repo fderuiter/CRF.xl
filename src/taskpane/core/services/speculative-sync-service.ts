@@ -1,4 +1,8 @@
 /* global Excel */
+/**
+ * @issue #28
+ */
+
 import * as CryptoJS from "crypto-js";
 import { StudyDesign } from "../types";
 import { classifyOfficeError } from "./office-error-handling";

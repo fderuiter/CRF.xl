@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { migrateStudyDesign } from "../migration";
 import { StudyDesign } from "../../types/index";
 

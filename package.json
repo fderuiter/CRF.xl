@@ -29,6 +29,7 @@
     "manifest:validate:office": "npm run manifest:dev && npm run manifest:staging && npm run manifest:production",
     "manifest:validate": "node ./scripts/validate-manifests.js",
     "docs:validate": "node ./scripts/validate-docs.js",
+    "docs:traceability": "node ./scripts/traceability-engine.js",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "benchmark:mega-study": "jest test/serialization/mega-study.benchmark.test.ts --runInBand",

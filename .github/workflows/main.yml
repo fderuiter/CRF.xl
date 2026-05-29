@@ -38,6 +38,10 @@ jobs:
     - name: 📚 Validate Documentation Links
       run: npm run docs:validate
 
+    - name: 🔗 Validate Codebase Traceability
+      run: |
+        npm run docs:traceability
+        git diff --exit-code docs/github/codebase-alignment.md || { echo "Traceability report is out of sync. Please run 'npm run docs:traceability' and commit the changes."; exit 1; }
     - name: 🔎 Type Checking
       run: npx tsc --noEmit
 

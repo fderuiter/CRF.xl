@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 export interface LocaleConfig {
   argSeparator: string;
   decimalSeparator: string;

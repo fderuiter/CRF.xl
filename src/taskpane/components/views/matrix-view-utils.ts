@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { StudyDesign, isCrfItem } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";

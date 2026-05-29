@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";

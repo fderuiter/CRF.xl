@@ -1,3 +1,6 @@
+/**
+ * @issue #130, #85
+ */
 /* eslint-disable office-addins/call-sync-before-read, office-addins/load-object-before-read */
 import ExcelJS from "exceljs";
 import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";

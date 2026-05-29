@@ -1,4 +1,8 @@
 /* global Excel, window, Worker, URL, MessageEvent */
+/**
+ * @issue #53, #118, #137
+ */
+
 import { StudyDesign } from "../types/index";
 import { ParseRuntimeOptions } from "./chunking-runtime";
 import { parseRawDataToStudyDesign } from "./parser-engine";

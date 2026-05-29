@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /* eslint-disable no-undef */
 import { generateOdmXml } from "../odm-builder";
 import { StudyDesign, DataType, EventType, RuleType } from "../../../types";

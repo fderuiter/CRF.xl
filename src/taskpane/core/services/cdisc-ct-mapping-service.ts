@@ -1,3 +1,6 @@
+/**
+ * @issue #93
+ */
 import { CdiscCtCodelist, CdiscCtPackage, CdiscCtTerm } from "./cdisc-api-service";
 
 export interface CrfCodelistsRow {

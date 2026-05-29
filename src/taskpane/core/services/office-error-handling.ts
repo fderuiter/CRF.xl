@@ -1,3 +1,6 @@
+/**
+ * @issue #68
+ */
 export type OfficeErrorClass =
   | "excelBusy"
   | "workbookNotReady"

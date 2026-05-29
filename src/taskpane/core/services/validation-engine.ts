@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { StudyDesign } from "../types/index";
 import { ValidationIssue } from "../parser/validator";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
