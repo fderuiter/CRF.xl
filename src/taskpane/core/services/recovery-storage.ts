@@ -49,6 +49,7 @@ export interface RecoverySnapshot {
   };
   issues: RecoveryIssue[];
   workbookFingerprint?: WorkbookFingerprint;
+  justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
 }
 
 type PersistResult =
@@ -121,6 +122,7 @@ export function createRecoverySnapshot({
   openForm,
   currentFilter,
   workbookFingerprint,
+  justifications,
   analyzedAt = Date.now(),
   appVersion = RECOVERY_APP_VERSION,
 }: {
@@ -129,6 +131,7 @@ export function createRecoverySnapshot({
   openForm?: string;
   currentFilter?: string;
   workbookFingerprint?: WorkbookFingerprint;
+  justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
   analyzedAt?: number;
   appVersion?: string;
 }): RecoverySnapshot {
@@ -143,6 +146,7 @@ export function createRecoverySnapshot({
     },
     issues: toRecoveryIssues(issues),
     workbookFingerprint,
+    justifications,
   };
 }
 
