@@ -6,6 +6,12 @@
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
 
+export interface AuditJustification {
+  reason: string;
+  userId: string;
+  timestamp: string;
+}
+
 export interface EnvironmentComplianceStatus {
   isCloudHosted: boolean;
   documentUrl: string;
@@ -21,6 +27,7 @@ export class ComplianceGovernanceService {
   private msalInstance: PublicClientApplication;
   private graphClient: Client | null = null;
   private account: any = null;
+  private pendingSync: { documentUrl: string; justifications: Record<string, AuditJustification> } | null = null;
 
   constructor(clientId: string = "PLACEHOLDER_CLIENT_ID") {
     this.msalInstance = new PublicClientApplication({
@@ -41,6 +48,7 @@ export class ComplianceGovernanceService {
     if (accounts.length > 0) {
       this.account = accounts[0];
       this.setupGraphClient();
+      this.processPendingSync();
     }
   }
 
@@ -50,6 +58,7 @@ export class ComplianceGovernanceService {
       const response = await this.msalInstance.loginPopup(request);
       this.account = response.account;
       this.setupGraphClient();
+      this.processPendingSync();
     } catch (error) {
       console.error("Login failed", error);
       throw error;
@@ -174,6 +183,123 @@ export class ComplianceGovernanceService {
         requireCheckout: false,
       },
     });
+  }
+
+  public async loadJustificationsFromWorkbook(): Promise<Record<string, AuditJustification>> {
+    return await Excel.run(async (context) => {
+      const sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
+      sheet.load("name");
+      await context.sync();
+
+      if (sheet.isNullObject) {
+        return {};
+      }
+
+      const usedRange = sheet.getUsedRangeOrNullObject();
+      usedRange.load("values");
+      await context.sync();
+
+      if (usedRange.isNullObject || !usedRange.values || usedRange.values.length <= 1) {
+        return {};
+      }
+
+      const justifications: Record<string, AuditJustification> = {};
+      const rows = usedRange.values.slice(1); // Skip header
+
+      for (const row of rows) {
+        const [key, reason, userId, timestamp] = row;
+        if (key && reason) {
+          justifications[key] = {
+            reason: String(reason),
+            userId: String(userId || ""),
+            timestamp: String(timestamp || ""),
+          };
+        }
+      }
+
+      return justifications;
+    });
+  }
+
+  public async saveJustificationsToWorkbook(justifications: Record<string, AuditJustification>): Promise<void> {
+    await Excel.run(async (context) => {
+      let sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
+      sheet.load("name");
+      await context.sync();
+
+      if (sheet.isNullObject) {
+        sheet = context.workbook.worksheets.add("_Justifications");
+        sheet.visibility = Excel.SheetVisibility.hidden;
+      } else {
+        sheet.protection.unprotect();
+        sheet.getUsedRangeOrNullObject().clear();
+      }
+
+      const keys = Object.keys(justifications);
+      const data: any[][] = [["ItemKey", "Reason", "UserId", "Timestamp"]];
+
+      for (const key of keys) {
+        const j = justifications[key];
+        data.push([key, j.reason, j.userId, j.timestamp]);
+      }
+
+      const range = sheet.getRangeByIndexes(0, 0, data.length, 4);
+      range.values = data;
+      range.format.autofitColumns();
+
+      sheet.protection.protect({
+        allowAutoFilter: true,
+        allowSort: true
+      });
+
+      await context.sync();
+    });
+  }
+
+  public async syncSharePointMetadata(documentUrl: string, justifications: Record<string, AuditJustification>): Promise<void> {
+    const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
+    if (!isCloudHosted) return;
+    
+    if (!this.graphClient) {
+      // Prioritize workbook-level save, queue SP sync for later
+      this.pendingSync = { documentUrl, justifications };
+      return;
+    }
+
+    try {
+      // Generate a high-level summary avoiding PII
+      const count = Object.keys(justifications).length;
+      const recentChange = Object.values(justifications).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+      const summaryText = count > 0 ? `${count} justifications recorded. Last update: ${recentChange?.timestamp}` : "No justifications.";
+
+      const encodedUrl = btoa(documentUrl)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+      const driveItem = await this.graphClient
+        .api(`/shares/u!${encodedUrl}/driveItem`)
+        .get();
+
+      // Update listItem associated with this file
+      await this.graphClient
+        .api(`/drives/${driveItem.parentReference.driveId}/items/${driveItem.id}/listItem/fields`)
+        .patch({
+          "GovernanceSummary": summaryText, // Custom column Name
+          "JustificationCount": count       // Custom column Name
+        });
+
+    } catch (error) {
+      console.warn("Failed to sync SharePoint metadata for justifications", error);
+      this.pendingSync = { documentUrl, justifications };
+    }
+  }
+
+  private async processPendingSync() {
+    if (this.pendingSync && this.graphClient) {
+      const { documentUrl, justifications } = this.pendingSync;
+      this.pendingSync = null; // Clear to prevent infinite loop on failure
+      await this.syncSharePointMetadata(documentUrl, justifications);
+    }
   }
 }
 

@@ -20,6 +20,7 @@ export interface VerificationManifest {
   source_provenance?: ImportProvenance;
   fileHashes: Record<string, string>;
   auditSummary: StudyDiffReport;
+  justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
 }
 
 export class ComplianceExportService {
@@ -34,6 +35,7 @@ export class ComplianceExportService {
     options?: {
       source_provenance?: ImportProvenance;
       signedOffAt?: string | null;
+      justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
     }
   ): Promise<Blob> {
     const zip = new JSZip();
@@ -91,6 +93,7 @@ export class ComplianceExportService {
         [`${protocolId || "UNKNOWN"}_ODM_Specification.xml`]: odmHash,
       },
       auditSummary,
+      justifications: options?.justifications,
     };
 
     const manifestJson = JSON.stringify(manifest, null, 2);
