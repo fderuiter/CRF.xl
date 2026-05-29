@@ -2,7 +2,7 @@
  * @issue #53, #54, #55
  */
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
-import { validateRules, collectIdentifiers } from "./rules-validator";
+import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
 
 export interface ValidationIssue {

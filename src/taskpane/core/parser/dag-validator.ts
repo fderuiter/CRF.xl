@@ -3,7 +3,7 @@
  */
 /**
  * ============================================================================
- * rules-validator.ts
+ * dag-validator.ts
  * ============================================================================
  * Dependency Graph Validator and Topological Sorter for CRF.xl Rules.
  */
@@ -16,7 +16,7 @@ import {
   DataType,
   isCrfItem,
 } from "../types/index";
-import { validateExpression } from "./expression-validator";
+import { validateExpression, inferExpressionType } from "./expression-validator";
 
 export interface RuleValidationError {
   level: "Error" | "Warning";
@@ -308,17 +308,24 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
     }
   }
 
-  // Also include derived variable targets
-  for (const rule of rules) {
-    if (rule.ruleType === RuleType.DERIVATION && rule.target && !variablesMap.has(rule.target)) {
-      variablesMap.set(rule.target, DataType.FLOAT);
-    }
-  }
-
   const knownRuleIdsSet = new Set<string>();
   rules.forEach((r) => {
     if (r.ruleId) knownRuleIdsSet.add(r.ruleId);
   });
+
+  // Also include derived variable targets
+  for (const rule of rules) {
+    if (rule.ruleType === RuleType.DERIVATION && rule.target && !variablesMap.has(rule.target)) {
+      let inferredType: DataType | "Unknown" = "Unknown";
+      if (rule.ast) {
+        const type = inferExpressionType(rule.ast, variablesMap, knownRuleIdsSet);
+        if (Object.values(DataType).includes(type as DataType)) {
+          inferredType = type as DataType;
+        }
+      }
+      variablesMap.set(rule.target, inferredType as DataType);
+    }
+  }
 
   for (let i = 0; i < validRules.length; i++) {
     if (options?.cancellationToken?.isCancelled?.()) {

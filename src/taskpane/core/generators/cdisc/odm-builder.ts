@@ -10,7 +10,7 @@ import {
   RuleType,
   isCrfItem,
 } from "../../types/index";
-import { validateRules, RuleValidationError } from "../../parser/rules-validator";
+import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 
 /**
  * Error thrown when rules pre-serialization validation fails.

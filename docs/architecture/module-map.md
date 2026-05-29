@@ -37,7 +37,7 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
-### `rules-validator.ts`
+### `dag-validator.ts`
 
 **Purpose:** Dependency graph validator and topological sorter for CRF.xl Rules. Detects duplicate rule IDs, duplicate targets, broken references, unresolved variables, syntax issues, and circular dependencies in a deterministic DAG.
 
@@ -402,16 +402,6 @@ Shared utility types: localized strings, OID references, generic result wrappers
 ### `diff.ts`
 
 Diff payload contracts: `StudyDiffReport`, `FormDiffEntry`, `ItemDiffEntry`, `CodelistDiffEntry`, `RuleDiffEntry`, `StudyMetadataDiff`, and the `DiffOperation` union type. Produced by `diff-engine.ts` and consumed by `StudyDiffView.tsx`.
-
----
-
-## Expected-but-absent modules
-
-These modules are planned but not yet implemented. They are blocked by the issues listed.
-
-| Expected Module                        | Purpose                                           | Blocking Issue | Planned Location              |
-| -------------------------------------- | ------------------------------------------------- | -------------- | ----------------------------- |
-| `src/taskpane/core/parser/dag-validator.ts` | DAG topological sort and cycle detection for rules | #138      | `src/taskpane/core/parser/`   |
 
 ---
 
