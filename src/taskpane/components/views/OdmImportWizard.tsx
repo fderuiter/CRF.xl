@@ -264,7 +264,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
   // -------------------------------------------------------------------------
   // Stage 1 → 2: parse the ODM XML
   // -------------------------------------------------------------------------
-  const handleParse = () => {
+  const handleParse = async () => {
     const xml = state.xmlInput.trim();
     if (!xml) {
       patch({ error: "Please paste or load an ODM XML document before parsing." });
@@ -272,7 +272,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
     }
     patch({ isProcessing: true, error: null, stage: "parse" });
     try {
-      const importPackage = importOdmXml(xml);
+      const importPackage = await importOdmXml(xml);
       patch({ importPackage, isProcessing: false, stage: "preview" });
     } catch (e) {
       patch({

@@ -237,7 +237,7 @@ describe("Mega-study benchmark harness", () => {
     const coldParseMs = performance.now() - coldStart;
 
     const validationStart = performance.now();
-    const issues = validateStudyDesign(study);
+    const issues = await validateStudyDesign(study);
     const validationMs = performance.now() - validationStart;
 
     const warmStart = performance.now();

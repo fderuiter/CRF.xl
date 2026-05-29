@@ -24,11 +24,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
   }
 
   describe("Topological Sorting & Valid DAGs", () => {
-    it("should sort an independent set of rules with no dependencies", () => {
+    it("should sort an independent set of rules with no dependencies", async () => {
       const r1 = makeRule("R_001", "WT > 0");
       const r2 = makeRule("R_002", "AGE >= 18");
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(true);
       expect(result.errors.length).toBe(0);
@@ -38,12 +38,12 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(result.topologicalOrder.length).toBe(2);
     });
 
-    it("should correctly resolve direct Rule ID references and sort them", () => {
+    it("should correctly resolve direct Rule ID references and sort them", async () => {
       // R_002 depends directly on R_001's verification outcome
       const r1 = makeRule("R_001", "WT > 0");
       const r2 = makeRule("R_002", "R_001 && AGE >= 18");
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(true);
       expect(result.errors.length).toBe(0);
@@ -54,13 +54,13 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(index1).toBeLessThan(index2);
     });
 
-    it("should correctly resolve derived target variables and sort them", () => {
+    it("should correctly resolve derived target variables and sort them", async () => {
       // R_003 (BMI) depends on target WT (derived by R_002) and HT (raw field)
       const r1 = makeRule("R_001", "AGE >= 18");
       const r2 = makeRule("R_002", "VS.WT_RAW + 2", RuleType.DERIVATION, "WT");
       const r3 = makeRule("R_003", "WT / (HT * HT)", RuleType.DERIVATION, "BMI");
 
-      const result = validateRules([r1, r2, r3]);
+      const result = await validateRules([r1, r2, r3]);
 
       expect(result.isValid).toBe(true);
       expect(result.errors.length).toBe(0);
@@ -71,12 +71,12 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(indexWT).toBeLessThan(indexBMI);
     });
 
-    it("should resolve qualified variable paths to their base targets", () => {
+    it("should resolve qualified variable paths to their base targets", async () => {
       // R_002 references VISIT_1.VS.WT which resolves to WT derived by R_001
       const r1 = makeRule("R_001", "100", RuleType.DERIVATION, "WT");
       const r2 = makeRule("R_002", "VISIT_1.VS.WT > 50");
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(true);
       expect(result.errors.length).toBe(0);
@@ -85,10 +85,10 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
   });
 
   describe("Circular Dependency & Loop Detection", () => {
-    it("should detect a simple self-reference cycle", () => {
+    it("should detect a simple self-reference cycle", async () => {
       const r1 = makeRule("R_001", "R_001 && WT > 0");
 
-      const result = validateRules([r1]);
+      const result = await validateRules([r1]);
 
       expect(result.isValid).toBe(false);
       const cycleError = result.errors.find((e) => e.type === "CYCLE");
@@ -98,11 +98,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(result.topologicalOrder).toEqual([]); // Topological sort is blocked
     });
 
-    it("should detect direct 2-rule circular dependencies", () => {
+    it("should detect direct 2-rule circular dependencies", async () => {
       const r1 = makeRule("R_001", "R_002 && WT > 10");
       const r2 = makeRule("R_002", "R_001 || HT < 180");
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
       const cycleError = result.errors.find((e) => e.type === "CYCLE");
@@ -112,7 +112,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(cycleError?.actionableExplanation).toContain("Rule 'R_002' -> Rule 'R_001'");
     });
 
-    it("should detect complex 3-rule circular loops", () => {
+    it("should detect complex 3-rule circular loops", async () => {
       const r1 = makeRule("R_001", "R_002 && WT > 0");
       const r2 = makeRule("R_002", "BMI > 25", RuleType.DERIVATION, "BMI"); // BMI references BMI, but let's make it loop to HT
       const r3 = makeRule("R_003", "R_001", RuleType.DERIVATION, "HT");
@@ -121,7 +121,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       r2.expression = "HT * 2";
       r2.ast = parseRuleExpression("HT * 2");
 
-      const result = validateRules([r1, r2, r3]);
+      const result = await validateRules([r1, r2, r3]);
 
       expect(result.isValid).toBe(false);
       const cycleError = result.errors.find((e) => e.type === "CYCLE");
@@ -132,10 +132,10 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
   });
 
   describe("Broken & Unresolved Dependency References", () => {
-    it("should flag a broken reference to a non-existent rule ID", () => {
+    it("should flag a broken reference to a non-existent rule ID", async () => {
       const r1 = makeRule("R_001", "R_999 && WT > 0");
 
-      const result = validateRules([r1]);
+      const result = await validateRules([r1]);
 
       expect(result.isValid).toBe(false);
       const brokenError = result.errors.find((e) => e.type === "BROKEN_REFERENCE");
@@ -146,7 +146,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(brokenError?.rowIndex).toBe(2);
     });
 
-    it("should verify valid variables and report unresolved references when StudyDesign is provided", () => {
+    it("should verify valid variables and report unresolved references when StudyDesign is provided", async () => {
       const r1 = makeRule("R_001", "WT > 0 && UNKNOWN_FIELD == 42");
 
       const mockStudy: StudyDesign = {
@@ -185,7 +185,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
         codelists: {},
       };
 
-      const result = validateRules([r1], mockStudy);
+      const result = await validateRules([r1], mockStudy);
 
       expect(result.isValid).toBe(false);
 
@@ -203,11 +203,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
   });
 
   describe("Duplicate Definitions", () => {
-    it("should flag duplicate Rule IDs", () => {
+    it("should flag duplicate Rule IDs", async () => {
       const r1 = makeRule("R_001", "WT > 0", RuleType.VALIDATION, undefined, 2);
       const r2 = makeRule("R_001", "HT > 0", RuleType.VALIDATION, undefined, 3);
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
       const duplicateErrors = result.errors.filter((e) => e.type === "DUPLICATE_RULE_ID");
@@ -215,11 +215,11 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(duplicateErrors[0].message).toContain("Duplicate Rule ID: 'R_001'");
     });
 
-    it("should flag duplicate derivation targets", () => {
+    it("should flag duplicate derivation targets", async () => {
       const r1 = makeRule("R_001", "WT_RAW + 5", RuleType.DERIVATION, "WT", 2);
       const r2 = makeRule("R_002", "WT_EST + 1", RuleType.DERIVATION, "WT", 3);
 
-      const result = validateRules([r1, r2]);
+      const result = await validateRules([r1, r2]);
 
       expect(result.isValid).toBe(false);
       const targetErrors = result.errors.filter((e) => e.type === "DUPLICATE_TARGET");
@@ -231,7 +231,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
   });
 
   describe("Master Validator Engine Integration", () => {
-    it("should propagate rules errors seamlessly into validateStudyDesign issues list", () => {
+    it("should propagate rules errors seamlessly into validateStudyDesign issues list", async () => {
       const r1 = makeRule("R_001", "R_002");
       const r2 = makeRule("R_002", "R_001");
 
@@ -243,7 +243,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
         rules: [r1, r2],
       };
 
-      const issues = validateStudyDesign(mockStudy);
+      const issues = await validateStudyDesign(mockStudy);
       const cycleIssue = issues.find(
         (i) => i.sheetName === "_Rules" && i.message.includes("Circular logic loop detected")
       );
