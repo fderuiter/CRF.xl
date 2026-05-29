@@ -2,6 +2,8 @@ import { highlightErrorsOnCanvas, clearAllAnnotations, getOrphanedAnnotationsCou
 import * as React from "react";
 import * as CryptoJS from "crypto-js";
 import { useState, useEffect, useRef } from "react";
+import { speculativeSyncManager } from "../core/services/speculative-sync-service";
+
 import {
   makeStyles,
   tokens,
@@ -201,6 +203,8 @@ export const App: React.FC<{ title?: string }> = () => {
 
   // 2. Application State
   const [study, setStudy] = useState<StudyDesign | null>(null);
+  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
+  const [syncConflict, setSyncConflict] = useState<any>(null);
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
@@ -262,6 +266,35 @@ export const App: React.FC<{ title?: string }> = () => {
       return null;
     }
   };
+
+
+  useEffect(() => {
+    return speculativeSyncManager.subscribe((state, details) => {
+      if (state === "syncing") {
+        setIsBackgroundSyncing(true);
+        if (details?.predictedStudy) {
+          setStudy(details.predictedStudy);
+        }
+      } else if (state === "conflict") {
+        setIsBackgroundSyncing(false);
+        setSyncConflict(details);
+      } else if (state === "idle") {
+        setIsBackgroundSyncing(false);
+        if (details?.study) {
+          setStudy(details.study); // rollback case
+        }
+      } else if (state === "error") {
+        setIsBackgroundSyncing(false);
+        setUiError({
+          errorClass: "unknownOfficeError",
+          message: "Background sync failed.",
+          recoveryAction: "Check workbook and retry.",
+          allowRetry: true,
+          diagnosticCode: "SYNC_ERROR"
+        });
+      }
+    });
+  }, []);
 
   // Startup Check: Does the Matrix architecture exist yet?
   useEffect(() => {
@@ -765,7 +798,21 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {isCodelistActive && <DictionarySidecar />}
         {!isCodelistActive && renderContextualView()}
-        {uiError && (
+        
+      {syncConflict && (
+        <MessageBar intent="error">
+          <MessageBarBody>
+            <strong>Conflict Detected:</strong> The workbook was modified during a background sync.
+            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+              <Button size="small" onClick={() => { speculativeSyncManager.resolveConflict(true); setSyncConflict(null); }}>Keep Manual Edits</Button>
+              <Button size="small" appearance="primary" onClick={() => { speculativeSyncManager.resolveConflict(false); setSyncConflict(null); }}>Overwrite with Sync</Button>
+              <Button size="small" appearance="outline" onClick={() => { speculativeSyncManager.rollback(); setSyncConflict(null); }}>Rollback</Button>
+            </div>
+          </MessageBarBody>
+        </MessageBar>
+      )}
+
+      {uiError && (
           <MessageBar intent="error">
             <MessageBarBody>
               <strong>{uiError.message}</strong> {uiError.recoveryAction}
