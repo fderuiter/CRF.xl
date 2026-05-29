@@ -361,6 +361,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
 }) => {
   const styles = useStyles();
   const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
+  const cancelRequestedRef = React.useRef(false);
 
   // Derived helpers
   const stageIndex = STAGE_ORDER.indexOf(state.stage);
@@ -500,6 +501,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   // -------------------------------------------------------------------------
   const handleCommit = async () => {
     if (!state.preview || !state.confirmedStructure || !state.scanResult) return;
+    cancelRequestedRef.current = false;
     patch({
       isProcessing: true,
       error: null,
@@ -523,14 +525,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         // Provide an opportunity to cancel and yield to UI thread
         await new Promise((resolve) => setTimeout(resolve, 10));
 
-        let canceled = false;
-        setState((current) => {
-          if (current.syncProgress?.cancelRequested) {
-            canceled = true;
-          }
-          return current;
-        });
-        if (canceled) break;
+        if (cancelRequestedRef.current) break;
 
         const currentChunkSize = Math.min(pageSize, totalRows - i);
 
@@ -604,15 +599,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       }
 
       // Check if completely cancelled
-      let finalCanceled = false;
-      setState((current) => {
-        if (current.syncProgress?.cancelRequested) {
-          finalCanceled = true;
-        }
-        return current;
-      });
-
-      if (finalCanceled) {
+      if (cancelRequestedRef.current) {
         patch({
           isProcessing: false,
           syncProgress: null,
@@ -1033,6 +1020,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             <Button
               appearance="primary"
               onClick={() => {
+                cancelRequestedRef.current = true;
                 setState((current) => {
                   if (current.syncProgress) {
                     return {
