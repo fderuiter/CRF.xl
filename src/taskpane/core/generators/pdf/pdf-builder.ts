@@ -1,8 +1,10 @@
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";
+import { StudyDiffReport } from "../../types/diff";
+import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
 
-export async function generatePdfBlob(study: StudyDesign, validationIssues: any[] = []): Promise<Blob> {
+export async function generatePdfBlob(study: StudyDesign, validationIssues: any[] = [], auditSummary?: StudyDiffReport): Promise<Blob> {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const timestamp = new Date().toISOString();
   
@@ -23,11 +25,59 @@ export async function generatePdfBlob(study: StudyDesign, validationIssues: any[
   container.style.fontSize = "12px";
   document.body.appendChild(container);
 
+  let diffHtml = '';
+  if (auditSummary) {
+    const diffEntries = buildStudyDiffList(auditSummary);
+    if (diffEntries.length > 0) {
+      diffHtml = `
+        <h2 style="font-size: 18px; margin-top: 30px; margin-bottom: 10px;">Audit Summary (Changes)</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px;">
+          <thead>
+            <tr style="background-color: #f5f5f5; border-bottom: 1px solid #ddd;">
+              <th style="padding: 8px; text-align: left;">Entity</th>
+              <th style="padding: 8px; text-align: left;">Type</th>
+              <th style="padding: 8px; text-align: left;">Change Class</th>
+              <th style="padding: 8px; text-align: left;">Changed Fields</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${diffEntries.map(e => `
+              <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px;"><strong>${e.title}</strong><br/><span style="color: #666;">${e.subtitle}</span></td>
+                <td style="padding: 8px;">${e.group}</td>
+                <td style="padding: 8px;">
+                  <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; background-color: ${
+                    e.changeClass === 'added' ? '#e6ffed' :
+                    e.changeClass === 'removed' ? '#ffeef0' :
+                    e.changeClass === 'moved_or_renamed' ? '#f0f4ff' : '#fffbc8'
+                  }; color: ${
+                    e.changeClass === 'added' ? '#22863a' :
+                    e.changeClass === 'removed' ? '#cb2431' :
+                    e.changeClass === 'moved_or_renamed' ? '#0366d6' : '#b08800'
+                  };">
+                    ${e.changeClass.replace(/_/g, ' ')}
+                  </span>
+                </td>
+                <td style="padding: 8px;">${e.changedFields && e.changedFields.length > 0 ? e.changedFields.join(', ') : '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } else {
+      diffHtml = `
+        <h2 style="font-size: 18px; margin-top: 30px; margin-bottom: 10px;">Audit Summary (Changes)</h2>
+        <p style="font-size: 14px;">No changes detected.</p>
+      `;
+    }
+  }
+
   // 2. Generate initial HTML structure
   let html = `
     <div class="pdf-page" style="padding: 40px; box-sizing: border-box; page-break-after: always;">
       <h1 style="font-size: 24px; margin-bottom: 20px;">Reviewer Export - Annotated CRF</h1>
       <p style="margin: 5px 0; font-size: 14px;"><strong>Protocol ID:</strong> ${protocolId}</p>
+      <p style="margin: 5px 0; font-size: 14px;"><strong>Study Version:</strong> ${study.metadata.version || "UNKNOWN"}</p>
       <p style="margin: 5px 0; font-size: 14px;"><strong>Exported At:</strong> ${timestamp}</p>
       <p style="margin: 5px 0; font-size: 14px;"><strong>Study Cryptographic Hash:</strong> ${studyHash}</p>
       
@@ -35,6 +85,7 @@ export async function generatePdfBlob(study: StudyDesign, validationIssues: any[
       <ul style="font-size: 14px;">
         ${validationIssues.length > 0 ? validationIssues.map(v => `<li>${v.level}: ${v.message}</li>`).join('') : '<li>No validation issues</li>'}
       </ul>
+      ${diffHtml}
     </div>
   `;
 
@@ -220,7 +271,7 @@ export async function generatePdfBlob(study: StudyDesign, validationIssues: any[
     }
 
     const opt = {
-      margin:       [10, 10, 10, 10],
+      margin:       [10, 10, 15, 10], // Increased bottom margin for footer
       filename:     `${protocolId}_Annotated_CRF.pdf`,
       image:        { type: "jpeg", quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true, logging: false },
@@ -230,6 +281,18 @@ export async function generatePdfBlob(study: StudyDesign, validationIssues: any[
 
     // The set({worker: true}) uses jsPDF's web worker for generation
     const worker = html2pdf().set(opt).from(container);
+    await worker.toPdf().get('pdf').then((pdf: any) => {
+      const totalPages = pdf.internal.getNumberOfPages();
+      const versionStr = study.metadata.version || "UNKNOWN";
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        const footerText = `Protocol: ${protocolId} | Version: ${versionStr} | Generated: ${timestamp} | Page ${i} of ${totalPages}`;
+        pdf.text(footerText, 10, pdf.internal.pageSize.getHeight() - 8);
+      }
+    });
+    
     const pdfBlob = await worker.outputPdf("blob");
     return pdfBlob;
   } finally {
