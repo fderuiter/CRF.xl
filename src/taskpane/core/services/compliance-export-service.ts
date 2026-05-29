@@ -5,6 +5,7 @@ import { StudyDiffReport } from "../types/diff";
 import { generateOdmXml } from "../generators/cdisc/odm-builder";
 import { generateDocxBlob } from "../generators/docx/docx-builder";
 import { generatePdfBlob } from "../generators/pdf/pdf-builder";
+import { ImportProvenance } from "./migration-pipeline";
 
 import { diffStudyDesigns } from "./diff-engine";
 
@@ -12,6 +13,8 @@ export interface VerificationManifest {
   manifestVersion: string;
   protocolId: string;
   exportedAt: string;
+  signedOffAt?: string;
+  source_provenance?: ImportProvenance;
   fileHashes: Record<string, string>;
   auditSummary: StudyDiffReport;
 }
@@ -24,7 +27,11 @@ export class ComplianceExportService {
   static async createExportPackage(
     currentStudy: StudyDesign,
     baselineStudy: StudyDesign | null,
-    validationIssues: any[] = []
+    validationIssues: any[] = [],
+    options?: {
+      source_provenance?: ImportProvenance;
+      signedOffAt?: string | null;
+    }
   ): Promise<Blob> {
     const zip = new JSZip();
 
@@ -73,6 +80,8 @@ export class ComplianceExportService {
       manifestVersion: "1.0",
       protocolId: currentStudy.metadata.protocolId || "UNKNOWN",
       exportedAt: new Date().toISOString(),
+      signedOffAt: options?.signedOffAt ?? undefined,
+      source_provenance: options?.source_provenance,
       fileHashes: {
         [`${protocolId || "UNKNOWN"}_Annotated_CRF.docx`]: docxHash,
         [`${protocolId || "UNKNOWN"}_Annotated_CRF.pdf`]: pdfHash,
