@@ -29,6 +29,7 @@ import {
 import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue, validateStudyDesign } from "../core/parser/validator";
 import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
+import { complianceGovernanceService } from "../core/services/compliance-governance-service";
 import { ComplianceExportService } from "../core/services/compliance-export-service";
 import { VaultService } from "../core/services/vault-service";
 
@@ -67,6 +68,8 @@ import {
 // Telemetry & Views
 import { useExcelTelemetry } from "./views/useExcelTelemetry";
 import { RegistryView } from "./views/RegistryView";
+import { ComplianceGovernanceView } from "./views/ComplianceGovernanceView";
+import { TabList, Tab } from "@fluentui/react-components";
 import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
@@ -237,6 +240,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const [uiError, setUiError] = useState<
     (OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null
   >(null);
+  const [activeTab, setActiveTab] = useState("design");
 
   const dismissUiError = () => setUiError(null);
 
@@ -476,6 +480,21 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
+  const studyDiffReport = React.useMemo(() => {
+    if (!baselineStudy || !study) return null;
+    const baseReport = diffStudyDesigns(baselineStudy, study);
+    return {
+      ...baseReport,
+      items: baseReport.items.map((item) => {
+        const key = `${item.formOid}::${item.itemOid}`;
+        if (justifications[key]) {
+          return { ...item, justification: justifications[key] };
+        }
+        return item;
+      }),
+    };
+  }, [baselineStudy, study, justifications]);
+
   const hasMissingJustifications = React.useMemo(() => {
     if (!studyDiffReport) return false;
     return studyDiffReport.items.some((item) => {
@@ -488,6 +507,13 @@ export const App: React.FC<{ title?: string }> = () => {
       return false;
     });
   }, [studyDiffReport]);
+
+  // We need an effect to pop the modal after diffing is computed (since performAnalysis updates study, which triggers studyDiffReport update).
+  React.useEffect(() => {
+    if (studyDiffReport && hasMissingJustifications) {
+      setShowAuditModal(true);
+    }
+  }, [studyDiffReport, hasMissingJustifications]);
 
   const performAnalysis = async (sheetFilter?: string): Promise<StudyDesign | null> => {
     setIsProcessing(true);
@@ -516,6 +542,39 @@ export const App: React.FC<{ title?: string }> = () => {
       }
       setStudy(freshStudy);
       const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
+
+      // --- Add Environment Compliance to Diagnostic Framework ---
+      try {
+        if (!complianceGovernanceService.isAuthenticated) {
+          await complianceGovernanceService.initialize();
+        }
+        const documentUrl = await new Promise<string>((resolve, reject) => {
+          Office.context.document.getFilePropertiesAsync((result) => {
+            if (result.status === Office.AsyncResultStatus.Succeeded) {
+              resolve(result.value.url || "local://document");
+            } else {
+              reject(new Error("Failed to get document URL"));
+            }
+          });
+        });
+        const envStatus = await complianceGovernanceService.getEnvironmentStatus(documentUrl);
+        if (!envStatus.isCompliant) {
+          validationIssues.push({
+            level: "Error",
+            message: envStatus.isCloudHosted
+              ? "SharePoint location is not configured for GxP version history."
+              : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
+            location: "Host Environment",
+          });
+        }
+      } catch (error) {
+        validationIssues.push({
+          level: "Warning",
+          message: "Unable to verify host environment compliance status.",
+          location: "Host Environment",
+        });
+      }
+      // --------------------------------------------------------
 
       // Sync to Vault
       const vaultService = new VaultService();
@@ -591,14 +650,40 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
-  // We need an effect to pop the modal after diffing is computed (since performAnalysis updates study, which triggers studyDiffReport update).
-  React.useEffect(() => {
-    if (studyDiffReport && hasMissingJustifications) {
-      setShowAuditModal(true);
-    }
-  }, [studyDiffReport, hasMissingJustifications]);
-
   const handleComplianceExport = async () => {
+    // Check environment compliance first
+    let envStatus;
+    try {
+      if (!complianceGovernanceService.isAuthenticated) {
+        await complianceGovernanceService.initialize();
+      }
+      const documentUrl = await new Promise<string>((resolve, reject) => {
+        Office.context.document.getFilePropertiesAsync((result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value.url || "local://document");
+          } else {
+            reject(new Error("Failed to get document URL"));
+          }
+        });
+      });
+      envStatus = await complianceGovernanceService.getEnvironmentStatus(documentUrl);
+    } catch (e) {
+      console.warn("Failed to fetch environment status", e);
+    }
+
+    if (!envStatus || !envStatus.isCompliant) {
+      setUiError({
+        errorClass: "unknownOfficeError",
+        message: "Environment is not compliant.",
+        recoveryAction:
+          "Open the Compliance tab to view and remediate environment issues before exporting.",
+        allowRetry: false,
+        diagnosticCode: "ENV_NONCOMPLIANT",
+      });
+      setActiveTab("compliance");
+      return;
+    }
+
     const s = await performAnalysis();
     if (!s || issues.some((i) => i.level === "Error")) return;
 
@@ -667,21 +752,6 @@ export const App: React.FC<{ title?: string }> = () => {
       setIsProcessing(false);
     }
   };
-
-  const studyDiffReport = React.useMemo(() => {
-    if (!baselineStudy || !study) return null;
-    const baseReport = diffStudyDesigns(baselineStudy, study);
-    return {
-      ...baseReport,
-      items: baseReport.items.map((item) => {
-        const key = `${item.formOid}::${item.itemOid}`;
-        if (justifications[key]) {
-          return { ...item, justification: justifications[key] };
-        }
-        return item;
-      }),
-    };
-  }, [baselineStudy, study, justifications]);
 
   // 3. View Router Logic
   const renderContextualView = () => {
@@ -801,6 +871,15 @@ export const App: React.FC<{ title?: string }> = () => {
       </header>
 
       <main className={styles.main}>
+        <TabList
+          selectedValue={activeTab}
+          onTabSelect={(_e, data) => setActiveTab(data.value as string)}
+          style={{ marginBottom: "12px" }}
+        >
+          <Tab value="design">Design</Tab>
+          <Tab value="compliance">Compliance</Tab>
+        </TabList>
+
         {versionUpdate && (
           <MessageBar intent="info">
             <MessageBarBody>
@@ -845,8 +924,9 @@ export const App: React.FC<{ title?: string }> = () => {
             <MessageBarBody>{storageWarning}</MessageBarBody>
           </MessageBar>
         )}
-        {isCodelistActive && <DictionarySidecar />}
-        {!isCodelistActive && renderContextualView()}
+        {isCodelistActive && activeTab === "design" && <DictionarySidecar />}
+        {!isCodelistActive && activeTab === "design" && renderContextualView()}
+        {activeTab === "compliance" && <ComplianceGovernanceView />}
 
         {syncConflict && (
           <MessageBar intent="error">

@@ -36,8 +36,10 @@
     "audit:json": "npm audit --json"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.11.0",
     "@fluentui/react-components": "^9.55.1",
     "@fluentui/react-icons": "^2.0.264",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/pdfmake": "^0.3.3",
     "core-js": "^3.36.0",
     "crypto-js": "^4.2.0",

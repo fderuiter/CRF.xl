@@ -76,7 +76,8 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
     if (!report) return [];
     return report.items.filter((item) => {
       if (item.operation === "unchanged") return false;
-      const requiresReason = item.current?.requireChangeReason || item.baseline?.requireChangeReason;
+      const requiresReason =
+        item.current?.requireChangeReason || item.baseline?.requireChangeReason;
       return requiresReason;
     });
   }, [report]);
@@ -114,7 +115,7 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
             {flaggedItems.map((item) => {
               const key = `${item.formOid}::${item.itemOid}`;
               const val = localJustifs[key]?.reason || "";
-              
+
               // Simplistic diff display
               let beforeContent = "";
               let afterContent = "";
@@ -127,7 +128,7 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
               } else if (item.operation === "modified") {
                 const bVal: any = {};
                 const cVal: any = {};
-                item.changedFields?.forEach(f => {
+                item.changedFields?.forEach((f) => {
                   bVal[f] = (item.baseline as any)?.[f];
                   cVal[f] = (item.current as any)?.[f];
                 });
@@ -138,19 +139,36 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
               return (
                 <div key={key} className={styles.changeItem}>
                   <div className={styles.header}>
-                    <Text weight="bold">{item.itemOid} (Form: {item.formOid})</Text>
-                    <Badge appearance="filled" color={item.operation === "removed" ? "danger" : item.operation === "added" ? "success" : "warning"}>
+                    <Text weight="bold">
+                      {item.itemOid} (Form: {item.formOid})
+                    </Text>
+                    <Badge
+                      appearance="filled"
+                      color={
+                        item.operation === "removed"
+                          ? "danger"
+                          : item.operation === "added"
+                            ? "success"
+                            : "warning"
+                      }
+                    >
                       {item.operation}
                     </Badge>
                   </div>
                   <div className={styles.diffContent}>
-                    <div><strong>Before:</strong><pre>{beforeContent}</pre></div>
-                    <div><strong>After:</strong><pre>{afterContent}</pre></div>
+                    <div>
+                      <strong>Before:</strong>
+                      <pre>{beforeContent}</pre>
+                    </div>
+                    <div>
+                      <strong>After:</strong>
+                      <pre>{afterContent}</pre>
+                    </div>
                   </div>
                   <Textarea
                     placeholder="Enter reason for change..."
                     value={val}
-                    onChange={(e, data) => handleReasonChange(key, data.value)}
+                    onChange={(_e, data) => handleReasonChange(key, data.value)}
                     required
                   />
                 </div>
