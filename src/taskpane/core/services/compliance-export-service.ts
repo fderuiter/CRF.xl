@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import JSZip from "jszip";
 import * as CryptoJS from "crypto-js";
 import { StudyDesign } from "../types/hierarchy";

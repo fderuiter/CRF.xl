@@ -1,4 +1,8 @@
 /* global describe, expect, it */
+/**
+ * @issue #28
+ */
+
 
 import { performance } from "perf_hooks";
 import { buildMatrixSearchIndex, filterMatrixSearchIndex } from "../matrix-view-utils";

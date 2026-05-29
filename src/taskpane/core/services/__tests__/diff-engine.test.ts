@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /** @jest-environment node */
 /* global describe, it, expect */
 import { DataType, EventType, RuleType, StudyDesign } from "../../types";

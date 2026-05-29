@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { StudyDesign } from "../types/hierarchy";
 import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
 

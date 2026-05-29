@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import * as React from "react";
 import {
   Button,

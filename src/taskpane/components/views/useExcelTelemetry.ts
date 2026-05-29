@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /* eslint-disable no-undef, office-addins/call-sync-before-read, office-addins/call-sync-after-load */
 import { useState, useEffect } from "react";
 

@@ -1,3 +1,6 @@
+/**
+ * @issue #83, #84
+ */
 /* eslint-disable no-undef */
 /* global Excel */
 

@@ -1,3 +1,6 @@
+/**
+ * @issue #53, #54, #55
+ */
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./rules-validator";
 import { parseRuleExpression } from "./rules-parser";

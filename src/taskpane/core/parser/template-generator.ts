@@ -1,4 +1,8 @@
 /* global Excel */
+/**
+ * @issue #68
+ */
+
 import { CRF_VARIABLE_TYPE_OPTIONS } from "./form-element-utils";
 import { DATA_ORIGIN_OPTIONS } from "./metadata-utils";
 

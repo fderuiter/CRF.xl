@@ -1,3 +1,6 @@
+/**
+ * @issue #128
+ */
 import * as React from "react";
 import {
   Badge,

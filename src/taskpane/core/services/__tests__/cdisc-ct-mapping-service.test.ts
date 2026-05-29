@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";

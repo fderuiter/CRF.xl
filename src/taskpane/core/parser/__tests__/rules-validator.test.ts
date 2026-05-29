@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 /* eslint-disable no-undef */
 import { validateRules } from "../rules-validator";
 import { parseRuleExpression } from "../rules-parser";

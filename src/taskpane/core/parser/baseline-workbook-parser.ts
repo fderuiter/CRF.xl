@@ -1,3 +1,6 @@
+/**
+ * @issue #130, #85
+ */
 import { CrfItem, DataType, EventType, StudyDesign, StudyEvent, isCrfDisplayBlock } from "../types";
 import { mapRowToFormElement } from "./form-element-utils";
 import { migrateStudyDesign } from "./migration";

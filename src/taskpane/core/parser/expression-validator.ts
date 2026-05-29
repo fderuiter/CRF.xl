@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { ASTNode, DataType, SourceLocation } from "../types/index";
 
 export interface ExpressionDiagnostic {

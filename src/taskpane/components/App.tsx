@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import {
   applyValidationVisuals,
   getOrphanedAnnotationsCount,

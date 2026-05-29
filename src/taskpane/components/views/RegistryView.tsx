@@ -1,3 +1,6 @@
+/**
+ * @issue #130
+ */
 import * as React from "react";
 import {
   Body1,

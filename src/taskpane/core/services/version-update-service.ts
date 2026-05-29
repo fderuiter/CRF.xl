@@ -1,3 +1,6 @@
+/**
+ * @issue #68
+ */
 /* eslint-disable no-undef */
 export const VERSION_ENDPOINT_FALLBACK = "/assets/version.json";
 export const VERSION_DISMISSAL_STORAGE_KEY = "crf-xl-version-update-dismissed-v1";

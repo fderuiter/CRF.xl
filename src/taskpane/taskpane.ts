@@ -1,4 +1,8 @@
 /* global Excel console */
+/**
+ * @issue #28
+ */
+
 
 export async function insertText(text: string) {
   // Write text to the top left cell.

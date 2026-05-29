@@ -1,4 +1,8 @@
 /* global Worker, self, MessageEvent, setTimeout */
+/**
+ * @issue #28
+ */
+
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ParseProgressUpdate } from "../parser/chunking-runtime";
 import { validateStudyDesign } from "../parser/validator";

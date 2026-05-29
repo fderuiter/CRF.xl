@@ -1,4 +1,8 @@
 /* global window, console, btoa, URL, Office */
+/**
+ * @issue #28
+ */
+
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
 
