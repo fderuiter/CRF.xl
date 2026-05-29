@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 export function useExcelTelemetry() {
   const [activeSheet, setActiveSheet] = useState<string>("_Study");
   const [isCodelistActive, setIsCodelistActive] = useState<boolean>(false);
+  const [telemetryTrigger, setTelemetryTrigger] = useState<number>(0);
 
   useEffect(() => {
     let sheetActivatedHandler: any;
     let selectionChangedHandler: any;
+    let dataChangedHandler: any;
 
     const setupTelemetry = async () => {
       try {
@@ -28,6 +30,7 @@ export function useExcelTelemetry() {
               await ctx.sync();
               setActiveSheet(sheet.name);
               setIsCodelistActive(false); // Reset sidecar on sheet change
+              setTelemetryTrigger(prev => prev + 1);
             });
           });
 
@@ -48,7 +51,13 @@ export function useExcelTelemetry() {
               } else {
                 setIsCodelistActive(false);
               }
+              setTelemetryTrigger(prev => prev + 1);
             });
+          });
+
+          // Listener 3: Data Changed (Values updated)
+          dataChangedHandler = workbook.worksheets.onChanged.add(async () => {
+            setTelemetryTrigger(prev => prev + 1);
           });
 
           await context.sync();
@@ -64,8 +73,9 @@ export function useExcelTelemetry() {
       // Clean up listeners to prevent memory leaks when React unmounts
       if (sheetActivatedHandler) sheetActivatedHandler.remove();
       if (selectionChangedHandler) selectionChangedHandler.remove();
+      if (dataChangedHandler) dataChangedHandler.remove();
     };
   }, []);
 
-  return { activeSheet, isCodelistActive };
+  return { activeSheet, isCodelistActive, telemetryTrigger };
 }

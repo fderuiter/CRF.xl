@@ -4,7 +4,6 @@ import { insertDateBlock, insertAEBlock } from "../../core/services/authoring-se
 
 interface AuthoringProps {
   sheetName: string;
-  onValidate: () => void;
   isProcessing: boolean;
 }
 
@@ -56,7 +55,6 @@ const useStyles = makeStyles({
 
 export const AuthoringView: React.FC<AuthoringProps> = ({
   sheetName,
-  onValidate,
   isProcessing,
 }) => {
   const styles = useStyles();
@@ -113,16 +111,6 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
           </Button>
         </div>
       </Card>
-
-      <Button
-        appearance="secondary"
-        className={styles.validateButton}
-        onClick={onValidate}
-        disabled={isProcessing}
-        icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
-      >
-        Validate {sheetName}
-      </Button>
     </div>
   );
 };

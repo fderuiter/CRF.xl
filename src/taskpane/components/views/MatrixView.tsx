@@ -32,7 +32,6 @@ import {
 import { StudyDiffView } from "./StudyDiffView";
 
 interface MatrixProps {
-  onAnalyze: () => Promise<any>;
   onComplianceExport: () => Promise<void>;
   isProcessing: boolean;
   hasErrors: boolean;
@@ -327,7 +326,6 @@ const useStyles = makeStyles({
 const SEARCH_DEBOUNCE_MS = 150;
 
 export const MatrixView: React.FC<MatrixProps> = ({
-  onAnalyze,
   onComplianceExport,
   isProcessing,
   hasErrors,
@@ -427,16 +425,6 @@ export const MatrixView: React.FC<MatrixProps> = ({
             )}
           </div>
         </div>
-
-        <Button
-          appearance="primary"
-          className={styles.analyzeButton}
-          onClick={onAnalyze}
-          disabled={isProcessing}
-          icon={isProcessing ? <Spinner size="tiny" /> : <span>🔍</span>}
-        >
-          Validate Entire Study
-        </Button>
 
         <Divider />
 

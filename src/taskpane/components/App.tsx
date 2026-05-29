@@ -32,6 +32,7 @@ import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
 import { complianceGovernanceService } from "../core/services/compliance-governance-service";
 import { ComplianceExportService } from "../core/services/compliance-export-service";
 import { VaultService } from "../core/services/vault-service";
+import { backgroundValidationEngine } from "../core/services/validation-engine";
 
 import { diffStudyDesigns } from "../core/services/diff-engine";
 import {
@@ -205,16 +206,88 @@ export const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
   // 1. Telemetry & Initialization State
-  const { activeSheet, isCodelistActive } = useExcelTelemetry();
+  const { activeSheet, isCodelistActive, telemetryTrigger } = useExcelTelemetry();
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
 
   // 2. Application State
-  const [study, setStudy] = useState<StudyDesign | null>(null);
+  const [validationState, setValidationState] = useState(backgroundValidationEngine.getState());
+  const study = validationState.study;
+  const issues = validationState.issues;
+
+  const [appIsProcessing, setAppIsProcessing] = useState(false);
+  const [appStatus, setAppStatus] = useState("Ready");
+
+  const isProcessing = validationState.isProcessing || appIsProcessing;
+  const status = validationState.isProcessing ? validationState.status : appStatus;
+
+  useEffect(() => {
+    if (isInitialized) {
+      backgroundValidationEngine.triggerValidation(
+        activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
+        1000 // Throttle
+      );
+    }
+  }, [telemetryTrigger, isInitialized, activeSheet]);
+
+  useEffect(() => {
+    return backgroundValidationEngine.subscribe(setValidationState);
+  }, []);
+
+  useEffect(() => {
+    if (study && !isProcessing) {
+      // 1. Visual Validation
+      const sheetsToClear = activeSheet && !activeSheet.startsWith("_") 
+        ? [activeSheet] 
+        : ["_Schedule", ...Object.keys(study.forms)];
+      applyValidationVisuals(sheetsToClear, issues).catch(console.error);
+
+      // 2. Summary
+      setStudySummary(summarizeStudyDesign(study));
+      setCurrentFilter(activeSheet && !activeSheet.startsWith("_") ? activeSheet : null);
+
+      // 3. Vault Sync
+      const vaultService = new VaultService();
+      vaultService.syncValidationResults(
+        study.metadata.protocolId || "UNKNOWN",
+        study.metadata.version || "1.0",
+        issues,
+        CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex)
+      ).catch(console.error);
+
+      // 4. Environment Compliance
+      if (!complianceGovernanceService.isAuthenticated) {
+        complianceGovernanceService.initialize().catch(console.error);
+      }
+      Office.context.document.getFilePropertiesAsync((result) => {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          const documentUrl = result.value.url || "local://document";
+          complianceGovernanceService.getEnvironmentStatus(documentUrl).then(envStatus => {
+            if (!envStatus.isCompliant) {
+              const issue: ValidationIssue = {
+                level: "Error",
+                message: envStatus.isCloudHosted
+                  ? "SharePoint location is not configured for GxP version history."
+                  : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
+                location: "Host Environment",
+              };
+              // Add if not already present
+              if (!issues.some(i => i.location === issue.location && i.message === issue.message)) {
+                backgroundValidationEngine.updateState((prev) => ({
+                  issues: [...prev.issues, issue],
+                  status: "Issues detected"
+                }));
+              }
+            }
+          }).catch(console.error);
+        }
+      });
+    }
+  }, [study, issues, isProcessing, activeSheet]);
+
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
   const [syncConflict, setSyncConflict] = useState<any>(null);
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
-  const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const [showGate, setShowGate] = useState(false);
   const [orphanedCount, setOrphanedCount] = useState(0);
   const [studySummary, setStudySummary] = useState<{
@@ -233,8 +306,6 @@ export const App: React.FC<{ title?: string }> = () => {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState("Ready");
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [uiError, setUiError] = useState<
@@ -282,7 +353,7 @@ export const App: React.FC<{ title?: string }> = () => {
       if (state === "syncing") {
         setIsBackgroundSyncing(true);
         if (details?.predictedStudy) {
-          setStudy(details.predictedStudy);
+          backgroundValidationEngine.updateState(() => ({ study: details.predictedStudy }));
         }
       } else if (state === "conflict") {
         setIsBackgroundSyncing(false);
@@ -290,7 +361,7 @@ export const App: React.FC<{ title?: string }> = () => {
       } else if (state === "idle") {
         setIsBackgroundSyncing(false);
         if (details?.study) {
-          setStudy(details.study); // rollback case
+          backgroundValidationEngine.updateState(() => ({ study: details.study })); // rollback case
         }
       } else if (state === "error") {
         setIsBackgroundSyncing(false);
@@ -399,13 +470,13 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const handleRestoreSnapshot = () => {
     if (!recoverySnapshot) return;
-    setIssues(recoverySnapshot.snapshot.issues as ValidationIssue[]);
+    backgroundValidationEngine.updateState(() => ({ issues: recoverySnapshot.snapshot.issues as ValidationIssue[] }));
     setStudySummary(recoverySnapshot.snapshot.studySummary);
     setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
     if (recoverySnapshot.snapshot.justifications) {
       setJustifications(recoverySnapshot.snapshot.justifications);
     }
-    setStatus(
+    setAppStatus(
       `Recovered snapshot from ${new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}`
     );
     setRecoverySnapshot(null);
@@ -436,8 +507,8 @@ export const App: React.FC<{ title?: string }> = () => {
   }, []);
   // --- Action Handlers ---
   const handleInitialize = async () => {
-    setIsProcessing(true);
-    setStatus("Scaffolding canvas...");
+    setAppIsProcessing(true);
+    setAppStatus("Scaffolding canvas...");
     try {
       const completed = await runWithOfficeErrorHandling(
         async () => {
@@ -450,17 +521,17 @@ export const App: React.FC<{ title?: string }> = () => {
       );
       if (!completed) return;
       setIsInitialized(true); // Manually set to true once built
-      setStatus("Canvas initialized");
+      setAppStatus("Canvas initialized");
     } catch (e) {
-      setStatus("Init failed");
+      setAppStatus("Init failed");
     } finally {
-      setIsProcessing(false);
+      setAppIsProcessing(false);
     }
   };
 
   const handleSync = async () => {
-    setIsProcessing(true);
-    setStatus("Warping sheets...");
+    setAppIsProcessing(true);
+    setAppStatus("Warping sheets...");
     try {
       const completed = await runWithOfficeErrorHandling(
         async () => {
@@ -472,11 +543,11 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       );
       if (!completed) return;
-      setStatus("Sheets synchronized");
+      setAppStatus("Sheets synchronized");
     } catch (e) {
-      setStatus("Sync failed");
+      setAppStatus("Sync failed");
     } finally {
-      setIsProcessing(false);
+      setAppIsProcessing(false);
     }
   };
 
@@ -515,141 +586,6 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [studyDiffReport, hasMissingJustifications]);
 
-  const performAnalysis = async (sheetFilter?: string): Promise<StudyDesign | null> => {
-    setIsProcessing(true);
-    setStatus("Analyzing workbook...");
-    try {
-      const freshStudy = await runWithOfficeErrorHandling(
-        () =>
-          parseExcelToStudyDesign({
-            chunkSize: 250,
-            timeoutMs: 45_000,
-            cancellationToken: {
-              isCancelled: () => !isMountedRef.current,
-            },
-            onProgress: (progress) => {
-              if (!isMountedRef.current) return;
-              setStatus(`Analyzing: ${progress.message} (${progress.completed}/${progress.total})`);
-            },
-          }),
-        async () => {
-          await performAnalysis(sheetFilter);
-        }
-      );
-      if (!freshStudy) {
-        setStatus("Analysis failed");
-        return null;
-      }
-      setStudy(freshStudy);
-      const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
-
-      // --- Add Environment Compliance to Diagnostic Framework ---
-      try {
-        if (!complianceGovernanceService.isAuthenticated) {
-          await complianceGovernanceService.initialize();
-        }
-        const documentUrl = await new Promise<string>((resolve, reject) => {
-          Office.context.document.getFilePropertiesAsync((result) => {
-            if (result.status === Office.AsyncResultStatus.Succeeded) {
-              resolve(result.value.url || "local://document");
-            } else {
-              reject(new Error("Failed to get document URL"));
-            }
-          });
-        });
-        const envStatus = await complianceGovernanceService.getEnvironmentStatus(documentUrl);
-        if (!envStatus.isCompliant) {
-          validationIssues.push({
-            level: "Error",
-            message: envStatus.isCloudHosted
-              ? "SharePoint location is not configured for GxP version history."
-              : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
-            location: "Host Environment",
-          });
-        }
-      } catch (error) {
-        validationIssues.push({
-          level: "Warning",
-          message: "Unable to verify host environment compliance status.",
-          location: "Host Environment",
-        });
-      }
-      // --------------------------------------------------------
-
-      // Sync to Vault
-      const vaultService = new VaultService();
-      const studyHashInput = JSON.stringify(freshStudy);
-      // We must dynamically import crypto-js or require it. Wait, we can just let App.tsx import it? No, we shouldn't use crypto-js directly in App.tsx if we don't import it. We can do it inside vaultService!
-      vaultService.syncValidationResults(
-        freshStudy.metadata.protocolId || "UNKNOWN",
-        freshStudy.metadata.version || "1.0",
-        validationIssues,
-        CryptoJS.SHA256(JSON.stringify(freshStudy)).toString(CryptoJS.enc.Hex)
-      );
-
-      setIssues(validationIssues);
-      setStudySummary(summarizeStudyDesign(freshStudy));
-      setCurrentFilter(sheetFilter ?? null);
-      const parseWarnings = freshStudy.metadata.customProperties?.parseWarnings;
-      const hasParseWarnings = Array.isArray(parseWarnings) && parseWarnings.length > 0;
-
-      let snapshotFingerprint: WorkbookFingerprint | undefined = undefined;
-      try {
-        snapshotFingerprint = await Excel.run(async (context) => {
-          const sheets = context.workbook.worksheets;
-          sheets.load("items/name");
-          await context.sync();
-          const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
-          return { sheetCount: sheetNames.length, sheetNames };
-        });
-      } catch {
-        snapshotFingerprint = undefined;
-      }
-      setWorkbookFingerprint(snapshotFingerprint);
-
-      const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
-      const snapshot = createRecoverySnapshot({
-        issues: validationIssues,
-        studySummary: summarizeStudyDesign(freshStudy),
-        openForm,
-        currentFilter: sheetFilter,
-        workbookFingerprint: snapshotFingerprint,
-        justifications,
-      });
-      const saveResult = persistRecoverySnapshot(snapshot);
-      if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
-        setStorageWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
-      } else if (saveResult.saved) {
-        setStorageWarning(null);
-      }
-      setRecoverySnapshot(null);
-
-      // Step 1 & 2: Unified Transactional Visual Validation
-      const sheetsToClear = sheetFilter
-        ? [sheetFilter]
-        : ["_Schedule", ...Object.keys(freshStudy.forms)];
-
-      await applyValidationVisuals(sheetsToClear, validationIssues);
-
-      if (hasParseWarnings) {
-        setStatus("Analysis completed with partial parse warnings");
-      } else {
-        setStatus(
-          validationIssues.some((i) => i.level === "Error")
-            ? "Issues detected"
-            : "Specification clean"
-        );
-      }
-
-      return freshStudy;
-    } catch (e) {
-      setStatus("Analysis failed");
-      return null;
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleComplianceExport = async () => {
     // Check environment compliance first
     let envStatus;
@@ -684,7 +620,17 @@ export const App: React.FC<{ title?: string }> = () => {
       return;
     }
 
-    const s = await performAnalysis();
+    const s = study;
+    if (isProcessing) {
+      setUiError({
+        errorClass: "unknownOfficeError",
+        message: "Analysis is currently running in the background.",
+        recoveryAction: "Please wait a moment and try again.",
+        allowRetry: false,
+        diagnosticCode: "ANALYSIS_IN_PROGRESS",
+      });
+      return;
+    }
     if (!s || issues.some((i) => i.level === "Error")) return;
 
     // Check for orphaned annotations
@@ -701,7 +647,7 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const confirmComplianceExport = async (currentStudy: StudyDesign) => {
     setShowGate(false);
-    setIsProcessing(true);
+    setAppIsProcessing(true);
     try {
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
@@ -717,39 +663,39 @@ export const App: React.FC<{ title?: string }> = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
+      setAppIsProcessing(false);
     }
   };
 
   const handleSaveSubmissionMetadata = (submissionMetadata: SubmissionMetadata) => {
-    setStudy((current) =>
-      current
+    backgroundValidationEngine.updateState((prev) => ({
+      study: prev.study
         ? {
-            ...current,
+            ...prev.study,
             submissionMetadata,
           }
-        : current
-    );
-    setStatus("Submission metadata draft saved in session");
+        : prev.study
+    }));
+    setAppStatus("Submission metadata draft saved in session");
   };
 
   const handleLoadBaselineWorkbook = async (file: File) => {
-    setIsProcessing(true);
+    setAppIsProcessing(true);
     setBaselineError(null);
-    setStatus("Loading baseline workbook...");
+    setAppStatus("Loading baseline workbook...");
     try {
       const parsedBaseline = await parseBaselineWorkbookFile(file);
       setBaselineStudy(parsedBaseline);
-      setStatus(`Baseline loaded (${parsedBaseline.metadata.protocolId})`);
+      setAppStatus(`Baseline loaded (${parsedBaseline.metadata.protocolId})`);
     } catch (error) {
       if (error instanceof BaselineWorkbookParseError) {
         setBaselineError(error.userMessage);
       } else {
         setBaselineError("Could not parse selected baseline workbook.");
       }
-      setStatus("Baseline load failed");
+      setAppStatus("Baseline load failed");
     } finally {
-      setIsProcessing(false);
+      setAppIsProcessing(false);
     }
   };
 
@@ -808,7 +754,10 @@ export const App: React.FC<{ title?: string }> = () => {
           onInit={handleInitialize}
           onSync={handleSync}
           onLoadSubmissionMetadata={async () => {
-            await performAnalysis();
+            backgroundValidationEngine.triggerValidation(
+              activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
+              0
+            );
           }}
           onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
           onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
@@ -825,7 +774,6 @@ export const App: React.FC<{ title?: string }> = () => {
     if (activeSheet === "_Schedule" || activeSheet === "_Codelists") {
       return (
         <MatrixView
-          onAnalyze={() => performAnalysis()}
           onComplianceExport={handleComplianceExport}
           isProcessing={isProcessing}
           hasErrors={issues.some((i) => i.level === "Error") || hasMissingJustifications}
@@ -845,7 +793,6 @@ export const App: React.FC<{ title?: string }> = () => {
       return (
         <AuthoringView
           sheetName={activeSheet}
-          onValidate={() => performAnalysis(activeSheet)}
           isProcessing={isProcessing}
         />
       );
