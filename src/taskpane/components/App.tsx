@@ -997,16 +997,12 @@ export const App: React.FC<{ title?: string }> = () => {
               <DialogContent>
                 <p>There are {orphanedCount} unresolved annotations or comments in the workbook.</p>
                 <p>
-                  Would you like to proceed with the export and sign the Verification Manifest
-                  anyway?
+                  You must resolve or remove all orphaned annotations before completing the compliance export to ensure data integrity.
                 </p>
               </DialogContent>
               <DialogActions>
-                <Button appearance="secondary" onClick={() => setShowGate(false)}>
-                  Cancel
-                </Button>
-                <Button appearance="primary" onClick={() => confirmComplianceExport(study!)}>
-                  Acknowledge & Export
+                <Button appearance="primary" onClick={() => setShowGate(false)}>
+                  Close
                 </Button>
               </DialogActions>
             </DialogBody>
