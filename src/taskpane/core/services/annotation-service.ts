@@ -59,7 +59,7 @@ export async function applyValidationVisuals(
       }
     >();
 
-    for (const name of allSheetNames) {
+    for (const name of Array.from(allSheetNames)) {
       const sheet = context.workbook.worksheets.items.find((s) => s.name === name);
       if (sheet) {
         const usedRange = sheet.getUsedRangeOrNullObject();
