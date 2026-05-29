@@ -28,7 +28,7 @@ A dependency comment is also posted on #138 at time of issue creation or triage.
 
 ```
 #137 _Rules Parser & AST Generator       ← no blockers (foundation; start here)
-  └─► #138 DAG Topological Sort          ← blocked by #137
+  └─► #138 DAG Topological Sort          ← (Resolved)
   └─► #54  Cross-Form Logic Validation   ← blocked by #137 and #138
   └─► #55  Derived Variables & Calculations ← blocked by #137 and #138 (structural)
   └─► #139 ODM ConditionDef/MethodDef    ← blocked by #137, #138 (and export contract decisions)
@@ -112,14 +112,14 @@ This registry records the exact encoding of the issue headers, body `Dependencie
 ### #138 DAG Topological Sort
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Ready**
+* **Status in Code:** **Complete / Resolved** (Implemented in `dag-validator.ts` with topological sorting and type inference).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
-  - Blocked by #137 (_Rules Parser & AST Generator) — the rule AST types are required to extract variable references and build the dependency graph.
+  - None (Resolved: previously blocked by #137).
   ```
 * **Pinned Blocker Comment:**
-  > 📌 **Dependency Status:** `Blocked` by #137. This issue requires the underlying AST Node models and rules parsing library to build the dependency tree and analyze expressions for topological sorting.
+  *(None - completed)*
 
 ### #54 Cross-Form Logic Validation
 * **Type:** `type:feature`
