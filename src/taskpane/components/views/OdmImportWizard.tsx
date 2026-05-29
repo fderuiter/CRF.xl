@@ -42,6 +42,7 @@ import {
   persistImportManifest,
 } from "../../core/services/migration-pipeline";
 import ExcelJS from "exceljs";
+import { speculativeSyncManager, getPredictedStudyDesign } from "../../core/services/speculative-sync-service";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -318,30 +319,8 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
       // Apply to an ExcelJS workbook for the Office.js write path.
       // We delegate to applyOdmImportToWorkbook for the workbook-mutation
       // logic, then mirror the same writes via Excel.run.
-      await Excel.run(async (ctx) => {
-        const writeSheet = async (
-          sheetName: string,
-          rows: string[][]
-        ) => {
-          const ws = ctx.workbook.worksheets.getItemOrNullObject(sheetName);
-          await ctx.sync();
-          const target = ws.isNullObject
-            ? ctx.workbook.worksheets.add(sheetName)
-            : ws;
-          // Clear and rewrite the sheet
-          target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
-          await ctx.sync();
-          if (rows.length > 0) {
-            const range = target.getRangeByIndexes(0, 0, rows.length, rows[0].length);
-            range.values = rows as string[][];
-          }
-        };
-
-        await writeSheet("_Study", importPackage.projection.studyRows);
-        await writeSheet("_Forms", importPackage.projection.formsRows);
-        await writeSheet("_Codelists", importPackage.projection.codelistRows);
-        await ctx.sync();
-      });
+      const predictedStudy = await getPredictedStudyDesign(importPackage.projection);
+      await speculativeSyncManager.startSync(importPackage.projection, predictedStudy, null);
 
       // Build provenance and manifest.
       const sourceId =

@@ -16,6 +16,7 @@
 
 /* global Excel */
 import * as React from "react";
+import { speculativeSyncManager, getPredictedStudyDesign } from "../../core/services/speculative-sync-service";
 import {
   Badge,
   Body1,
