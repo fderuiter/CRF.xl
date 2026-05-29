@@ -49,8 +49,16 @@ export class ComplianceExportService {
     const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
     zip.file(`${protocolId}_Annotated_CRF.docx`, docxBlob);
 
+    // 2. Generate Audit Summary
+    let auditSummary: StudyDiffReport;
+    if (baselineStudy) {
+      auditSummary = diffStudyDesigns(baselineStudy, currentStudy);
+    } else {
+      auditSummary = diffStudyDesigns(currentStudy, currentStudy);
+    }
+
     // PDF Generation
-    const pdfBlob = await generatePdfBlob(currentStudy, validationIssues);
+    const pdfBlob = await generatePdfBlob(currentStudy, validationIssues, auditSummary);
     const pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as ArrayBuffer);
@@ -61,19 +69,11 @@ export class ComplianceExportService {
     const pdfHash = CryptoJS.SHA256(pdfWord).toString(CryptoJS.enc.Hex);
     zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
 
-    // 2. Generate ODM XML
+    // 3. Generate ODM XML
     const odmXml = await generateOdmXml(currentStudy);
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
 
     zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);
-
-    // 3. Generate Audit Summary
-    let auditSummary: StudyDiffReport;
-    if (baselineStudy) {
-      auditSummary = diffStudyDesigns(baselineStudy, currentStudy);
-    } else {
-      auditSummary = diffStudyDesigns(currentStudy, currentStudy);
-    }
 
     // 4. Create Verification Manifest
     const manifest: VerificationManifest = {
