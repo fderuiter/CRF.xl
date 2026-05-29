@@ -1,4 +1,7 @@
-import { highlightErrorsOnCanvas, clearAllAnnotations, getOrphanedAnnotationsCount } from "../core/services/annotation-service";
+import {
+  applyValidationVisuals,
+  getOrphanedAnnotationsCount,
+} from "../core/services/annotation-service";
 import * as React from "react";
 import * as CryptoJS from "crypto-js";
 import { useState, useEffect, useRef } from "react";
@@ -270,7 +273,6 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
-
   useEffect(() => {
     return speculativeSyncManager.subscribe((state, details) => {
       if (state === "syncing") {
@@ -293,7 +295,7 @@ export const App: React.FC<{ title?: string }> = () => {
           message: "Background sync failed.",
           recoveryAction: "Check workbook and retry.",
           allowRetry: true,
-          diagnosticCode: "SYNC_ERROR"
+          diagnosticCode: "SYNC_ERROR",
         });
       }
     });
@@ -476,9 +478,10 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const hasMissingJustifications = React.useMemo(() => {
     if (!studyDiffReport) return false;
-    return studyDiffReport.items.some(item => {
+    return studyDiffReport.items.some((item) => {
       if (item.operation === "unchanged") return false;
-      const requiresReason = item.current?.requireChangeReason || item.baseline?.requireChangeReason;
+      const requiresReason =
+        item.current?.requireChangeReason || item.baseline?.requireChangeReason;
       if (requiresReason) {
         return !item.justification?.reason.trim();
       }
@@ -513,12 +516,17 @@ export const App: React.FC<{ title?: string }> = () => {
       }
       setStudy(freshStudy);
       const validationIssues = validateStudyDesign(freshStudy, sheetFilter);
-      
+
       // Sync to Vault
       const vaultService = new VaultService();
       const studyHashInput = JSON.stringify(freshStudy);
       // We must dynamically import crypto-js or require it. Wait, we can just let App.tsx import it? No, we shouldn't use crypto-js directly in App.tsx if we don't import it. We can do it inside vaultService!
-      vaultService.syncValidationResults(freshStudy.metadata.protocolId || "UNKNOWN", freshStudy.metadata.version || "1.0", validationIssues, CryptoJS.SHA256(JSON.stringify(freshStudy)).toString(CryptoJS.enc.Hex));
+      vaultService.syncValidationResults(
+        freshStudy.metadata.protocolId || "UNKNOWN",
+        freshStudy.metadata.version || "1.0",
+        validationIssues,
+        CryptoJS.SHA256(JSON.stringify(freshStudy)).toString(CryptoJS.enc.Hex)
+      );
 
       setIssues(validationIssues);
       setStudySummary(summarizeStudyDesign(freshStudy));
@@ -557,14 +565,13 @@ export const App: React.FC<{ title?: string }> = () => {
       }
       setRecoverySnapshot(null);
 
-      // Step 1: Clean previous annotations
+      // Step 1 & 2: Unified Transactional Visual Validation
       const sheetsToClear = sheetFilter
         ? [sheetFilter]
         : ["_Schedule", ...Object.keys(freshStudy.forms)];
-      await clearAllAnnotations(sheetsToClear);
 
-      // Step 2: Visual Validation - Paint the Excel Grid
-      await highlightErrorsOnCanvas(validationIssues);
+      await applyValidationVisuals(sheetsToClear, validationIssues);
+
       if (hasParseWarnings) {
         setStatus("Analysis completed with partial parse warnings");
       } else {
@@ -574,7 +581,7 @@ export const App: React.FC<{ title?: string }> = () => {
             : "Specification clean"
         );
       }
-      
+
       return freshStudy;
     } catch (e) {
       setStatus("Analysis failed");
@@ -597,7 +604,7 @@ export const App: React.FC<{ title?: string }> = () => {
 
     // Check for orphaned annotations
     const sheets = ["_Study", "_Schedule", "_Codelists", "_Dictionaries", "_Rules"];
-    Object.keys(s.forms).forEach(f => sheets.push(f));
+    Object.keys(s.forms).forEach((f) => sheets.push(f));
     const count = await getOrphanedAnnotationsCount(sheets);
     if (count > 0) {
       setOrphanedCount(count);
@@ -611,7 +618,11 @@ export const App: React.FC<{ title?: string }> = () => {
     setShowGate(false);
     setIsProcessing(true);
     try {
-      const zipBlob = await ComplianceExportService.createExportPackage(currentStudy, baselineStudy, issues);
+      const zipBlob = await ComplianceExportService.createExportPackage(
+        currentStudy,
+        baselineStudy,
+        issues
+      );
       const url = window.URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
       a.href = url;
@@ -662,13 +673,13 @@ export const App: React.FC<{ title?: string }> = () => {
     const baseReport = diffStudyDesigns(baselineStudy, study);
     return {
       ...baseReport,
-      items: baseReport.items.map(item => {
+      items: baseReport.items.map((item) => {
         const key = `${item.formOid}::${item.itemOid}`;
         if (justifications[key]) {
           return { ...item, justification: justifications[key] };
         }
         return item;
-      })
+      }),
     };
   }, [baselineStudy, study, justifications]);
 
@@ -836,21 +847,48 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {isCodelistActive && <DictionarySidecar />}
         {!isCodelistActive && renderContextualView()}
-        
-      {syncConflict && (
-        <MessageBar intent="error">
-          <MessageBarBody>
-            <strong>Conflict Detected:</strong> The workbook was modified during a background sync.
-            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-              <Button size="small" onClick={() => { speculativeSyncManager.resolveConflict(true); setSyncConflict(null); }}>Keep Manual Edits</Button>
-              <Button size="small" appearance="primary" onClick={() => { speculativeSyncManager.resolveConflict(false); setSyncConflict(null); }}>Overwrite with Sync</Button>
-              <Button size="small" appearance="outline" onClick={() => { speculativeSyncManager.rollback(); setSyncConflict(null); }}>Rollback</Button>
-            </div>
-          </MessageBarBody>
-        </MessageBar>
-      )}
 
-      {uiError && (
+        {syncConflict && (
+          <MessageBar intent="error">
+            <MessageBarBody>
+              <strong>Conflict Detected:</strong> The workbook was modified during a background
+              sync.
+              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    speculativeSyncManager.resolveConflict(true);
+                    setSyncConflict(null);
+                  }}
+                >
+                  Keep Manual Edits
+                </Button>
+                <Button
+                  size="small"
+                  appearance="primary"
+                  onClick={() => {
+                    speculativeSyncManager.resolveConflict(false);
+                    setSyncConflict(null);
+                  }}
+                >
+                  Overwrite with Sync
+                </Button>
+                <Button
+                  size="small"
+                  appearance="outline"
+                  onClick={() => {
+                    speculativeSyncManager.rollback();
+                    setSyncConflict(null);
+                  }}
+                >
+                  Rollback
+                </Button>
+              </div>
+            </MessageBarBody>
+          </MessageBar>
+        )}
+
+        {uiError && (
           <MessageBar intent="error">
             <MessageBarBody>
               <strong>{uiError.message}</strong> {uiError.recoveryAction}
@@ -897,11 +935,18 @@ export const App: React.FC<{ title?: string }> = () => {
               <DialogTitle>Resolve Annotations</DialogTitle>
               <DialogContent>
                 <p>There are {orphanedCount} unresolved annotations or comments in the workbook.</p>
-                <p>Would you like to proceed with the export and sign the Verification Manifest anyway?</p>
+                <p>
+                  Would you like to proceed with the export and sign the Verification Manifest
+                  anyway?
+                </p>
               </DialogContent>
               <DialogActions>
-                <Button appearance="secondary" onClick={() => setShowGate(false)}>Cancel</Button>
-                <Button appearance="primary" onClick={() => confirmComplianceExport(study!)}>Acknowledge & Export</Button>
+                <Button appearance="secondary" onClick={() => setShowGate(false)}>
+                  Cancel
+                </Button>
+                <Button appearance="primary" onClick={() => confirmComplianceExport(study!)}>
+                  Acknowledge & Export
+                </Button>
               </DialogActions>
             </DialogBody>
           </DialogSurface>
