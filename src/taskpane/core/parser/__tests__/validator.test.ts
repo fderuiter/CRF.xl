@@ -540,13 +540,13 @@ describe("Clinical Validator Engine", () => {
       expect(mockStudy.crossFormDependencies?.[0].status).toBe("Valid");
     });
 
-    it("should raise an Error for a broken reference", () => {
+    it("should raise a Warning for a broken external reference", () => {
       // F2.I2 references a non-existent variable F1.MISSING
       mockStudy.forms["F2"].itemGroups[0].items[0].showIf = "F1.MISSING == 'Yes'";
 
       const issues = validateStudyDesign(mockStudy);
       const brokenErr = issues.find(
-        (i) => i.level === "Error" && i.message.includes("Broken reference")
+        (i) => i.level === "Warning" && i.message.includes("Broken reference")
       );
       expect(brokenErr).toBeDefined();
       expect(brokenErr?.location).toContain("F2 > Row");

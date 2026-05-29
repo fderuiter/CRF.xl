@@ -99,7 +99,7 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export function validateRules(rules: RuleDefinition[], study?: StudyDesign): RuleValidationResult {
+export function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean }): RuleValidationResult {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -296,8 +296,11 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign): Rul
           knownFormVariables.has(lastSegment.toLowerCase());
 
         if (!existsInForms) {
+          const isLocal = !ident.includes(".");
+          const isExport = options?.isExport === true;
+          const severity = (isExport || isLocal) ? "Error" : "Warning";
           errors.push({
-            level: "Error",
+            level: severity,
             ruleId: rule.ruleId,
             message: `Rule '${rule.ruleId}' references unresolved variable/dependency '${ident}'.`,
             type: "UNRESOLVED_VARIABLE",
