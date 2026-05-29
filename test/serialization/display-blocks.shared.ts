@@ -185,8 +185,8 @@ export function collectDisplayBlocks(study: StudyDesign) {
     .filter(isCrfDisplayBlock);
 }
 
-export function collectValidationMessages(study: StudyDesign): string[] {
-  return validateStudyDesign(study).map((issue) => issue.message);
+export async function collectValidationMessages(study: StudyDesign): Promise<string[]> {
+  return (await validateStudyDesign(study)).map((issue) => issue.message);
 }
 
 function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {

@@ -27,11 +27,11 @@ export interface CrossFormDependency {
   message: string;
 }
 
-export function validateStudyDesign(
+export async function validateStudyDesign(
   study: StudyDesign,
   activeSheetFilter?: string,
   options?: { isExport?: boolean }
-): ValidationIssue[] {
+): Promise<ValidationIssue[]> {
   let issues: ValidationIssue[] = [];
 
   // 1. Validate Schedule (_Schedule sheet)
@@ -262,7 +262,7 @@ export function validateStudyDesign(
 
   // 3. Validate Rules (_Rules sheet)
   if (study.rules && study.rules.length > 0) {
-    const rulesResult = validateRules(study.rules, study, options);
+    const rulesResult = await validateRules(study.rules, study, options);
     rulesResult.errors.forEach((err) => {
       issues.push({
         level: err.level,

@@ -83,7 +83,7 @@ const UNSUPPORTED_ELEMENT_NAMES = [
   "ConditionDef",
 ];
 
-export function importOdmXml(xml: string): OdmImportPackage {
+export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   const diagnostics: OdmImportDiagnostic[] = [];
   const emptyStudy = createEmptyStudy();
 
@@ -263,7 +263,7 @@ export function importOdmXml(xml: string): OdmImportPackage {
   collectUnsupportedConstructDiagnostics(activeMetaDataVersion.innerXml, diagnostics);
   collectLanguageDiagnostics(activeMetaDataVersion.innerXml, study.metadata.defaultLanguage, diagnostics);
 
-  const validationIssues = validateStudyDesign(study);
+  const validationIssues = await validateStudyDesign(study);
   validationIssues.forEach((issue) => {
     diagnostics.push({
       severity: (issue.level.toLowerCase() as OdmImportDiagnosticSeverity),

@@ -55,7 +55,7 @@ export class ComplianceExportService {
     zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
 
     // 2. Generate ODM XML
-    const odmXml = generateOdmXml(currentStudy);
+    const odmXml = await generateOdmXml(currentStudy);
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
 
     zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);

@@ -60,28 +60,28 @@ describe("CDISC ODM XML Builder", () => {
     };
   });
 
-  it("should generate valid root ODM structure and Study OID", () => {
-    const xml = generateOdmXml(mockStudy);
+  it("should generate valid root ODM structure and Study OID", async () => {
+    const xml = await generateOdmXml(mockStudy);
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"');
     expect(xml).toContain('<Study OID="TEST-01">');
   });
 
-  it("should serialize clinical items with correct CDISC data types and SAS attributes", () => {
-    const xml = generateOdmXml(mockStudy);
+  it("should serialize clinical items with correct CDISC data types and SAS attributes", async () => {
+    const xml = await generateOdmXml(mockStudy);
     expect(xml).toContain(
       '<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT">'
     );
     expect(xml).toContain('<TranslatedText xml:lang="en-US">Subject Weight</TranslatedText>');
   });
 
-  it("should serialize SDTM mappings into Alias tags", () => {
-    const xml = generateOdmXml(mockStudy);
+  it("should serialize SDTM mappings into Alias tags", async () => {
+    const xml = await generateOdmXml(mockStudy);
     expect(xml).toContain('<Alias Context="SDTM" Name="VS.VSORRES"/>');
   });
 
-  it("should extract 'showIf' logic and construct a standalone ConditionDef", () => {
-    const xml = generateOdmXml(mockStudy);
+  it("should extract 'showIf' logic and construct a standalone ConditionDef", async () => {
+    const xml = await generateOdmXml(mockStudy);
     // The condition should exist globally
     expect(xml).toContain('<ConditionDef OID="COND.IT_WT"');
     expect(xml).toContain("IT.PREG == &apos;N&apos;");
@@ -90,7 +90,7 @@ describe("CDISC ODM XML Builder", () => {
   });
 
   describe("Rule pre-serialization validation", () => {
-    it("should throw OdmSerializationError on circular rule dependencies", () => {
+    it("should throw OdmSerializationError on circular rule dependencies", async () => {
       mockStudy.rules = [
         {
           ruleId: "RULE_A",
@@ -111,10 +111,10 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      expect(() => generateOdmXml(mockStudy)).toThrow("Rule pre-serialization validation failed");
+      await expect(generateOdmXml(mockStudy)).rejects.toThrow("Rule pre-serialization validation failed");
     });
 
-    it("should throw OdmSerializationError on duplicate rule IDs", () => {
+    it("should throw OdmSerializationError on duplicate rule IDs", async () => {
       mockStudy.rules = [
         {
           ruleId: "R1",
@@ -134,12 +134,12 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      expect(() => generateOdmXml(mockStudy)).toThrow("Rule pre-serialization validation failed");
+      await expect(generateOdmXml(mockStudy)).rejects.toThrow("Rule pre-serialization validation failed");
     });
   });
 
   describe("Rule CDISC Element Mapping", () => {
-    it("should serialize VALIDATION and SHOW_IF rules to ConditionDef and DERIVATION rules to MethodDef", () => {
+    it("should serialize VALIDATION and SHOW_IF rules to ConditionDef and DERIVATION rules to MethodDef", async () => {
       mockStudy.forms.F1.itemGroups[0].items.push(
         {
           itemOid: "IT_PREG",
@@ -208,7 +208,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
 
       // Check ConditionDefs
       expect(xml).toContain('<ConditionDef OID="VAL_WT" Name="VAL_WT">');
@@ -233,7 +233,7 @@ describe("CDISC ODM XML Builder", () => {
       expect(xml).toContain('<FormalExpression Context="CRF.xl">WT / (HT * HT)</FormalExpression>');
     });
 
-    it("should sort ConditionDef and MethodDef according to topological dependency order", () => {
+    it("should sort ConditionDef and MethodDef according to topological dependency order", async () => {
       // RULE_A depends on RULE_B, which depends on RULE_C
       mockStudy.rules = [
         {
@@ -261,7 +261,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
 
       // Since C is evaluated first, then B, then A:
       // Topological order is [RULE_C, RULE_B, RULE_A]
@@ -273,7 +273,7 @@ describe("CDISC ODM XML Builder", () => {
       expect(indexB).toBeLessThan(indexA);
     });
 
-    it("should link derivation rules via MethodOID in ItemDef", () => {
+    it("should link derivation rules via MethodOID in ItemDef", async () => {
       mockStudy.rules = [
         {
           ruleId: "DERIVE_WT",
@@ -287,13 +287,13 @@ describe("CDISC ODM XML Builder", () => {
       const { parseRuleExpression } = require("../../../parser/rules-parser");
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
       expect(xml).toContain(
         '<ItemDef OID="IT_WT" Name="Weight" DataType="float" Length="8" SignificantDigits="1" SASFieldName="WT" MethodOID="DERIVE_WT">'
       );
     });
 
-    it("should link show-if rules via CollectionExceptionConditionOID in ItemRef", () => {
+    it("should link show-if rules via CollectionExceptionConditionOID in ItemRef", async () => {
       mockStudy.rules = [
         {
           ruleId: "SHOW_WT",
@@ -307,13 +307,13 @@ describe("CDISC ODM XML Builder", () => {
       const { parseRuleExpression } = require("../../../parser/rules-parser");
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
       expect(xml).toContain(
         '<ItemRef ItemOID="IT_WT" OrderNumber="1" Mandatory="Yes" CollectionExceptionConditionOID="SHOW_WT"/>'
       );
     });
 
-    it("should log warnings and embed comment warnings for unresolved rule targets", () => {
+    it("should log warnings and embed comment warnings for unresolved rule targets", async () => {
       mockStudy.rules = [
         {
           ruleId: "RULE_NONEXISTENT",
@@ -328,7 +328,7 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("Derivation target 'NONEXISTENT_VAR' not found in study design")
@@ -341,7 +341,7 @@ describe("CDISC ODM XML Builder", () => {
   });
 
   describe("VLM & Methods Serialization Integration", () => {
-    it("should serialize study.methods to MethodDef elements", () => {
+    it("should serialize study.methods to MethodDef elements", async () => {
       mockStudy.methods = {
         "M_BMI": {
           methodOid: "M_BMI",
@@ -352,14 +352,14 @@ describe("CDISC ODM XML Builder", () => {
         },
       };
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
       expect(xml).toContain('<MethodDef OID="M_BMI" Name="BMI Derivation" Type="Computation">');
       expect(xml).toContain('<Description>');
       expect(xml).toContain('<TranslatedText xml:lang="en-US">Calculates BMI</TranslatedText>');
       expect(xml).toContain('<FormalExpression Context="CRF.xl">[WEIGHT] / ([HEIGHT]/100)^2</FormalExpression>');
     });
 
-    it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", () => {
+    it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", async () => {
       const item = mockStudy.forms["F1"].itemGroups[0].items[0];
       item.origin = "Pre-Specified" as any;
       item.comment = "Collected weight at baseline";
@@ -373,13 +373,13 @@ describe("CDISC ODM XML Builder", () => {
         }
       };
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
       expect(xml).toContain('Origin="Pre-Specified"');
       expect(xml).toContain('Comment="Collected weight at baseline"');
       expect(xml).toContain('MethodOID="M_WT_COLLECT"');
     });
 
-    it("should prioritize item.methodOid over rules-derived MethodOID on ItemDef", () => {
+    it("should prioritize item.methodOid over rules-derived MethodOID on ItemDef", async () => {
       const item = mockStudy.forms["F1"].itemGroups[0].items[0];
       item.methodOid = "M_EXPLICIT_BMI";
 
@@ -404,7 +404,7 @@ describe("CDISC ODM XML Builder", () => {
         }
       };
 
-      const xml = generateOdmXml(mockStudy);
+      const xml = await generateOdmXml(mockStudy);
       // It should contain the explicit MethodOID instead of the rule's ID
       expect(xml).toContain('MethodOID="M_EXPLICIT_BMI"');
       expect(xml).not.toContain('MethodOID="M_RULE_BMI"');

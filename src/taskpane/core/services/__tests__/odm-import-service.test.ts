@@ -14,7 +14,7 @@ function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {
 }
 
 describe("odm-import-service", () => {
-  it("imports the supported ODM subset and projects workbook tabs from the normalized model", () => {
+  it("imports the supported ODM subset and projects workbook tabs from the normalized model", async () => {
     const study: StudyDesign = {
       metadata: {
         protocolId: "ODM-ROUNDTRIP",
@@ -118,7 +118,7 @@ describe("odm-import-service", () => {
       },
     };
 
-    const imported = importOdmXml(generateOdmXml(study));
+    const imported = await importOdmXml(await generateOdmXml(study));
 
     expect(imported.study.metadata.protocolId).toBe("ODM-ROUNDTRIP");
     expect(imported.study.metadata.studyName).toBe("ODM Roundtrip Study");
@@ -156,7 +156,7 @@ describe("odm-import-service", () => {
     );
   });
 
-  it("surfaces ambiguous and unsupported ODM constructs before workbook write-back", () => {
+  it("surfaces ambiguous and unsupported ODM constructs before workbook write-back", async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" ODMVersion="1.3.2">
   <Study OID="PROT-200">
@@ -178,7 +178,7 @@ describe("odm-import-service", () => {
   </Study>
 </ODM>`;
 
-    const imported = importOdmXml(xml);
+    const imported = await importOdmXml(xml);
 
     expect(imported.summary.status).toBe("conflicts");
     expect(imported.projection.formsRows).toEqual([
@@ -210,8 +210,8 @@ describe("odm-import-service", () => {
     );
   });
 
-  it("reports XML parse failures separately from semantic import diagnostics", () => {
-    const imported = importOdmXml("<ODM><Study OID='P1'><MetaDataVersion></Study></ODM>");
+  it("reports XML parse failures separately from semantic import diagnostics", async () => {
+    const imported = await importOdmXml("<ODM><Study OID='P1'><MetaDataVersion></Study></ODM>");
 
     expect(imported.summary.status).toBe("conflicts");
     expect(imported.diagnostics).toHaveLength(1);

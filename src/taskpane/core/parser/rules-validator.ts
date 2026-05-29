@@ -42,6 +42,47 @@ export interface RuleValidationResult {
   dependencyMap: Record<string, string[]>;
 }
 
+export function evaluateStaticCondition(node: ASTNode): boolean | null {
+  if (!node) return null;
+
+  if (node.type === "Literal") {
+    if (typeof node.value === "boolean") return node.value;
+    if (typeof node.value === "number") return node.value !== 0;
+    if (typeof node.value === "string") return node.value.length > 0;
+    if (node.value === null) return false;
+  }
+
+  if (node.type === "UnaryExpression") {
+    const arg = evaluateStaticCondition(node.argument);
+    if (arg !== null) {
+      if (node.operator === "!" || node.operator.toLowerCase() === "not") {
+        return !arg;
+      }
+    }
+  }
+
+  if (node.type === "BinaryExpression") {
+    const left = evaluateStaticCondition(node.left);
+    const right = evaluateStaticCondition(node.right);
+    
+    if (node.operator === "&&" || node.operator.toLowerCase() === "and") {
+      if (left === false || right === false) return false;
+      if (left === true && right === true) return true;
+    }
+    
+    if (node.operator === "||" || node.operator.toLowerCase() === "or") {
+      if (left === true || right === true) return true;
+      if (left === false && right === false) return false;
+    }
+  }
+
+  if (node.type === "GroupedExpression") {
+    return evaluateStaticCondition(node.expression);
+  }
+
+  return null;
+}
+
 /**
  * Traverses an ASTNode to collect all unique Identifier names referenced in the expression.
  */
@@ -63,8 +104,15 @@ export function collectIdentifiers(node: ASTNode): string[] {
         break;
       case "ConditionalExpression":
         traverse(n.test);
-        traverse(n.consequent);
-        traverse(n.alternate);
+        const testEval = evaluateStaticCondition(n.test);
+        if (testEval === true) {
+          traverse(n.consequent);
+        } else if (testEval === false) {
+          traverse(n.alternate);
+        } else {
+          traverse(n.consequent);
+          traverse(n.alternate);
+        }
         break;
       case "CallExpression":
         if (n.arguments) {
@@ -99,7 +147,7 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean }): RuleValidationResult {
+export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void> }): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -239,7 +287,14 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign, opti
     if (r.ruleId) knownRuleIdsSet.add(r.ruleId);
   });
 
-  for (const rule of validRules) {
+  for (let i = 0; i < validRules.length; i++) {
+    const rule = validRules[i];
+    
+    // Chunking to prevent blocking UI during dependency map build
+    if (i % 250 === 0 && options?.yieldControl) {
+      await options.yieldControl();
+    }
+    
     const deps = new Set<string>();
     if (!rule.ast) {
       dependencyMap[rule.ruleId] = [];
@@ -335,7 +390,6 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign, opti
   // 6. Execute cycle detection and topological sorting
   const visiting = new Set<string>();
   const visited = new Set<string>();
-  const currentPath: string[] = [];
   const cycles = new Set<string>(); // Tracks unique canonical cycle strings to prevent duplicates
 
   function getCanonicalCycleKey(path: string[]): string {
@@ -351,61 +405,85 @@ export function validateRules(rules: RuleDefinition[], study?: StudyDesign, opti
     return rotated.join(" -> ");
   }
 
-  function dfs(nodeId: string, originRowIndex?: number) {
-    if (visiting.has(nodeId)) {
-      const cycleStart = currentPath.indexOf(nodeId);
-      if (cycleStart !== -1) {
-        const rawCyclePath = currentPath.slice(cycleStart);
-        rawCyclePath.push(nodeId);
+  let dfsIterations = 0;
 
-        const canonicalKey = getCanonicalCycleKey(rawCyclePath);
-        if (!cycles.has(canonicalKey)) {
-          cycles.add(canonicalKey);
+  for (const rule of validRules) {
+    if (visited.has(rule.ruleId)) continue;
+    
+    const stack: { nodeId: string, originRowIndex?: number, deps: string[], depIndex: number }[] = [];
+    stack.push({
+      nodeId: rule.ruleId,
+      originRowIndex: rule._sourceRowIndex,
+      deps: dependencyMap[rule.ruleId] || [],
+      depIndex: 0
+    });
+    
+    visiting.add(rule.ruleId);
+    
+    while (stack.length > 0) {
+      dfsIterations++;
+      if (dfsIterations % 100 === 0 && options?.yieldControl) {
+        await options.yieldControl();
+      }
 
-          // Build a highly descriptive error explanation
-          const cyclePathNodes = rawCyclePath;
-          const details: string[] = [];
-          for (let i = 0; i < cyclePathNodes.length - 1; i++) {
-            const current = cyclePathNodes[i];
-            const next = cyclePathNodes[i + 1];
-            const ruleDef = rules.find((r) => r.ruleId === current);
-            const targetStr = ruleDef && ruleDef.target ? ` (target: ${ruleDef.target})` : "";
-            details.push(`Rule '${current}'${targetStr} -> Rule '${next}'`);
+      const top = stack[stack.length - 1];
+      
+      if (top.depIndex < top.deps.length) {
+        const nextDep = top.deps[top.depIndex];
+        top.depIndex++;
+        
+        if (visiting.has(nextDep)) {
+          // Cycle found!
+          const cyclePathNodes = stack.map(s => s.nodeId);
+          const cycleStart = cyclePathNodes.indexOf(nextDep);
+          
+          if (cycleStart !== -1) {
+            const rawCyclePath = cyclePathNodes.slice(cycleStart);
+            rawCyclePath.push(nextDep);
+
+            const canonicalKey = getCanonicalCycleKey(rawCyclePath);
+            if (!cycles.has(canonicalKey)) {
+              cycles.add(canonicalKey);
+
+              const details: string[] = [];
+              for (let i = 0; i < rawCyclePath.length - 1; i++) {
+                const current = rawCyclePath[i];
+                const next = rawCyclePath[i + 1];
+                const ruleDef = rules.find((r) => r.ruleId === current);
+                const targetStr = ruleDef && ruleDef.target ? ` (target: ${ruleDef.target})` : "";
+                details.push(`Rule '${current}'${targetStr} -> Rule '${next}'`);
+              }
+
+              errors.push({
+                level: "Error",
+                ruleId: nextDep,
+                message: `Circular dependency detected: ${canonicalKey}`,
+                type: "CYCLE",
+                cyclePath: rawCyclePath,
+                actionableExplanation: `Circular logic loop detected: ${details.join(", ")}. Please remove circular dependencies.`,
+                rowIndex: top.originRowIndex || rules.find((r) => r.ruleId === nextDep)?._sourceRowIndex,
+              });
+            }
           }
-
-          errors.push({
-            level: "Error",
-            ruleId: nodeId,
-            message: `Circular dependency detected: ${canonicalKey}`,
-            type: "CYCLE",
-            cyclePath: cyclePathNodes,
-            actionableExplanation: `Circular logic loop detected: ${details.join(", ")}. Please remove circular dependencies.`,
-            rowIndex: originRowIndex || rules.find((r) => r.ruleId === nodeId)?._sourceRowIndex,
+        } else if (!visited.has(nextDep)) {
+          visiting.add(nextDep);
+          stack.push({
+            nodeId: nextDep,
+            originRowIndex: top.originRowIndex,
+            deps: dependencyMap[nextDep] || [],
+            depIndex: 0
           });
         }
+      } else {
+        // Post-visit
+        stack.pop();
+        visiting.delete(top.nodeId);
+        if (!visited.has(top.nodeId)) {
+          visited.add(top.nodeId);
+          topologicalOrder.push(top.nodeId);
+        }
       }
-      return;
     }
-
-    if (visited.has(nodeId)) return;
-
-    visiting.add(nodeId);
-    currentPath.push(nodeId);
-
-    const deps = dependencyMap[nodeId] || [];
-    for (const dep of deps) {
-      dfs(dep, originRowIndex);
-    }
-
-    currentPath.pop();
-    visiting.delete(nodeId);
-    visited.add(nodeId);
-    topologicalOrder.push(nodeId);
-  }
-
-  // Run DFS from each rule ID
-  for (const rule of validRules) {
-    dfs(rule.ruleId, rule._sourceRowIndex);
   }
 
   const hasCycle = errors.some((e) => e.type === "CYCLE");

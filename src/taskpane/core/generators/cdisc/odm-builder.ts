@@ -39,7 +39,7 @@ function targetMatchesItem(target: string | undefined, itemOid: string): boolean
  * Main entry point for CDISC ODM v1.3.2 Metadata generation.
  * Produces a "Snapshot" metadata file for EDC system ingestion.
  */
-export function generateOdmXml(study: StudyDesign): string {
+export async function generateOdmXml(study: StudyDesign): Promise<string> {
   const timestamp = new Date().toISOString();
   const metadata = study.metadata;
 
@@ -47,7 +47,7 @@ export function generateOdmXml(study: StudyDesign): string {
 
   // Run pre-serialization validation if rules are present
   if (study.rules && study.rules.length > 0) {
-    const validationResult = validateRules(study.rules, study, { isExport: true });
+    const validationResult = await validateRules(study.rules, study, { isExport: true });
 
     // Check for any blocking errors
     const errors = validationResult.errors.filter((e) => e.level === "Error");
@@ -241,7 +241,7 @@ export function generateOdmXml(study: StudyDesign): string {
 
   // 7a. Centralized SHOW_IF and VALIDATION rules in topological order
   if (study.rules && study.rules.length > 0) {
-    const validationResult = validateRules(study.rules, study, { isExport: true });
+    const validationResult = await validateRules(study.rules, study, { isExport: true });
     const topOrder = validationResult.topologicalOrder;
 
     // Sort rules based on topological order
@@ -306,7 +306,7 @@ export function generateOdmXml(study: StudyDesign): string {
   // 8. Method Definitions (both rules and registry)
   const processedMethods = new Set<string>();
   if (study.rules && study.rules.length > 0) {
-    const validationResult = validateRules(study.rules, study, { isExport: true });
+    const validationResult = await validateRules(study.rules, study, { isExport: true });
     const topOrder = validationResult.topologicalOrder;
 
     // Sort rules based on topological order

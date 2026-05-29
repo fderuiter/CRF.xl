@@ -39,7 +39,7 @@ describe("Display blocks fixture parsing", () => {
 
   it("lets the validator ignore display blocks while still validating real questions", async () => {
     const study = await parseDisplayBlocksFixture();
-    const messages = collectValidationMessages(study);
+    const messages = await collectValidationMessages(study);
 
     expect(messages).not.toEqual(
       expect.arrayContaining([

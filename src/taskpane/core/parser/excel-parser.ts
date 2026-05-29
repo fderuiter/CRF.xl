@@ -19,7 +19,7 @@ export async function parseExcelToStudyDesign(
     // 3. Fallback to main thread execution
     const studyDesign = await parseRawDataToStudyDesign(rawData, options);
     const { validateStudyDesign } = await import("../parser/validator");
-    const validationIssues = validateStudyDesign(studyDesign);
+    const validationIssues = await validateStudyDesign(studyDesign);
     return { studyDesign, validationIssues };
   }
 }
