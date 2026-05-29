@@ -352,6 +352,13 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
                   ? selectedEntry.changedFields.join(", ")
                   : "N/A"}
               </Text>
+              {(selectedEntry as any).justification && (
+                <>
+                  <Text size={200} weight="semibold" style={{ marginTop: "8px" }}>Audit Justification</Text>
+                  <Text size={200}>Reason: {(selectedEntry as any).justification.reason}</Text>
+                  <Text size={200}>User: {(selectedEntry as any).justification.userId} @ {new Date((selectedEntry as any).justification.timestamp).toLocaleString()}</Text>
+                </>
+              )}
             </div>
           )}
         </>

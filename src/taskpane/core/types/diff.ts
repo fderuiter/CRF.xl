@@ -25,6 +25,7 @@ export interface FormDiffEntry {
   current?: CrfForm;
   /** Scalar field names that changed when operation is "modified". */
   changedFields?: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 /**
@@ -38,6 +39,7 @@ export interface ItemDiffEntry {
   current?: CrfItem;
   /** Scalar field names that changed when operation is "modified". */
   changedFields?: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 /**
@@ -50,6 +52,7 @@ export interface CodelistDiffEntry {
   current?: Codelist;
   /** Scalar field names that changed when operation is "modified". */
   changedFields?: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 /**
@@ -62,6 +65,7 @@ export interface RuleDiffEntry {
   current?: RuleDefinition;
   /** Scalar field names that changed when operation is "modified". */
   changedFields?: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 /**
@@ -71,6 +75,7 @@ export interface StudyMetadataDiff {
   operation: "modified" | "unchanged";
   /** Scalar field names that changed when operation is "modified". */
   changedFields?: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 /**

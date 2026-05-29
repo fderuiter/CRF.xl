@@ -65,6 +65,7 @@ import { RegistryView } from "./views/RegistryView";
 import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
+import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
 
 const useAppStyles = makeStyles({
   root: {
@@ -224,6 +225,8 @@ export const App: React.FC<{ title?: string }> = () => {
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("Ready");
+  const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
+  const [showAuditModal, setShowAuditModal] = useState(false);
   const [uiError, setUiError] = useState<
     (OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null
   >(null);
@@ -341,6 +344,7 @@ export const App: React.FC<{ title?: string }> = () => {
         openForm,
         currentFilter: currentFilter ?? undefined,
         workbookFingerprint,
+        justifications,
       });
       const saveResult = persistRecoverySnapshot(snapshot);
       if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
@@ -359,6 +363,9 @@ export const App: React.FC<{ title?: string }> = () => {
     setIssues(recoverySnapshot.snapshot.issues as ValidationIssue[]);
     setStudySummary(recoverySnapshot.snapshot.studySummary);
     setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
+    if (recoverySnapshot.snapshot.justifications) {
+      setJustifications(recoverySnapshot.snapshot.justifications);
+    }
     setStatus(
       `Recovered snapshot from ${new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}`
     );
@@ -434,6 +441,18 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   };
 
+  const hasMissingJustifications = React.useMemo(() => {
+    if (!studyDiffReport) return false;
+    return studyDiffReport.items.some(item => {
+      if (item.operation === "unchanged") return false;
+      const requiresReason = item.current?.requireChangeReason || item.baseline?.requireChangeReason;
+      if (requiresReason) {
+        return !item.justification?.reason.trim();
+      }
+      return false;
+    });
+  }, [studyDiffReport]);
+
   const performAnalysis = async (sheetFilter?: string): Promise<StudyDesign | null> => {
     setIsProcessing(true);
     setStatus("Analyzing workbook...");
@@ -495,6 +514,7 @@ export const App: React.FC<{ title?: string }> = () => {
         openForm,
         currentFilter: sheetFilter,
         workbookFingerprint: snapshotFingerprint,
+        justifications,
       });
       const saveResult = persistRecoverySnapshot(snapshot);
       if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
@@ -521,6 +541,7 @@ export const App: React.FC<{ title?: string }> = () => {
             : "Specification clean"
         );
       }
+      
       return freshStudy;
     } catch (e) {
       setStatus("Analysis failed");
@@ -529,6 +550,13 @@ export const App: React.FC<{ title?: string }> = () => {
       setIsProcessing(false);
     }
   };
+
+  // We need an effect to pop the modal after diffing is computed (since performAnalysis updates study, which triggers studyDiffReport update).
+  React.useEffect(() => {
+    if (studyDiffReport && hasMissingJustifications) {
+      setShowAuditModal(true);
+    }
+  }, [studyDiffReport, hasMissingJustifications]);
 
   const handleComplianceExport = async () => {
     const s = await performAnalysis();
@@ -598,8 +626,18 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const studyDiffReport = React.useMemo(() => {
     if (!baselineStudy || !study) return null;
-    return diffStudyDesigns(baselineStudy, study);
-  }, [baselineStudy, study]);
+    const baseReport = diffStudyDesigns(baselineStudy, study);
+    return {
+      ...baseReport,
+      items: baseReport.items.map(item => {
+        const key = `${item.formOid}::${item.itemOid}`;
+        if (justifications[key]) {
+          return { ...item, justification: justifications[key] };
+        }
+        return item;
+      })
+    };
+  }, [baselineStudy, study, justifications]);
 
   // 3. View Router Logic
   const renderContextualView = () => {
@@ -676,7 +714,7 @@ export const App: React.FC<{ title?: string }> = () => {
           onAnalyze={() => performAnalysis()}
           onComplianceExport={handleComplianceExport}
           isProcessing={isProcessing}
-          hasErrors={issues.some((i) => i.level === "Error")}
+          hasErrors={issues.some((i) => i.level === "Error") || hasMissingJustifications}
           isLoaded={!!studySummary}
           study={study}
           baselineStudy={baselineStudy}
@@ -797,6 +835,14 @@ export const App: React.FC<{ title?: string }> = () => {
             }}
           />
         )}
+
+        <AuditOrchestratorModal
+          isOpen={showAuditModal}
+          onOpenChange={setShowAuditModal}
+          report={studyDiffReport}
+          justifications={justifications}
+          onSaveJustifications={setJustifications}
+        />
 
         <Dialog open={showGate} onOpenChange={(_, data) => setShowGate(data.open)}>
           <DialogSurface>

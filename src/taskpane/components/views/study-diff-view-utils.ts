@@ -22,6 +22,7 @@ export interface StudyDiffListEntry {
   subsystem: string;
   area: string;
   changedFields: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
 }
 
 export interface StudyDiffFilters {
@@ -70,6 +71,7 @@ function toFormEntry(entry: FormDiffEntry): StudyDiffListEntry | null {
     subsystem: "Structure",
     area: entry.formOid,
     changedFields: entry.changedFields ?? [],
+    justification: entry.justification,
   };
 }
 
@@ -88,6 +90,7 @@ function toItemEntry(entry: ItemDiffEntry): StudyDiffListEntry | null {
     subsystem: "Structure",
     area: entry.formOid,
     changedFields: entry.changedFields ?? [],
+    justification: entry.justification,
   };
 }
 
