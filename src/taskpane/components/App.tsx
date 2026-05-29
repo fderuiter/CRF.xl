@@ -65,6 +65,7 @@ import {
   dismissVersionNotification,
   VersionUpdateMetadata,
 } from "../core/services/version-update-service";
+import { loadImportManifest } from "../core/services/migration-pipeline";
 
 // Telemetry & Views
 import { useExcelTelemetry } from "./views/useExcelTelemetry";
@@ -73,6 +74,7 @@ import { ComplianceGovernanceView } from "./views/ComplianceGovernanceView";
 import { TabList, Tab } from "@fluentui/react-components";
 import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
+import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
 
@@ -312,6 +314,16 @@ export const App: React.FC<{ title?: string }> = () => {
     (OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null
   >(null);
   const [activeTab, setActiveTab] = useState("design");
+  const [isSignedOff, setIsSignedOff] = useState(false);
+  const [signOffTimestamp, setSignOffTimestamp] = useState<string | null>(null);
+
+  // Revert sign-off if study changes
+  useEffect(() => {
+    if (isSignedOff) {
+      setIsSignedOff(false);
+      setSignOffTimestamp(null);
+    }
+  }, [study, issues]);
 
   const dismissUiError = () => setUiError(null);
 
@@ -649,10 +661,15 @@ export const App: React.FC<{ title?: string }> = () => {
     setShowGate(false);
     setAppIsProcessing(true);
     try {
+      const manifest = loadImportManifest();
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
         baselineStudy,
-        issues
+        issues,
+        {
+          signedOffAt: signOffTimestamp,
+          source_provenance: manifest?.provenance
+        }
       );
       const url = window.URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
@@ -825,6 +842,7 @@ export const App: React.FC<{ title?: string }> = () => {
         >
           <Tab value="design">Design</Tab>
           <Tab value="compliance">Compliance</Tab>
+          <Tab value="integrity">Integrity Hub</Tab>
         </TabList>
 
         {versionUpdate && (
@@ -874,6 +892,19 @@ export const App: React.FC<{ title?: string }> = () => {
         {isCodelistActive && activeTab === "design" && <DictionarySidecar />}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
+        {activeTab === "integrity" && (
+          <IntegrityHubView
+            issues={issues}
+            diffReport={studyDiffReport}
+            onSignOff={() => {
+              setIsSignedOff(true);
+              setSignOffTimestamp(new Date().toISOString());
+            }}
+            onExport={handleComplianceExport}
+            isSignedOff={isSignedOff}
+            signOffTimestamp={signOffTimestamp}
+          />
+        )}
 
         {syncConflict && (
           <MessageBar intent="error">
