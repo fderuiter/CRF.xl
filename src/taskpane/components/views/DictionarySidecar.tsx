@@ -30,6 +30,7 @@ import {
   saveNewDictionary,
   CodelistGroup,
 } from "../../core/services/dictionary-service";
+import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
 import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
 import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core/services/cdisc-ct-mapping-service";
 import {
@@ -254,6 +255,8 @@ const useStyles = makeStyles({
   },
 });
 
+const cdiscApi = createCdiscApiService();
+
 export const DictionarySidecar: React.FC = () => {
   const styles = useStyles();
   const [view, setView] = useState<"loading" | "browse" | "create" | "import">("loading");
@@ -265,7 +268,11 @@ export const DictionarySidecar: React.FC = () => {
   const [newItems, setNewItems] = useState([{ codedValue: "", decode: "" }]);
 
   // ── Import view state ──────────────────────────────────────────────────────
-  const [importBundle, setImportBundle] = useState("");
+  const [importPackages, setImportPackages] = useState<CdiscCtPackage[]>([]);
+  const [importPackagesLoading, setImportPackagesLoading] = useState(false);
+  const [importPackageSearch, setImportPackageSearch] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState<CdiscCtPackage | null>(null);
+
   const [importParseError, setImportParseError] = useState<string | null>(null);
   const [importPlan, setImportPlan] = useState<CtImportPlan | null>(null);
   const [conflictResolutions, setConflictResolutions] = useState<
@@ -306,8 +313,26 @@ export const DictionarySidecar: React.FC = () => {
 
   // ── Import handlers ────────────────────────────────────────────────────────
 
+  useEffect(() => {
+    if (view === "import" && importPackages.length === 0) {
+      const loadPackages = async () => {
+        setImportPackagesLoading(true);
+        const result = await cdiscApi.listCtPackages();
+        if (result.ok) {
+          setImportPackages(result.data);
+        } else {
+          const failure = result as CdiscApiFailure;
+          setImportParseError(`Failed to load packages: ${failure.error.message}`);
+        }
+        setImportPackagesLoading(false);
+      };
+      loadPackages();
+    }
+  }, [view, importPackages.length]);
+
   const handleOpenImport = useCallback(() => {
-    setImportBundle("");
+    setImportPackageSearch("");
+    setSelectedPackage(null);
     setImportParseError(null);
     setImportPlan(null);
     setConflictResolutions({});
@@ -317,26 +342,58 @@ export const DictionarySidecar: React.FC = () => {
     setView("import");
   }, []);
 
-  const handleParseBundleAndPlan = useCallback(async () => {
+  const handlePlanImport = useCallback(async () => {
+    if (!selectedPackage) return;
     setImportParseError(null);
     setImportPlan(null);
     setImportSummary(null);
     setImportError(null);
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(importBundle);
-    } catch {
-      setImportParseError("Invalid JSON. Please paste a valid CDISC CT mapping bundle.");
+    setImportProgress({ stage: "Fetching package codelists...", completed: 0, total: 1 });
+    
+    const codelistsResult = await cdiscApi.listPackageCodelists(selectedPackage.packageOid);
+    if (!codelistsResult.ok) {
+      const failure = codelistsResult as CdiscApiFailure;
+      setImportParseError(`Failed to load codelists: ${failure.error.message}`);
+      setImportProgress(null);
       return;
     }
 
-    const mappingResult = mapCdiscApiResponseToCrfCodelists(parsed);
+    const codelists = codelistsResult.data;
+    const termsByCodelistOid: Record<string, CdiscCtTerm[]> = {};
+    
+    setImportProgress({ stage: "Fetching terms...", completed: 0, total: codelists.length });
+    
+    // Fetch terms in batches to avoid overwhelming the network
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < codelists.length; i += BATCH_SIZE) {
+      const batch = codelists.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (codelist) => {
+          const termsResult = await cdiscApi.listCodelistTerms(codelist.codelistOid, selectedPackage.packageOid);
+          if (termsResult.ok) {
+            termsByCodelistOid[codelist.codelistOid] = termsResult.data;
+          }
+        })
+      );
+      setImportProgress({ stage: "Fetching terms...", completed: Math.min(i + BATCH_SIZE, codelists.length), total: codelists.length });
+    }
+
+    setImportProgress({ stage: "Validating & Planning...", completed: 1, total: 1 });
+
+    const mappingInput = {
+      package: selectedPackage,
+      codelists,
+      termsByCodelistOid,
+    };
+
+    const mappingResult = mapCdiscApiResponseToCrfCodelists(mappingInput);
     if (!mappingResult.ok) {
       const failure = mappingResult as CdiscCtMappingFailure;
       setImportParseError(
         `Mapping error (${failure.error.code}): ${failure.error.message}`
       );
+      setImportProgress(null);
       return;
     }
 
@@ -345,6 +402,7 @@ export const DictionarySidecar: React.FC = () => {
       existingRows = await readExistingCodelistRows();
     } catch (err) {
       setImportParseError(err instanceof Error ? err.message : String(err));
+      setImportProgress(null);
       return;
     }
 
@@ -356,7 +414,8 @@ export const DictionarySidecar: React.FC = () => {
     });
     setConflictResolutions(defaultResolutions);
     setImportPlan(plan);
-  }, [importBundle]);
+    setImportProgress(null);
+  }, [selectedPackage]);
 
   const handleExecuteImport = useCallback(async () => {
     if (!importPlan) return;
@@ -659,28 +718,65 @@ export const DictionarySidecar: React.FC = () => {
               Back to Browse
             </Button>
 
-            {/* ── Step 1: Paste bundle ───────────────────────────────────────── */}
+            {/* ── Step 1: Browse CDISC Packages ───────────────────────────────────────── */}
             {!importPlan && !importSummary && (
               <div className={styles.formCard}>
                 <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                   Import Controlled Terminology
                 </Text>
                 <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
-                  Paste a pre-mapped CDISC CT bundle (JSON) from the mapping layer. The bundle must
-                  conform to the <code>CdiscCtMappingInput</code> contract.
+                  Search and browse CDISC Controlled Terminology packages to import into your workbook.
                 </Text>
 
-                <label className={styles.fieldLabel}>Mapping Bundle (JSON)</label>
-                <textarea
-                  className={styles.importTextarea}
-                  value={importBundle}
-                  onChange={(e) => {
-                    setImportBundle(e.target.value);
-                    setImportParseError(null);
-                  }}
-                  placeholder={'{\n  "package": { ... },\n  "codelists": [ ... ],\n  "termsByCodelistOid": { ... }\n}'}
-                  aria-label="CDISC CT mapping bundle JSON"
+                <Input
+                  className={styles.searchInput}
+                  placeholder="Search packages by ID or name..."
+                  value={importPackageSearch}
+                  onChange={(_, d) => setImportPackageSearch(d.value)}
+                  aria-label="Search CDISC packages"
                 />
+
+                {importPackagesLoading ? (
+                  <div className={styles.loadingState}>
+                    <Spinner size="small" label="Loading packages from CDISC Library..." />
+                  </div>
+                ) : (
+                  <div className={styles.gridCard} style={{ maxHeight: "300px", overflowY: "auto" }}>
+                    {importPackages
+                      .filter((pkg) => 
+                        (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) ||
+                        pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
+                      )
+                      .map((pkg) => (
+                        <div
+                          key={pkg.packageOid}
+                          style={{
+                            padding: "8px",
+                            cursor: "pointer",
+                            borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+                            backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent",
+                          }}
+                          onClick={() => setSelectedPackage(pkg)}
+                        >
+                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                            {pkg.title || pkg.packageOid}
+                          </Text>
+                          <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                            OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
+                          </Text>
+                        </div>
+                      ))}
+                    {importPackages.length > 0 && 
+                      importPackages.filter((pkg) => 
+                        (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) ||
+                        pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
+                      ).length === 0 && (
+                      <Text block style={{ padding: "8px", color: tokens.colorNeutralForeground3 }}>
+                        No packages match your search.
+                      </Text>
+                    )}
+                  </div>
+                )}
 
                 {importParseError && (
                   <MessageBar intent="error">
@@ -691,10 +787,10 @@ export const DictionarySidecar: React.FC = () => {
                 <Button
                   appearance="primary"
                   className={styles.saveButton}
-                  onClick={handleParseBundleAndPlan}
-                  disabled={!importBundle.trim()}
+                  onClick={handlePlanImport}
+                  disabled={!selectedPackage || importProgress !== null}
                 >
-                  Validate &amp; Plan Import
+                  Preview &amp; Plan Import
                 </Button>
               </div>
             )}
