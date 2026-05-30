@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-import { migrateStudyDesign } from "../migration";
+import { upgradeLegacyStudyDesign as migrateStudyDesign } from "../../services/migration-pipeline";
 import { StudyDesign } from "../../types/index";
 
 describe("Schema Migration Utility", () => {

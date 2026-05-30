@@ -3,7 +3,6 @@
  */
 import { CrfItem, DataType, EventType, StudyDesign, StudyEvent, isCrfDisplayBlock } from "../types";
 import { mapRowToFormElement } from "./form-element-utils";
-import { migrateStudyDesign } from "./migration";
 import { parseReferencedVariables } from "./metadata-utils";
 import { parseRulesSheetRows } from "./rules-parser";
 import { getLocaleConfig } from "../locale-config";
@@ -30,6 +29,16 @@ export async function parseWorkbookSheetValuesToStudyDesign(
     events: [],
     forms: {},
     codelists: {},
+    submissionMetadata: {
+      sdtmDatasets: [],
+      adamDatasets: [],
+      sdtmDerivations: [],
+      adamDerivations: [],
+      sdtmVariableMetadata: [],
+      adamVariableMetadata: [],
+      comments: [],
+      standards: [],
+    },
   };
   const parseWarnings: string[] = [];
   const allowPartialSheetFailures = options.allowPartialSheetFailures ?? true;
@@ -190,5 +199,5 @@ export async function parseWorkbookSheetValuesToStudyDesign(
     };
   }
 
-  return migrateStudyDesign(study);
+  return study;
 }

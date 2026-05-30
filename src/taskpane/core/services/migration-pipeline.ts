@@ -23,6 +23,9 @@
  * Owning issue: fderuiter/CRF.xl#76 (Ingestion & Migration Wizards epic)
  */
 
+import { StudyDesign } from "../types/hierarchy";
+import { normalizeDataOrigin, parseReferencedVariables } from "../parser/metadata-utils";
+
 // ---------------------------------------------------------------------------
 // Diagnostic model
 // ---------------------------------------------------------------------------
@@ -205,4 +208,78 @@ export function loadImportManifest(): ImportManifest | null {
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Legacy Upgrades
+// ---------------------------------------------------------------------------
+
+/**
+ * Upgrades a legacy parsed study design object to ensure all new submission metadata
+ * fields exist, providing smooth backward compatibility for older JSON files.
+ */
+export function upgradeLegacyStudyDesign(study: any): StudyDesign {
+  if (!study) {
+    return study;
+  }
+
+  if (!study.submissionMetadata) {
+    study.submissionMetadata = {
+      sdtmDatasets: [],
+      adamDatasets: [],
+      sdtmDerivations: [],
+      adamDerivations: [],
+      sdtmVariableMetadata: [],
+      adamVariableMetadata: [],
+      comments: [],
+      standards: [],
+    };
+  } else {
+    study.submissionMetadata.sdtmDatasets = study.submissionMetadata.sdtmDatasets || [];
+    study.submissionMetadata.adamDatasets = study.submissionMetadata.adamDatasets || [];
+    study.submissionMetadata.sdtmDerivations = study.submissionMetadata.sdtmDerivations || [];
+    study.submissionMetadata.adamDerivations = study.submissionMetadata.adamDerivations || [];
+    study.submissionMetadata.sdtmVariableMetadata =
+      study.submissionMetadata.sdtmVariableMetadata || [];
+    study.submissionMetadata.adamVariableMetadata =
+      study.submissionMetadata.adamVariableMetadata || [];
+    study.submissionMetadata.comments = study.submissionMetadata.comments || [];
+    study.submissionMetadata.standards = study.submissionMetadata.standards || [];
+  }
+
+  if (study.forms) {
+    Object.values(study.forms).forEach((form: any) => {
+      if (form && form.itemGroups) {
+        form.itemGroups.forEach((group: any) => {
+          if (group && group.items) {
+            group.items.forEach((item: any) => {
+              if (item.nodeType === "display") {
+                return;
+              }
+              if (!item.nodeType) {
+                item.nodeType = "item";
+              }
+              if (!item.sdtmMapping) {
+                item.sdtmMapping = {};
+              }
+              if (!item.adamMapping) {
+                item.adamMapping = {};
+              }
+              item.origin = normalizeDataOrigin(item.origin);
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (study.methods) {
+    Object.values(study.methods).forEach((method: any) => {
+      if (typeof method.referencedVariables === "string") {
+        method.referencedVariables = parseReferencedVariables(method.referencedVariables);
+      }
+    });
+  }
+
+  return study as StudyDesign;
 }
