@@ -11,7 +11,6 @@ import {
 } from "../types/index";
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
 import { parseRulesSheetRows } from "./rules-parser";
-import { migrateStudyDesign } from "./migration";
 import { getLocaleConfig } from "../locale-config";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables } from "./metadata-utils";
@@ -360,5 +359,5 @@ export async function parseRawDataToStudyDesign(
     message: "Workbook analysis completed",
   });
 
-  return migrateStudyDesign(study);
+  return study;
 }

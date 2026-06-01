@@ -100,7 +100,8 @@ export type DiagnosticCategory =
   | "ambiguous"
   | "unsupported"
   | "conflicting-types"
-  | "duplicate-identity";
+  | "duplicate-identity"
+  | "legacy-upgrade";
 
 /** A single validation finding emitted by validateMappings(). */
 export interface IngestionDiagnostic extends ImportDiagnostic {
@@ -111,7 +112,104 @@ export interface IngestionDiagnostic extends ImportDiagnostic {
   field?: TargetField;
 }
 
-/** Result of scanning one sheet in the source workbook. */
+import { StudyDesign } from "../types/hierarchy";
+import { normalizeDataOrigin, parseReferencedVariables } from "../parser/metadata-utils";
+
+/**
+ * Normalizes an older or incomplete StudyDesign object to the current schema.
+ * Returns the upgraded study and a list of diagnostics that detail what was changed.
+ */
+export function upgradeLegacyStudyDesign(study: any): { upgradedStudy: StudyDesign, diagnostics: IngestionDiagnostic[] } {
+  const diagnostics: IngestionDiagnostic[] = [];
+
+  if (!study) {
+    return { upgradedStudy: study, diagnostics };
+  }
+
+  // Ensure submissionMetadata and its sub-arrays are fully initialized
+  if (!study.submissionMetadata) {
+    diagnostics.push({
+      severity: "info",
+      category: "legacy-upgrade",
+      message: "Initialized missing Submission Metadata section.",
+    });
+    study.submissionMetadata = {
+      sdtmDatasets: [],
+      adamDatasets: [],
+      sdtmDerivations: [],
+      adamDerivations: [],
+      sdtmVariableMetadata: [],
+      adamVariableMetadata: [],
+      comments: [],
+      standards: [],
+    };
+  } else {
+    study.submissionMetadata.sdtmDatasets = study.submissionMetadata.sdtmDatasets || [];
+    study.submissionMetadata.adamDatasets = study.submissionMetadata.adamDatasets || [];
+    study.submissionMetadata.sdtmDerivations = study.submissionMetadata.sdtmDerivations || [];
+    study.submissionMetadata.adamDerivations = study.submissionMetadata.adamDerivations || [];
+    study.submissionMetadata.sdtmVariableMetadata =
+      study.submissionMetadata.sdtmVariableMetadata || [];
+    study.submissionMetadata.adamVariableMetadata =
+      study.submissionMetadata.adamVariableMetadata || [];
+    study.submissionMetadata.comments = study.submissionMetadata.comments || [];
+    study.submissionMetadata.standards = study.submissionMetadata.standards || [];
+  }
+
+  // Ensure sdtmMapping and adamMapping exist on all items
+  if (study.forms) {
+    Object.values(study.forms).forEach((form: any) => {
+      if (form && form.itemGroups) {
+        form.itemGroups.forEach((group: any) => {
+          if (group && group.items) {
+            group.items.forEach((item: any) => {
+              if (item.nodeType === "display") {
+                return;
+              }
+              if (!item.nodeType) {
+                item.nodeType = "item";
+              }
+              if (!item.sdtmMapping) {
+                item.sdtmMapping = {};
+              }
+              if (!item.adamMapping) {
+                item.adamMapping = {};
+              }
+              const oldOrigin = item.origin;
+              item.origin = normalizeDataOrigin(item.origin);
+              if (oldOrigin && oldOrigin !== item.origin) {
+                diagnostics.push({
+                  severity: "info",
+                  category: "legacy-upgrade",
+                  message: `Normalized legacy data origin '${oldOrigin}' to '${item.origin}' for item ${item.itemOid}.`,
+                  field: "origin",
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (study.methods) {
+    Object.values(study.methods).forEach((method: any) => {
+      if (typeof method.referencedVariables === "string") {
+        method.referencedVariables = parseReferencedVariables(method.referencedVariables);
+        diagnostics.push({
+          severity: "info",
+          category: "legacy-upgrade",
+          message: `Parsed legacy referenced variables string into array for method ${method.methodOid}.`,
+        });
+      }
+    });
+  }
+
+  return { upgradedStudy: study as StudyDesign, diagnostics };
+}
+
+/**
+ * Result of scanning one sheet in the source workbook. */
 export interface SheetScanResult {
   sheetName: string;
   columnCandidates: ColumnCandidate[];

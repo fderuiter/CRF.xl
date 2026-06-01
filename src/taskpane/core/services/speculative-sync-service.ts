@@ -10,7 +10,7 @@ import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { diffStudyDesigns } from "./diff-engine";
 import { StudyDiffReport } from "../types/diff";
 import { WorkbookProjection } from "./migration-pipeline";
-import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";
+import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 
 export interface SyncChunk {
   sheetName: string;
@@ -30,14 +30,11 @@ export interface SpeculativeSyncOperation {
 export type SyncState = "idle" | "syncing" | "conflict" | "error";
 
 export async function getPredictedStudyDesign(projection: WorkbookProjection): Promise<StudyDesign> {
-  return await parseWorkbookSheetValuesToStudyDesign({
-    async getSheetValues(sheetName: string) {
-      if (sheetName === "_Study") return projection.studyRows;
-      if (sheetName === "_Forms") return projection.formsRows;
-      if (sheetName === "_Codelists") return projection.codelistRows;
-      return null;
-    }
-  });
+  const rawData: Record<string, any[][]> = {};
+  if (projection.studyRows) rawData["_Study"] = projection.studyRows;
+  if (projection.formsRows) rawData["_Forms"] = projection.formsRows;
+  if (projection.codelistRows) rawData["_Codelists"] = projection.codelistRows;
+  return await parseRawDataToStudyDesign(rawData);
 }
 
 class SpeculativeSyncManager {

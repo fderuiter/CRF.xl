@@ -3,7 +3,7 @@
  */
 /* eslint-disable office-addins/call-sync-before-read, office-addins/load-object-before-read */
 import ExcelJS from "exceljs";
-import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";
+import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { StudyDesign } from "../types";
 
 const MAX_BASELINE_WORKBOOK_BYTES = 20 * 1024 * 1024;
@@ -84,13 +84,12 @@ export async function parseBaselineWorkbookBuffer(
     );
   }
 
-  const study = await parseWorkbookSheetValuesToStudyDesign({
-    getSheetValues: async (sheetName: string) => {
-      const worksheet = workbook.getWorksheet(sheetName);
-      if (!worksheet) return null;
-      return worksheetToValues(worksheet);
-    },
+  const rawData: Record<string, any[][]> = {};
+  workbook.eachSheet((worksheet) => {
+    rawData[worksheet.name] = worksheetToValues(worksheet);
   });
+
+  const study = await parseRawDataToStudyDesign(rawData);
 
   if (Object.keys(study.forms).length === 0) {
     throw new BaselineWorkbookParseError(

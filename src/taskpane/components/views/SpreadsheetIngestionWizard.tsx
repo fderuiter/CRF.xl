@@ -350,6 +350,7 @@ const SYSTEM_SHEETS = new Set([
 
 export interface SpreadsheetIngestionWizardProps {
   onClose: () => void;
+  legacyStudy?: any;
 }
 
 // ---------------------------------------------------------------------------
@@ -358,13 +359,46 @@ export interface SpreadsheetIngestionWizardProps {
 
 export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProps> = ({
   onClose,
+  legacyStudy,
 }) => {
   const styles = useStyles();
-  const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
+  
+  const [state, setState] = React.useState<WizardState>(() => {
+    if (legacyStudy) {
+      return {
+        ...INITIAL_STATE,
+        stage: "validation-preview", // Repurpose validation-preview for legacy upgrade
+        preview: {
+          mappings: [],
+          diagnostics: [],
+          canCommit: true,
+          projectedRows: { formItemRows: [], formsRows: [], codelistRows: [] },
+        },
+      };
+    }
+    return INITIAL_STATE;
+  });
   const cancelRequestedRef = React.useRef(false);
 
   // Derived helpers
   const stageIndex = STAGE_ORDER.indexOf(state.stage);
+
+  React.useEffect(() => {
+    if (legacyStudy && state.stage === "validation-preview" && !state.importResult) {
+      import("../../core/services/spreadsheet-ingestion-service").then((mod) => {
+        const { upgradedStudy, diagnostics } = mod.upgradeLegacyStudyDesign(legacyStudy);
+        patch({
+          preview: {
+            mappings: [],
+            diagnostics,
+            canCommit: true,
+            projectedRows: { formItemRows: [], formsRows: [], codelistRows: [] },
+            upgradedStudy, // We will use this in commit
+          } as any
+        });
+      });
+    }
+  }, [legacyStudy]);
 
   // -------------------------------------------------------------------------
   // Utility: patch state
@@ -500,7 +534,29 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   // Stage 6: commit the import to the active workbook
   // -------------------------------------------------------------------------
   const handleCommit = async () => {
-    if (!state.preview || !state.confirmedStructure || !state.scanResult) return;
+    if (!state.preview) return;
+    
+    if (legacyStudy) {
+      // For legacy upgrades, update the study design state globally
+      import("../../core/services/validation-engine").then(({ backgroundValidationEngine }) => {
+        backgroundValidationEngine.updateState(() => ({
+          study: (state.preview as any).upgradedStudy,
+        }));
+        patch({
+          importResult: {
+            success: true,
+            rowsWritten: 0,
+            targetSheet: "Memory",
+            message: "Legacy study upgraded successfully in session.",
+            warnings: 0,
+          },
+          stage: "post-import-summary",
+        });
+      });
+      return;
+    }
+
+    if (!state.confirmedStructure || !state.scanResult) return;
     cancelRequestedRef.current = false;
     patch({
       isProcessing: true,
@@ -911,12 +967,14 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         ))}
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ stage: "field-mapping" })}
-          >
-            ← Back to Mappings
-          </Button>
+          {!legacyStudy && (
+            <Button
+              appearance="secondary"
+              onClick={() => patch({ stage: "field-mapping" })}
+            >
+              ← Back to Mappings
+            </Button>
+          )}
           <Button
             appearance="primary"
             disabled={!preview.canCommit}
@@ -932,6 +990,33 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   const renderImportConfirmation = () => {
     const { preview } = state;
     if (!preview) return null;
+
+    if (legacyStudy) {
+      return (
+        <>
+          <Body1 className={styles.desc}>
+            This is a <strong>dry-run preview</strong> showing the changes that will be applied to upgrade your project format.
+          </Body1>
+          <MessageBar intent="info">
+            <MessageBarBody>
+              {preview.diagnostics.length} normalization step(s) will be applied.
+            </MessageBarBody>
+          </MessageBar>
+          <div className={styles.actions}>
+            <Button
+              appearance="secondary"
+              disabled={state.isProcessing}
+              onClick={() => patch({ stage: "validation-preview" })}
+            >
+              ← Back
+            </Button>
+            <Button appearance="primary" onClick={handleCommit} disabled={state.isProcessing}>
+              Confirm Upgrade ✓
+            </Button>
+          </div>
+        </>
+      );
+    }
 
     const allRows =
       preview.projectedRows.formItemRows.length > 0
@@ -1077,14 +1162,16 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         </Body1>
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() =>
-              patch({ ...INITIAL_STATE, availableSheets: state.availableSheets })
-            }
-          >
-            Start New Ingestion
-          </Button>
+          {!legacyStudy && (
+            <Button
+              appearance="secondary"
+              onClick={() =>
+                patch({ ...INITIAL_STATE, availableSheets: state.availableSheets })
+              }
+            >
+              Start New Ingestion
+            </Button>
+          )}
           <Button appearance="primary" onClick={onClose}>
             Close Wizard
           </Button>

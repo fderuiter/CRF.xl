@@ -99,6 +99,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
 }) => {
   const styles = useStyles();
   const [showIngestionWizard, setShowIngestionWizard] = React.useState(false);
+  const [upgradeMode, setUpgradeMode] = React.useState(false);
   const [showOdmWizard, setShowOdmWizard] = React.useState(false);
   const baselineFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
@@ -128,12 +129,14 @@ export const RegistryView: React.FC<RegistryProps> = ({
   };
 
   if (showIngestionWizard) {
-    return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} />;
+    return <SpreadsheetIngestionWizard onClose={() => { setShowIngestionWizard(false); setUpgradeMode(false); }} legacyStudy={upgradeMode ? study : undefined} />;
   }
 
   if (showOdmWizard) {
     return <OdmImportWizard onClose={() => setShowOdmWizard(false)} />;
   }
+
+  const isLegacy = study && !study.submissionMetadata;
 
   return (
     <div className={styles.container}>
@@ -147,6 +150,16 @@ export const RegistryView: React.FC<RegistryProps> = ({
         <Body1 className={styles.cardDesc}>
           Define your global protocol and register your forms here. Sync to generate authoring tabs.
         </Body1>
+        {isLegacy && (
+          <MessageBar intent="warning" style={{ marginBottom: "12px" }}>
+            <MessageBarBody>
+              Legacy project format detected. Some metadata fields are missing.
+              <Button size="small" appearance="primary" onClick={() => { setShowIngestionWizard(true); setUpgradeMode(true); }} style={{ marginLeft: "8px" }}>
+                Upgrade Now
+              </Button>
+            </MessageBarBody>
+          </MessageBar>
+        )}
         <div className={styles.buttonGroup}>
           <Button
             appearance="outline"

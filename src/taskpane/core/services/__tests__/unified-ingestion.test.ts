@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-import { migrateStudyDesign } from "../migration";
+import { upgradeLegacyStudyDesign } from "../spreadsheet-ingestion-service";
 import { StudyDesign } from "../../types/index";
 
 describe("Schema Migration Utility", () => {
@@ -18,7 +18,7 @@ describe("Schema Migration Utility", () => {
       codelists: {},
     };
 
-    const migrated = migrateStudyDesign(legacyStudy);
+    const migrated = upgradeLegacyStudyDesign(legacyStudy).upgradedStudy;
 
     expect(migrated.submissionMetadata).toBeDefined();
     expect(migrated.submissionMetadata?.sdtmDatasets).toEqual([]);
@@ -45,7 +45,7 @@ describe("Schema Migration Utility", () => {
       },
     };
 
-    const migrated = migrateStudyDesign(customStudy);
+    const migrated = upgradeLegacyStudyDesign(customStudy).upgradedStudy;
 
     expect(migrated.submissionMetadata?.sdtmDatasets?.length).toBe(1);
     expect(migrated.submissionMetadata?.sdtmDatasets?.[0].domain).toBe("DM");
@@ -94,7 +94,7 @@ describe("Schema Migration Utility", () => {
       codelists: {},
     };
 
-    const migrated = migrateStudyDesign(legacyStudy);
+    const migrated = upgradeLegacyStudyDesign(legacyStudy).upgradedStudy;
     const item = migrated.forms["F1"].itemGroups[0].items[0];
 
     expect(item.sdtmMapping).toEqual({});
@@ -109,7 +109,7 @@ describe("Schema Migration Utility", () => {
       codelists: {},
     };
 
-    const migrated = migrateStudyDesign(legacyStudy);
+    const migrated = upgradeLegacyStudyDesign(legacyStudy).upgradedStudy;
     const sm = migrated.submissionMetadata!;
 
     // Original four
@@ -140,7 +140,7 @@ describe("Schema Migration Utility", () => {
       },
     };
 
-    const migrated = migrateStudyDesign(partialStudy);
+    const migrated = upgradeLegacyStudyDesign(partialStudy).upgradedStudy;
     const sm = migrated.submissionMetadata!;
 
     // Pre-existing data preserved
@@ -178,7 +178,7 @@ describe("Schema Migration Utility", () => {
       },
     };
 
-    const migrated = migrateStudyDesign(studyWithVlm);
+    const migrated = upgradeLegacyStudyDesign(studyWithVlm).upgradedStudy;
     const sm = migrated.submissionMetadata!;
 
     expect(sm.sdtmVariableMetadata?.length).toBe(1);
@@ -243,7 +243,7 @@ describe("Schema Migration Utility", () => {
       },
     };
 
-    const migrated = migrateStudyDesign(legacyStudy);
+    const migrated = upgradeLegacyStudyDesign(legacyStudy).upgradedStudy;
     const item = migrated.forms["F1"].itemGroups[0].items[0];
 
     expect(item.origin).toBe("Pre-Specified");
