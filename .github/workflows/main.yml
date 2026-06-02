@@ -47,6 +47,14 @@ jobs:
 
     - name: 🏗️ Build Application
       run: npm run build --if-present
+      env:
+        DEV_CLIENT_ID: ${{ vars.DEV_CLIENT_ID }}
+        STAGING_HOST_URL: ${{ vars.STAGING_HOST_URL }}
+        STAGING_CLIENT_ID: ${{ secrets.STAGING_CLIENT_ID }}
+        UAT_HOST_URL: ${{ vars.UAT_HOST_URL }}
+        UAT_CLIENT_ID: ${{ secrets.UAT_CLIENT_ID }}
+        PRODUCTION_HOST_URL: ${{ vars.PRODUCTION_HOST_URL }}
+        PRODUCTION_CLIENT_ID: ${{ secrets.PRODUCTION_CLIENT_ID }}
 
     - name: 🧪 Run QA Test Suite
       run: npm test

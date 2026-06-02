@@ -7,18 +7,27 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const expectedVersion = `${packageJson.version}.0`;
 
 const manifests = [
-  { name: "dev", file: "manifest.dev.xml", forbidDevUrls: false, placeholder: null },
+  { name: "dev", file: "manifest.dev.xml", forbidDevUrls: false, placeholder: null, clientPlaceholder: "REPLACE_WITH_DEV_CLIENT_ID" },
   {
     name: "staging",
     file: "manifest.staging.xml",
     forbidDevUrls: true,
     placeholder: "REPLACE_WITH_STAGING_HOST",
+    clientPlaceholder: "REPLACE_WITH_STAGING_CLIENT_ID",
+  },
+  {
+    name: "uat",
+    file: "manifest.uat.xml",
+    forbidDevUrls: true,
+    placeholder: "REPLACE_WITH_UAT_HOST",
+    clientPlaceholder: "REPLACE_WITH_UAT_CLIENT_ID",
   },
   {
     name: "production",
     file: "manifest.production.xml",
     forbidDevUrls: true,
     placeholder: "REPLACE_WITH_PRODUCTION_HOST",
+    clientPlaceholder: "REPLACE_WITH_PRODUCTION_CLIENT_ID",
   },
 ];
 
@@ -74,6 +83,12 @@ for (const manifest of manifests) {
   if (manifest.placeholder && !content.includes(manifest.placeholder)) {
     fail(
       `Manifest ${manifest.file} should keep '${manifest.placeholder}' placeholder until final host is confirmed.`
+    );
+  }
+
+  if (manifest.clientPlaceholder && !content.includes(manifest.clientPlaceholder)) {
+    fail(
+      `Manifest ${manifest.file} should keep '${manifest.clientPlaceholder}' placeholder until injection.`
     );
   }
 }

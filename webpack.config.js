@@ -76,11 +76,28 @@ module.exports = async (env, options) => {
             from: "manifest*.xml",
             to: "[name]" + "[ext]",
             transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+              let str = content.toString();
+
+              const replacements = {
+                "REPLACE_WITH_STAGING_HOST": process.env.STAGING_HOST_URL || "REPLACE_WITH_STAGING_HOST",
+                "REPLACE_WITH_UAT_HOST": process.env.UAT_HOST_URL || "REPLACE_WITH_UAT_HOST",
+                "REPLACE_WITH_PRODUCTION_HOST": process.env.PRODUCTION_HOST_URL || "REPLACE_WITH_PRODUCTION_HOST",
+                "REPLACE_WITH_DEV_CLIENT_ID": process.env.DEV_CLIENT_ID || "REPLACE_WITH_DEV_CLIENT_ID",
+                "REPLACE_WITH_STAGING_CLIENT_ID": process.env.STAGING_CLIENT_ID || "REPLACE_WITH_STAGING_CLIENT_ID",
+                "REPLACE_WITH_UAT_CLIENT_ID": process.env.UAT_CLIENT_ID || "REPLACE_WITH_UAT_CLIENT_ID",
+                "REPLACE_WITH_PRODUCTION_CLIENT_ID": process.env.PRODUCTION_CLIENT_ID || "REPLACE_WITH_PRODUCTION_CLIENT_ID",
+              };
+
+              for (const [placeholder, value] of Object.entries(replacements)) {
+                str = str.replace(new RegExp(placeholder, "g"), value);
               }
+              
+              // Fallback for any old localhost mappings if necessary, though manifests should use placeholders
+              if (!dev) {
+                str = str.replace(new RegExp(urlDev, "g"), urlProd);
+              }
+
+              return str;
             },
           },
         ],
