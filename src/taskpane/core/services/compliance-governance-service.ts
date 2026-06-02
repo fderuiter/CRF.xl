@@ -222,6 +222,8 @@ export class ComplianceGovernanceService {
   }
 
   public async saveJustificationsToWorkbook(justifications: Record<string, AuditJustification>): Promise<void> {
+    const SHEET_PROTECTION_PASSWORD = "SystemManagedPassword_123!";
+
     await Excel.run(async (context) => {
       let sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
       sheet.load("name");
@@ -229,9 +231,8 @@ export class ComplianceGovernanceService {
 
       if (sheet.isNullObject) {
         sheet = context.workbook.worksheets.add("_Justifications");
-        sheet.visibility = Excel.SheetVisibility.hidden;
       } else {
-        sheet.protection.unprotect();
+        sheet.protection.unprotect(SHEET_PROTECTION_PASSWORD);
         sheet.getUsedRangeOrNullObject().clear();
       }
 
@@ -247,10 +248,13 @@ export class ComplianceGovernanceService {
       range.values = data;
       range.format.autofitColumns();
 
+      // Ensure the sheet is very hidden so it doesn't appear in the standard unhide UI
+      sheet.visibility = Excel.SheetVisibility.veryHidden;
+
       sheet.protection.protect({
         allowAutoFilter: true,
         allowSort: true
-      });
+      }, SHEET_PROTECTION_PASSWORD);
 
       await context.sync();
     });
