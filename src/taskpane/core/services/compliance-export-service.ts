@@ -75,10 +75,13 @@ export class ComplianceExportService {
     zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
 
     // 3. Generate ODM XML
-    const odmXml = await generateOdmXml(currentStudy);
+    const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, { bestEffort: true });
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
 
     zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);
+    if (diagnostics) {
+      zip.file(`${protocolId || "UNKNOWN"}_Diagnostics.txt`, diagnostics);
+    }
 
     // 4. Create Verification Manifest
     const manifest: VerificationManifest = {
