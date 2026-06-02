@@ -229,18 +229,40 @@ export class ComplianceGovernanceService {
       sheet.load("name");
       await context.sync();
 
+      let existingJustifications: Record<string, AuditJustification> = {};
+
       if (sheet.isNullObject) {
         sheet = context.workbook.worksheets.add("_Justifications");
       } else {
         sheet.protection.unprotect(SHEET_PROTECTION_PASSWORD);
-        sheet.getUsedRangeOrNullObject().clear();
+        const usedRange = sheet.getUsedRangeOrNullObject();
+        usedRange.load("values");
+        await context.sync();
+
+        if (!usedRange.isNullObject && usedRange.values && usedRange.values.length > 1) {
+          const rows = usedRange.values.slice(1);
+          for (const row of rows) {
+            const [key, reason, userId, timestamp] = row;
+            if (key && reason) {
+              existingJustifications[key] = {
+                reason: String(reason),
+                userId: String(userId || ""),
+                timestamp: String(timestamp || ""),
+              };
+            }
+          }
+        }
+        usedRange.clear();
       }
 
-      const keys = Object.keys(justifications);
+      // Merge new justifications over existing to avoid overwrites during concurrent edits
+      const mergedJustifications = { ...existingJustifications, ...justifications };
+
+      const keys = Object.keys(mergedJustifications);
       const data: any[][] = [["ItemKey", "Reason", "UserId", "Timestamp"]];
 
       for (const key of keys) {
-        const j = justifications[key];
+        const j = mergedJustifications[key];
         data.push([key, j.reason, j.userId, j.timestamp]);
       }
 
@@ -248,8 +270,8 @@ export class ComplianceGovernanceService {
       range.values = data;
       range.format.autofitColumns();
 
-      // Ensure the sheet is very hidden so it doesn't appear in the standard unhide UI
-      sheet.visibility = Excel.SheetVisibility.veryHidden;
+      // Make it visible or hidden but not veryHidden for auditor accessibility
+      sheet.visibility = Excel.SheetVisibility.visible;
 
       sheet.protection.protect({
         allowAutoFilter: true,
@@ -260,42 +282,53 @@ export class ComplianceGovernanceService {
     });
   }
 
-  public async syncSharePointMetadata(documentUrl: string, justifications: Record<string, AuditJustification>): Promise<void> {
+  private syncTimeout: any = null;
+
+  public syncSharePointMetadata(documentUrl: string, justifications: Record<string, AuditJustification>): void {
     const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
     if (!isCloudHosted) return;
     
-    if (!this.graphClient) {
-      // Prioritize workbook-level save, queue SP sync for later
-      this.pendingSync = { documentUrl, justifications };
-      return;
+    this.pendingSync = { documentUrl, justifications };
+
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
     }
 
-    try {
-      // Generate a high-level summary avoiding PII
-      const count = Object.keys(justifications).length;
-      const recentChange = Object.values(justifications).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-      const summaryText = count > 0 ? `${count} justifications recorded. Last update: ${recentChange?.timestamp}` : "No justifications.";
+    // Debounce to batch calls and not degrade performance
+    this.syncTimeout = setTimeout(async () => {
+      if (!this.graphClient || !this.pendingSync) {
+        return;
+      }
 
-      const encodedUrl = btoa(documentUrl)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-      const driveItem = await this.graphClient
-        .api(`/shares/u!${encodedUrl}/driveItem`)
-        .get();
+      try {
+        const { documentUrl: url, justifications: justs } = this.pendingSync;
+        const count = Object.keys(justs).length;
+        const recentChange = Object.values(justs).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+        const summaryText = count > 0 ? `${count} justifications recorded. Last update: ${recentChange?.timestamp}` : "No justifications.";
 
-      // Update listItem associated with this file
-      await this.graphClient
-        .api(`/drives/${driveItem.parentReference.driveId}/items/${driveItem.id}/listItem/fields`)
-        .patch({
-          "GovernanceSummary": summaryText, // Custom column Name
-          "JustificationCount": count       // Custom column Name
-        });
+        const encodedUrl = btoa(url)
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+        const driveItem = await this.graphClient
+          .api(`/shares/u!${encodedUrl}/driveItem`)
+          .get();
 
-    } catch (error) {
-      console.warn("Failed to sync SharePoint metadata for justifications", error);
-      this.pendingSync = { documentUrl, justifications };
-    }
+        // Update listItem associated with this file
+        await this.graphClient
+          .api(`/drives/${driveItem.parentReference.driveId}/items/${driveItem.id}/listItem/fields`)
+          .patch({
+            "GovernanceSummary": summaryText, // Custom column Name
+            "JustificationCount": count       // Custom column Name
+          });
+
+        if (this.pendingSync?.documentUrl === url) {
+           this.pendingSync = null;
+        }
+      } catch (error) {
+        console.warn("Failed to sync SharePoint metadata for justifications", error);
+      }
+    }, 1000);
   }
 
   private async processPendingSync() {
