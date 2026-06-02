@@ -16,7 +16,7 @@ describe("Display block export proofing", () => {
     const study = await parseDisplayBlocksFixture();
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-05-20T06:18:37.658Z"));
-    const xml = await generateOdmXml(study);
+    const { xml } = await generateOdmXml(study);
     jest.useRealTimers();
 
     if (process.env.UPDATE_DISPLAY_BLOCK_FIXTURES === "1") {

@@ -9,8 +9,11 @@ import {
   CrfItem,
   RuleType,
   isCrfItem,
+  ASTNode,
+  RuleDefinition,
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
+import { parseRuleExpression } from "../../parser/rules-parser";
 
 /**
  * Error thrown when rules pre-serialization validation fails.
@@ -38,24 +41,140 @@ function targetMatchesItem(target: string | undefined, itemOid: string): boolean
   return targetLower.endsWith("." + itemLower);
 }
 
+export interface OdmExportResult {
+  xml: string;
+  diagnostics?: string;
+}
+
+export function serializeAST(node: ASTNode): string {
+  if (!node) return "";
+  switch (node.type) {
+    case "Literal":
+      if (typeof node.value === "string") return `'${node.value}'`;
+      if (node.value === null) return "null";
+      return String(node.value);
+    case "Identifier":
+      return node.name;
+    case "UnaryExpression":
+      return `${node.operator} ${serializeAST(node.argument)}`.trim();
+    case "BinaryExpression":
+      return `${serializeAST(node.left)} ${node.operator} ${serializeAST(node.right)}`;
+    case "ConditionalExpression":
+      return `(${serializeAST(node.test)} ? ${serializeAST(node.consequent)} : ${serializeAST(node.alternate)})`;
+    case "GroupedExpression":
+      return `(${serializeAST(node.expression)})`;
+    case "CallExpression":
+      const callee = node.callee.toUpperCase();
+      if (callee === "IF" && node.arguments.length === 3) {
+        return `(${serializeAST(node.arguments[0])} ? ${serializeAST(node.arguments[1])} : ${serializeAST(node.arguments[2])})`;
+      } else if (callee === "AND" && node.arguments.length > 0) {
+        return `(${node.arguments.map(serializeAST).join(" && ")})`;
+      } else if (callee === "OR" && node.arguments.length > 0) {
+        return `(${node.arguments.map(serializeAST).join(" || ")})`;
+      } else if (callee === "NOT" && node.arguments.length === 1) {
+        return `!(${serializeAST(node.arguments[0])})`;
+      }
+      return `${node.callee}(${node.arguments.map(serializeAST).join(", ")})`;
+    default:
+      return "";
+  }
+}
+
 /**
  * Main entry point for CDISC ODM v1.3.2 Metadata generation.
  * Produces a "Snapshot" metadata file for EDC system ingestion.
  */
-export async function generateOdmXml(study: StudyDesign): Promise<string> {
+export async function generateOdmXml(
+  study: StudyDesign,
+  options: { bestEffort?: boolean } = {}
+): Promise<OdmExportResult> {
   const timestamp = new Date().toISOString();
   const metadata = study.metadata;
 
   const serializationWarnings: string[] = [];
+  const diagnosticsLines: string[] = [];
+  let finalDiagnostics: string | undefined = undefined;
+
+  // Gather synthetic rules from inline showIf and methods
+  const syntheticRules: RuleDefinition[] = [];
+  Object.values(study.forms).forEach((form) => {
+    form.itemGroups.forEach((group) => {
+      group.items.forEach((item) => {
+        if (!isCrfItem(item)) return;
+        if (item.showIf) {
+          const hasCentralRule = study.rules?.some(
+            (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+          );
+          if (!hasCentralRule) {
+            const ruleId = `COND.${item.itemOid}`;
+            const syntheticRule: RuleDefinition = {
+              ruleId,
+              ruleType: RuleType.SHOW_IF,
+              target: item.itemOid,
+              expression: item.showIf,
+              _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
+            };
+            try {
+              syntheticRule.ast = parseRuleExpression(item.showIf);
+            } catch (e) {
+              syntheticRule.parseError = e instanceof Error ? e.message : String(e);
+            }
+            syntheticRules.push(syntheticRule);
+          }
+        }
+      });
+    });
+  });
+
+  if (study.methods) {
+    Object.values(study.methods).forEach(method => {
+      if (method.expression) {
+        const ruleId = method.methodOid.trim();
+        if (!study.rules?.some(r => r.ruleId === ruleId)) {
+          const syntheticRule: RuleDefinition = {
+            ruleId,
+            name: method.name,
+            description: method.description,
+            ruleType: RuleType.DERIVATION,
+            expression: method.expression,
+            _sourceRowIndex: -1,
+          };
+          try {
+            syntheticRule.ast = parseRuleExpression(method.expression);
+          } catch(e) {
+            syntheticRule.parseError = e instanceof Error ? e.message : String(e);
+          }
+          syntheticRules.push(syntheticRule);
+        }
+      }
+    });
+  }
+
+  const allRules = [...(study.rules || []), ...syntheticRules];
 
   // Run pre-serialization validation if rules are present
-  if (study.rules && study.rules.length > 0) {
-    const validationResult = await validateRules(study.rules, study, { isExport: true });
+  let topOrder: string[] = [];
+  if (allRules.length > 0) {
+    const validationResult = await validateRules(allRules, study, { isExport: true });
+    topOrder = validationResult.topologicalOrder;
 
-    // Check for any blocking errors
+    const criticalErrors = validationResult.errors.filter((e) => e.type === "CYCLE");
     const errors = validationResult.errors.filter((e) => e.level === "Error");
-    if (errors.length > 0) {
+    
+    if (criticalErrors.length > 0) {
+      throw new OdmSerializationError("Rule pre-serialization validation failed", criticalErrors);
+    }
+    
+    if (errors.length > 0 && !options.bestEffort) {
       throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
+    }
+    
+    if (errors.length > 0 && options.bestEffort) {
+      diagnosticsLines.push("=== Export Diagnostic Report ===");
+      diagnosticsLines.push("Best-Effort mode active. The following logic errors were ignored:");
+      errors.forEach(e => {
+        diagnosticsLines.push(`- Rule '${e.ruleId}'${e.rowIndex && e.rowIndex > 0 ? ` (Row ${e.rowIndex})` : ""}: ${e.message}`);
+      });
     }
 
     // Collect validation warnings
@@ -81,7 +200,7 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
       });
     });
 
-    study.rules.forEach((rule) => {
+    allRules.forEach((rule) => {
       if (rule.target) {
         const targetLower = rule.target.trim().toLowerCase();
         let exists = studyItemOids.has(targetLower);
@@ -116,6 +235,10 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
         }
       }
     });
+  }
+
+  if (diagnosticsLines.length > 0) {
+    finalDiagnostics = diagnosticsLines.join("\n");
   }
 
   // Header & Root Entity
@@ -243,13 +366,15 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
   const processedConditions = new Set<string>();
 
   // 7a. Centralized SHOW_IF and VALIDATION rules in topological order
-  if (study.rules && study.rules.length > 0) {
-    const validationResult = await validateRules(study.rules, study, { isExport: true });
-    const topOrder = validationResult.topologicalOrder;
-
+  if (allRules.length > 0) {
     // Sort rules based on topological order
-    const sortedRules = [...study.rules].sort((a, b) => {
-      return topOrder.indexOf(a.ruleId) - topOrder.indexOf(b.ruleId);
+    const sortedRules = [...allRules].sort((a, b) => {
+      const idxA = topOrder.indexOf(a.ruleId);
+      const idxB = topOrder.indexOf(b.ruleId);
+      if (idxA === -1 && idxB === -1) return 0;
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
     });
 
     sortedRules.forEach((rule) => {
@@ -269,15 +394,18 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
         </Description>`;
         }
 
+        const formalExpressionString = rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
+
         xml += `
       <ConditionDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}">${descElement}
-        <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
+        <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>
       </ConditionDef>`;
       }
     });
   }
 
-  // 7b. Inline showIf conditions
+  // 7b. Inline showIf conditions (now handled in allRules)
+  // We keep this to handle items that may have missed synthetic rules generation (fallback)
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
@@ -289,8 +417,7 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
         const conditionOid = `COND.${item.itemOid}`;
         if (processedConditions.has(conditionOid)) return;
 
-        // Centralized rule takes precedence if it targets this item
-        const hasCentralRule = study.rules?.some(
+        const hasCentralRule = allRules.some(
           (r) =>
             r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
         );
@@ -298,9 +425,17 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
 
         processedConditions.add(conditionOid);
 
+        let formalExpressionString = item.showIf;
+        try {
+          const ast = parseRuleExpression(item.showIf);
+          formalExpressionString = serializeAST(ast);
+        } catch {
+          // ignore
+        }
+
         xml += `
       <ConditionDef OID="${escapeXml(conditionOid)}" Name="Show condition for ${escapeXml(item.name)}">
-        <FormalExpression Context="CRF.xl">${escapeXml(item.showIf)}</FormalExpression>
+        <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>
       </ConditionDef>`;
       });
     });
@@ -308,13 +443,14 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
 
   // 8. Method Definitions (both rules and registry)
   const processedMethods = new Set<string>();
-  if (study.rules && study.rules.length > 0) {
-    const validationResult = await validateRules(study.rules, study, { isExport: true });
-    const topOrder = validationResult.topologicalOrder;
-
-    // Sort rules based on topological order
-    const sortedRules = [...study.rules].sort((a, b) => {
-      return topOrder.indexOf(a.ruleId) - topOrder.indexOf(b.ruleId);
+  if (allRules.length > 0) {
+    const sortedRules = [...allRules].sort((a, b) => {
+      const idxA = topOrder.indexOf(a.ruleId);
+      const idxB = topOrder.indexOf(b.ruleId);
+      if (idxA === -1 && idxB === -1) return 0;
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
     });
 
     sortedRules.forEach((rule) => {
@@ -330,15 +466,17 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
         </Description>`;
         }
 
+        const formalExpressionString = rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
+
         xml += `
       <MethodDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}" Type="Computation">${descElement}
-        <FormalExpression Context="CRF.xl">${escapeXml(rule.expression)}</FormalExpression>
+        <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>
       </MethodDef>`;
       }
     });
   }
 
-  // 8b. Centralized Method Definitions from _Methods sheet
+  // 8b. Centralized Method Definitions from _Methods sheet (fallback)
   if (study.methods) {
     Object.values(study.methods).forEach((method) => {
       const cleanOid = method.methodOid.trim();
@@ -356,8 +494,15 @@ export async function generateOdmXml(study: StudyDesign): Promise<string> {
       const typeAttr = method.type ? escapeXml(method.type) : "Computation";
       let formalExpressionElement = "";
       if (method.expression) {
+        let formalExpressionString = method.expression;
+        try {
+          const ast = parseRuleExpression(method.expression);
+          formalExpressionString = serializeAST(ast);
+        } catch {
+          // ignore
+        }
         formalExpressionElement = `
-        <FormalExpression Context="CRF.xl">${escapeXml(method.expression)}</FormalExpression>`;
+        <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>`;
       }
 
       xml += `
@@ -381,7 +526,7 @@ ${safeWarnings.map((w) => `  - ${w}`).join("\n")}
 -->`;
   }
 
-  return xml;
+  return { xml, diagnostics: finalDiagnostics };
 }
 
 /**

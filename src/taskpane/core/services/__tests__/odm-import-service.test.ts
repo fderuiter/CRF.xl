@@ -121,7 +121,7 @@ describe("odm-import-service", () => {
       },
     };
 
-    const imported = await importOdmXml(await generateOdmXml(study));
+    const imported = await importOdmXml((await generateOdmXml(study)).xml);
 
     expect(imported.study.metadata.protocolId).toBe("ODM-ROUNDTRIP");
     expect(imported.study.metadata.studyName).toBe("ODM Roundtrip Study");
