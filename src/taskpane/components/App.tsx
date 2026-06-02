@@ -599,25 +599,22 @@ export const App: React.FC<{ title?: string }> = () => {
     try {
       await complianceGovernanceService.saveJustificationsToWorkbook(newJustifs);
       
-      const documentUrl = await new Promise<string>((resolve) => {
-        Office.context.document.getFilePropertiesAsync((result) => {
-          if (result.status === Office.AsyncResultStatus.Succeeded) {
-            resolve(result.value.url || "local://document");
-          } else {
-            resolve("local://document");
-          }
-        });
+      Office.context.document.getFilePropertiesAsync((result) => {
+        let documentUrl = "local://document";
+        if (result.status === Office.AsyncResultStatus.Succeeded && result.value.url) {
+          documentUrl = result.value.url;
+        }
+
+        if (complianceGovernanceService.isAuthenticated) {
+          complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
+        } else {
+           complianceGovernanceService.initialize().then(() => {
+              if (complianceGovernanceService.isAuthenticated) {
+                 complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
+              }
+           }).catch(() => {});
+        }
       });
-      
-      if (complianceGovernanceService.isAuthenticated) {
-        await complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
-      } else {
-         complianceGovernanceService.initialize().then(() => {
-            if (complianceGovernanceService.isAuthenticated) {
-               complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
-            }
-         }).catch(() => {});
-      }
     } catch (e) {
       console.warn("Failed to persist/sync justifications", e);
     }
