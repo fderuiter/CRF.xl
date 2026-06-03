@@ -54,11 +54,17 @@ export async function syncRegistry(): Promise<void> {
 
 export async function syncRegistryInternal(context: Excel.RequestContext): Promise<void> {
   const sheets = context.workbook.worksheets;
-  const formsSheet = sheets.getItem("_Forms");
-  const scheduleSheet = sheets.getItem("_Schedule");
-  formsSheet.load("protection/protected");
-  scheduleSheet.load("protection/protected");
+  const formsSheet = sheets.getItemOrNullObject("_Forms");
+  const scheduleSheet = sheets.getItemOrNullObject("_Schedule");
+  formsSheet.load("isNullObject, protection/protected");
+  scheduleSheet.load("isNullObject, protection/protected");
   await context.sync();
+
+  // Safety check: return early if scaffolded sheets don't exist
+  if (formsSheet.isNullObject || scheduleSheet.isNullObject) {
+    console.warn("syncRegistry: Scaffolded sheets (_Forms or _Schedule) not found. Bootstrap required.");
+    return;
+  }
 
   if (formsSheet.protection.protected) {
     formsSheet.protection.unprotect();

@@ -1,10 +1,15 @@
+/**
+ * @issue #28
+ */
 import { CRF_VARIABLE_TYPE_OPTIONS } from "../parser/form-element-utils";
 import { DATA_ORIGIN_OPTIONS } from "../parser/metadata-utils";
-import { getLocaleConfig } from "../../locale-config";
+import { getLocaleConfig } from "../locale-config";
 import { syncRegistryInternal } from "../parser/template-generator";
 
 export class BootstrapService {
   private static isBootstrapping = false;
+  private static bootstrappingPromise: Promise<void> | null = null;
+  private static pendingForceNew = false;
 
   /**
    * Main entry point for workbook scaffolding.
@@ -12,11 +17,33 @@ export class BootstrapService {
    */
   public static async bootstrap(forceNew: boolean = false): Promise<void> {
     if (this.isBootstrapping) {
-      console.warn("Bootstrap already in progress. Skipping.");
-      return;
+      if (forceNew) {
+        this.pendingForceNew = true;
+        await this.bootstrappingPromise;
+      } else {
+        await this.bootstrappingPromise;
+        return;
+      }
     }
-    this.isBootstrapping = true;
 
+    // Check if a forceNew request came in while we were waiting
+    if (this.pendingForceNew) {
+      forceNew = true;
+      this.pendingForceNew = false;
+    }
+
+    this.isBootstrapping = true;
+    this.bootstrappingPromise = this.executeBootstrap(forceNew);
+
+    try {
+      await this.bootstrappingPromise;
+    } finally {
+      this.isBootstrapping = false;
+      this.bootstrappingPromise = null;
+    }
+  }
+
+  private static async executeBootstrap(forceNew: boolean): Promise<void> {
     try {
       await Excel.run(async (context) => {
         const sheets = context.workbook.worksheets;
@@ -118,8 +145,8 @@ export class BootstrapService {
           await syncRegistryInternal(context);
         }
       });
-    } finally {
-      this.isBootstrapping = false;
+    } catch (error) {
+      throw error;
     }
   }
 
