@@ -767,31 +767,31 @@ export const App: React.FC<{ title?: string }> = () => {
       );
     }
 
-    // STATE 2: The Welcome Screen (No Matrix architecture detected)
-    if (!isInitialized) {
+    // Unified Dashboard / Registry View
+    if (!isInitialized || activeSheet === "_Study" || activeSheet === "_Forms") {
       return (
-        <div className={styles.welcomeCard}>
-          <Text className={styles.welcomeTitle} block>
-            Welcome to CRF.xl
-          </Text>
-          <Text className={styles.welcomeDesc} block>
-            It looks like you are starting a new project on a blank canvas. Initialize the Matrix
-            Architecture to set up your clinical study.
-          </Text>
-          <Button
-            appearance="secondary"
-            onClick={handleInitialize}
-            disabled={isProcessing}
-            icon={isProcessing ? <Spinner size="tiny" /> : undefined}
-            style={{
-              width: "100%",
-              backgroundColor: tokens.colorNeutralBackground1,
-              color: tokens.colorBrandForeground1,
-            }}
-          >
-            ✨ Initialize Canvas
-          </Button>
-        </div>
+        <RegistryView
+          onInit={handleInitialize}
+          onInitComplete={() => setIsInitialized(true)}
+          onSync={handleSync}
+          onLoadSubmissionMetadata={async () => {
+            if (activeSheet) {
+              backgroundValidationEngine.triggerValidation(
+                !activeSheet.startsWith("_") ? activeSheet : undefined,
+                0
+              );
+            }
+          }}
+          onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
+          onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
+          activeSheet={activeSheet || ""}
+          submissionMetadata={study?.submissionMetadata}
+          baselineStudy={baselineStudy}
+          baselineError={baselineError}
+          isProcessing={isProcessing}
+          study={study}
+          issues={issues}
+        />
       );
     }
 
@@ -801,31 +801,6 @@ export const App: React.FC<{ title?: string }> = () => {
         <div className={styles.syncText}>
           <Spinner size="tiny" label="Syncing with Excel cursor..." />
         </div>
-      );
-    }
-
-    // STATE 4: The Contextual Routing
-    if (activeSheet === "_Study" || activeSheet === "_Forms") {
-      return (
-        <RegistryView
-          onInit={handleInitialize}
-          onSync={handleSync}
-          onLoadSubmissionMetadata={async () => {
-            backgroundValidationEngine.triggerValidation(
-              activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
-              0
-            );
-          }}
-          onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
-          onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
-          activeSheet={activeSheet}
-          submissionMetadata={study?.submissionMetadata}
-          baselineStudy={baselineStudy}
-          baselineError={baselineError}
-          isProcessing={isProcessing}
-          study={study}
-          issues={issues}
-        />
       );
     }
     if (activeSheet === "_Schedule" || activeSheet === "_Codelists") {

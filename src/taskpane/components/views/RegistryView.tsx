@@ -29,6 +29,7 @@ import { OdmImportWizard } from "./OdmImportWizard";
 
 interface RegistryProps {
   onInit: () => Promise<void>;
+  onInitComplete?: () => void;
   onSync: () => Promise<void>;
   onLoadSubmissionMetadata: () => Promise<void>;
   onLoadBaselineWorkbook: (file: File) => Promise<void>;
@@ -85,6 +86,7 @@ const useStyles = makeStyles({
 
 export const RegistryView: React.FC<RegistryProps> = ({
   onInit,
+  onInitComplete,
   onSync,
   onLoadSubmissionMetadata,
   onLoadBaselineWorkbook,
@@ -128,11 +130,11 @@ export const RegistryView: React.FC<RegistryProps> = ({
   };
 
   if (showIngestionWizard) {
-    return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} />;
+    return <SpreadsheetIngestionWizard onClose={() => setShowIngestionWizard(false)} onComplete={onInitComplete} />;
   }
 
   if (showOdmWizard) {
-    return <OdmImportWizard onClose={() => setShowOdmWizard(false)} />;
+    return <OdmImportWizard onClose={() => setShowOdmWizard(false)} onComplete={onInitComplete} />;
   }
 
   return (

@@ -49,6 +49,7 @@ import {
   TargetField,
   TargetSheet,
 } from "../../core/services/spreadsheet-ingestion-service";
+import { BootstrapService } from "../../core/services/bootstrap-service";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -350,6 +351,7 @@ const SYSTEM_SHEETS = new Set([
 
 export interface SpreadsheetIngestionWizardProps {
   onClose: () => void;
+  onComplete?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -358,6 +360,7 @@ export interface SpreadsheetIngestionWizardProps {
 
 export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProps> = ({
   onClose,
+  onComplete,
 }) => {
   const styles = useStyles();
   const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
@@ -509,6 +512,9 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     });
 
     try {
+      // Safe-Initialization: Bootstrap missing sheets before importing
+      await BootstrapService.bootstrap(false);
+
       const { mappings } = state.preview;
       const totalRows = state.scanResult.rowCount;
       const pageSize = 500;
@@ -565,14 +571,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             let formSheet = sheets.getItemOrNullObject(formSheetName);
             await ctx.sync();
             if (formSheet.isNullObject) {
-              formSheet = sheets.add(formSheetName);
-              // Add headers if new sheet
-              const headers = [
-                "Variable Name", "Label", "Variable Type", "Required", "Length", "Significant Digits",
-                "Minimum", "Maximum", "Show If", "Codelist ID", "Origin", "Method OID", "SDTM Domain",
-                "SDTM Variable", "Comment",
-              ];
-              formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
+              formSheet = await BootstrapService.bootstrapFormSheet(ctx, formSheetName);
             }
             const used = formSheet.getUsedRange();
             used.load("rowCount");
@@ -633,6 +632,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         syncProgress: null,
         stage: "post-import-summary",
       });
+      onComplete?.();
     } catch (e) {
       patch({
         error: `Import failed: ${e instanceof Error ? e.message : String(e)}`,

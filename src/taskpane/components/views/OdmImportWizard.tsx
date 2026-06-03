@@ -46,6 +46,7 @@ import {
 } from "../../core/services/migration-pipeline";
 import ExcelJS from "exceljs";
 import { speculativeSyncManager, getPredictedStudyDesign } from "../../core/services/speculative-sync-service";
+import { BootstrapService } from "../../core/services/bootstrap-service";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -249,13 +250,14 @@ function diagSeverityIntent(
 
 export interface OdmImportWizardProps {
   onClose: () => void;
+  onComplete?: () => void;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => {
+export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose, onComplete }) => {
   const styles = useStyles();
   const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -319,6 +321,9 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
     patch({ isProcessing: true, error: null });
 
     try {
+      // Safe-Initialization: Bootstrap missing sheets before importing
+      await BootstrapService.bootstrap(false);
+
       // Apply to an ExcelJS workbook for the Office.js write path.
       // We delegate to applyOdmImportToWorkbook for the workbook-mutation
       // logic, then mirror the same writes via Excel.run.
@@ -347,6 +352,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
       persistImportManifest(manifest);
 
       patch({ importManifest: manifest, isProcessing: false, stage: "summary" });
+      onComplete?.();
     } catch (e) {
       patch({
         error: `Import failed: ${e instanceof Error ? e.message : String(e)}`,
