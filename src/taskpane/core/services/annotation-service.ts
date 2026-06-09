@@ -19,12 +19,56 @@ export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise
       sheetNames.includes(s.name)
     );
     for (const sheet of sheetsToCheck) {
-      sheet.comments.load("items");
+      sheet.comments.load("items/content");
     }
     await context.sync();
 
+    const commentLocations: { c: Excel.Comment, location: Excel.Range, sheet: Excel.Worksheet }[] = [];
     for (const sheet of sheetsToCheck) {
-      count += sheet.comments.items.length;
+      for (const c of sheet.comments.items) {
+        if (c.content && c.content.includes("[Validation]")) {
+          continue; // System-generated issues are not considered orphaned manual annotations
+        }
+        if (sheet.name.startsWith("_")) {
+          continue; // Non-form metadata sheets remain out of scope for this anchoring model
+        }
+        const location = c.getLocation();
+        location.load("rowIndex");
+        commentLocations.push({ c, location, sheet });
+      }
+    }
+
+    if (commentLocations.length > 0) {
+      await context.sync();
+
+      const sheetRanges = new Map<string, Excel.Range>();
+      for (const sheet of sheetsToCheck) {
+        if (commentLocations.some(cl => cl.sheet.name === sheet.name)) {
+          const usedRange = sheet.getUsedRangeOrNullObject();
+          usedRange.load(["values", "isNullObject", "rowIndex"]);
+          sheetRanges.set(sheet.name, usedRange);
+        }
+      }
+
+      await context.sync();
+
+      for (const cl of commentLocations) {
+        const usedRange = sheetRanges.get(cl.sheet.name);
+        if (!usedRange || usedRange.isNullObject || !usedRange.values) {
+          count++;
+          continue;
+        }
+
+        const arrayIndex = cl.location.rowIndex - usedRange.rowIndex;
+        if (arrayIndex >= 0 && arrayIndex < usedRange.values.length) {
+          const oid = String(usedRange.values[arrayIndex][0] || "").trim();
+          if (!oid || oid.toLowerCase() === "variable name") {
+            count++; // No valid OID at this location, so it's orphaned
+          }
+        } else {
+          count++; // Out of bounds
+        }
+      }
     }
   });
   return count;
@@ -66,7 +110,7 @@ export async function applyValidationVisuals(
       const sheet = context.workbook.worksheets.items.find((s) => s.name === name);
       if (sheet) {
         const usedRange = sheet.getUsedRangeOrNullObject();
-        usedRange.load(["rowCount", "columnCount", "isNullObject"]);
+        usedRange.load(["rowCount", "columnCount", "isNullObject", "values"]);
         sheet.comments.load("items");
         cache.set(name, { sheet, usedRange, comments: sheet.comments });
       }
@@ -90,8 +134,13 @@ export async function applyValidationVisuals(
         dataRange.format.fill.clear();
       }
 
+      // Requirement 3: The validation engine must selectively clear only system-generated issues while preserving manual user comments.
       // Requirement 5: Comment deletion as collection-level operation
-      state.comments.items.forEach((c) => c.delete());
+      state.comments.items.forEach((c) => {
+        if (c.content && c.content.includes("[Validation]")) {
+          c.delete();
+        }
+      });
     }
 
     // We do NOT sync here. Clear operations and highlight operations are queued
@@ -107,13 +156,36 @@ export async function applyValidationVisuals(
       const state = cache.get(issue.sheetName);
       if (!state) continue;
 
+      // Requirement 4: Coordinate mapping must account for the 1-based vs 0-based index discrepancy
+      let targetRowIndex = issue.rowIndex - 1;
+
+      // Requirement 2: Visual coordinates for annotations must be resolved dynamically at runtime by searching for the OID's current row location
+      if (issue.oid && !state.usedRange.isNullObject && state.usedRange.values) {
+        for (let r = 0; r < state.usedRange.values.length; r++) {
+          const rowValues = state.usedRange.values[r];
+          // Assuming OID is in the first column (index 0)
+          if (rowValues && rowValues.length > 0) {
+            const cellValue = String(rowValues[0]).trim().toUpperCase();
+            if (cellValue === issue.oid.toUpperCase()) {
+              targetRowIndex = r;
+              break;
+            }
+          }
+        }
+      }
+
+      if (targetRowIndex < 0) targetRowIndex = 0;
+      if (!state.usedRange.isNullObject && targetRowIndex >= state.usedRange.rowCount) {
+        continue; // Skip if row is somehow out of bounds
+      }
+
       // Requirement 3: Large-scale write operations batched into single-call assignments
-      const rowRange = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 8);
+      const rowRange = state.sheet.getRangeByIndexes(targetRowIndex, 0, 1, 8);
       rowRange.format.fill.color = "#fee2e2"; // Tailwind red-100
 
-      const cell = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 1);
+      const cell = state.sheet.getRangeByIndexes(targetRowIndex, 0, 1, 1);
       try {
-        state.comments.add(cell, issue.message);
+        state.comments.add(cell, `[Validation] ${issue.message}`);
       } catch (e) {
         console.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
       }

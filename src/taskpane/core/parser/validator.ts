@@ -11,6 +11,7 @@ export interface ValidationIssue {
   location?: string;
   rowIndex?: number;
   sheetName?: string; // Tracks which tab the error lives on
+  oid?: string; // Clinical OID (Variable Name) for stable anchoring
 }
 
 export interface CrossFormDependency {
@@ -70,6 +71,7 @@ export async function validateStudyDesign(
             message: "Missing Variable Name.",
             location: `${sheet} > Row ${row}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -82,6 +84,7 @@ export async function validateStudyDesign(
               message: `Type is Codelist, but ID is blank.`,
               location: `${form.formName} > ${item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           } else if (!study.codelists[item.codelistId]) {
@@ -90,6 +93,7 @@ export async function validateStudyDesign(
               message: `Missing Codelist definition for '${item.codelistId}'.`,
               location: `${form.formName} > ${item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -103,6 +107,7 @@ export async function validateStudyDesign(
               message: `Duplicate Variable Name: '${item.itemOid}'. Must be unique across study.`,
               location: `${sheet} > ${item.itemOid}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -122,6 +127,7 @@ export async function validateStudyDesign(
             message: "Length must be a positive integer.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -135,6 +141,7 @@ export async function validateStudyDesign(
             message: "Significant Digits must be a non-negative integer.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -146,6 +153,7 @@ export async function validateStudyDesign(
               message: "Numeric variables should define Length.",
               location: `${sheet} > ${item.itemOid || item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -156,6 +164,7 @@ export async function validateStudyDesign(
               message: "Numeric variables should define Significant Digits.",
               location: `${sheet} > ${item.itemOid || item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -166,6 +175,7 @@ export async function validateStudyDesign(
               message: "Significant Digits of 0 is likely too coarse for numeric variables.",
               location: `${sheet} > ${item.itemOid || item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -175,6 +185,7 @@ export async function validateStudyDesign(
             message: "Significant Digits is typically only used for numeric variables.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -193,6 +204,7 @@ export async function validateStudyDesign(
             message: "Significant Digits cannot exceed Length.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -206,6 +218,7 @@ export async function validateStudyDesign(
               message: `Invalid Origin value: '${item.origin}'. Must be one of: ${validOrigins.join(", ")}.`,
               location: `${sheet} > ${item.itemOid || item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -220,6 +233,7 @@ export async function validateStudyDesign(
             message: `Method OID is required when Origin is '${item.origin}'.`,
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -235,6 +249,7 @@ export async function validateStudyDesign(
               message: `Referenced Method OID '${item.methodOid}' does not exist in _Methods.`,
               location: `${sheet} > ${item.itemOid || item.name}`,
               rowIndex: row,
+            oid: (item as any).itemOid || undefined,
               sheetName: sheet,
             });
           }
@@ -248,6 +263,7 @@ export async function validateStudyDesign(
             message: "SDTM Domain is specified but companion SDTM Variable is missing.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         } else if (hasVariable && !hasDomain) {
@@ -256,6 +272,7 @@ export async function validateStudyDesign(
             message: "SDTM Variable is specified but companion SDTM Domain is missing.",
             location: `${sheet} > ${item.itemOid || item.name}`,
             rowIndex: row,
+            oid: (item as any).itemOid || undefined,
             sheetName: sheet,
           });
         }
@@ -433,6 +450,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
         message: `Parse Error in ${dependencyType} expression: ${err.message}`,
         location: `${sourceFormOid} > Row ${sourceRowIndex ?? "unknown"}`,
         rowIndex: sourceRowIndex,
+            oid: typeof sourceOid !== "undefined" ? sourceOid : undefined,
         sheetName: sourceFormOid,
       });
       return;
@@ -474,6 +492,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
           message: `Broken reference: target '${ident}' does not exist.`,
           location: `${sourceFormOid} > Row ${sourceRowIndex ?? "unknown"}`,
           rowIndex: sourceRowIndex,
+            oid: typeof sourceOid !== "undefined" ? sourceOid : undefined,
           sheetName: sourceFormOid,
         });
         return;
@@ -570,6 +589,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
             message,
             location: `${sourceFormOid} > Row ${sourceRowIndex ?? "unknown"}`,
             rowIndex: sourceRowIndex,
+            oid: typeof sourceOid !== "undefined" ? sourceOid : undefined,
             sheetName: sourceFormOid,
           });
         }
@@ -760,6 +780,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   message: `SDTM variable '${item.sdtmMapping.variable}' is mapped but SDTM domain is missing.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                   sheetName: sheet,
                 });
               } else if (!hasVar) {
@@ -768,6 +789,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   message: `SDTM domain '${item.sdtmMapping.domain}' is mapped but SDTM variable name is missing.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                   sheetName: sheet,
                 });
               } else {
@@ -780,6 +802,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -791,6 +814,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Core requiredness designation.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -800,6 +824,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Role designation.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -809,6 +834,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Field Name.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -818,6 +844,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Label.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -837,6 +864,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   message: `ADaM variable '${item.adamMapping.variable}' is mapped but ADaM dataset is missing.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                   sheetName: sheet,
                 });
               } else if (!hasVar) {
@@ -845,6 +873,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   message: `ADaM dataset '${item.adamMapping.dataset}' is mapped but ADaM variable name is missing.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                   sheetName: sheet,
                 });
               } else {
@@ -857,6 +886,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -868,6 +898,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Core requiredness designation.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -877,6 +908,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Role designation.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -886,6 +918,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Field Name.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -895,6 +928,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Label.`,
                     location: `${sheet} > Row ${row}`,
                     rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                     sheetName: sheet,
                   });
                 }
@@ -916,6 +950,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   message: `Derived variable '${item.itemOid}' references undefined Method/Derivation OID '${item.methodOid}'.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
+            oid: (item as any).itemOid || undefined,
                   sheetName: sheet,
                 });
               }
