@@ -5,6 +5,7 @@ import {
   applyValidationVisuals,
   getOrphanedAnnotationsCount,
 } from "../core/services/annotation-service";
+import { createParseRuntime } from "../core/parser/chunking-runtime";
 import * as React from "react";
 import * as CryptoJS from "crypto-js";
 import { useState, useEffect, useRef } from "react";
@@ -224,9 +225,13 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const [appIsProcessing, setAppIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState("Ready");
+  const [annotationProgress, setAnnotationProgress] = useState<string | null>(null);
 
   const isProcessing = validationState.isProcessing || appIsProcessing;
   const status = validationState.isProcessing ? validationState.status : appStatus;
+  const displayStatus = annotationProgress || status;
+
+  const lastVisualsRef = useRef<{ study: any, activeSheet: string | null } | null>(null);
 
   useEffect(() => {
     if (isInitialized) {
@@ -244,10 +249,27 @@ export const App: React.FC<{ title?: string }> = () => {
   useEffect(() => {
     if (study && !isProcessing) {
       // 1. Visual Validation
-      const sheetsToClear = activeSheet && !activeSheet.startsWith("_") 
-        ? [activeSheet] 
-        : ["_Schedule", ...Object.keys(study.forms)];
-      applyValidationVisuals(sheetsToClear, issues).catch(console.error);
+      if (
+        !lastVisualsRef.current ||
+        lastVisualsRef.current.study !== study ||
+        lastVisualsRef.current.activeSheet !== activeSheet
+      ) {
+        lastVisualsRef.current = { study, activeSheet };
+        const sheetsToClear = activeSheet && !activeSheet.startsWith("_") 
+          ? [activeSheet] 
+          : ["_Schedule", ...Object.keys(study.forms)];
+        
+        const runtime = createParseRuntime({
+          onProgress: (update) => {
+            const percent = Math.round((update.completed / update.total) * 100);
+            setAnnotationProgress(`Annotations: ${update.message} (${percent}%)`);
+          }
+        });
+        
+        applyValidationVisuals(sheetsToClear, issues, runtime)
+          .catch(console.error)
+          .finally(() => setAnnotationProgress(null));
+      }
 
       // 2. Summary
       setStudySummary(summarizeStudyDesign(study));
@@ -848,7 +870,7 @@ export const App: React.FC<{ title?: string }> = () => {
           </div>
         </div>
         <Badge appearance="tint" color="informative">
-          {status}
+          {displayStatus}
         </Badge>
       </header>
 

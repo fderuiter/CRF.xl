@@ -244,6 +244,7 @@ export async function generateOdmXml(
   // Header & Root Entity
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" 
+     xmlns:crfx="http://www.cdisc.org/ns/odm/v1.3-ext"
      FileType="Snapshot" 
      FileOID="${escapeXml(metadata.protocolId)}_${escapeXml(metadata.version)}_${timestamp.replace(/[:.-]/g, "")}" 
      CreationDateTime="${timestamp}" 
@@ -302,7 +303,7 @@ export async function generateOdmXml(
           return;
         }
         // Find matching centralized SHOW_IF rule
-        const showIfRule = study.rules?.find(
+        const showIfRule = allRules.find(
           (r) =>
             r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
         );
@@ -312,6 +313,16 @@ export async function generateOdmXml(
           conditionAttr = ` CollectionExceptionConditionOID="${escapeXml(showIfRule.ruleId)}"`;
         } else if (item.showIf) {
           conditionAttr = ` CollectionExceptionConditionOID="COND.${escapeXml(item.itemOid)}"`;
+        }
+
+        // Find matching VALIDATION rules
+        const validationRules = allRules.filter(
+          (r) => r.ruleType === RuleType.VALIDATION && r.target && targetMatchesItem(r.target, item.itemOid)
+        );
+
+        if (validationRules.length > 0) {
+          const ruleOids = validationRules.map(r => r.ruleId).join(" ");
+          conditionAttr += ` crfx:ValidationConditionOIDs="${escapeXml(ruleOids)}"`;
         }
 
         xml += `
@@ -565,6 +576,25 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
   output += `>
         <Question>${renderTranslatedText(item.label)}</Question>`;
 
+  if (item.validation?.rangeChecks && item.validation.rangeChecks.length > 0) {
+    item.validation.rangeChecks.forEach((rc) => {
+      const comparator = mapComparatorToOdm(rc.comparator);
+      const softHard = rc.severity === "HardError" ? "Hard" : "Soft";
+      
+      output += `
+        <RangeCheck Comparator="${comparator}" SoftHard="${softHard}">
+          <CheckValue>${escapeXml(String(rc.value))}</CheckValue>`;
+          
+      if (rc.errorMessage) {
+        output += `
+          <ErrorMessage>${renderTranslatedText(rc.errorMessage)}</ErrorMessage>`;
+      }
+      
+      output += `
+        </RangeCheck>`;
+    });
+  }
+
   if (item.codelistId) {
     output += `
         <CodeListRef CodeListOID="${escapeXml(item.codelistId)}"/>`;
@@ -579,6 +609,21 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
   output += `
       </ItemDef>`;
   return output;
+}
+
+/**
+ * Maps internal comparator signs to CDISC ODM standard comparators.
+ */
+function mapComparatorToOdm(comparator: string): string {
+  switch (comparator) {
+    case "<": return "LT";
+    case "<=": return "LE";
+    case ">": return "GT";
+    case ">=": return "GE";
+    case "==": return "EQ";
+    case "!=": return "NE";
+    default: return "EQ";
+  }
 }
 
 /**
