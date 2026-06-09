@@ -4,6 +4,7 @@
 /* eslint-disable no-undef */
 /* global Excel */
 import { ValidationIssue } from "../parser/validator";
+import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 
 /**
  * Checks for orphaned annotations (comments) across the active sheets.
@@ -41,9 +42,19 @@ export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise
  */
 export async function applyValidationVisuals(
   sheetNamesToClear: string[],
-  issuesToHighlight: ValidationIssue[]
+  issuesToHighlight: ValidationIssue[],
+  runtime?: ParseRuntime
 ): Promise<void> {
   await Excel.run(async (context) => {
+    const rt = runtime ?? createParseRuntime({ chunkSize: 100 });
+    const originalYield = rt.yieldToHost;
+    
+    // Weaving context.sync() into the chunking lifecycle to prevent memory overflows
+    rt.yieldToHost = async () => {
+      await context.sync();
+      await originalYield();
+    };
+
     // 1. Centralized state-loading phase
     context.workbook.worksheets.load("items/name");
     await context.sync();
@@ -76,6 +87,8 @@ export async function applyValidationVisuals(
     await context.sync();
 
     // 2. Clear previous annotations
+    const allComments: Excel.Comment[] = [];
+    
     for (const name of sheetNamesToClear) {
       const state = cache.get(name);
       if (!state) continue;
@@ -90,45 +103,60 @@ export async function applyValidationVisuals(
         dataRange.format.fill.clear();
       }
 
-      // Requirement 5: Comment deletion as collection-level operation
-      state.comments.items.forEach((c) => c.delete());
+      allComments.push(...state.comments.items);
     }
 
-    // We do NOT sync here. Clear operations and highlight operations are queued
-    // deterministically and will be executed in a single atomic transaction.
+    if (allComments.length > 0) {
+      rt.reportProgress({
+        phase: "items",
+        completed: 0,
+        total: allComments.length,
+        message: "Clearing previous comments"
+      });
+      await processRowsInChunks(allComments, rt, "items", (c, index) => {
+        c.delete();
+        rt.reportProgress({
+          phase: "items",
+          completed: index + 1,
+          total: allComments.length,
+          message: "Clearing previous comments"
+        });
+      });
+    }
 
     // 3. Highlight new errors
-    const CHUNK_SIZE = 100;
-    let operationCount = 0;
+    if (issuesToHighlight.length > 0) {
+      rt.reportProgress({
+        phase: "items",
+        completed: 0,
+        total: issuesToHighlight.length,
+        message: "Highlighting validation errors"
+      });
+      await processRowsInChunks(issuesToHighlight, rt, "items", (issue, index) => {
+        if (!issue.sheetName || issue.rowIndex === undefined) return;
+        const state = cache.get(issue.sheetName);
+        if (!state) return;
 
-    for (const issue of issuesToHighlight) {
-      if (!issue.sheetName || issue.rowIndex === undefined) continue;
+        const rowRange = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 8);
+        rowRange.format.fill.color = "#fee2e2"; // Tailwind red-100
 
-      const state = cache.get(issue.sheetName);
-      if (!state) continue;
+        const cell = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 1);
+        try {
+          state.comments.add(cell, issue.message);
+        } catch (e) {
+          console.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
+        }
 
-      // Requirement 3: Large-scale write operations batched into single-call assignments
-      const rowRange = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 8);
-      rowRange.format.fill.color = "#fee2e2"; // Tailwind red-100
-
-      const cell = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 1);
-      try {
-        state.comments.add(cell, issue.message);
-      } catch (e) {
-        console.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
-      }
-
-      operationCount++;
-
-      // Requirement 4: Yield control back to host at regular intervals (sub-linear chunking)
-      if (operationCount % CHUNK_SIZE === 0) {
-        // Yield to JS event loop so UI (Taskpane) can respond
-        // We do NOT call context.sync() here to maintain a single atomic transaction wrapper.
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      }
+        rt.reportProgress({
+          phase: "items",
+          completed: index + 1,
+          total: issuesToHighlight.length,
+          message: "Highlighting validation errors"
+        });
+      });
     }
 
-    // Final sync for all queued operations (clears and highlights combined)
+    // Final sync for any remaining queued operations
     await context.sync();
   });
 }
