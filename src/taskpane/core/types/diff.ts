@@ -103,3 +103,29 @@ export interface StudyDiffReport {
   /** Diff result for top-level study metadata. */
   metadataDiff: StudyMetadataDiff;
 }
+
+export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
+export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";
+export type DiffSeverity = "low" | "medium" | "high";
+
+export interface StudyDiffListEntry {
+  id: string;
+  group: DiffEntityGroup;
+  key: string;
+  title: string;
+  subtitle: string;
+  operation: "added" | "removed" | "modified";
+  changeClass: DiffChangeClass;
+  severity: DiffSeverity;
+  subsystem: string;
+  area: string;
+  changedFields: string[];
+  justification?: { reason: string; userId: string; timestamp: string };
+}
+
+export interface StudyDiffFilters {
+  changeClass: DiffChangeClass | "all";
+  subsystem: string | "all";
+  severity: DiffSeverity | "all";
+  area: string | "all";
+}

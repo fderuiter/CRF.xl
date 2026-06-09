@@ -7,33 +7,14 @@ import {
   ItemDiffEntry,
   RuleDiffEntry,
   StudyDiffReport,
+  StudyDiffListEntry,
+  StudyDiffFilters,
+  DiffEntityGroup,
+  DiffChangeClass,
+  DiffSeverity,
 } from "../../core/types";
 
-export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
-export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";
-export type DiffSeverity = "low" | "medium" | "high";
-
-export interface StudyDiffListEntry {
-  id: string;
-  group: DiffEntityGroup;
-  key: string;
-  title: string;
-  subtitle: string;
-  operation: "added" | "removed" | "modified";
-  changeClass: DiffChangeClass;
-  severity: DiffSeverity;
-  subsystem: string;
-  area: string;
-  changedFields: string[];
-  justification?: { reason: string; userId: string; timestamp: string };
-}
-
-export interface StudyDiffFilters {
-  changeClass: DiffChangeClass | "all";
-  subsystem: string | "all";
-  severity: DiffSeverity | "all";
-  area: string | "all";
-}
+import { inferSeverity, detectMovedOrRenamed } from "../../core/utils/clinical-utils";
 
 const DEFAULT_FILTERS: StudyDiffFilters = {
   changeClass: "all",
@@ -41,23 +22,6 @@ const DEFAULT_FILTERS: StudyDiffFilters = {
   severity: "all",
   area: "all",
 };
-
-function inferSeverity(operation: "added" | "removed" | "modified"): DiffSeverity {
-  if (operation === "removed") return "high";
-  if (operation === "modified") return "medium";
-  return "low";
-}
-
-function stableStringifyWithoutKeys(value: unknown, omittedKeys: string[]): string {
-  if (!value || typeof value !== "object") return "";
-  const omit = new Set(omittedKeys);
-  const normalized = Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => !omit.has(key))
-      .sort(([left], [right]) => left.localeCompare(right))
-  );
-  return JSON.stringify(normalized);
-}
 
 function toFormEntry(entry: FormDiffEntry): StudyDiffListEntry | null {
   if (entry.operation === "unchanged") return null;
@@ -130,122 +94,6 @@ function toRuleEntry(entry: RuleDiffEntry): StudyDiffListEntry | null {
     area: "Global",
     changedFields: entry.changedFields ?? [],
   };
-}
-
-function detectMovedOrRenamed(
-  entries: StudyDiffListEntry[],
-  report: StudyDiffReport
-): StudyDiffListEntry[] {
-  const byId = new Map(entries.map((entry) => [entry.id, entry]));
-  const signaturesByGroup = {
-    forms: new Map<string, string[]>(),
-    items: new Map<string, string[]>(),
-    codelists: new Map<string, string[]>(),
-    rules: new Map<string, string[]>(),
-  };
-
-  const register = (group: DiffEntityGroup, signature: string, id: string) => {
-    if (!signature) return;
-    const existing = signaturesByGroup[group].get(signature) ?? [];
-    existing.push(id);
-    signaturesByGroup[group].set(signature, existing);
-  };
-
-  report.forms.forEach((entry) => {
-    if (entry.operation === "added") {
-      register(
-        "forms",
-        stableStringifyWithoutKeys(entry.current, ["formOid"]),
-        `forms:${entry.formOid}`
-      );
-    }
-    if (entry.operation === "removed") {
-      register(
-        "forms",
-        stableStringifyWithoutKeys(entry.baseline, ["formOid"]),
-        `forms:${entry.formOid}`
-      );
-    }
-  });
-  report.items.forEach((entry) => {
-    if (entry.operation === "added") {
-      register(
-        "items",
-        stableStringifyWithoutKeys(entry.current, [
-          "formOid",
-          "groupOid",
-          "itemOid",
-          "orderNumber",
-        ]),
-        `items:${entry.formOid}:${entry.itemOid}`
-      );
-    }
-    if (entry.operation === "removed") {
-      register(
-        "items",
-        stableStringifyWithoutKeys(entry.baseline, [
-          "formOid",
-          "groupOid",
-          "itemOid",
-          "orderNumber",
-        ]),
-        `items:${entry.formOid}:${entry.itemOid}`
-      );
-    }
-  });
-  report.codelists.forEach((entry) => {
-    if (entry.operation === "added") {
-      register(
-        "codelists",
-        stableStringifyWithoutKeys(entry.current, ["codelistId"]),
-        `codelists:${entry.codelistId}`
-      );
-    }
-    if (entry.operation === "removed") {
-      register(
-        "codelists",
-        stableStringifyWithoutKeys(entry.baseline, ["codelistId"]),
-        `codelists:${entry.codelistId}`
-      );
-    }
-  });
-  report.rules.forEach((entry) => {
-    if (entry.operation === "added") {
-      register(
-        "rules",
-        stableStringifyWithoutKeys(entry.current, ["ruleId"]),
-        `rules:${entry.ruleId}`
-      );
-    }
-    if (entry.operation === "removed") {
-      register(
-        "rules",
-        stableStringifyWithoutKeys(entry.baseline, ["ruleId"]),
-        `rules:${entry.ruleId}`
-      );
-    }
-  });
-
-  Object.values(signaturesByGroup).forEach((signatureMap) => {
-    signatureMap.forEach((entryIds) => {
-      const added = entryIds.filter((id) => byId.get(id)?.operation === "added");
-      const removed = entryIds.filter((id) => byId.get(id)?.operation === "removed");
-      if (added.length === 1 && removed.length === 1) {
-        const addedEntry = byId.get(added[0]);
-        const removedEntry = byId.get(removed[0]);
-        if (addedEntry) {
-          addedEntry.changeClass = "moved_or_renamed";
-          addedEntry.severity = "medium";
-        }
-        if (removedEntry) {
-          removedEntry.changeClass = "moved_or_renamed";
-          removedEntry.severity = "medium";
-        }
-      }
-    });
-  });
-
-  return entries;
 }
 
 export function buildStudyDiffList(report: StudyDiffReport): StudyDiffListEntry[] {

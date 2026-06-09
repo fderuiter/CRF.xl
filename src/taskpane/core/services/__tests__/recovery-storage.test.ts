@@ -173,4 +173,17 @@ describe("recovery-storage", () => {
       )
     ).toBe(true);
   });
+
+  it("validates state recovery logic simulating workbook fingerprint mismatch without browser", () => {
+    const baselineFingerprint = { sheetCount: 2, sheetNames: ["_Study", "F1"] };
+    
+    // Mismatch in count
+    expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 1, sheetNames: ["_Study"] })).toBe(true);
+    
+    // Mismatch in names but same count
+    expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 2, sheetNames: ["_Study", "F2"] })).toBe(true);
+
+    // Mismatch order
+    expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 2, sheetNames: ["F1", "_Study"] })).toBe(true);
+  });
 });

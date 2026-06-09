@@ -231,3 +231,67 @@ export function hasWorkbookChanged(
   if (snapshot.sheetNames.length !== current.sheetNames.length) return true;
   return snapshot.sheetNames.some((name, index) => name !== current.sheetNames[index]);
 }
+
+export async function generateWorkbookFingerprint(): Promise<WorkbookFingerprint | undefined> {
+  if (typeof Excel === "undefined") return undefined;
+  try {
+    return await Excel.run(async (context) => {
+      const sheets = context.workbook.worksheets;
+      sheets.load("items/name");
+      await context.sync();
+      const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
+      return { sheetCount: sheetNames.length, sheetNames };
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+export async function detectRecoverableSnapshot(): Promise<{ snapshot: RecoverySnapshot; workbookChanged: boolean } | null> {
+  const snapshot = readRecoverySnapshot();
+  if (!snapshot) return null;
+
+  const currentFingerprint = await generateWorkbookFingerprint();
+
+  return {
+    snapshot,
+    workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
+  };
+}
+
+export function startCheckpointSync(
+  paramsProvider: () => {
+    issues: ValidationIssue[];
+    studySummary: StudyDesignSummary | null;
+    activeSheet?: string;
+    currentFilter?: string | null;
+    workbookFingerprint?: WorkbookFingerprint;
+    justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
+  },
+  onWarning: (msg: string | null) => void,
+  intervalMs: number = 30000
+): () => void {
+  const saveCheckpoint = () => {
+    const params = paramsProvider();
+    if (!params.studySummary) return;
+
+    const openForm = params.activeSheet && !params.activeSheet.startsWith("_") ? params.activeSheet : undefined;
+    const snapshot = createRecoverySnapshot({
+      issues: params.issues,
+      studySummary: params.studySummary,
+      openForm,
+      currentFilter: params.currentFilter ?? undefined,
+      workbookFingerprint: params.workbookFingerprint,
+      justifications: params.justifications,
+    });
+    const saveResult = persistRecoverySnapshot(snapshot);
+    if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
+      onWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
+    } else if (saveResult.saved) {
+      onWarning(null);
+    }
+  };
+
+  const timer = setInterval(saveCheckpoint, intervalMs);
+  return () => clearInterval(timer);
+}

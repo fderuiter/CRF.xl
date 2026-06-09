@@ -3,6 +3,8 @@
  */
 /* eslint-disable no-undef, office-addins/call-sync-before-read, office-addins/call-sync-after-load */
 import { useState, useEffect } from "react";
+import { isClinicalWorksheet, isCodelistColumn } from "../../core/utils/clinical-utils";
+import { EXCEL_COLUMNS, WORKSHEET_PREFIXES } from "../../core/constants";
 
 export function useExcelTelemetry() {
   const [activeSheet, setActiveSheet] = useState<string>("_Study");
@@ -49,7 +51,7 @@ export function useExcelTelemetry() {
               const sheetName = worksheet.name;
 
               // Context Trigger: If on a CRF sheet AND in the Codelist ID col (Index 9 / Col J)
-              if (!sheetName.startsWith("_") && range.columnIndex === 9) {
+              if (isClinicalWorksheet(sheetName, WORKSHEET_PREFIXES.SYSTEM) && isCodelistColumn(range.columnIndex, EXCEL_COLUMNS.CODELIST_ID)) {
                 setIsCodelistActive(true);
               } else {
                 setIsCodelistActive(false);

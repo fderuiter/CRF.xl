@@ -58,6 +58,9 @@ import {
   persistRecoverySnapshot,
   readRecoverySnapshot,
   summarizeStudyDesign,
+  detectRecoverableSnapshot,
+  startCheckpointSync,
+  generateWorkbookFingerprint,
 } from "../core/services/recovery-storage";
 import {
   createOfficeErrorPresentation,
@@ -415,30 +418,15 @@ export const App: React.FC<{ title?: string }> = () => {
   }, []);
 
   useEffect(() => {
-    const detectRecoverableSnapshot = async () => {
-      const snapshot = readRecoverySnapshot();
-      if (!snapshot) return;
-
-      let currentFingerprint: WorkbookFingerprint | undefined = undefined;
-      try {
-        currentFingerprint = await Excel.run(async (context) => {
-          const sheets = context.workbook.worksheets;
-          sheets.load("items/name");
-          await context.sync();
-          const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
-          return { sheetCount: sheetNames.length, sheetNames };
-        });
-      } catch {
-        currentFingerprint = undefined;
+    generateWorkbookFingerprint().then((fingerprint) => {
+      setWorkbookFingerprint(fingerprint);
+    });
+    
+    detectRecoverableSnapshot().then((res) => {
+      if (res) {
+        setRecoverySnapshot(res);
       }
-
-      setRecoverySnapshot({
-        snapshot,
-        workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
-      });
-    };
-
-    void detectRecoverableSnapshot();
+    });
   }, []);
 
   useEffect(() => {
@@ -459,29 +447,19 @@ export const App: React.FC<{ title?: string }> = () => {
   }, []);
 
   useEffect(() => {
-    if (!studySummary) return undefined;
-
-    const saveCheckpoint = () => {
-      const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
-      const snapshot = createRecoverySnapshot({
+    return startCheckpointSync(
+      () => ({
         issues,
         studySummary,
-        openForm,
-        currentFilter: currentFilter ?? undefined,
+        activeSheet,
+        currentFilter,
         workbookFingerprint,
         justifications,
-      });
-      const saveResult = persistRecoverySnapshot(snapshot);
-      if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
-        setStorageWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
-      } else if (saveResult.saved) {
-        setStorageWarning(null);
-      }
-    };
-
-    const checkpointTimer = window.setInterval(saveCheckpoint, 30000);
-    return () => window.clearInterval(checkpointTimer);
-  }, [studySummary, issues, activeSheet, currentFilter, workbookFingerprint]);
+      }),
+      (warning) => setStorageWarning(warning),
+      30000
+    );
+  }, [studySummary, issues, activeSheet, currentFilter, workbookFingerprint, justifications]);
 
   const handleRestoreSnapshot = () => {
     if (!recoverySnapshot) return;
