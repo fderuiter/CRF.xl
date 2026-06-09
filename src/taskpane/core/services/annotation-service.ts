@@ -6,7 +6,12 @@
 import { ValidationIssue } from "../parser/validator";
 
 /**
- * Checks for orphaned annotations (comments) across the active sheets.
+ * Count comment annotations that appear orphaned on the given worksheets.
+ *
+ * An annotation is considered orphaned when its row cannot be mapped to a valid object identifier (OID) in the sheet's used range. Comments tagged with "[Validation]" and sheets whose names start with "_" are excluded from the check.
+ *
+ * @param sheetNames - Names of worksheets to inspect for orphaned annotations
+ * @returns The number of comments considered orphaned. A comment is counted when the sheet's used range is missing or inaccessible, the comment's row lies outside the used range, or the first-column cell at the comment's row is empty or equals "variable name" (case-insensitive)
  */
 export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise<number> {
   let count = 0;
@@ -75,13 +80,12 @@ export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise
 }
 
 /**
- * Transactional Performance Engine
- * Consolidates clear and highlight operations into a single logical transaction wrapper.
- * Requirement 1: Unified transactional scope.
- * Requirement 2: Local cache instead of iterative host requests.
- * Requirement 3: Batched assignments.
- * Requirement 4: Automatic yielding.
- * Requirement 5: Collection-level deletion.
+ * Apply validation highlights and add validation comments across specified worksheets within a single transactional batch.
+ *
+ * Clears only system-generated validation comments and existing validation fill on the provided sheets, then highlights rows and adds `[Validation]`-prefixed comments for the supplied issues. All workbook mutations are queued and committed together to preserve an atomic update while periodically yielding to the event loop to keep the UI responsive.
+ *
+ * @param sheetNamesToClear - Names of worksheets whose previous validation fills and `[Validation]` comments should be removed.
+ * @param issuesToHighlight - Array of validation issues to highlight; each issue should include a sheet name and a row index or an OID to resolve the target row.
  */
 export async function applyValidationVisuals(
   sheetNamesToClear: string[],

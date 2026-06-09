@@ -31,6 +31,19 @@ export interface CrossFormDependency {
   message: string;
 }
 
+/**
+ * Validate a StudyDesign and produce a list of validation issues found across the schedule, CRF forms, rules, and cross-form dependencies.
+ *
+ * Performs structural checks (schedule and form references), per-item validations (variable names, codelists, numeric constraints, origins/methods, SDTM mapping), rule validation, and cross-form dependency analysis. If an active sheet filter is provided (and does not start with "_"), only issues for that sheet are returned.
+ *
+ * @param study - The study design to validate.
+ * @param activeSheetFilter - Optional sheet OID to restrict returned issues to a single form tab; system sheets (names starting with "_") are not filtered by this parameter.
+ * @param options - Optional execution controls:
+ *   - isExport: when true, missing cross-form targets are treated as errors rather than warnings;
+ *   - yieldControl: optional async callback that can be awaited to yield control during long-running validation;
+ *   - cancellationToken: optional token with isCancelled() used to abort validation early and return collected issues.
+ * @returns An array of ValidationIssue objects describing errors and warnings discovered in the provided study design.
+ */
 export async function validateStudyDesign(
   study: StudyDesign,
   activeSheetFilter?: string,
@@ -310,6 +323,19 @@ export async function validateStudyDesign(
   return issues;
 }
 
+/**
+ * Analyze expressions across the study to identify cross-form dependencies and related validation issues.
+ *
+ * Scans all forms, groups, items, and rules to resolve identifiers referenced in ShowIf, rule, and derivation/validation expressions,
+ * producing a list of `CrossFormDependency` records (with status/severity/message) and corresponding `ValidationIssue` entries
+ * for parse errors, broken references, unreachable or ambiguous cross-form references, and unsupported target types.
+ *
+ * @param study - The study design to analyze
+ * @param options.isExport - When true, unresolved identifiers are treated as `Error` instead of `Warning`
+ * @returns An object containing:
+ *  - `issues`: an array of `ValidationIssue` entries created during analysis (parse errors, broken references, unreachable/ambiguous dependencies, etc.)
+ *  - `dependencies`: an array of `CrossFormDependency` records describing each discovered cross-form reference and its status
+ */
 export function validateCrossFormDependencies(study: StudyDesign, options?: { isExport?: boolean }): {
   issues: ValidationIssue[];
   dependencies: CrossFormDependency[];
@@ -656,6 +682,14 @@ function isNumericDataType(dataType: unknown): boolean {
   return normalized === "integer" || normalized === "float";
 }
 
+/**
+ * Validates submission metadata and item mappings to determine release readiness.
+ *
+ * Checks central SDTM/ADaM dataset and derivation definitions for required fields, verifies per-item SDTM/ADaM mappings reference defined datasets and include required mapping fields, and confirms derived variables reference defined methods or derivations.
+ *
+ * @param study - The study design containing submission metadata, forms, and methods to validate
+ * @returns A list of validation issues found in submission metadata and item mappings
+ */
 export function validateSubmissionMetadataForRelease(study: StudyDesign): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
