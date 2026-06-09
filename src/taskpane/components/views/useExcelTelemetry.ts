@@ -6,6 +6,18 @@ import { useState, useEffect } from "react";
 import { isClinicalWorksheet, isCodelistColumn } from "../../core/utils/clinical-utils";
 import { EXCEL_COLUMNS, WORKSHEET_PREFIXES } from "../../core/constants";
 
+/**
+ * Exposes Excel worksheet and selection activity to drive telemetry and sidecar activation.
+ *
+ * Subscribes to workbook events (worksheet activation, selection change, and worksheet data changes),
+ * keeps `activeSheet` synchronized with the current worksheet name, sets `isCodelistActive` when the
+ * current selection matches the codelist context, and increments `telemetryTrigger` on relevant changes.
+ *
+ * @returns An object with:
+ * - `activeSheet` — the name of the currently active worksheet.
+ * - `isCodelistActive` — `true` when the current selection indicates the codelist sidecar should be active, `false` otherwise.
+ * - `telemetryTrigger` — a counter incremented to signal telemetry updates.
+ */
 export function useExcelTelemetry() {
   const [activeSheet, setActiveSheet] = useState<string>("_Study");
   const [isCodelistActive, setIsCodelistActive] = useState<boolean>(false);

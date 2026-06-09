@@ -23,6 +23,14 @@ const DEFAULT_FILTERS: StudyDiffFilters = {
   area: "all",
 };
 
+/**
+ * Convert a form diff entry into a study diff list entry for display.
+ *
+ * Converts the provided `FormDiffEntry` into a `StudyDiffListEntry` describing the form-level change; returns `null` for entries with operation `"unchanged"`.
+ *
+ * @param entry - Diff entry describing changes for a form
+ * @returns A `StudyDiffListEntry` representing the form change, or `null` if the entry is unchanged
+ */
 function toFormEntry(entry: FormDiffEntry): StudyDiffListEntry | null {
   if (entry.operation === "unchanged") return null;
   const snapshot = entry.current ?? entry.baseline;
@@ -79,6 +87,12 @@ function toCodelistEntry(entry: CodelistDiffEntry): StudyDiffListEntry | null {
   };
 }
 
+/**
+ * Convert a rule diff entry into a study diff list entry for display.
+ *
+ * @param entry - The rule diff entry to convert.
+ * @returns The corresponding StudyDiffListEntry, or `null` if the entry's operation is `"unchanged"`.
+ */
 function toRuleEntry(entry: RuleDiffEntry): StudyDiffListEntry | null {
   if (entry.operation === "unchanged") return null;
   return {
@@ -96,6 +110,14 @@ function toRuleEntry(entry: RuleDiffEntry): StudyDiffListEntry | null {
   };
 }
 
+/**
+ * Builds a flattened, post-processed list of study diff entries from a diff report.
+ *
+ * The result contains entries for forms, items, codelists, and rules (excluding unchanged entries),
+ * adjusted for detected moves/renames and sorted by `entry.key`.
+ *
+ * @returns An array of `StudyDiffListEntry` representing changed entities from the report, with moved/renamed adjustments applied and sorted by `key`.
+ */
 export function buildStudyDiffList(report: StudyDiffReport): StudyDiffListEntry[] {
   const entries = [
     ...report.forms.map(toFormEntry),

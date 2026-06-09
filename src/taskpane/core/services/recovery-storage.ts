@@ -222,6 +222,13 @@ export function readRecoverySnapshot({
   }
 }
 
+/**
+ * Indicates whether two workbook fingerprints differ by sheet count or sheet names.
+ *
+ * @param snapshot - Previously saved workbook fingerprint to compare.
+ * @param current - Current workbook fingerprint to compare against.
+ * @returns `true` if the fingerprints differ in sheet count or any sheet name at the same index, `false` otherwise.
+ */
 export function hasWorkbookChanged(
   snapshot?: WorkbookFingerprint,
   current?: WorkbookFingerprint
@@ -232,6 +239,11 @@ export function hasWorkbookChanged(
   return snapshot.sheetNames.some((name, index) => name !== current.sheetNames[index]);
 }
 
+/**
+ * Produce a workbook fingerprint containing the worksheet count and sorted worksheet names.
+ *
+ * @returns A `WorkbookFingerprint` object with `sheetCount` and `sheetNames`, or `undefined` if the Excel API is unavailable or fingerprint generation fails.
+ */
 export async function generateWorkbookFingerprint(): Promise<WorkbookFingerprint | undefined> {
   if (typeof Excel === "undefined") return undefined;
   try {
@@ -247,6 +259,13 @@ export async function generateWorkbookFingerprint(): Promise<WorkbookFingerprint
   }
 }
 
+/**
+ * Checks for a valid persisted recovery snapshot and indicates whether the current workbook differs from it.
+ *
+ * If no valid snapshot is found or storage is unavailable, this function returns `null`.
+ *
+ * @returns An object containing the persisted `snapshot` and `workbookChanged` — `true` if the current workbook fingerprint differs from the snapshot's fingerprint, `false` if it matches — or `null` when no valid snapshot exists.
+ */
 export async function detectRecoverableSnapshot(): Promise<{ snapshot: RecoverySnapshot; workbookChanged: boolean } | null> {
   const snapshot = readRecoverySnapshot();
   if (!snapshot) return null;
@@ -259,6 +278,27 @@ export async function detectRecoverableSnapshot(): Promise<{ snapshot: RecoveryS
   };
 }
 
+/**
+ * Start periodic persistence of recovery checkpoints and return a function to stop the interval.
+ *
+ * Periodically calls `paramsProvider()` to obtain checkpoint parameters; when the provided
+ * parameters include a `studySummary`, a recovery snapshot is created and persisted. If
+ * persistence fails due to localStorage quota limits, `onWarning` is invoked with a
+ * specific quota-exceeded message; if a checkpoint is saved successfully, `onWarning` is
+ * invoked with `null`.
+ *
+ * @param paramsProvider - A function that returns the checkpoint parameters:
+ *   - `issues`: validation issues to include in the snapshot
+ *   - `studySummary`: summary of the study design (required to create a snapshot)
+ *   - `activeSheet` (optional): current active sheet name (used to derive `openForm`)
+ *   - `currentFilter` (optional): current UI filter
+ *   - `workbookFingerprint` (optional): current workbook fingerprint
+ *   - `justifications` (optional): map of justification metadata
+ * @param onWarning - Callback invoked with a warning message string when a recoverable
+ *   problem occurs, or `null` to clear any previous warning.
+ * @param intervalMs - Interval in milliseconds between checkpoint saves (default: 30000).
+ * @returns A function that stops the periodic checkpoint sync when called.
+ */
 export function startCheckpointSync(
   paramsProvider: () => {
     issues: ValidationIssue[];
