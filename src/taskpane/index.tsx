@@ -15,9 +15,21 @@ const rootElement: HTMLElement | null = document.getElementById("container");
 const root = rootElement ? createRoot(rootElement) : undefined;
 
 /* Render application after Office initializes */
-Office.onReady(() => {
+Office.onReady(async () => {
   const hostLocale = Office.context.displayLanguage || "en-US";
   initLocale(hostLocale);
+
+  if (process.env.NODE_ENV !== "production" && window.location.search.includes("e2e=true")) {
+    const { runAllTests } = await import("./e2e-tests");
+    runAllTests();
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    const { speculativeSyncManager } = await import("./core/services/speculative-sync-service");
+    (window as any).automationHooks = {
+      speculativeSyncManager
+    };
+  }
 
   root?.render(
     <FluentProvider theme={webLightTheme}>
