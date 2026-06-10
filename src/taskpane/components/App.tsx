@@ -345,6 +345,16 @@ export const App: React.FC<{ title?: string }> = () => {
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [signOffTimestamp, setSignOffTimestamp] = useState<string | null>(null);
 
+  // Ref to hold the latest checkpoint data for stable callback
+  const checkpointDataRef = useRef({
+    issues,
+    studySummary,
+    activeSheet,
+    currentFilter,
+    workbookFingerprint,
+    justifications,
+  });
+
   // Revert sign-off if study changes
   useEffect(() => {
     if (isSignedOff) {
@@ -468,20 +478,26 @@ export const App: React.FC<{ title?: string }> = () => {
     void detectVersionUpdate();
   }, []);
 
+  // Update the ref whenever checkpoint data changes
+  useEffect(() => {
+    checkpointDataRef.current = {
+      issues,
+      studySummary,
+      activeSheet,
+      currentFilter,
+      workbookFingerprint,
+      justifications,
+    };
+  }, [issues, studySummary, activeSheet, currentFilter, workbookFingerprint, justifications]);
+
+  // Start checkpoint sync only once with a stable callback
   useEffect(() => {
     return startCheckpointSync(
-      () => ({
-        issues,
-        studySummary,
-        activeSheet,
-        currentFilter,
-        workbookFingerprint,
-        justifications,
-      }),
+      () => checkpointDataRef.current,
       (warning) => setStorageWarning(warning),
       30000
     );
-  }, [studySummary, issues, activeSheet, currentFilter, workbookFingerprint, justifications]);
+  }, []);
 
   const handleRestoreSnapshot = () => {
     if (!recoverySnapshot) return;

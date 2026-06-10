@@ -272,9 +272,14 @@ export async function detectRecoverableSnapshot(): Promise<{ snapshot: RecoveryS
 
   const currentFingerprint = await generateWorkbookFingerprint();
 
+  // If currentFingerprint is undefined (transient Excel/API failure), mark as unsafe for recovery
+  const workbookChanged = currentFingerprint === undefined
+    ? true
+    : hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint);
+
   return {
     snapshot,
-    workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
+    workbookChanged,
   };
 }
 
@@ -325,10 +330,15 @@ export function startCheckpointSync(
       justifications: params.justifications,
     });
     const saveResult = persistRecoverySnapshot(snapshot);
-    if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
-      onWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
-    } else if (saveResult.saved) {
+    if (saveResult.saved) {
       onWarning(null);
+    } else if ("reason" in saveResult) {
+      const reason = saveResult.reason === "quota-exceeded"
+        ? "localStorage quota exceeded"
+        : saveResult.reason === "storage-unavailable"
+        ? "storage unavailable"
+        : "unknown error";
+      onWarning(`Recovery checkpoint could not be saved (${reason}).`);
     }
   };
 

@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { StudyDiffListEntry, StudyDiffReport, DiffEntityGroup, DiffChangeClass, DiffSeverity } from "../types/diff";
 
 export const inferSeverity = (operation: "added" | "removed" | "modified"): DiffSeverity => {
@@ -7,13 +10,24 @@ export const inferSeverity = (operation: "added" | "removed" | "modified"): Diff
 };
 
 export const stableStringifyWithoutKeys = (value: unknown, omittedKeys: string[]): string => {
-  if (!value || typeof value !== "object") return "";
   const omit = new Set(omittedKeys);
-  const normalized = Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => !omit.has(key))
-      .sort(([left], [right]) => left.localeCompare(right))
-  );
+
+  const normalize = (val: unknown): unknown => {
+    if (val === null || val === undefined) return val;
+    if (typeof val !== "object") return val;
+    if (Array.isArray(val)) return val.map(normalize);
+
+    const obj = val as Record<string, unknown>;
+    const normalized = Object.fromEntries(
+      Object.entries(obj)
+        .filter(([key]) => !omit.has(key))
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, value]) => [key, normalize(value)])
+    );
+    return normalized;
+  };
+
+  const normalized = normalize(value);
   return JSON.stringify(normalized);
 };
 

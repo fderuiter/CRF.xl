@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 export const EXCEL_COLUMNS = {
   CODELIST_ID: 9
 };

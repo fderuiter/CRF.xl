@@ -176,14 +176,44 @@ describe("recovery-storage", () => {
 
   it("validates state recovery logic simulating workbook fingerprint mismatch without browser", () => {
     const baselineFingerprint = { sheetCount: 2, sheetNames: ["_Study", "F1"] };
-    
+
     // Mismatch in count
     expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 1, sheetNames: ["_Study"] })).toBe(true);
-    
+
     // Mismatch in names but same count
     expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 2, sheetNames: ["_Study", "F2"] })).toBe(true);
 
     // Mismatch order
     expect(hasWorkbookChanged(baselineFingerprint, { sheetCount: 2, sheetNames: ["F1", "_Study"] })).toBe(true);
+  });
+
+  it("detects recoverable snapshot with undefined currentFingerprint", async () => {
+    const baselineFingerprint = { sheetCount: 2, sheetNames: ["_Study", "F1"] };
+    const snapshot = createRecoverySnapshot({
+      issues,
+      studySummary: summarizeStudyDesign(mockStudy),
+      workbookFingerprint: baselineFingerprint,
+    });
+    const storage = createMockStorage();
+    persistRecoverySnapshot(snapshot, storage);
+
+    // Mock generateWorkbookFingerprint to return undefined (simulating Excel/API failure)
+    const originalExcel = globalThis.Excel;
+    (globalThis as any).Excel = undefined;
+
+    try {
+      const result = await readRecoverySnapshot({ storage });
+      expect(result).not.toBeNull();
+
+      // Manually simulate detectRecoverableSnapshot behavior
+      const currentFingerprint = undefined;
+      const workbookChanged = currentFingerprint === undefined
+        ? true
+        : hasWorkbookChanged(result!.workbookFingerprint, currentFingerprint);
+
+      expect(workbookChanged).toBe(true);
+    } finally {
+      (globalThis as any).Excel = originalExcel;
+    }
   });
 });

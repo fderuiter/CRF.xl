@@ -75,6 +75,79 @@ describe("clinical-utils", () => {
       expect(result[1].changeClass).toBe("moved_or_renamed");
       expect(result[1].severity).toBe("medium");
     });
+
+    it("detects moved or renamed with order-independent nested object matching", () => {
+      const reportWithNested: StudyDiffReport = {
+        baselineProtocolId: "B",
+        currentProtocolId: "C",
+        generatedAt: "",
+        metadataDiff: { operation: "unchanged" },
+        forms: [],
+        items: [
+          {
+            operation: "added",
+            formOid: "F1",
+            itemOid: "I2",
+            current: {
+              itemOid: "I2",
+              formOid: "F1",
+              name: "NestedItem",
+              type: "text",
+              metadata: { z: "last", a: "first", nested: { b: 2, a: 1 } }
+            } as any,
+          },
+          {
+            operation: "removed",
+            formOid: "F1",
+            itemOid: "I2_OLD",
+            baseline: {
+              itemOid: "I2_OLD",
+              formOid: "F1",
+              name: "NestedItem",
+              type: "text",
+              metadata: { a: "first", z: "last", nested: { a: 1, b: 2 } }
+            } as any,
+          }
+        ],
+        codelists: [],
+        rules: []
+      };
+
+      const entries: StudyDiffListEntry[] = [
+        {
+          id: "items:F1:I2",
+          group: "items",
+          key: "F1.I2",
+          title: "F1.I2",
+          subtitle: "NestedItem",
+          operation: "added",
+          changeClass: "added",
+          severity: "low",
+          subsystem: "Structure",
+          area: "F1",
+          changedFields: []
+        },
+        {
+          id: "items:F1:I2_OLD",
+          group: "items",
+          key: "F1.I2_OLD",
+          title: "F1.I2_OLD",
+          subtitle: "NestedItem",
+          operation: "removed",
+          changeClass: "removed",
+          severity: "high",
+          subsystem: "Structure",
+          area: "F1",
+          changedFields: []
+        }
+      ];
+
+      const result = detectMovedOrRenamed(entries, reportWithNested);
+      expect(result[0].changeClass).toBe("moved_or_renamed");
+      expect(result[0].severity).toBe("medium");
+      expect(result[1].changeClass).toBe("moved_or_renamed");
+      expect(result[1].severity).toBe("medium");
+    });
   });
 
   describe("isClinicalWorksheet", () => {
