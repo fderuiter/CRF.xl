@@ -32,7 +32,7 @@ export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise
     const commentLocations: { c: Excel.Comment, location: Excel.Range, sheet: Excel.Worksheet }[] = [];
     for (const sheet of sheetsToCheck) {
       for (const c of sheet.comments.items) {
-        if (c.content && c.content.includes("[Validation]")) {
+        if (c.content && /^\[Validation\]/.test(c.content)) {
           continue; // System-generated issues are not considered orphaned manual annotations
         }
         if (sheet.name.startsWith("_")) {
@@ -126,7 +126,7 @@ export async function applyValidationVisuals(
       if (sheet) {
         const usedRange = sheet.getUsedRangeOrNullObject();
         usedRange.load(["rowCount", "columnCount", "isNullObject", "values"]);
-        sheet.comments.load("items");
+        sheet.comments.load("items/content");
         cache.set(name, { sheet, usedRange, comments: sheet.comments });
       }
     }
@@ -153,7 +153,7 @@ export async function applyValidationVisuals(
 
       // Requirement 3: Only collect system-generated [Validation] comments for deletion, preserving manual user comments.
       state.comments.items
-        .filter((c) => c.content && c.content.includes("[Validation]"))
+        .filter((c) => c.content && /^\[Validation\]/.test(c.content))
         .forEach((c) => allComments.push(c));
     }
 
