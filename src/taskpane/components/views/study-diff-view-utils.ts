@@ -69,6 +69,12 @@ function toItemEntry(entry: ItemDiffEntry): StudyDiffListEntry | null {
   };
 }
 
+/**
+ * Converts a codelist diff record into a list entry suitable for the study-diff view.
+ *
+ * @param entry - The codelist diff record containing `baseline` and/or `current` snapshots, the diff `operation`, and optional `changedFields`.
+ * @returns The corresponding `StudyDiffListEntry` for display, or `null` if the entry's operation is `"unchanged"`.
+ */
 function toCodelistEntry(entry: CodelistDiffEntry): StudyDiffListEntry | null {
   if (entry.operation === "unchanged") return null;
   const snapshot = entry.current ?? entry.baseline;

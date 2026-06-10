@@ -179,6 +179,16 @@ export function dismissRecoverySnapshot(storage?: StorageLike): void {
   }
 }
 
+/**
+ * Reads and validates a persisted recovery snapshot from storage.
+ *
+ * Attempts to load, parse, and validate the snapshot stored under the recovery key.
+ * Invalid, corrupt, or expired snapshots are removed from storage before returning.
+ *
+ * @param now - Current timestamp in milliseconds used to evaluate snapshot age (defaults to Date.now()).
+ * @param ttlMs - Maximum allowed age for a snapshot in milliseconds; snapshots older than this are treated as expired.
+ * @returns The parsed `RecoverySnapshot` if present, structurally valid, and not expired; `null` otherwise.
+ */
 export function readRecoverySnapshot({
   storage,
   now = Date.now(),
@@ -223,11 +233,13 @@ export function readRecoverySnapshot({
 }
 
 /**
- * Indicates whether two workbook fingerprints differ by sheet count or sheet names.
+ * Determine whether two workbook fingerprints indicate the workbook's worksheets have changed.
  *
- * @param snapshot - Previously saved workbook fingerprint to compare.
- * @param current - Current workbook fingerprint to compare against.
- * @returns `true` if the fingerprints differ in sheet count or any sheet name at the same index, `false` otherwise.
+ * If either fingerprint is missing, no change is reported.
+ *
+ * @param snapshot - Previously saved workbook fingerprint (may be `undefined`).
+ * @param current - Current workbook fingerprint (may be `undefined`).
+ * @returns `true` if the fingerprints differ by sheet count or by any sheet name at the same index, `false` otherwise.
  */
 export function hasWorkbookChanged(
   snapshot?: WorkbookFingerprint,
@@ -284,23 +296,16 @@ export async function detectRecoverableSnapshot(): Promise<{ snapshot: RecoveryS
 }
 
 /**
- * Start periodic persistence of recovery checkpoints and return a function to stop the interval.
+ * Periodically persist recovery checkpoints using parameters supplied by a callback.
  *
- * Periodically calls `paramsProvider()` to obtain checkpoint parameters; when the provided
- * parameters include a `studySummary`, a recovery snapshot is created and persisted. If
- * persistence fails due to localStorage quota limits, `onWarning` is invoked with a
- * specific quota-exceeded message; if a checkpoint is saved successfully, `onWarning` is
- * invoked with `null`.
- *
- * @param paramsProvider - A function that returns the checkpoint parameters:
+ * @param paramsProvider - Returns checkpoint parameters:
  *   - `issues`: validation issues to include in the snapshot
- *   - `studySummary`: summary of the study design (required to create a snapshot)
- *   - `activeSheet` (optional): current active sheet name (used to derive `openForm`)
- *   - `currentFilter` (optional): current UI filter
- *   - `workbookFingerprint` (optional): current workbook fingerprint
- *   - `justifications` (optional): map of justification metadata
- * @param onWarning - Callback invoked with a warning message string when a recoverable
- *   problem occurs, or `null` to clear any previous warning.
+ *   - `studySummary`: summary of the study design; if `null` no snapshot is created
+ *   - `activeSheet` (optional): current active sheet name; if present and does not start with `_` it is used to set the snapshot `uiState.openForm`
+ *   - `currentFilter` (optional): current UI filter to store in the snapshot
+ *   - `workbookFingerprint` (optional): current workbook fingerprint to store with the snapshot
+ *   - `justifications` (optional): map of justification metadata to include in the snapshot
+ * @param onWarning - Callback invoked with a warning message when a checkpoint cannot be saved, or `null` to clear any previous warning.
  * @param intervalMs - Interval in milliseconds between checkpoint saves (default: 30000).
  * @returns A function that stops the periodic checkpoint sync when called.
  */
