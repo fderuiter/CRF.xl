@@ -17,11 +17,13 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { StudyDiffReport } from "../../core/types";
 import {
   DiffChangeClass,
   DiffEntityGroup,
   DiffSeverity,
+  StudyDiffReport,
+} from "../../core/types";
+import {
   buildStudyDiffList,
   filterStudyDiffList,
   paginateStudyDiffList,

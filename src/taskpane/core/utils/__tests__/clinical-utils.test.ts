@@ -1,3 +1,6 @@
+/**
+ * @issue #128
+ */
 import { inferSeverity, detectMovedOrRenamed, isClinicalWorksheet, isCodelistColumn } from "../clinical-utils";
 import { StudyDiffListEntry, StudyDiffReport } from "../../types/diff";
 
