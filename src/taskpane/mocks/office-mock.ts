@@ -1,3 +1,4 @@
+// @issue: 255
 export type ExcelCellValue = string | number | boolean;
 
 export class MockRange {
@@ -12,12 +13,20 @@ export class MockRange {
   load() {}
 
   get values(): ExcelCellValue[][] {
-    return this.sheet.rows.slice(this.rowStart, this.rowStart + this.rowCount);
+    return this.sheet.rows
+      .slice(this.rowStart, this.rowStart + this.rowCount)
+      .map(row => (row ? row.slice(this.colStart, this.colStart + this.colCount) : []));
   }
 
   set values(v: ExcelCellValue[][]) {
     for (let i = 0; i < v.length; i++) {
-      this.sheet.rows[this.rowStart + i] = v[i];
+      let rowIndex = this.rowStart + i;
+      if (!this.sheet.rows[rowIndex]) {
+        this.sheet.rows[rowIndex] = [];
+      }
+      for (let j = 0; j < this.colCount; j++) {
+        this.sheet.rows[rowIndex][this.colStart + j] = v[i][j];
+      }
     }
   }
 
@@ -79,7 +88,7 @@ export class MockWorksheet {
 
 export class OfficeMockEnvironment {
   private sheets = new Map<string, MockWorksheet>();
-  private namedItems = new Map<string, { isNullObject: boolean; delete: () => void }>();
+  private namedItems = new Map<string, { isNullObject: boolean; delete: () => void; reference?: any }>();
   private syncError?: Error;
 
   public get Excel() {
@@ -108,9 +117,10 @@ export class OfficeMockEnvironment {
               delete: () => {},
             };
           },
-          add: (name: string) => {
+          add: (name: string, reference?: any) => {
             self.namedItems.set(name, {
               isNullObject: false,
+              reference: reference,
               delete: () => self.namedItems.delete(name),
             });
           },
@@ -146,8 +156,8 @@ export class OfficeMockEnvironment {
     return sheet;
   }
 
-  public registerNamedItem(name: string) {
-    this.namedItems.set(name, { isNullObject: false, delete: () => this.namedItems.delete(name) });
+  public registerNamedItem(name: string, reference?: any) {
+    this.namedItems.set(name, { isNullObject: false, reference, delete: () => this.namedItems.delete(name) });
   }
 
   public setSyncError(error: Error) {
