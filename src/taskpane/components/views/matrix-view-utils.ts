@@ -91,7 +91,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
             items,
           };
         })
-        .filter((entry): entry is MatrixSearchEntry => entry !== null)
+        .filter((entry) => entry !== null) as MatrixSearchEntry[]
     );
 }
 

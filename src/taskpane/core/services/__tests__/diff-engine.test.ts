@@ -84,7 +84,6 @@ function makeMinimalStudy(overrides: Partial<StudyDesign> = {}): StudyDesign {
         ruleId: "RULE_001",
         ruleType: RuleType.VALIDATION,
         expression: "SEX IS NOT MISSING",
-        _sourceRowIndex: 1,
       },
     ],
     ...overrides,
@@ -320,7 +319,6 @@ describe("diffStudyDesigns – rules", () => {
       ruleId: "RULE_002",
       ruleType: RuleType.DERIVATION,
       expression: "AGE > 18",
-      _sourceRowIndex: 2,
     });
 
     const report = diffStudyDesigns(baseline, current);

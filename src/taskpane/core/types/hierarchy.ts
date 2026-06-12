@@ -133,7 +133,6 @@ export interface CrfDisplayBlock {
   nodeType: "display";
   displayType: "heading" | "instruction" | "separator";
   content: string;
-  _sourceRowIndex: number;
 }
 
 export interface CrfDisplayBlockElement

@@ -1,3 +1,4 @@
+import { SourceRegistry } from "../source-registry";
 /**
  * @issue #28
  */
@@ -116,7 +117,7 @@ describe("Clinical Validator Engine", () => {
 
   it("should throw an Error if an Item is missing a Variable Name", async () => {
     (mockStudy.forms["F1"].itemGroups[0].items[0] as any).itemOid = "";
-    (mockStudy.forms["F1"].itemGroups[0].items[0] as any).rowIndex = 7;
+    SourceRegistry.register(mockStudy.forms["F1"].itemGroups[0].items[0], { sourceRowIndex: 7 });
 
     const issues = await validateStudyDesign(mockStudy);
 
@@ -126,7 +127,7 @@ describe("Clinical Validator Engine", () => {
           level: "Error",
           message: "Missing Variable Name.",
           location: "F1 > Row 7",
-          rowIndex: 7,
+          sourceRowIndex: 7,
           sheetName: "F1",
         }),
       ])
@@ -136,7 +137,7 @@ describe("Clinical Validator Engine", () => {
   it("should throw an Error if Type is Codelist and ID is blank", async () => {
     mockStudy.forms["F1"].itemGroups[0].items[0].dataType = DataType.CODELIST;
     delete (mockStudy.forms["F1"].itemGroups[0].items[0] as any).codelistId;
-    (mockStudy.forms["F1"].itemGroups[0].items[0] as any).rowIndex = 2;
+    SourceRegistry.register(mockStudy.forms["F1"].itemGroups[0].items[0], { sourceRowIndex: 2 });
 
     const issues = await validateStudyDesign(mockStudy);
 
@@ -146,7 +147,7 @@ describe("Clinical Validator Engine", () => {
           level: "Error",
           message: "Type is Codelist, but ID is blank.",
           location: "Form 1 > Item 1",
-          rowIndex: 2,
+          sourceRowIndex: 2,
           sheetName: "F1",
         }),
       ])
@@ -158,7 +159,6 @@ describe("Clinical Validator Engine", () => {
       nodeType: "display",
       displayType: "instruction",
       content: "Complete all fields below.",
-      _sourceRowIndex: 2,
       itemOid: "IGNORED_DUPLICATE",
       codelistId: "MISSING_DICTIONARY",
       dataType: DataType.CODELIST,
@@ -168,17 +168,17 @@ describe("Clinical Validator Engine", () => {
 
     expect(
       issues.find(
-        (issue) => issue.rowIndex === 2 && issue.message.includes("Missing Variable Name")
+        (issue) => issue.sourceRowIndex === 2 && issue.message.includes("Missing Variable Name")
       )
     ).toBeUndefined();
     expect(
       issues.find(
-        (issue) => issue.rowIndex === 2 && issue.message.includes("Missing Codelist definition")
+        (issue) => issue.sourceRowIndex === 2 && issue.message.includes("Missing Codelist definition")
       )
     ).toBeUndefined();
     expect(
       issues.find(
-        (issue) => issue.rowIndex === 2 && issue.message.includes("Duplicate Variable Name")
+        (issue) => issue.sourceRowIndex === 2 && issue.message.includes("Duplicate Variable Name")
       )
     ).toBeUndefined();
   });
@@ -424,7 +424,7 @@ describe("Clinical Validator Engine", () => {
 
   it("should filter issues to the active CRF sheet only", async () => {
     (mockStudy.forms["F1"].itemGroups[0].items[0] as any).itemOid = "";
-    (mockStudy.forms["F1"].itemGroups[0].items[0] as any).rowIndex = 3;
+    SourceRegistry.register(mockStudy.forms["F1"].itemGroups[0].items[0], { sourceRowIndex: 3 });
     mockStudy.events[0].forms[0].formOid = "NON_EXISTENT_FORM";
 
     const issues = await validateStudyDesign(mockStudy, "F1");
@@ -436,7 +436,7 @@ describe("Clinical Validator Engine", () => {
 
   it("should not filter issues when active sheet is a system sheet", async () => {
     (mockStudy.forms["F1"].itemGroups[0].items[0] as any).itemOid = "";
-    (mockStudy.forms["F1"].itemGroups[0].items[0] as any).rowIndex = 3;
+    SourceRegistry.register(mockStudy.forms["F1"].itemGroups[0].items[0], { sourceRowIndex: 3 });
     mockStudy.events[0].forms[0].formOid = "NON_EXISTENT_FORM";
 
     const issues = await validateStudyDesign(mockStudy, "_Schedule");

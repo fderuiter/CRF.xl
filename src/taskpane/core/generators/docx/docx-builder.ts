@@ -55,7 +55,7 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
 }
 
 export function buildDocxDocument(study: StudyDesign): Document {
-  const sections = [];
+  const sections: any[] = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
   for (const event of study.events) {

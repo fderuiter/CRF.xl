@@ -1,3 +1,4 @@
+import { SourceRegistry } from "../source-registry";
 /**
  * @issue #28
  */
@@ -14,16 +15,17 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
     expression: string,
     ruleType: RuleType = RuleType.VALIDATION,
     target?: string,
-    rowIndex: number = 2
+    sourceRowIndex: number = 2
   ): RuleDefinition {
-    return {
+    const rule: any = {
       ruleId,
       ruleType,
       target,
       expression,
       ast: parseRuleExpression(expression),
-      _sourceRowIndex: rowIndex,
     };
+    SourceRegistry.register(rule, { sourceRowIndex });
+    return rule;
   }
 
   describe("Topological Sorting & Valid DAGs", () => {
@@ -146,7 +148,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(brokenError?.message).toBe(
         "Rule 'R_001' depends on rule 'R_999' which does not exist."
       );
-      expect(brokenError?.rowIndex).toBe(2);
+      expect(brokenError?.sourceRowIndex).toBe(2);
     });
 
     it("should verify valid variables and report unresolved references when StudyDesign is provided", async () => {
@@ -254,7 +256,7 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       expect(cycleIssue).toBeDefined();
       expect(cycleIssue?.level).toBe("Error");
       expect(cycleIssue?.location).toBe("Rule R_001");
-      expect(cycleIssue?.rowIndex).toBe(2);
+      expect(cycleIssue?.sourceRowIndex).toBe(2);
     });
   });
 });

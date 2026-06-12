@@ -111,7 +111,6 @@ export interface RuleDefinition {
   description?: string;
   ast?: ASTNode;
   parseError?: string; // If parsing failed, save the error message
-  _sourceRowIndex: number;
 }
 
 export class ParseError extends Error {

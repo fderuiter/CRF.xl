@@ -4,7 +4,7 @@
 import {
   StudyDesign,
   DataType,
-  CrfItem,
+  CrfItem, CrfFormElement,
   EventType,
   StudyEvent,
   isCrfDisplayBlock,
@@ -198,8 +198,8 @@ export async function parseRawDataToStudyDesign(
         await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
           runtime.throwIfStopped("items");
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
-          if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+          if (isCrfDisplayBlock(element as CrfFormElement) || (element as CrfItem).itemOid) {
+            targetGroup.items.push(element as CrfFormElement);
           }
         });
       }
@@ -246,8 +246,8 @@ export async function parseRawDataToStudyDesign(
         orderNumber: col,
         eventType: EventType.SCHEDULED,
         forms: [],
-        rowIndex: 0,
-      } as any;
+ 
+      };
 
       for (let row = 1; row < schedSheetVals.length; row++) {
         const formOid = String(schedSheetVals[row][0] || "").trim();

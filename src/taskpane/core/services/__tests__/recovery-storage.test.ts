@@ -74,7 +74,7 @@ describe("recovery-storage", () => {
       message: "Missing Variable Name.",
       location: "F1 > Row 2",
       sheetName: "F1",
-      rowIndex: 2,
+      sourceRowIndex: 2,
     },
     { level: "Warning", message: "Display warning", location: "F2 > X", sheetName: "F2" },
   ];

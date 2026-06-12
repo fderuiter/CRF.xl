@@ -133,14 +133,14 @@ export async function applyValidationVisuals(
         message: "Highlighting validation errors"
       });
       await processRowsInChunks(issuesToHighlight, rt, "items", (issue, index) => {
-        if (!issue.sheetName || issue.rowIndex === undefined) return;
+        if (!issue.sheetName || issue.sourceRowIndex === undefined) return;
         const state = cache.get(issue.sheetName);
         if (!state) return;
 
-        const rowRange = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 8);
+        const rowRange = state.sheet.getRangeByIndexes(issue.sourceRowIndex, 0, 1, 8);
         rowRange.format.fill.color = "#fee2e2"; // Tailwind red-100
 
-        const cell = state.sheet.getRangeByIndexes(issue.rowIndex, 0, 1, 1);
+        const cell = state.sheet.getRangeByIndexes(issue.sourceRowIndex, 0, 1, 1);
         try {
           state.comments.add(cell, issue.message);
         } catch (e) {

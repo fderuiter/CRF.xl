@@ -1,7 +1,7 @@
 /**
  * @issue #130, #85
  */
-import { CrfItem, DataType, EventType, StudyDesign, StudyEvent, isCrfDisplayBlock } from "../types";
+import { CrfItem, CrfFormElement, DataType, EventType, StudyDesign, StudyEvent, isCrfDisplayBlock } from "../types";
 import { mapRowToFormElement } from "./form-element-utils";
 import { migrateStudyDesign } from "./migration";
 import { parseReferencedVariables } from "./metadata-utils";
@@ -104,8 +104,8 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         for (let rowIndex = 0; rowIndex < crfRows.slice(1).length; rowIndex += 1) {
           const row = crfRows[rowIndex + 1];
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
-          if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+          if (isCrfDisplayBlock(element as CrfFormElement) || (element as CrfItem).itemOid) {
+            targetGroup.items.push(element as CrfFormElement);
           }
         }
       }
@@ -129,8 +129,8 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         orderNumber: col,
         eventType: EventType.SCHEDULED,
         forms: [],
-        rowIndex: 0,
-      } as any;
+ 
+      };
       for (let row = 1; row < scheduleRows.length; row += 1) {
         const formOid = String(scheduleRows[row][0]).trim();
         const marker = String(scheduleRows[row][col]).trim().toUpperCase();

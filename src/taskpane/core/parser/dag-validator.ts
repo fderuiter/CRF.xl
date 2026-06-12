@@ -1,3 +1,4 @@
+import { SourceRegistry } from "./source-registry";
 /**
  * @issue #138
  */
@@ -35,7 +36,7 @@ export interface RuleValidationError {
     | "DIVISION_BY_ZERO";
   cyclePath?: string[];
   actionableExplanation?: string;
-  rowIndex?: number;
+  sourceRowIndex?: number;
 }
 
 export interface RuleValidationResult {
@@ -211,7 +212,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
           ruleId: rule.ruleId,
           message: `Duplicate Rule ID: '${rule.ruleId}' is defined multiple times.`,
           type: "DUPLICATE_RULE_ID",
-          rowIndex: rule._sourceRowIndex,
+          sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
         });
       });
     }
@@ -245,7 +246,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
           ruleId: rule.ruleId,
           message: `Duplicate Derivation Target: Variable '${rule.target}' is derived by multiple rules: '${rule.ruleId}' and ${otherRuleIds}.`,
           type: "DUPLICATE_TARGET",
-          rowIndex: rule._sourceRowIndex,
+          sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
         });
       });
     }
@@ -259,7 +260,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
         ruleId: rule.ruleId,
         message: `Parse Error in rule '${rule.ruleId}': ${rule.parseError}`,
         type: "PARSE_ERROR",
-        rowIndex: rule._sourceRowIndex,
+        sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
       });
     }
   }
@@ -381,7 +382,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
           ruleId: rule.ruleId,
           message: `Rule '${rule.ruleId}' depends on rule '${ident}' which does not exist.`,
           type: "BROKEN_REFERENCE",
-          rowIndex: rule._sourceRowIndex,
+          sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
         });
         continue;
       }
@@ -402,7 +403,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
             ruleId: rule.ruleId,
             message: `Rule '${rule.ruleId}' references unresolved variable/dependency '${ident}'.`,
             type: "UNRESOLVED_VARIABLE",
-            rowIndex: rule._sourceRowIndex,
+            sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
           });
         }
       }
@@ -424,7 +425,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
           ruleId: rule.ruleId,
           message: `Rule '${rule.ruleId}' expression issue: ${diag.message}`,
           type: diag.type as any,
-          rowIndex: rule._sourceRowIndex,
+          sourceRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
         });
       });
     }
@@ -459,7 +460,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
     const stack: { nodeId: string, originRowIndex?: number, deps: string[], depIndex: number }[] = [];
     stack.push({
       nodeId: rule.ruleId,
-      originRowIndex: rule._sourceRowIndex,
+      originRowIndex: SourceRegistry.getSource(rule)?.sourceRowIndex,
       deps: dependencyMap[rule.ruleId] || [],
       depIndex: 0
     });
@@ -507,7 +508,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
                 type: "CYCLE",
                 cyclePath: rawCyclePath,
                 actionableExplanation: `Circular logic loop detected: ${details.join(", ")}. Please remove circular dependencies.`,
-                rowIndex: top.originRowIndex || rules.find((r) => r.ruleId === nextDep)?._sourceRowIndex,
+                sourceRowIndex: top.originRowIndex || (SourceRegistry.getSource(rules.find((r) => r.ruleId === nextDep))?.sourceRowIndex),
               });
             }
           }

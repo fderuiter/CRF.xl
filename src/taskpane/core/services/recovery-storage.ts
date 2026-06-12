@@ -32,7 +32,7 @@ export interface RecoveryIssue {
   level: ValidationIssue["level"];
   message: ValidationIssue["message"];
   location: ValidationIssue["location"];
-  rowIndex?: ValidationIssue["rowIndex"];
+  sourceRowIndex?: ValidationIssue["sourceRowIndex"];
   sheetName?: ValidationIssue["sheetName"];
 }
 
@@ -114,7 +114,7 @@ export function toRecoveryIssues(issues: ValidationIssue[]): RecoveryIssue[] {
     level: issue.level,
     message: issue.message,
     location: issue.location,
-    rowIndex: issue.rowIndex,
+    sourceRowIndex: issue.sourceRowIndex,
     sheetName: issue.sheetName,
   }));
 }

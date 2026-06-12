@@ -92,7 +92,7 @@ function createReport(): StudyDiffReport {
           ruleId: "RULE_002",
           ruleType: RuleType.DERIVATION,
           expression: "A+B",
-          _sourceRowIndex: 2,
+          
         },
       },
     ],

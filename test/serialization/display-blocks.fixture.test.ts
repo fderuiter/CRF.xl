@@ -20,19 +20,16 @@ describe("Display blocks fixture parsing", () => {
         nodeType: "display",
         displayType: "heading",
         content: "Demographics",
-        _sourceRowIndex: 2,
       }),
       expect.objectContaining({
         nodeType: "display",
         displayType: "instruction",
         content: "Complete all required fields below.",
-        _sourceRowIndex: 3,
       }),
       expect.objectContaining({
         nodeType: "display",
         displayType: "separator",
         content: "",
-        _sourceRowIndex: 5,
       }),
     ]);
   });

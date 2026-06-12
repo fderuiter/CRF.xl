@@ -112,7 +112,7 @@ export async function generateOdmXml(
               ruleType: RuleType.SHOW_IF,
               target: item.itemOid,
               expression: item.showIf,
-              _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
+               // Indicates it's not from a sheet row directly
             };
             try {
               syntheticRule.ast = parseRuleExpression(item.showIf);
@@ -137,7 +137,7 @@ export async function generateOdmXml(
             description: method.description,
             ruleType: RuleType.DERIVATION,
             expression: method.expression,
-            _sourceRowIndex: -1,
+            
           };
           try {
             syntheticRule.ast = parseRuleExpression(method.expression);
@@ -173,7 +173,7 @@ export async function generateOdmXml(
       diagnosticsLines.push("=== Export Diagnostic Report ===");
       diagnosticsLines.push("Best-Effort mode active. The following logic errors were ignored:");
       errors.forEach(e => {
-        diagnosticsLines.push(`- Rule '${e.ruleId}'${e.rowIndex && e.rowIndex > 0 ? ` (Row ${e.rowIndex})` : ""}: ${e.message}`);
+        diagnosticsLines.push(`- Rule '${e.ruleId}'${e.sourceRowIndex && e.sourceRowIndex > 0 ? ` (Row ${e.sourceRowIndex})` : ""}: ${e.message}`);
       });
     }
 

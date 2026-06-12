@@ -1,3 +1,4 @@
+import { SourceRegistry } from "./source-registry";
 /**
  * @issue #137
  */
@@ -632,8 +633,8 @@ export function parseRulesSheetRows(
       expression: rawExpr,
       errorMessage: msgIdx !== -1 && row[msgIdx] ? String(row[msgIdx]).trim() : undefined,
       description: descIdx !== -1 && row[descIdx] ? String(row[descIdx]).trim() : undefined,
-      _sourceRowIndex: i + 1,
-    };
+          };
+    SourceRegistry.register(definition, { sourceRowIndex: i + 1 });
 
     try {
       definition.ast = parseRuleExpression(rawExpr);

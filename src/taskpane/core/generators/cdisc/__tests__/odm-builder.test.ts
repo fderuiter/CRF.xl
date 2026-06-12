@@ -110,13 +110,11 @@ describe("CDISC ODM XML Builder", () => {
           ruleId: "RULE_A",
           ruleType: RuleType.VALIDATION,
           expression: "RULE_B == 1",
-          _sourceRowIndex: 2,
         },
         {
           ruleId: "RULE_B",
           ruleType: RuleType.VALIDATION,
           expression: "RULE_A == 1",
-          _sourceRowIndex: 3,
         },
       ];
 
@@ -134,13 +132,11 @@ describe("CDISC ODM XML Builder", () => {
           ruleId: "R1",
           ruleType: RuleType.VALIDATION,
           expression: "IT_WT > 0",
-          _sourceRowIndex: 2,
         },
         {
           ruleId: "R1",
           ruleType: RuleType.VALIDATION,
           expression: "IT_WT < 300",
-          _sourceRowIndex: 3,
         },
       ];
 
@@ -197,7 +193,6 @@ describe("CDISC ODM XML Builder", () => {
           target: "IT_WT",
           expression: "IT_WT > 0",
           errorMessage: "Weight must be positive",
-          _sourceRowIndex: 2,
         },
         {
           ruleId: "SHOW_WT",
@@ -205,7 +200,6 @@ describe("CDISC ODM XML Builder", () => {
           target: "IT_WT",
           expression: "IT_PREG == 'N'",
           description: "Show weight only if not pregnant",
-          _sourceRowIndex: 3,
         },
         {
           ruleId: "DERIVE_BMI",
@@ -213,7 +207,6 @@ describe("CDISC ODM XML Builder", () => {
           target: "IT_WT",
           expression: "WT / (HT * HT)",
           description: "Compute BMI from WT and HT",
-          _sourceRowIndex: 4,
         },
       ];
 
@@ -254,19 +247,16 @@ describe("CDISC ODM XML Builder", () => {
           ruleId: "RULE_A",
           ruleType: RuleType.VALIDATION,
           expression: "RULE_B == true",
-          _sourceRowIndex: 2,
         },
         {
           ruleId: "RULE_B",
           ruleType: RuleType.VALIDATION,
           expression: "RULE_C == true",
-          _sourceRowIndex: 3,
         },
         {
           ruleId: "RULE_C",
           ruleType: RuleType.VALIDATION,
           expression: "true",
-          _sourceRowIndex: 4,
         },
       ];
 
@@ -294,7 +284,6 @@ describe("CDISC ODM XML Builder", () => {
           ruleType: RuleType.DERIVATION,
           target: "IT_WT",
           expression: "150",
-          _sourceRowIndex: 2,
         },
       ];
 
@@ -314,7 +303,6 @@ describe("CDISC ODM XML Builder", () => {
           ruleType: RuleType.SHOW_IF,
           target: "IT_WT",
           expression: "1",
-          _sourceRowIndex: 2,
         },
       ];
 
@@ -334,7 +322,6 @@ describe("CDISC ODM XML Builder", () => {
           ruleType: RuleType.DERIVATION,
           target: "NONEXISTENT_VAR",
           expression: "100",
-          _sourceRowIndex: 2,
         },
       ];
 
@@ -407,7 +394,6 @@ describe("CDISC ODM XML Builder", () => {
           ruleType: RuleType.DERIVATION,
           target: "IT_WT",
           expression: "100",
-          _sourceRowIndex: 2,
         },
       ];
 

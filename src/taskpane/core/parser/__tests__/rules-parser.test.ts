@@ -319,7 +319,6 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       expression: "WT > 0 && WT < 300",
       errorMessage: "Weight out of range",
       description: "Verify weight is logical",
-      _sourceRowIndex: 2,
     });
     expect(rules[0].ast).toBeDefined();
     expect(rules[0].ast?.type).toBe("BinaryExpression");
@@ -330,7 +329,6 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       ruleType: RuleType.DERIVATION,
       target: "BMI",
       expression: "WT / (HT * HT)",
-      _sourceRowIndex: 3,
     });
 
     expect(rules[2]).toMatchObject({
@@ -338,7 +336,6 @@ describe("CRF.xl _Rules Sheet Ingestion", () => {
       ruleType: RuleType.SHOW_IF,
       target: "PREG",
       expression: "SEX == 'F'",
-      _sourceRowIndex: 4,
     });
   });
 

@@ -2,7 +2,9 @@
  * @issue #28
  */
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
+import { DataType, DataOrigin, SdtmCore, AdamCore } from "../types/enums";
 import { normalizeDataOrigin } from "./metadata-utils";
+import { SourceRegistry } from "./source-registry";
 
 export const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
 
@@ -24,7 +26,7 @@ export function isDisplayBlockType(value: unknown): value is CrfDisplayBlock["di
   return DISPLAY_BLOCK_TYPES.includes(
     String(value ?? "")
       .trim()
-      .toLowerCase() as any
+      .toLowerCase() as (typeof DISPLAY_BLOCK_TYPES)[number]
   );
 }
 
@@ -57,12 +59,12 @@ function mapRowToDisplayBlock(
   displayType: CrfDisplayBlock["displayType"],
   excelRowIndex: number
 ): Partial<CrfDisplayBlock> {
-  const block: CrfDisplayBlock = {
+  const block: Partial<CrfDisplayBlock> = {
     nodeType: "display",
     displayType,
     content: "",
-    _sourceRowIndex: excelRowIndex,
   };
+  SourceRegistry.register(block, { sourceRowIndex: excelRowIndex });
 
   headers.forEach((header, index) => {
     const value = row[index];
@@ -89,15 +91,13 @@ function mapRowToItem(
   formOid: string,
   excelRowIndex: number
 ): Partial<CrfItem> {
-  const item: any = {
+  const item: Partial<CrfItem> = {
     nodeType: "item",
     formOid,
     label: {},
     validation: { required: false },
-    sdtmMapping: {},
-    adamMapping: {},
-    rowIndex: excelRowIndex,
   };
+  SourceRegistry.register(item, { sourceRowIndex: excelRowIndex });
 
   headers.forEach((header, index) => {
     const value = row[index];
@@ -113,53 +113,62 @@ function mapRowToItem(
       normalizedHeader === "question / text" ||
       normalizedHeader === "question/text"
     ) {
+      if (!item.label) item.label = {};
       item.label["en-US"] = String(value);
     }
-    if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as any;
+    if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as DataType;
     if (normalizedHeader === "length") item.length = parseNumericMetadata(value);
     if (normalizedHeader === "significant digits" || normalizedHeader === "precision")
       item.significantDigits = parseNumericMetadata(value);
-    if (normalizedHeader === "required")
+    if (normalizedHeader === "required") {
+      if (!item.validation) item.validation = { required: false };
       item.validation.required = String(value).toLowerCase() === "yes";
+    }
     if (normalizedHeader === "require change reason" || normalizedHeader === "requirechangereason" || normalizedHeader === "audit threshold")
       item.requireChangeReason = String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "true";
     if (normalizedHeader === "show if") item.showIf = String(value);
     if (normalizedHeader === "codelist id") item.codelistId = String(value).trim().toUpperCase();
-    if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value);
+    if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value) as DataOrigin;
     if (normalizedHeader === "methodoid" || normalizedHeader === "method oid")
       item.methodOid = String(value).trim();
 
-    if (normalizedHeader === "sdtmdomain" || normalizedHeader === "sdtm domain")
-      item.sdtmMapping.domain = String(value).trim();
-    if (normalizedHeader === "sdtmvariable" || normalizedHeader === "sdtm variable")
-      item.sdtmMapping.variable = String(value).trim();
-    if (normalizedHeader === "sdtmncivariablecode" || normalizedHeader === "sdtm nci variable code")
-      item.sdtmMapping.nciVariableCode = String(value).trim();
-    if (normalizedHeader === "sdtmsasfieldname" || normalizedHeader === "sdtm sas field name")
-      item.sdtmMapping.sasFieldName = String(value).trim();
-    if (normalizedHeader === "sdtmsaslabel" || normalizedHeader === "sdtm sas label")
-      item.sdtmMapping.sasLabel = String(value).trim();
-    if (normalizedHeader === "sdtmsasdatasetname" || normalizedHeader === "sdtm sas dataset name")
-      item.sdtmMapping.sasDatasetName = String(value).trim();
-    if (normalizedHeader === "sdtmcore" || normalizedHeader === "sdtm core")
-      item.sdtmMapping.core = String(value).trim() as any;
-    if (normalizedHeader === "sdtmrole" || normalizedHeader === "sdtm role")
-      item.sdtmMapping.role = String(value).trim();
+    if (normalizedHeader.startsWith("sdtm")) {
+      if (!item.sdtmMapping) item.sdtmMapping = {} as import("../types/clinical").SdtmMapping;
+      if (normalizedHeader === "sdtmdomain" || normalizedHeader === "sdtm domain")
+        item.sdtmMapping!.domain = String(value).trim();
+      if (normalizedHeader === "sdtmvariable" || normalizedHeader === "sdtm variable")
+        item.sdtmMapping!.variable = String(value).trim();
+      if (normalizedHeader === "sdtmncivariablecode" || normalizedHeader === "sdtm nci variable code")
+        item.sdtmMapping!.nciVariableCode = String(value).trim();
+      if (normalizedHeader === "sdtmsasfieldname" || normalizedHeader === "sdtm sas field name")
+        item.sdtmMapping!.sasFieldName = String(value).trim();
+      if (normalizedHeader === "sdtmsaslabel" || normalizedHeader === "sdtm sas label")
+        item.sdtmMapping!.sasLabel = String(value).trim();
+      if (normalizedHeader === "sdtmsasdatasetname" || normalizedHeader === "sdtm sas dataset name")
+        item.sdtmMapping!.sasDatasetName = String(value).trim();
+      if (normalizedHeader === "sdtmcore" || normalizedHeader === "sdtm core")
+        item.sdtmMapping!.core = String(value).trim() as SdtmCore;
+      if (normalizedHeader === "sdtmrole" || normalizedHeader === "sdtm role")
+        item.sdtmMapping!.role = String(value).trim();
+    }
 
-    if (normalizedHeader === "adamdataset" || normalizedHeader === "adam dataset")
-      item.adamMapping.dataset = String(value).trim();
-    if (normalizedHeader === "adamvariable" || normalizedHeader === "adam variable")
-      item.adamMapping.variable = String(value).trim();
-    if (normalizedHeader === "adamncivariablecode" || normalizedHeader === "adam nci variable code")
-      item.adamMapping.nciVariableCode = String(value).trim();
-    if (normalizedHeader === "adamsasfieldname" || normalizedHeader === "adam sas field name")
-      item.adamMapping.sasFieldName = String(value).trim();
-    if (normalizedHeader === "adamsaslabel" || normalizedHeader === "adam sas label")
-      item.adamMapping.sasLabel = String(value).trim();
-    if (normalizedHeader === "adamcore" || normalizedHeader === "adam core")
-      item.adamMapping.core = String(value).trim();
-    if (normalizedHeader === "adamrole" || normalizedHeader === "adam role")
-      item.adamMapping.role = String(value).trim();
+    if (normalizedHeader.startsWith("adam")) {
+      if (!item.adamMapping) item.adamMapping = {} as import("../types/clinical").AdamMapping;
+      if (normalizedHeader === "adamdataset" || normalizedHeader === "adam dataset")
+        item.adamMapping!.dataset = String(value).trim();
+      if (normalizedHeader === "adamvariable" || normalizedHeader === "adam variable")
+        item.adamMapping!.variable = String(value).trim();
+      if (normalizedHeader === "adamncivariablecode" || normalizedHeader === "adam nci variable code")
+        item.adamMapping!.nciVariableCode = String(value).trim();
+      if (normalizedHeader === "adamsasfieldname" || normalizedHeader === "adam sas field name")
+        item.adamMapping!.sasFieldName = String(value).trim();
+      if (normalizedHeader === "adamsaslabel" || normalizedHeader === "adam sas label")
+        item.adamMapping!.sasLabel = String(value).trim();
+      if (normalizedHeader === "adamcore" || normalizedHeader === "adam core")
+        item.adamMapping!.core = String(value).trim() as AdamCore;
+      if (normalizedHeader === "adamrole" || normalizedHeader === "adam role")
+        item.adamMapping!.role = String(value).trim();
+    }
 
     if (normalizedHeader === "comment") item.comment = String(value).trim();
   });
