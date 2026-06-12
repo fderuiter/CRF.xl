@@ -128,7 +128,6 @@ function createMovedReport(): StudyDiffReport {
   const sharedRule = {
     ruleType: RuleType.DERIVATION,
     expression: "X*2",
-    _sourceRowIndex: 5,
   };
 
   return {

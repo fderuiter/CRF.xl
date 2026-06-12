@@ -435,6 +435,11 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
   const visiting = new Set<string>();
   const visited = new Set<string>();
   const cycles = new Set<string>(); // Tracks unique canonical cycle strings to prevent duplicates
+  
+  const ruleLookup = new Map<string, RuleDefinition>();
+  for (const r of rules) {
+    ruleLookup.set(r.ruleId, r);
+  }
 
   function getCanonicalCycleKey(path: string[]): string {
     const nodes = path.slice(0, -1);
@@ -496,7 +501,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
               for (let i = 0; i < rawCyclePath.length - 1; i++) {
                 const current = rawCyclePath[i];
                 const next = rawCyclePath[i + 1];
-                const ruleDef = rules.find((r) => r.ruleId === current);
+                const ruleDef = ruleLookup.get(current);
                 const targetStr = ruleDef && ruleDef.target ? ` (target: ${ruleDef.target})` : "";
                 details.push(`Rule '${current}'${targetStr} -> Rule '${next}'`);
               }
@@ -508,7 +513,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
                 type: "CYCLE",
                 cyclePath: rawCyclePath,
                 actionableExplanation: `Circular logic loop detected: ${details.join(", ")}. Please remove circular dependencies.`,
-                sourceRowIndex: top.originRowIndex || (SourceRegistry.getSource(rules.find((r) => r.ruleId === nextDep))?.sourceRowIndex),
+                sourceRowIndex: top.originRowIndex || SourceRegistry.getSource(ruleLookup.get(nextDep))?.sourceRowIndex || SourceRegistry.getSource(nextDep as any)?.sourceRowIndex,
               });
             }
           }

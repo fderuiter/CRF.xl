@@ -69,7 +69,7 @@ export async function validateStudyDesign(
           issues.push({
             level: "Error",
             message: "Missing Variable Name.",
-            location: `${sheet} > Row ${row}`,
+            location: `${sheet} > Row ${row ?? "unknown"}`,
             sourceRowIndex: row,
             sheetName: sheet,
           });
@@ -759,7 +759,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 issues.push({
                   level: "Error",
                   message: `SDTM variable '${item.sdtmMapping.variable}' is mapped but SDTM domain is missing.`,
-                  location: `${sheet} > Row ${row}`,
+                  location: `${sheet} > Row ${row ?? "unknown"}`,
                   sourceRowIndex: row,
                   sheetName: sheet,
                 });
@@ -767,7 +767,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 issues.push({
                   level: "Error",
                   message: `SDTM domain '${item.sdtmMapping.domain}' is mapped but SDTM variable name is missing.`,
-                  location: `${sheet} > Row ${row}`,
+                  location: `${sheet} > Row ${row ?? "unknown"}`,
                   sourceRowIndex: row,
                   sheetName: sheet,
                 });
@@ -779,7 +779,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -790,7 +790,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Core requiredness designation.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -799,7 +799,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Role designation.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -808,7 +808,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Field Name.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -817,7 +817,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Label.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -836,7 +836,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 issues.push({
                   level: "Error",
                   message: `ADaM variable '${item.adamMapping.variable}' is mapped but ADaM dataset is missing.`,
-                  location: `${sheet} > Row ${row}`,
+                  location: `${sheet} > Row ${row ?? "unknown"}`,
                   sourceRowIndex: row,
                   sheetName: sheet,
                 });
@@ -844,7 +844,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 issues.push({
                   level: "Error",
                   message: `ADaM dataset '${item.adamMapping.dataset}' is mapped but ADaM variable name is missing.`,
-                  location: `${sheet} > Row ${row}`,
+                  location: `${sheet} > Row ${row ?? "unknown"}`,
                   sourceRowIndex: row,
                   sheetName: sheet,
                 });
@@ -856,7 +856,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -867,7 +867,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Core requiredness designation.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -876,7 +876,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Role designation.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -885,7 +885,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Field Name.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -894,7 +894,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Label.`,
-                    location: `${sheet} > Row ${row}`,
+                    location: `${sheet} > Row ${row ?? "unknown"}`,
                     sourceRowIndex: row,
                     sheetName: sheet,
                   });
@@ -915,7 +915,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 issues.push({
                   level: "Error",
                   message: `Derived variable '${item.itemOid}' references undefined Method/Derivation OID '${item.methodOid}'.`,
-                  location: `${sheet} > Row ${row}`,
+                  location: `${sheet} > Row ${row ?? "unknown"}`,
                   sourceRowIndex: row,
                   sheetName: sheet,
                 });

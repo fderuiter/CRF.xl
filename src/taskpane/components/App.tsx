@@ -1034,7 +1034,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <ValidationLog
             issues={issues}
             isProcessing={isProcessing}
-            onNavigate={(i: any) => {
+            onNavigate={(i: ValidationIssue) => {
               const sheet = i.location?.includes("Events") ? "_Schedule" : i.sheetName;
               if (i.sourceRowIndex !== undefined && sheet) navigateToSource(sheet, i.sourceRowIndex);
             }}

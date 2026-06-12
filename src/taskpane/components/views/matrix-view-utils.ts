@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-import { StudyDesign, isCrfItem } from "../../core/types";
+import { StudyDesign, isCrfItem, DataType } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";
 
@@ -49,7 +49,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
       event.forms
         .slice()
         .sort((left, right) => left.orderNumber - right.orderNumber)
-        .map((formRef) => {
+        .map((formRef): MatrixSearchEntry | null => {
           const form = study.forms[formRef.formOid];
           if (!form) return null;
 
@@ -91,7 +91,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
             items,
           };
         })
-        .filter((entry) => entry !== null) as MatrixSearchEntry[]
+        .filter((entry): entry is MatrixSearchEntry => entry !== null)
     );
 }
 

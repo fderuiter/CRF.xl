@@ -1,10 +1,14 @@
+/**
+ * @issue #28
+ */
+
 export interface SourceMetadata {
     sourceRowIndex: number;
     sheetName?: string;
 }
 
 class Registry {
-    private map = new WeakMap<any, SourceMetadata>();
+    private map = new WeakMap<object, SourceMetadata>();
 
     register(item: any, metadata: SourceMetadata): void {
         if (item && typeof item === 'object') {

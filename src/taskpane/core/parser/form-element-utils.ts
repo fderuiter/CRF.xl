@@ -116,7 +116,15 @@ function mapRowToItem(
       if (!item.label) item.label = {};
       item.label["en-US"] = String(value);
     }
-    if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as DataType;
+    if (normalizedHeader === "variable type") {
+      const typeVal = String(value).trim();
+      const matchedType = Object.values(DataType).find(d => d.toLowerCase() === typeVal.toLowerCase());
+      if (matchedType) {
+        item.dataType = matchedType;
+      } else {
+        console.warn(`Invalid DataType value skipped: ${typeVal}`);
+      }
+    }
     if (normalizedHeader === "length") item.length = parseNumericMetadata(value);
     if (normalizedHeader === "significant digits" || normalizedHeader === "precision")
       item.significantDigits = parseNumericMetadata(value);
@@ -128,46 +136,57 @@ function mapRowToItem(
       item.requireChangeReason = String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "true";
     if (normalizedHeader === "show if") item.showIf = String(value);
     if (normalizedHeader === "codelist id") item.codelistId = String(value).trim().toUpperCase();
-    if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value) as DataOrigin;
+    if (normalizedHeader === "origin") {
+      const normalized = normalizeDataOrigin(value);
+      if (normalized) {
+        if (Object.values(DataOrigin).includes(normalized as DataOrigin)) {
+          item.origin = normalized as DataOrigin;
+        } else {
+          console.warn(`Invalid DataOrigin value skipped: ${normalized}`);
+        }
+      }
+    }
     if (normalizedHeader === "methodoid" || normalizedHeader === "method oid")
       item.methodOid = String(value).trim();
 
     if (normalizedHeader.startsWith("sdtm")) {
       if (!item.sdtmMapping) item.sdtmMapping = {} as import("../types/clinical").SdtmMapping;
+      const mapping = item.sdtmMapping;
       if (normalizedHeader === "sdtmdomain" || normalizedHeader === "sdtm domain")
-        item.sdtmMapping!.domain = String(value).trim();
+        mapping.domain = String(value).trim();
       if (normalizedHeader === "sdtmvariable" || normalizedHeader === "sdtm variable")
-        item.sdtmMapping!.variable = String(value).trim();
+        mapping.variable = String(value).trim();
       if (normalizedHeader === "sdtmncivariablecode" || normalizedHeader === "sdtm nci variable code")
-        item.sdtmMapping!.nciVariableCode = String(value).trim();
+        mapping.nciVariableCode = String(value).trim();
       if (normalizedHeader === "sdtmsasfieldname" || normalizedHeader === "sdtm sas field name")
-        item.sdtmMapping!.sasFieldName = String(value).trim();
+        mapping.sasFieldName = String(value).trim();
       if (normalizedHeader === "sdtmsaslabel" || normalizedHeader === "sdtm sas label")
-        item.sdtmMapping!.sasLabel = String(value).trim();
+        mapping.sasLabel = String(value).trim();
       if (normalizedHeader === "sdtmsasdatasetname" || normalizedHeader === "sdtm sas dataset name")
-        item.sdtmMapping!.sasDatasetName = String(value).trim();
+        mapping.sasDatasetName = String(value).trim();
       if (normalizedHeader === "sdtmcore" || normalizedHeader === "sdtm core")
-        item.sdtmMapping!.core = String(value).trim() as SdtmCore;
+        mapping.core = String(value).trim() as SdtmCore;
       if (normalizedHeader === "sdtmrole" || normalizedHeader === "sdtm role")
-        item.sdtmMapping!.role = String(value).trim();
+        mapping.role = String(value).trim();
     }
 
     if (normalizedHeader.startsWith("adam")) {
       if (!item.adamMapping) item.adamMapping = {} as import("../types/clinical").AdamMapping;
+      const adamMap = item.adamMapping;
       if (normalizedHeader === "adamdataset" || normalizedHeader === "adam dataset")
-        item.adamMapping!.dataset = String(value).trim();
+        adamMap.dataset = String(value).trim();
       if (normalizedHeader === "adamvariable" || normalizedHeader === "adam variable")
-        item.adamMapping!.variable = String(value).trim();
+        adamMap.variable = String(value).trim();
       if (normalizedHeader === "adamncivariablecode" || normalizedHeader === "adam nci variable code")
-        item.adamMapping!.nciVariableCode = String(value).trim();
+        adamMap.nciVariableCode = String(value).trim();
       if (normalizedHeader === "adamsasfieldname" || normalizedHeader === "adam sas field name")
-        item.adamMapping!.sasFieldName = String(value).trim();
+        adamMap.sasFieldName = String(value).trim();
       if (normalizedHeader === "adamsaslabel" || normalizedHeader === "adam sas label")
-        item.adamMapping!.sasLabel = String(value).trim();
+        adamMap.sasLabel = String(value).trim();
       if (normalizedHeader === "adamcore" || normalizedHeader === "adam core")
-        item.adamMapping!.core = String(value).trim() as AdamCore;
+        adamMap.core = String(value).trim() as AdamCore;
       if (normalizedHeader === "adamrole" || normalizedHeader === "adam role")
-        item.adamMapping!.role = String(value).trim();
+        adamMap.role = String(value).trim();
     }
 
     if (normalizedHeader === "comment") item.comment = String(value).trim();
