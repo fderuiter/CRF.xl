@@ -4,8 +4,15 @@
 /* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";
-import { buildCtImportPlan, executeCtImport, CtImportPlan, ConflictResolution } from "../ct-import-service";
+import {
+  buildCtImportPlan,
+  executeCtImport,
+  CtImportPlan,
+  ConflictResolution,
+} from "../ct-import-service";
 import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "../cdisc-ct-mapping-service";
+
+import { OfficeMockEnvironment } from "../../../mocks/office-mock";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Fixture helpers
@@ -21,73 +28,6 @@ function getMappedRows(): CrfCodelistsRow[] {
   const result = mapCdiscApiResponseToCrfCodelists(bundle);
   if (!result.ok) throw new Error("fixture mapping failed");
   return result.rows;
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Mock Excel.run — simulates a minimal Office.js environment
-// ──────────────────────────────────────────────────────────────────────────────
-
-interface MockSheet {
-  isNullObject: boolean;
-  protection: { protected: boolean };
-  rows: (string | number | boolean)[][];
-}
-
-function makeMockExcel(sheet: MockSheet | null) {
-  const mockContext = {
-    workbook: {
-      worksheets: {
-        getItemOrNullObject: (_name: string) => {
-          if (!sheet) {
-            return {
-              isNullObject: true,
-              load: () => {},
-            };
-          }
-          return {
-            isNullObject: false,
-            load: () => {},
-            protection: sheet.protection,
-            getUsedRange: () => ({
-              load: () => {},
-              values: sheet.rows,
-              rowCount: sheet.rows.length,
-              clear: (_clearType?: string) => {
-                // Simulate clearing rows beyond new data
-              },
-            }),
-            getRangeByIndexes: (
-              rowStart: number,
-              _colStart: number,
-              rowCount: number,
-              _colCount: number
-            ) => ({
-              load: () => {},
-              get values() {
-                return sheet.rows.slice(rowStart, rowStart + rowCount);
-              },
-              set values(v: (string | number | boolean)[][]) {
-                for (let i = 0; i < v.length; i++) {
-                  sheet.rows[rowStart + i] = v[i];
-                }
-              },
-              clear: (_clearType?: string) => {},
-            }),
-          };
-        },
-      },
-      names: {
-        getItemOrNullObject: () => ({
-          isNullObject: false,
-          delete: () => {},
-        }),
-        add: () => {},
-      },
-    },
-    sync: async () => {},
-  };
-
-  return async (fn: (ctx: typeof mockContext) => Promise<unknown>) => fn(mockContext);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -161,9 +101,7 @@ describe("ct-import-service", () => {
     it("returns conflict items with proper metadata for the UI", () => {
       const incomingRows = getMappedRows();
       const existingModified = incomingRows.map((r) =>
-        r.codelistId === "SEX"
-          ? { ...r, decode: "Modified decode", codelistVersion: "" }
-          : r
+        r.codelistId === "SEX" ? { ...r, decode: "Modified decode", codelistVersion: "" } : r
       );
 
       const plan = buildCtImportPlan(existingModified, incomingRows);
@@ -187,20 +125,22 @@ describe("ct-import-service", () => {
 
   // ── executeCtImport ────────────────────────────────────────────────────────
 
+  afterAll(() => {
+    delete (global as any).Excel;
+  });
+
   describe("executeCtImport", () => {
     it("imports all rows into an empty workbook and returns correct added count", async () => {
       const incomingRows = getMappedRows();
       const existingRows: CrfCodelistsRow[] = [];
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingRows, incomingRows);
       const summary = await executeCtImport(existingRows, plan, new Map());
@@ -215,15 +155,13 @@ describe("ct-import-service", () => {
     it("reports skipped count when all incoming rows are identical to existing", async () => {
       const incomingRows = getMappedRows();
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(incomingRows, incomingRows);
       const summary = await executeCtImport(incomingRows, plan, new Map());
@@ -242,15 +180,13 @@ describe("ct-import-service", () => {
         codelistVersion: "",
       }));
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingConflict, incomingRows);
       // Resolve ALL conflicts with "skip"
@@ -260,7 +196,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Everything that was in conflict should be skipped
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.skipped).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -273,15 +211,13 @@ describe("ct-import-service", () => {
         codelistVersion: "",
       }));
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingConflict, incomingRows);
       const resolutions = new Map<string, ConflictResolution>(
@@ -289,7 +225,9 @@ describe("ct-import-service", () => {
       );
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.updated).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -302,15 +240,13 @@ describe("ct-import-service", () => {
         codelistVersion: "",
       }));
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingConflict, incomingRows);
       const resolutions = new Map<string, ConflictResolution>(
@@ -319,7 +255,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Appended rows count as "added"
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.added).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -328,29 +266,14 @@ describe("ct-import-service", () => {
       const incomingRows = getMappedRows();
       const existingRows: CrfCodelistsRow[] = [];
 
-      // Mock Excel to throw on sheet access
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: async (fn: (ctx: unknown) => Promise<unknown>) => {
-          return fn({
-            workbook: {
-              worksheets: {
-                getItemOrNullObject: () => ({
-                  isNullObject: false,
-                  load: () => {},
-                  protection: { protected: false },
-                  getUsedRange: () => {
-                    throw new Error("Simulated Excel write failure");
-                  },
-                }),
-              },
-              names: { getItemOrNullObject: () => ({ isNullObject: true }), add: () => {} },
-            },
-            sync: async () => {
-              throw new Error("Simulated Excel write failure");
-            },
-          });
-        },
-      };
+      const env = new OfficeMockEnvironment();
+      const sheet = env.registerSheet("_Codelists", {
+        rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
+      });
+      sheet.setThrowOnGetUsedRange(new Error("Simulated Excel write failure"));
+      env.setSyncError(new Error("Simulated Excel write failure"));
+
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingRows, incomingRows);
       const summary = await executeCtImport(existingRows, plan, new Map());
@@ -364,15 +287,13 @@ describe("ct-import-service", () => {
       const incomingRows = getMappedRows();
       const existingRows: CrfCodelistsRow[] = [];
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: true }, // Protected sheet
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const plan = buildCtImportPlan(existingRows, incomingRows);
       const summary = await executeCtImport(existingRows, plan, new Map());
@@ -386,15 +307,13 @@ describe("ct-import-service", () => {
       const incomingRows = getMappedRows();
       const existingRows: CrfCodelistsRow[] = [];
 
-      const sheet: MockSheet = {
-        isNullObject: false,
+      const env = new OfficeMockEnvironment();
+      env.registerSheet("_Codelists", {
         protection: { protected: false },
         rows: [["Codelist ID", "Codelist Name", "Coded Value", "Decode"]],
-      };
+      });
 
-      (global as unknown as { Excel: { run: unknown } }).Excel = {
-        run: makeMockExcel(sheet),
-      };
+      (global as any).Excel = env.Excel;
 
       const progressCalls: { stage: string; completed: number; total: number }[] = [];
       const plan = buildCtImportPlan(existingRows, incomingRows);
