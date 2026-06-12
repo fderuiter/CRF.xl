@@ -10,6 +10,7 @@ export type ParsePhase =
   | "schedule"
   | "rules"
   | "methods"
+  | "validation"
   | "complete";
 
 export interface ParseProgressUpdate {

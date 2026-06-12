@@ -6,6 +6,7 @@
 import { StudyDesign } from "../types/index";
 import { ParseRuntimeOptions } from "./chunking-runtime";
 import { parseRawDataToStudyDesign } from "./parser-engine";
+import { WorkerRequest, WorkerResponse } from "../worker/protocol.types";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -135,27 +136,44 @@ function runInWorker(
     // Webpack 5 standard worker creation
     const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
 
+    function sendRequest(request: WorkerRequest) {
+      worker.postMessage(request);
+    }
+
     // Handle incoming messages
     worker.onmessage = (event: MessageEvent) => {
-      const { type, payload } = event.data;
+      const response = event.data as WorkerResponse;
 
-      if (type === "PROGRESS") {
-        if (options.onProgress) {
-          options.onProgress(payload);
+      switch (response.type) {
+        case "PROGRESS": {
+          if (options.onProgress) {
+            options.onProgress(response.payload);
+          }
+          // Proxy cancellation state to the worker
+          if (options.cancellationToken?.isCancelled()) {
+            sendRequest({ type: "CANCEL_PARSING" });
+          }
+          break;
         }
-        // Proxy cancellation state to the worker
-        if (options.cancellationToken?.isCancelled()) {
-          worker.postMessage({ type: "CANCEL_PARSING" });
+        case "SUCCESS": {
+          worker.terminate();
+          resolve(response.payload);
+          break;
         }
-      } else if (type === "SUCCESS") {
-        worker.terminate();
-        resolve(payload);
-      } else if (type === "ERROR") {
-        worker.terminate();
-        reject(new Error(payload));
-      } else if (type === "CANCELLED") {
-        worker.terminate();
-        reject(new Error("Parsing cancelled"));
+        case "ERROR": {
+          worker.terminate();
+          reject(new Error(response.payload));
+          break;
+        }
+        case "CANCELLED": {
+          worker.terminate();
+          reject(new Error("Parsing cancelled"));
+          break;
+        }
+        default: {
+          const _exhaustiveCheck: never = response;
+          break;
+        }
       }
     };
 
@@ -172,7 +190,7 @@ function runInWorker(
     };
 
     // Start parsing
-    worker.postMessage({
+    sendRequest({
       type: "START_PARSING",
       payload: {
         rawData,
