@@ -54,6 +54,7 @@ ctx.onmessage = async (event: MessageEvent) => {
         }
         sendResponse({ type: "PROGRESS", payload: { phase: "validation", completed: 0, total: 1, message: "Validating study design..." } });
         const validationIssues = await validateStudyDesign(studyDesign, undefined, workerOptions);
+        sendResponse({ type: "PROGRESS", payload: { phase: "validation", completed: 1, total: 1, message: "Validation complete." } });
         sendResponse({ type: "SUCCESS", payload: { studyDesign, validationIssues } });
       } catch (error) {
         if (isCancelled) {
