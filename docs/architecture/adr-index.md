@@ -110,6 +110,20 @@ For new decisions, copy the template at the bottom of this file.
 
 ---
 
+## ADR-008: Standardized RPC Framework and Worker Pool
+
+**Decision:** Adopt `comlink` to expose Web Workers as standard RPC services via a pre-warmed worker pool, replacing custom `postMessage` orchestration. `AbortSignal` is standardized for task cancellation.
+
+**Rationale:**
+- Custom `postMessage` protocol implementation is brittle and highly coupled to manual string-matching, increasing maintenance cost.
+- A pooled `comlink` architecture dramatically improves startup latency for background parsing operations (no worker spawn penalty) and isolates task lifecycle complexity.
+- Standardizing on standard `AbortSignal` across host and worker creates a uniform, predictable cancellation flow instead of passing ad-hoc cancellation tokens.
+
+**Status:** Active
+**Recorded:** 2026-06
+
+---
+
 ## Template for new ADRs
 
 ```markdown

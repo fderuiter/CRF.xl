@@ -1,62 +1,61 @@
-/* global Worker, self, MessageEvent, setTimeout */
-/**
- * @issue #28
- */
-
+import * as Comlink from 'comlink';
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
-import { ParseProgressUpdate } from "../parser/chunking-runtime";
+import { ParseProgressUpdate, ParseRuntimeOptions } from "../parser/chunking-runtime";
 import { validateStudyDesign } from "../parser/validator";
 
-const ctx: Worker = self as any;
+export class EngineWorker {
+  private isCancelled = false;
 
-ctx.onmessage = async (event: MessageEvent) => {
-  const { type, payload } = event.data;
+  public cancel() {
+    this.isCancelled = true;
+  }
 
-  if (type === "START_PARSING") {
-    const { rawData, options } = payload;
-    let isCancelled = false;
+  public async parse(
+    rawData: Record<string, any[][]>,
+    options: Omit<ParseRuntimeOptions, 'abortSignal' | 'onProgress' | 'yieldControl'>,
+    onProgress?: (update: ParseProgressUpdate) => void
+  ) {
+    this.isCancelled = false;
 
-    // We can't pass functions through postMessage, so we recreate the cancellation token and progress callbacks here
+    const abortController = new AbortController();
+
     const workerOptions = {
       ...options,
-      cancellationToken: {
-        isCancelled: () => isCancelled,
-      },
-      onProgress: (update: ParseProgressUpdate) => {
-        ctx.postMessage({ type: "PROGRESS", payload: update });
-      },
+      abortSignal: abortController.signal,
+      onProgress: onProgress,
       yieldControl: async () => {
-        // Simple cooperative yield to let the worker process incoming cancellation messages
+        // Yield control to let event loop process potential cancel calls
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        if (this.isCancelled) {
+          abortController.abort();
+        }
       },
     };
-
-    // A closure to handle cancellation messages while parsing is ongoing
-    const cancelListener = (e: MessageEvent) => {
-      if (e.data.type === "CANCEL_PARSING") {
-        isCancelled = true;
-      }
-    };
-    ctx.addEventListener("message", cancelListener);
 
     try {
       const studyDesign = await parseRawDataToStudyDesign(rawData, workerOptions);
-      if (isCancelled) {
-        ctx.postMessage({ type: "CANCELLED" });
-        return;
+      if (this.isCancelled) {
+        throw new Error("Parsing cancelled");
       }
-      ctx.postMessage({ type: "PROGRESS", payload: { phase: "validation", completed: 0, total: 1, message: "Validating study design..." } });
+      
+      if (onProgress) {
+        onProgress({ phase: "validation", completed: 0, total: 1, message: "Validating study design..." } as any);
+      }
+      
       const validationIssues = await validateStudyDesign(studyDesign, undefined, workerOptions);
-      ctx.postMessage({ type: "SUCCESS", payload: { studyDesign, validationIssues } });
-    } catch (error) {
-      if (isCancelled) {
-        ctx.postMessage({ type: "CANCELLED" });
-      } else {
-        const message = error instanceof Error ? error.message : String(error);
-        ctx.postMessage({ type: "ERROR", payload: message });
+      if (this.isCancelled) {
+        throw new Error("Parsing cancelled");
       }
-    } finally {
-      ctx.removeEventListener("message", cancelListener);
+
+      return { studyDesign, validationIssues };
+    } catch (e: any) {
+      if (this.isCancelled || e.message === "Parsing cancelled") {
+        throw new Error("Parsing cancelled");
+      }
+      throw e;
     }
   }
-};
+}
+
+Comlink.expose(new EngineWorker());
+

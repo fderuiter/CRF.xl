@@ -19,14 +19,11 @@ export interface ParseProgressUpdate {
   message: string;
 }
 
-export interface ParseCancellationToken {
-  isCancelled: () => boolean;
-}
 
 export interface ParseRuntimeOptions {
   chunkSize?: number;
   timeoutMs?: number;
-  cancellationToken?: ParseCancellationToken;
+  abortSignal?: AbortSignal;
   onProgress?: (update: ParseProgressUpdate) => void;
   yieldControl?: () => Promise<void>;
 }
@@ -47,7 +44,7 @@ export function createParseRuntime(options: ParseRuntimeOptions = {}): ParseRunt
   const startTime = Date.now();
 
   const throwIfStopped = (phase: ParsePhase): void => {
-    if (options.cancellationToken?.isCancelled()) {
+    if (options.abortSignal?.aborted) {
       throw new Error(`Parsing cancelled during ${phase}`);
     }
 

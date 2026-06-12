@@ -33,7 +33,7 @@ export interface CrossFormDependency {
 export async function validateStudyDesign(
   study: StudyDesign,
   activeSheetFilter?: string,
-  options?: { isExport?: boolean, yieldControl?: () => Promise<void>, cancellationToken?: { isCancelled: () => boolean } }
+  options?: { isExport?: boolean, yieldControl?: () => Promise<void>, abortSignal?: AbortSignal }
 ): Promise<ValidationIssue[]> {
   let issues: ValidationIssue[] = [];
 
@@ -265,9 +265,9 @@ export async function validateStudyDesign(
 
   // 3. Validate Rules (_Rules sheet)
   if (study.rules && study.rules.length > 0) {
-    if (options?.cancellationToken?.isCancelled?.()) return issues;
+    if (options?.abortSignal?.aborted) return issues;
     const rulesResult = await validateRules(study.rules, study, options);
-    if (options?.cancellationToken?.isCancelled?.()) return issues;
+    if (options?.abortSignal?.aborted) return issues;
     rulesResult.errors.forEach((err) => {
       issues.push({
         level: err.level,

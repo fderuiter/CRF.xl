@@ -180,7 +180,7 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void>, cancellationToken?: { isCancelled: () => boolean } }): Promise<RuleValidationResult> {
+export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void>, abortSignal?: AbortSignal }): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -328,7 +328,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
   }
 
   for (let i = 0; i < validRules.length; i++) {
-    if (options?.cancellationToken?.isCancelled?.()) {
+    if (options?.abortSignal?.aborted) {
       break;
     }
     const rule = validRules[i];
@@ -451,7 +451,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
   let dfsIterations = 0;
 
   for (const rule of validRules) {
-    if (options?.cancellationToken?.isCancelled?.()) {
+    if (options?.abortSignal?.aborted) {
       break;
     }
     if (visited.has(rule.ruleId)) continue;

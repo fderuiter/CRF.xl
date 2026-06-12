@@ -23,7 +23,7 @@ class BackgroundValidationEngine {
   };
   private subscribers: Set<Subscriber> = new Set();
   private validationTimeout: number | null = null;
-  private currentCancellationToken: { cancel: () => void } | null = null;
+  private abortController: AbortController | null = null;
   private latestSheetFilter: string | undefined = undefined;
 
   public subscribe(callback: Subscriber) {
@@ -68,16 +68,12 @@ class BackgroundValidationEngine {
   }
 
   private async runValidation(sheetFilter?: string) {
-    if (this.currentCancellationToken) {
-      this.currentCancellationToken.cancel();
+    if (this.abortController) {
+      this.abortController.abort();
     }
 
-    let cancelled = false;
-    this.currentCancellationToken = {
-      cancel: () => {
-        cancelled = true;
-      },
-    };
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
 
     this.state = {
       ...this.state,
@@ -90,11 +86,9 @@ class BackgroundValidationEngine {
       const result = await parseExcelToStudyDesign({
         chunkSize: 250,
         timeoutMs: 45000,
-        cancellationToken: {
-          isCancelled: () => cancelled,
-        },
+        abortSignal: signal,
         onProgress: (progress) => {
-          if (cancelled) return;
+          if (signal.aborted) return;
           this.state = {
             ...this.state,
             status: `Analyzing: ${progress.message} (${progress.completed}/${progress.total})`,
@@ -103,7 +97,7 @@ class BackgroundValidationEngine {
         },
       });
 
-      if (cancelled) return;
+      if (signal.aborted) return;
 
       const freshStudy = result.studyDesign;
       let validationIssues = result.validationIssues;
@@ -122,7 +116,7 @@ class BackgroundValidationEngine {
       };
       this.notify();
     } catch (e) {
-      if (cancelled) return;
+      if (signal.aborted) return;
       this.state = {
         ...this.state,
         isProcessing: false,

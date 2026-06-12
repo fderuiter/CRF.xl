@@ -43,6 +43,7 @@
     "@fluentui/react-icons": "^2.0.264",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/pdfmake": "^0.3.3",
+    "comlink": "^4.4.2",
     "core-js": "^3.36.0",
     "crypto-js": "^4.2.0",
     "docx": "^9.6.1",

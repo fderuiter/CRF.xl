@@ -30,10 +30,10 @@ describe("chunking runtime", () => {
   });
 
   it("emits cancellation and timeout errors from runtime checks", () => {
+    const abortController = new AbortController();
+    abortController.abort();
     const cancelledRuntime = createParseRuntime({
-      cancellationToken: {
-        isCancelled: () => true,
-      },
+      abortSignal: abortController.signal,
     });
     expect(() => cancelledRuntime.throwIfStopped("items")).toThrow(
       "Parsing cancelled during items"

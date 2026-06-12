@@ -5,6 +5,8 @@
 
 import { StudyDesign } from "../types/index";
 import { ParseRuntimeOptions } from "./chunking-runtime";
+import * as Comlink from "comlink";
+import type { EngineWorker } from "../worker/engine.worker";
 import { parseRawDataToStudyDesign } from "./parser-engine";
 
 export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
@@ -52,7 +54,7 @@ async function fetchRawDataFromExcel(
 
     for (const sheet of sheets.items) {
       // Check cancellation during setup
-      if (options.cancellationToken?.isCancelled()) {
+      if (options.abortSignal?.aborted) {
         throw new Error("Parsing cancelled during Excel extraction");
       }
       const range = sheet.getUsedRangeOrNullObject();
@@ -85,7 +87,7 @@ async function fetchRawDataFromExcel(
       const sheetData: any[][] = [];
 
       for (let i = 0; i < rows; i += PAGE_SIZE) {
-        if (options.cancellationToken?.isCancelled()) {
+        if (options.abortSignal?.aborted) {
           throw new Error("Parsing cancelled during Excel extraction");
         }
 
@@ -127,57 +129,87 @@ async function fetchRawDataFromExcel(
   });
 }
 
-function runInWorker(
+class WorkerPool {
+  private workers: { worker: Worker; proxy: Comlink.Remote<EngineWorker>; isBusy: boolean }[] = [];
+  private readonly maxSize: number;
+  private queue: ((workerItem: { worker: Worker; proxy: Comlink.Remote<EngineWorker>; isBusy: boolean }) => void)[] = [];
+
+  constructor(maxSize = 3) {
+    this.maxSize = maxSize;
+  }
+
+  async getWorker(): Promise<{ worker: Worker; proxy: Comlink.Remote<EngineWorker>; isBusy: boolean }> {
+    let available = this.workers.find((w) => !w.isBusy);
+    if (available) {
+      available.isBusy = true;
+      return available;
+    }
+
+    if (this.workers.length < this.maxSize) {
+      const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
+      const proxy = Comlink.wrap<EngineWorker>(worker);
+      const newWorkerItem = { worker, proxy, isBusy: true };
+      this.workers.push(newWorkerItem);
+      return newWorkerItem;
+    }
+
+    return new Promise((resolve) => {
+      this.queue.push(resolve);
+    });
+  }
+
+  releaseWorker(workerItem: { isBusy: boolean }) {
+    if (this.queue.length > 0) {
+      const resolve = this.queue.shift()!;
+      resolve(workerItem as any);
+    } else {
+      workerItem.isBusy = false;
+    }
+  }
+}
+
+const pool = new WorkerPool(3);
+
+async function runInWorker(
   rawData: Record<string, any[][]>,
   options: ParseExcelToStudyDesignOptions
 ): Promise<{ studyDesign: StudyDesign; validationIssues: import("../parser/validator").ValidationIssue[] }> {
-  return new Promise((resolve, reject) => {
-    // Webpack 5 standard worker creation
-    const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
+  const workerItem = await pool.getWorker();
 
-    // Handle incoming messages
-    worker.onmessage = (event: MessageEvent) => {
-      const { type, payload } = event.data;
+  const serializableOptions = {
+    chunkSize: options.chunkSize,
+    timeoutMs: options.timeoutMs,
+    allowPartialSheetFailures: options.allowPartialSheetFailures,
+  };
 
-      if (type === "PROGRESS") {
-        if (options.onProgress) {
-          options.onProgress(payload);
-        }
-        // Proxy cancellation state to the worker
-        if (options.cancellationToken?.isCancelled()) {
-          worker.postMessage({ type: "CANCEL_PARSING" });
-        }
-      } else if (type === "SUCCESS") {
-        worker.terminate();
-        resolve(payload);
-      } else if (type === "ERROR") {
-        worker.terminate();
-        reject(new Error(payload));
-      } else if (type === "CANCELLED") {
-        worker.terminate();
-        reject(new Error("Parsing cancelled"));
-      }
-    };
+  let progressProxy: any = undefined;
+  if (options.onProgress) {
+    progressProxy = Comlink.proxy(options.onProgress);
+  }
 
-    worker.onerror = (error) => {
-      worker.terminate();
-      reject(error);
-    };
+  const onAbort = () => {
+    workerItem.proxy.cancel();
+  };
 
-    // Serialize options (without functions) to pass to worker
-    const serializableOptions = {
-      chunkSize: options.chunkSize,
-      timeoutMs: options.timeoutMs,
-      allowPartialSheetFailures: options.allowPartialSheetFailures,
-    };
+  if (options.abortSignal) {
+    options.abortSignal.addEventListener("abort", onAbort);
+    if (options.abortSignal.aborted) {
+      onAbort();
+    }
+  }
 
-    // Start parsing
-    worker.postMessage({
-      type: "START_PARSING",
-      payload: {
-        rawData,
-        options: serializableOptions,
-      },
-    });
-  });
+  try {
+    const result = await workerItem.proxy.parse(rawData, serializableOptions, progressProxy);
+    return result;
+  } catch (err: any) {
+    throw err;
+  } finally {
+    if (options.abortSignal) {
+      options.abortSignal.removeEventListener("abort", onAbort);
+    }
+    if (progressProxy) {
+      progressProxy[Comlink.releaseProxy]();
+    }
+    pool.releaseWorker(workerItem);
+  }
 }
