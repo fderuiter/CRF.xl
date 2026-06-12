@@ -1,3 +1,6 @@
+/**
+ * @issue #254
+ */
 import * as Comlink from 'comlink';
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ParseProgressUpdate, ParseRuntimeOptions } from "../parser/chunking-runtime";
@@ -39,7 +42,7 @@ export class EngineWorker {
       }
       
       if (onProgress) {
-        onProgress({ phase: "validation", completed: 0, total: 1, message: "Validating study design..." } as any);
+        onProgress({ phase: "validation", completed: 0, total: 1, message: "Validating study design..." });
       }
       
       const validationIssues = await validateStudyDesign(studyDesign, undefined, workerOptions);

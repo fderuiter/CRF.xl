@@ -201,8 +201,6 @@ async function runInWorker(
   try {
     const result = await workerItem.proxy.parse(rawData, serializableOptions, progressProxy);
     return result;
-  } catch (err: any) {
-    throw err;
   } finally {
     if (options.abortSignal) {
       options.abortSignal.removeEventListener("abort", onAbort);
