@@ -29,16 +29,22 @@ export function filterDictionaries(
     return dictionary.items.some(
       (item) =>
         item.codedValue.toLowerCase().includes(normalizedSearchTerm) ||
-        item.decode.toLowerCase().includes(normalizedSearchTerm)
+        Object.values(item.decodedText).some((t) => t.toLowerCase().includes(normalizedSearchTerm))
     );
   });
 }
 
-export function getDictionaryPreview(items: CodelistItem[], limit = 3): DictionaryPreview {
+export function getDictionaryPreview(
+  items: CodelistItem[],
+  locale: string,
+  defaultLocale: string,
+  limit = 3
+): DictionaryPreview {
   return {
-    previewItems: items
-      .slice(0, limit)
-      .map((item) => (item.decode ? `${item.codedValue} = ${item.decode}` : item.codedValue)),
+    previewItems: items.slice(0, limit).map((item) => {
+      const translation = item.decodedText[locale] || item.decodedText[defaultLocale] || Object.values(item.decodedText)[0] || "";
+      return translation ? `${item.codedValue} = ${translation}` : item.codedValue;
+    }),
     overflowCount: Math.max(items.length - limit, 0),
   };
 }

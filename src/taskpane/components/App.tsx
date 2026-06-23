@@ -984,6 +984,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <DictionarySidecar
             selectedLanguage={selectedLanguage || study?.metadata.defaultLanguage || "en-US"}
             defaultLanguage={study?.metadata.defaultLanguage || "en-US"}
+            supportedLanguages={study?.metadata.supportedLanguages}
           />
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
