@@ -15,6 +15,7 @@ import {
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
 import { LinguisticService } from "../../services/linguistics-service";
+import { isTranslationUnit } from "../../models/multilingual-model";
 
 /**
  * Error thrown when rules pre-serialization validation fails.
@@ -654,7 +655,8 @@ function renderTranslatedText(text: TranslatedText): string {
   let output = "";
   Object.entries(text).forEach(([lang, val]) => {
     const normLang = LinguisticService.normalizeLocale(lang);
-    output += `<TranslatedText xml:lang="${normLang}">${escapeXml(val as string)}</TranslatedText>`;
+    const stringValue = isTranslationUnit(val) ? val.value : (val as string);
+    output += `<TranslatedText xml:lang="${normLang}">${escapeXml(stringValue)}</TranslatedText>`;
   });
   return output;
 }

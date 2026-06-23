@@ -81,6 +81,8 @@ import { TabList, Tab } from "@fluentui/react-components";
 import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
 import { IntegrityHubView } from "./views/IntegrityHubView";
+import { TranslationManagerView } from "./views/TranslationManagerView";
+import { persistTranslation } from "../core/services/translation-persistence-service";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
 
@@ -928,6 +930,7 @@ export const App: React.FC<{ title?: string }> = () => {
           style={{ marginBottom: "12px" }}
         >
           <Tab value="design">Design</Tab>
+          <Tab value="translations">Translations</Tab>
           <Tab value="compliance">Compliance</Tab>
           <Tab value="integrity">Integrity Hub</Tab>
         </TabList>
@@ -984,6 +987,29 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
+        {activeTab === "translations" && (
+          <TranslationManagerView
+            study={study}
+            onUpdateStudy={(updatedStudy) => {
+               backgroundValidationEngine.updateState(() => ({ study: updatedStudy }));
+            }}
+            onUpdateTranslation={async (item, locale, unit) => {
+              setAppIsProcessing(true);
+              setAppStatus(`Saving translation for ${locale}...`);
+              try {
+                await persistTranslation(item, locale, unit);
+                setAppStatus("Translation saved");
+                // Trigger re-validation to refresh study state
+                backgroundValidationEngine.triggerValidation(undefined, 0);
+              } catch (e) {
+                setAppStatus("Failed to save translation");
+                console.error(e);
+              } finally {
+                setAppIsProcessing(false);
+              }
+            }}
+          />
+        )}
         {activeTab === "integrity" && (
           <IntegrityHubView
             issues={issues}
