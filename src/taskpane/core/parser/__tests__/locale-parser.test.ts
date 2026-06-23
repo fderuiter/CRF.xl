@@ -1,3 +1,6 @@
+/**
+ * @issue #40
+ */
 import { parseRawDataToStudyDesign } from "../parser-engine";
 import { DataType } from "../../types";
 
