@@ -6,6 +6,7 @@
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#273` | Implement Standardized Accessible Framework and semantic exports | Present | [`src/taskpane/components/ui/InteractiveElement.tsx`](../../src/taskpane/components/ui/InteractiveElement.tsx) |
 | `#139` | [Feature] ODM Serialization for ConditionDef and MethodDef | Present | [`src/taskpane/core/generators/cdisc/odm-builder.ts`](../../src/taskpane/core/generators/cdisc/odm-builder.ts) |
 | `#138` | [Feature] DAG Topological Sort & Cycle Detection Validator | Present | [`src/taskpane/core/parser/dag-validator.ts`](../../src/taskpane/core/parser/dag-validator.ts) |
 | `#137` | [Feature] Rules Parser & AST Generator | Present | [`src/taskpane/core/parser/excel-parser.ts`](../../src/taskpane/core/parser/excel-parser.ts)<br>[`src/taskpane/core/parser/rules-parser.ts`](../../src/taskpane/core/parser/rules-parser.ts) |
