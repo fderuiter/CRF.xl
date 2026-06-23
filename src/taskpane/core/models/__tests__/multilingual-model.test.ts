@@ -1,5 +1,5 @@
 /**
- * @issue #182
+ * @issue #28
  */
 import {
   getTranslationValue,

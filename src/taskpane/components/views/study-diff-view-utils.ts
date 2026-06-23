@@ -8,6 +8,7 @@ import {
   RuleDiffEntry,
   StudyDiffReport,
 } from "../../core/types";
+import { isTranslationUnit } from "../../core/models/multilingual-model";
 
 export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
 export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";
@@ -81,12 +82,17 @@ function toFormEntry(entry: FormDiffEntry): StudyDiffListEntry | null {
 function toItemEntry(entry: ItemDiffEntry): StudyDiffListEntry | null {
   if (entry.operation === "unchanged") return null;
   const snapshot = entry.current ?? entry.baseline;
+  let subtitle = "Unnamed item";
+  if (snapshot) {
+    const label = snapshot.label?.["en-US"];
+    subtitle = isTranslationUnit(label) ? label.value : label || snapshot.name || subtitle;
+  }
   return {
     id: `items:${entry.formOid}:${entry.itemOid}`,
     group: "items",
     key: `${entry.formOid}.${entry.itemOid}`,
     title: `${entry.formOid}.${entry.itemOid}`,
-    subtitle: snapshot?.label?.["en-US"] || snapshot?.name || "Unnamed item",
+    subtitle,
     operation: entry.operation,
     changeClass: entry.operation,
     severity: inferSeverity(entry.operation),
