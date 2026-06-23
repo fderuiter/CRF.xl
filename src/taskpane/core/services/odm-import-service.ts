@@ -4,6 +4,7 @@
 import ExcelJS from "exceljs";
 import { validateStudyDesign } from "../parser/validator";
 import { Codelist, DataType, StudyDesign } from "../types";
+import { isTranslationUnit } from "../models/multilingual-model";
 import {
   ImportDiagnostic,
   ImportProvenance,
@@ -658,14 +659,17 @@ function readTranslatedText(
   preferredLanguage: string
 ): string {
   const preferred = translatedText[preferredLanguage];
-  if (typeof preferred === "string" && preferred.trim()) {
-    return preferred;
+  if (preferred !== undefined) {
+    const val = isTranslationUnit(preferred) ? preferred.value : (preferred as string);
+    if (val && val.trim()) return val;
   }
 
   const values = Object.values(translatedText);
   for (let index = 0; index < values.length; index += 1) {
-    if (typeof values[index] === "string" && String(values[index]).trim()) {
-      return String(values[index]);
+    const entry = values[index];
+    const val = isTranslationUnit(entry) ? entry.value : (entry as string);
+    if (val && val.trim()) {
+      return val;
     }
   }
 
