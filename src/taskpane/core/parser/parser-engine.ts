@@ -73,8 +73,45 @@ export async function parseRawDataToStudyDesign(
   });
   runtime.throwIfStopped("codelists");
   const clSheetVals = rawData["_Codelists"];
-  if (clSheetVals) {
-    const rows = clSheetVals.slice(1);
+  if (clSheetVals && clSheetVals.length > 0) {
+    const headers = (clSheetVals[0] || []) as string[];
+    let idIdx = -1,
+      nameIdx = -1,
+      codeIdx = -1,
+      decodeIdx = -1;
+    const localeMap = new Map<string, number>();
+
+    headers.forEach((h, idx) => {
+      const rawHeader = String(h || "").trim();
+      const normalized = rawHeader.toLowerCase();
+      if (normalized === "id" || normalized === "codelist id") idIdx = idx;
+      else if (normalized === "name" || normalized === "codelist name") nameIdx = idx;
+      else if (normalized === "code") codeIdx = idx;
+      else if (normalized === "decode") decodeIdx = idx;
+      else {
+        const match = rawHeader.match(/^decode\s*\(([^)]+)\)$/i);
+        if (match) {
+          const locale = match[1].trim();
+          if (localeMap.has(locale)) {
+            parseWarnings.push(`Duplicate locale column detected in _Codelists: ${h}`);
+          } else {
+            localeMap.set(locale, idx);
+          }
+        }
+      }
+    });
+
+    // Fallback to legacy positional indices if headers are completely missing
+    let dataOffset = 1;
+    if (idIdx === -1 && nameIdx === -1 && codeIdx === -1 && decodeIdx === -1) {
+      idIdx = 0;
+      nameIdx = 1;
+      codeIdx = 2;
+      decodeIdx = 3;
+      dataOffset = 0;
+    }
+
+    const rows = clSheetVals.slice(dataOffset);
     runtime.reportProgress({
       phase: "codelists",
       completed: 0,
@@ -83,21 +120,40 @@ export async function parseRawDataToStudyDesign(
     });
     await processRowsInChunks(rows, runtime, "codelists", (row, rowIndex) => {
       runtime.throwIfStopped("codelists");
-      const [id, name, code, decode] = row;
+      const id = row[idIdx];
+      const name = row[nameIdx];
+      const code = row[codeIdx];
+      const decode = row[decodeIdx];
+
       if (!id) return;
       const strId = String(id).trim();
       if (!study.codelists[strId]) {
         study.codelists[strId] = {
           codelistId: strId,
-          codelistName: String(name),
+          codelistName: String(name || ""),
           dataType: DataType.TEXT,
           items: [],
         };
       }
+
+      const decodedText: Record<string, string> = {};
+      // Base decode maps to default language
+      if (decode !== undefined && decode !== null && String(decode).trim() !== "") {
+        decodedText[study.metadata.defaultLanguage] = String(decode);
+      }
+
+      // Dynamic locales
+      localeMap.forEach((idx, locale) => {
+        const val = row[idx];
+        if (val !== undefined && val !== null && String(val).trim() !== "") {
+          decodedText[locale] = String(val);
+        }
+      });
+
       study.codelists[strId].items.push({
         codelistId: strId,
-        codedValue: String(code),
-        decodedText: { [study.metadata.defaultLanguage]: String(decode) },
+        codedValue: String(code === undefined || code === null ? "" : code),
+        decodedText,
         orderNumber: study.codelists[strId].items.length + 1,
       });
       runtime.reportProgress({
