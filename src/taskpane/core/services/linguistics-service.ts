@@ -1,8 +1,16 @@
 /**
  * @issue #39, #40
  */
-import { TranslatedText } from "../types/common";
-import { TranslationStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
+import { TranslatedText, TranslationUnit } from "../types/common";
+import { LocaleResolutionStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
+
+/**
+ * Extracts a plain string from a translation value that may be a TranslationUnit or a raw string.
+ */
+function extractString(val: string | TranslationUnit): string {
+  if (typeof val === "string") return val;
+  return val.value;
+}
 
 /**
  * Locale-aware linguistic engine providing utility, normalization, and fallback logic.
@@ -55,8 +63,8 @@ export class LinguisticService {
     if (translations[normalizedTarget]) {
       return {
         locale: normalizedTarget,
-        status: TranslationStatus.COMPLETE,
-        content: translations[normalizedTarget],
+        status: LocaleResolutionStatus.COMPLETE,
+        content: extractString(translations[normalizedTarget]),
         isFallback: false,
       };
     }
@@ -65,8 +73,8 @@ export class LinguisticService {
     if (translations[normalizedDefault]) {
       return {
         locale: normalizedDefault,
-        status: TranslationStatus.COMPLETE, // Or should it be PARTIAL if it's a fallback?
-        content: translations[normalizedDefault],
+        status: LocaleResolutionStatus.COMPLETE, // Or should it be PARTIAL if it's a fallback?
+        content: extractString(translations[normalizedDefault]),
         isFallback: true,
       };
     }
@@ -77,8 +85,8 @@ export class LinguisticService {
       const firstLocale = availableLocales[0];
       return {
         locale: firstLocale,
-        status: TranslationStatus.PARTIAL,
-        content: translations[firstLocale],
+        status: LocaleResolutionStatus.PARTIAL,
+        content: extractString(translations[firstLocale]),
         isFallback: true,
       };
     }
@@ -86,7 +94,7 @@ export class LinguisticService {
     // 4. Missing
     return {
       locale: normalizedTarget,
-      status: TranslationStatus.MISSING,
+      status: LocaleResolutionStatus.MISSING,
       content: "",
       isFallback: false,
     };
@@ -97,7 +105,8 @@ export class LinguisticService {
    */
   public static isTranslationMissing(translations: TranslatedText, targetLocale: string): boolean {
     const normalized = this.normalizeLocale(targetLocale);
-    return !translations[normalized] || translations[normalized].trim() === "";
+    const val = translations[normalized];
+    return !val || extractString(val).trim() === "";
   }
 
   /**

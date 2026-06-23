@@ -4,9 +4,9 @@
 import { TranslatedText } from "./common";
 
 /**
- * States of a translation for a specific locale.
+ * States of a locale resolution attempt (distinct from per-unit TranslationStatus in common.ts).
  */
-export enum TranslationStatus {
+export enum LocaleResolutionStatus {
   COMPLETE = "COMPLETE",
   MISSING = "MISSING",
   OUTDATED = "OUTDATED",
@@ -27,7 +27,7 @@ export interface LinguisticMetadata {
  */
 export interface TranslationModel {
   locale: string;
-  status: TranslationStatus;
+  status: LocaleResolutionStatus;
   content: string;
   isFallback: boolean;
 }
