@@ -123,10 +123,16 @@ export async function saveDictionary(
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem("_Codelists");
     const range = sheet.getUsedRange();
-    range.load(["values", "rowCount", "columnCount"]);
+    range.load(["values", "rowCount", "columnCount", "rowIndex", "columnIndex"]);
     await context.sync();
 
-    const headers = range.values[0].map((h: any) => String(h || "").trim());
+    const rangeRowIndex = range.rowIndex;
+    const rangeColumnIndex = range.columnIndex;
+    const rangeRowCount = range.rowCount;
+    const rangeColumnCount = range.columnCount;
+    const rangeValues = range.values;
+
+    const headers = rangeValues[0].map((h: any) => String(h || "").trim());
     const localeMap = new Map<string, number>();
     let idIdx = -1,
       nameIdx = -1,
@@ -165,7 +171,7 @@ export async function saveDictionary(
 
     // Ensure headers for all locales exist
     let maxColIdx = Math.max(
-      range.columnCount - 1,
+      rangeColumnCount - 1,
       idIdx,
       nameIdx,
       codeIdx,
@@ -181,8 +187,8 @@ export async function saveDictionary(
           maxColIdx++;
           const newHeader = `Decode (${locale})`;
           const headerRange = sheet.getRangeByIndexes(
-            range.rowIndex,
-            range.columnIndex + maxColIdx,
+            rangeRowIndex,
+            rangeColumnIndex + maxColIdx,
             1,
             1
           );
@@ -218,17 +224,19 @@ export async function saveDictionary(
     if (isNew) {
       // Append at bottom
       const insertRange = sheet.getRangeByIndexes(
-        range.rowIndex + range.rowCount,
-        range.columnIndex,
+        rangeRowIndex + rangeRowCount,
+        rangeColumnIndex,
         rowCount,
         finalColCount
       );
       insertRange.values = itemRows;
     } else {
       // Find and replace existing rows
-      const existingVals = range.values;
+      const existingVals = rangeValues;
       const normalizedId = id.toUpperCase();
-      const firstRowToReplace = existingVals.findIndex((r, idx) => idx > 0 && String(r[idIdx]).trim().toUpperCase() === normalizedId);
+      const firstRowToReplace = existingVals.findIndex(
+        (r, idx) => idx > 0 && String(r[idIdx]).trim().toUpperCase() === normalizedId
+      );
 
       if (firstRowToReplace !== -1) {
         // Find how many rows to delete
@@ -242,8 +250,8 @@ export async function saveDictionary(
         }
 
         const deleteRange = sheet.getRangeByIndexes(
-          range.rowIndex + firstRowToReplace,
-          range.columnIndex,
+          rangeRowIndex + firstRowToReplace,
+          rangeColumnIndex,
           rowsToDelete,
           finalColCount
         );
@@ -251,8 +259,8 @@ export async function saveDictionary(
 
         // Insert new rows at the same position
         const insertRange = sheet.getRangeByIndexes(
-          range.rowIndex + firstRowToReplace,
-          range.columnIndex,
+          rangeRowIndex + firstRowToReplace,
+          rangeColumnIndex,
           rowCount,
           finalColCount
         );
@@ -262,12 +270,12 @@ export async function saveDictionary(
     }
 
     // Expand the Named Range so native Excel dropdowns immediately see the new ID
-    // We start from the row after the header (range.rowIndex + 1)
-    // The total number of data rows is (range.rowCount + rowCount - 1)
-    const dataRowCount = range.rowCount + rowCount - 1;
+    // We start from the row after the header (rangeRowIndex + 1)
+    // The total number of data rows is (rangeRowCount + rowCount - 1)
+    const dataRowCount = rangeRowCount + (isNew ? rowCount : 0) - 1;
     context.workbook.names.add(
       "CodelistDictionary",
-      sheet.getRangeByIndexes(range.rowIndex + 1, range.columnIndex + idIdx, dataRowCount, 1)
+      sheet.getRangeByIndexes(rangeRowIndex + 1, rangeColumnIndex + idIdx, dataRowCount, 1)
     );
 
     await context.sync();
