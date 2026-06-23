@@ -111,7 +111,6 @@ interface TranslationManagerViewProps {
 
 export const TranslationManagerView: React.FC<TranslationManagerViewProps> = ({
   study,
-  onUpdateStudy,
   onUpdateTranslation,
 }) => {
   const styles = useStyles();

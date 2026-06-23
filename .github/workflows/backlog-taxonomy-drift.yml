@@ -33,6 +33,7 @@ jobs:
               (.body | test("(?i)superseded by #[0-9]+|duplicate of #[0-9]+"));
             def deprecated_milestone:
               (.milestone.title // "" | test("^(Phase\\s|Build Queue\\s|Dev Best Practices:)"));
+            def is_jules: [.labels[].name | select(. == "jules")] | length > 0;
             [
               .[] |
               (
@@ -45,8 +46,8 @@ jobs:
                   if $statuses != 1 then "#\(.number) missing or conflicting status label" else empty end,
                   if $priorities != 1 then "#\(.number) missing or conflicting priority label" else empty end,
                   if ((is_roadmap | not) and $streams != 1) then "#\(.number) missing or conflicting stream label" else empty end,
-                  if ((labels_by("status:") | index("status:ready")) != null and (.milestone.title // "") == "") then "#\(.number) is ready but has no milestone" else empty end,
-                  if ((labels_by("status:") | index("status:ready")) != null and deprecated_milestone) then "#\(.number) is ready but still assigned to a retired milestone" else empty end,
+                  if ((labels_by("status:") | index("status:ready")) != null and (.milestone.title // "") == "" and (is_jules | not)) then "#\(.number) is ready but has no milestone" else empty end,
+                  if ((labels_by("status:") | index("status:ready")) != null and deprecated_milestone and (is_jules | not)) then "#\(.number) is ready but still assigned to a retired milestone" else empty end,
                   if (has_child_label and (has_parent_ref | not)) then "#\(.number) has relation:child-of-epic without parent reference in body" else empty end,
                   if mentions_superseded then "#\(.number) is open but body marks it duplicate/superseded" else empty end
                 ][]
