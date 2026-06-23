@@ -17,3 +17,4 @@ export * from "./hierarchy";
 export * from "./rules-ast";
 export * from "./diff";
 export * from "./linguistics";
+export * from "./terminology-search";
