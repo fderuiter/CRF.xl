@@ -103,4 +103,21 @@ describe("LinguisticService", () => {
       expect(LinguisticService.isTranslationMissing(translations, "en-US")).toBe(false);
     });
   });
+
+  describe("calculateCompleteness", () => {
+    const items = [
+      { oid: "IT1", translations: { "en-US": "Label 1", "es-ES": "Etiqueta 1" } },
+      { oid: "IT2", translations: { "en-US": "Label 2" } },
+    ];
+    const locales = ["en-US", "es-ES"];
+
+    it("should calculate correct percentages and missing OIDs", () => {
+      const result = LinguisticService.calculateCompleteness(items, locales);
+      expect(result.totalItems).toBe(2);
+      expect(result.translatedItems).toBe(1);
+      expect(result.completenessPercentage).toBe(50);
+      expect(result.missingLocales["es-ES"]).toContain("IT2");
+      expect(result.missingLocales["en-US"]).toHaveLength(0);
+    });
+  });
 });

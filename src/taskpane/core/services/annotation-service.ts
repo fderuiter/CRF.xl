@@ -5,6 +5,7 @@
 /* global Excel */
 import { ValidationIssue } from "../parser/validator";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
+import { LinguisticService } from "./linguistics-service";
 
 /**
  * Checks for orphaned annotations (comments) across the active sheets.
@@ -157,6 +158,33 @@ export async function applyValidationVisuals(
     }
 
     // Final sync for any remaining queued operations
+    await context.sync();
+  });
+}
+
+/**
+ * Visually highlights columns in _Codelists that represent translations.
+ */
+export async function highlightLocaleColumns(): Promise<void> {
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
+    await context.sync();
+    if (sheet.isNullObject) return;
+
+    const usedRange = sheet.getUsedRangeOrNullObject();
+    usedRange.load(["columnCount", "isNullObject", "values"]);
+    await context.sync();
+
+    if (usedRange.isNullObject || usedRange.values.length === 0) return;
+
+    const headers = usedRange.values[0];
+    for (let i = 0; i < headers.length; i++) {
+      const header = String(headers[i]);
+      if (LinguisticService.discoverLocaleFromHeader(header)) {
+        const column = sheet.getRangeByIndexes(0, i, usedRange.rowCount, 1);
+        column.format.fill.color = "#ecfdf5"; // Tailwind green-50
+      }
+    }
     await context.sync();
   });
 }

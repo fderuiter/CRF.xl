@@ -2,7 +2,7 @@
  * @issue #39, #40
  */
 import { TranslatedText } from "../types/common";
-import { TranslationStatus, TranslationModel } from "../types/linguistics";
+import { TranslationStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
 
 /**
  * Locale-aware linguistic engine providing utility, normalization, and fallback logic.
@@ -98,5 +98,39 @@ export class LinguisticService {
   public static isTranslationMissing(translations: TranslatedText, targetLocale: string): boolean {
     const normalized = this.normalizeLocale(targetLocale);
     return !translations[normalized] || translations[normalized].trim() === "";
+  }
+
+  /**
+   * Calculates completeness metrics for a set of items across multiple locales.
+   */
+  public static calculateCompleteness(
+    items: Array<{ oid: string; translations: TranslatedText }>,
+    supportedLocales: string[]
+  ): StudyLinguisticCompleteness {
+    const totalItems = items.length;
+    const missingLocales: Record<string, string[]> = {};
+    let totalTranslated = 0;
+
+    supportedLocales.forEach((locale) => {
+      missingLocales[locale] = [];
+    });
+
+    items.forEach((item) => {
+      let isFullyTranslated = true;
+      supportedLocales.forEach((locale) => {
+        if (this.isTranslationMissing(item.translations, locale)) {
+          missingLocales[locale].push(item.oid);
+          isFullyTranslated = false;
+        }
+      });
+      if (isFullyTranslated) totalTranslated++;
+    });
+
+    return {
+      totalItems,
+      translatedItems: totalTranslated,
+      completenessPercentage: totalItems > 0 ? (totalTranslated / totalItems) * 100 : 100,
+      missingLocales,
+    };
   }
 }

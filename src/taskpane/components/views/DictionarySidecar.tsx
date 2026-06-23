@@ -31,6 +31,7 @@ import {
   saveNewDictionary,
   CodelistGroup,
 } from "../../core/services/dictionary-service";
+import { highlightLocaleColumns } from "../../core/services/annotation-service";
 import { LinguisticService } from "../../core/services/linguistics-service";
 import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
 import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
@@ -304,6 +305,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
   useEffect(() => {
     loadData();
+    highlightLocaleColumns().catch(console.error);
   }, []);
 
   const loadData = async () => {
