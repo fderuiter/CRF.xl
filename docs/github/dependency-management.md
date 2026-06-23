@@ -27,17 +27,18 @@ A dependency comment is also posted on #138 at time of issue creation or triage.
 ### Advanced logic epic (#53)
 
 ```
-#137 _Rules Parser & AST Generator       ← no blockers (foundation; start here)
-  └─► #138 DAG Topological Sort          ← (Resolved)
-  └─► #54  Cross-Form Logic Validation   ← blocked by #137 and #138
-  └─► #55  Derived Variables & Calculations ← blocked by #137 and #138 (structural)
-  └─► #139 ODM ConditionDef/MethodDef    ← blocked by #137, #138 (and export contract decisions)
+#118  Non-Question Blocks              ← no blockers (foundational parsing)
+#137  _Rules Parser & AST Generator     ← no blockers (foundation; start here)
+  └─► #138 DAG Topological Sort         ← blocked by #137
+  └─► #54  Cross-Form Logic Validation  ← blocked by #137 and #138
+  └─► #55  Derived Variables            ← blocked by #137 and #138 (structural)
+  └─► #139 ODM ConditionDef/MethodDef   ← blocked by #137 and #138 (structural)
 ```
 
-**Implication:** #137 is the absolute foundation of the cluster. However, structural dependencies dictate that:
+**Implication:** #118 and #137 are the foundations of the cluster.
 1. **#138 (DAG Topological Sort)** must ship before **#54 (Cross-Form Logic Validation)** can evaluate reference chains and detect cross-form cycles.
-2. **#55 (Derived Variables & Calculations)** has an *unstated structural dependency* on **#138 (DAG Topological Sort)** because resolving derived variable calculations requires generating a cycle-free directed graph and resolving evaluation order.
-3. **#139 (ODM ConditionDef/MethodDef)** has an *unstated structural dependency* on **#138 (DAG Topological Sort)** because we must topologically validate rules and calculations to prevent serializing cyclical logic into GxP-compliant CDISC ODM XML files.
+2. **#55 (Derived Variables & Calculations)** has a structural dependency on **#138 (DAG Topological Sort)** because resolving derived variable calculations requires generating a cycle-free directed graph and resolving evaluation order.
+3. **#139 (ODM ConditionDef/MethodDef)** has a structural dependency on **#138 (DAG Topological Sort)** because we must topologically validate rules and calculations to prevent serializing cyclical logic into GxP-compliant CDISC ODM XML files.
 
 ---
 
@@ -97,22 +98,34 @@ If a blocked issue has preliminary work that does not depend on the upstream blo
 
 This registry records the exact encoding of the issue headers, body `Dependencies` sections, and pinned blocker comments for all child issues under the **Advanced Logic Epic (#53)**.
 
-### #137 _Rules Parser & AST Generator
+### #118 Support Non-Question / Display-Only CRF Blocks
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Complete / Resolved** (Implemented in `rules-parser.ts` and `rules-ast.ts` with 100% unit test coverage).
+* **Status in Code:** **Complete / Resolved** (Implemented in `form-element-utils.ts` and `parser-engine.ts`).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
-  - None (acts as the foundational parsing engine for all logic-based features).
+  - None (foundational CRF parsing component).
   ```
 * **Pinned Blocker Comment:**
-  *(None - foundation; start here)*
+  *(None - foundation)*
+
+### #137 _Rules Parser & AST Generator
+* **Type:** `type:feature`
+* **Milestone:** `M1 — Core Metadata Foundations`
+* **Status in Code:** **Complete / Resolved** (Implemented in `rules-parser.ts` and `rules-ast.ts`).
+* **Dependencies Section:**
+  ```markdown
+  ## Dependencies
+  - None (foundational parsing engine).
+  ```
+* **Pinned Blocker Comment:**
+  *(None - foundation)*
 
 ### #138 DAG Topological Sort
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Complete / Resolved** (Implemented in `dag-validator.ts` with topological sorting and type inference).
+* **Status in Code:** **Complete / Resolved** (Implemented in `dag-validator.ts`).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
@@ -124,39 +137,35 @@ This registry records the exact encoding of the issue headers, body `Dependencie
 ### #54 Cross-Form Logic Validation
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Blocked**
+* **Status in Code:** **Ready** (Upstream blockers #137 and #138 are resolved).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
-  - Blocked by #137 (_Rules Parser & AST Generator) — Show If expressions must be parsed to extract cross-form variables.
-  - Blocked by #138 (DAG Topological Sort) — Cross-form validation depends on the cycle detector and topological sorter to trace multi-form variable dependencies and detect circular cross-form rules.
+  - None (Resolved: previously blocked by #137 and #138).
   ```
 * **Pinned Blocker Comment:**
-  > 📌 **Dependency Status:** `Blocked` by #137 and #138. The cross-form validator cannot trace reference chains or evaluate circular relationships until the rules parser (#137) and the graph cycle validator (#138) are implemented and integrated.
+  > 📌 **Dependency Status:** `Ready`. Upstream blockers #137 (Rules Parser) and #138 (DAG Validator) are resolved.
 
 ### #55 Derived Variables & Calculations
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Blocked**
+* **Status in Code:** **Ready** (Upstream blockers #137 and #138 are resolved).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
-  - Blocked by #137 (_Rules Parser & AST Generator) — Mathematical calculation expressions must be parsed into an AST for evaluation.
-  - Blocked by #138 (DAG Topological Sort) — **[Structural Blocker]** Calculation evaluation order must be determined via topological sorting, and cycle detection must run to block circular mathematical derivations (e.g., `A = B + 1` and `B = A - 1`).
+  - None (Resolved: previously blocked by #137 and structural blocker #138).
   ```
 * **Pinned Blocker Comment:**
-  > 📌 **Dependency Status:** `Blocked` by #137 and #138. Evaluating calculation expressions and resolving calculation sequences requires the rules parser (#137) and the topological sorting engine (#138) to execute derivations in a valid order and prevent cyclic mathematical dependencies.
+  > 📌 **Dependency Status:** `Ready`. Upstream blockers #137 (Rules Parser) and structural blocker #138 (DAG Validator) are resolved.
 
 ### #139 ODM ConditionDef/MethodDef Serialization
 * **Type:** `type:feature`
 * **Milestone:** `M1 — Core Metadata Foundations`
-* **Status in Code:** **Blocked**
+* **Status in Code:** **Ready** (Upstream blockers #137 and #138 are resolved).
 * **Dependencies Section:**
   ```markdown
   ## Dependencies
-  - Blocked by #137 (_Rules Parser & AST Generator) — Derivations and Show If expressions must be parsed before serialization to XML.
-  - Blocked by #138 (DAG Topological Sort) — **[Structural Blocker]** The serialization compiler must only run on valid, topologically sorted, and cycle-free structures to avoid exporting broken or cyclical clinical metadata models.
+  - None (Resolved: previously blocked by #137 and structural blocker #138).
   ```
 * **Pinned Blocker Comment:**
-  > 📌 **Dependency Status:** `Blocked` by #137 and #138. Serializing rules and derivations into compliant CDISC ODM `<ConditionDef>` and `<MethodDef>` tags requires Show If parsing (#137) and a stable topological validator (#138) to ensure only valid, non-cyclic models are serialized.
-
+  > 📌 **Dependency Status:** `Ready`. Upstream blockers #137 (Rules Parser) and structural blocker #138 (DAG Validator) are resolved.
