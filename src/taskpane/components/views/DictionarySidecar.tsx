@@ -23,6 +23,8 @@ import {
   MessageBarBody,
   ProgressBar,
   Tooltip,
+  TabList,
+  Tab,
 } from "@fluentui/react-components";
 import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, WarningRegular } from "@fluentui/react-icons";
 import {
@@ -269,20 +271,27 @@ const cdiscApi = createCdiscApiService();
 export interface DictionarySidecarProps {
   selectedLanguage?: string;
   defaultLanguage?: string;
+  supportedLanguages?: string[];
 }
 
 export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
-  selectedLanguage = "en-US",
+  selectedLanguage: initialLanguage = "en-US",
   defaultLanguage = "en-US",
+  supportedLanguages = ["en-US"],
 }) => {
   const styles = useStyles();
   const [view, setView] = useState<"loading" | "browse" | "create" | "import">("loading");
+  const [localLanguage, setLocalLanguage] = useState(initialLanguage);
+
+  useEffect(() => {
+    setLocalLanguage(initialLanguage);
+  }, [initialLanguage]);
   const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
   const [search, setSearch] = useState("");
 
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
-  const [newItems, setNewItems] = useState([{ codedValue: "", decode: "" }]);
+  const [newItems, setNewItems] = useState([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
 
   // ── Import view state ──────────────────────────────────────────────────────
   const [importPackages, setImportPackages] = useState<CdiscCtPackage[]>([]);
@@ -325,7 +334,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     await saveNewDictionary(newId, newName, newItems);
     setNewId("");
     setNewName("");
-    setNewItems([{ codedValue: "", decode: "" }]);
+    setNewItems([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
     await loadData();
   };
 
@@ -487,6 +496,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     ? `Showing ${filteredDicts.length} of ${dictionaries.length} codelists`
     : `${dictionaries.length} codelists available`;
 
+  const effectiveSelectedLanguage = localLanguage || initialLanguage;
+
   const columns = useMemo(
     () => [
       createTableColumn<CodelistGroup>({
@@ -515,22 +526,18 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       }),
       createTableColumn<CodelistGroup>({
         columnId: "preview",
-        renderHeaderCell: () => `Preview (${selectedLanguage})`,
+        renderHeaderCell: () => `Preview (${effectiveSelectedLanguage})`,
         renderCell: (item) => {
           let hasFallback = false;
-          const translatedItems = item.items.map((i) => {
+          item.items.forEach((i) => {
             const translation = LinguisticService.resolveTranslation(
-              (i as any).decodedText || { [defaultLanguage]: i.decode },
-              selectedLanguage,
+              i.decodedText,
+              effectiveSelectedLanguage,
               defaultLanguage
             );
             if (translation.isFallback) hasFallback = true;
-            return {
-              ...i,
-              decode: translation.content,
-            };
           });
-          const preview = getDictionaryPreview(translatedItems);
+          const preview = getDictionaryPreview(item.items, effectiveSelectedLanguage, defaultLanguage);
 
           return (
             <div className={styles.tagRow}>
@@ -540,7 +547,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 </span>
               ))}
               {hasFallback && (
-                <Tooltip content={`Showing fallback translation from ${defaultLanguage}`} relationship="label">
+                <Tooltip content={`Showing fallback translation`} relationship="label">
                   <span className={styles.fallbackIndicator}>
                     <WarningRegular fontSize={12} />
                   </span>
@@ -612,13 +619,30 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
         {view === "browse" && (
           <>
-            <Input
-              className={styles.searchInput}
-              placeholder="Search by ID, name, value, or decode..."
-              value={search}
-              onChange={(_, d) => setSearch(d.value)}
-              aria-label="Search codelists"
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Input
+                className={styles.searchInput}
+                placeholder="Search by ID, name, value, or decode..."
+                value={search}
+                onChange={(_, d) => setSearch(d.value)}
+                aria-label="Search codelists"
+              />
+              {supportedLanguages.length > 1 && (
+                <div style={{ backgroundColor: tokens.colorNeutralBackground1, borderRadius: tokens.borderRadiusMedium, padding: "4px" }}>
+                  <TabList
+                    selectedValue={effectiveSelectedLanguage}
+                    onTabSelect={(_e, data) => setLocalLanguage(data.value as string)}
+                    size="small"
+                  >
+                    {supportedLanguages.map((lang) => (
+                      <Tab key={lang} value={lang}>
+                        {lang}
+                      </Tab>
+                    ))}
+                  </TabList>
+                </div>
+              )}
+            </div>
             <div className={styles.resultsSummary}>
               <Text>{resultSummary}</Text>
               {hasSearch && <Text>{`Search: "${search.trim()}"`}</Text>}
@@ -694,34 +718,53 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               <div>
                 <label className={styles.fieldLabel}>Values &amp; Decodes</label>
                 {newItems.map((item, idx) => (
-                  <div key={idx} className={styles.valueRow} style={{ marginBottom: "8px" }}>
-                    <Input
-                      placeholder="Value (e.g. 1)"
-                      value={item.codedValue}
-                      onChange={(_, d) => {
-                        const updated = [...newItems];
-                        updated[idx].codedValue = d.value;
-                        setNewItems(updated);
-                      }}
-                      style={{ width: "33%" }}
-                    />
-                    <Input
-                      placeholder="Decode (e.g. Mild)"
-                      value={item.decode}
-                      onChange={(_, d) => {
-                        const updated = [...newItems];
-                        updated[idx].decode = d.value;
-                        setNewItems(updated);
-                      }}
-                      className={styles.valueInput}
-                    />
+                  <div key={idx} style={{ marginBottom: "16px", borderBottom: idx < newItems.length - 1 ? `1px solid ${tokens.colorNeutralStroke2}` : "none", paddingBottom: "8px" }}>
+                    <div className={styles.valueRow} style={{ marginBottom: "8px" }}>
+                      <Input
+                        placeholder="Value (e.g. 1)"
+                        value={item.codedValue}
+                        onChange={(_, d) => {
+                          const updated = [...newItems];
+                          updated[idx].codedValue = d.value;
+                          setNewItems(updated);
+                        }}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: supportedLanguages.length > 1 ? "repeat(auto-fit, minmax(200px, 1fr))" : "1fr",
+                      gap: "12px"
+                    }}>
+                      {supportedLanguages.map((lang) => (
+                        <div key={lang} style={{ marginBottom: "4px" }}>
+                          <label className={styles.fieldLabel} style={{ fontSize: tokens.fontSizeBase100 }}>
+                            Decode ({lang}) {lang === defaultLanguage && "(Default)"}
+                          </label>
+                          <Input
+                            placeholder={`Decode in ${lang}`}
+                            value={item.decodedText[lang] || ""}
+                            onChange={(_, d) => {
+                              const updated = [...newItems];
+                              updated[idx].decodedText = {
+                                ...updated[idx].decodedText,
+                                [lang]: d.value,
+                              };
+                              setNewItems(updated);
+                            }}
+                            className={styles.valueInput}
+                            style={{ width: "100%" }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
                 <Button
                   appearance="subtle"
                   size="small"
                   icon={<AddRegular />}
-                  onClick={() => setNewItems([...newItems, { codedValue: "", decode: "" }])}
+                  onClick={() => setNewItems([...newItems, { codedValue: "", decodedText: { [defaultLanguage]: "" } }])}
                 >
                   Add Row
                 </Button>

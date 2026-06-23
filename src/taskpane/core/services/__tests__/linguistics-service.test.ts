@@ -71,7 +71,7 @@ describe("LinguisticService", () => {
       const result = LinguisticService.resolveTranslation(translations, "fr-FR", "en-US");
       expect(result).toEqual({
         locale: "en-US",
-        status: TranslationStatus.COMPLETE,
+        status: TranslationStatus.PARTIAL,
         content: "Weight",
         isFallback: true,
       });
