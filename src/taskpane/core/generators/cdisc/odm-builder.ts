@@ -14,6 +14,7 @@ import {
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
+import { isTranslationUnit } from "../../models/multilingual-model";
 
 /**
  * Error thrown when rules pre-serialization validation fails.
@@ -652,7 +653,8 @@ function mapDataTypeToOdm(type: DataType): string {
 function renderTranslatedText(text: TranslatedText): string {
   let output = "";
   Object.entries(text).forEach(([lang, val]) => {
-    output += `<TranslatedText xml:lang="${lang}">${escapeXml(val as string)}</TranslatedText>`;
+    const stringValue = isTranslationUnit(val) ? val.value : (val as string);
+    output += `<TranslatedText xml:lang="${lang}">${escapeXml(stringValue)}</TranslatedText>`;
   });
   return output;
 }
