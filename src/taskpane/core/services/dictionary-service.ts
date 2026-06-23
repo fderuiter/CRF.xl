@@ -111,10 +111,14 @@ export async function insertDictionaryToActiveCell(codelistId: string): Promise<
  * Writes a newly created dictionary to the bottom of the _Codelists sheet
  * and updates the Named Range for Data Validation dropdowns.
  */
-export async function saveNewDictionary(
+/**
+ * Updates an existing dictionary or saves a new one.
+ */
+export async function saveDictionary(
   id: string,
   name: string,
-  items: CodelistItem[]
+  items: CodelistItem[],
+  isNew = true
 ): Promise<void> {
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem("_Codelists");
@@ -188,37 +192,74 @@ export async function saveNewDictionary(
       }
     });
 
-    // Build 2D array for new rows
+    // Build 2D array for rows
     const rowCount = items.length;
     const finalColCount = maxColIdx + 1;
-    const newRows: any[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
+    const itemRows: any[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
 
     items.forEach((item, idx) => {
-      newRows[idx][idIdx] = id.toUpperCase();
-      if (nameIdx !== -1) newRows[idx][nameIdx] = name;
-      if (codeIdx !== -1) newRows[idx][codeIdx] = item.codedValue;
+      itemRows[idx][idIdx] = id.toUpperCase();
+      if (nameIdx !== -1) itemRows[idx][nameIdx] = name;
+      if (codeIdx !== -1) itemRows[idx][codeIdx] = item.codedValue;
 
       // Map translations to columns
       Object.entries(item.decodedText).forEach(([locale, text]) => {
         let colIdx = localeMap.get(locale);
-        // If en-US and we have a standard Decode column, use it if no specific en-US column exists
         if (locale === "en-US" && colIdx === undefined && decodeIdx !== -1) {
           colIdx = decodeIdx;
         }
 
         if (colIdx !== undefined) {
-          newRows[idx][colIdx] = text;
+          itemRows[idx][colIdx] = text;
         }
       });
     });
 
-    const insertRange = sheet.getRangeByIndexes(
-      range.rowIndex + range.rowCount,
-      range.columnIndex,
-      rowCount,
-      finalColCount
-    );
-    insertRange.values = newRows;
+    if (isNew) {
+      // Append at bottom
+      const insertRange = sheet.getRangeByIndexes(
+        range.rowIndex + range.rowCount,
+        range.columnIndex,
+        rowCount,
+        finalColCount
+      );
+      insertRange.values = itemRows;
+    } else {
+      // Find and replace existing rows
+      const existingVals = range.values;
+      const normalizedId = id.toUpperCase();
+      const firstRowToReplace = existingVals.findIndex((r, idx) => idx > 0 && String(r[idIdx]).trim().toUpperCase() === normalizedId);
+
+      if (firstRowToReplace !== -1) {
+        // Find how many rows to delete
+        let rowsToDelete = 0;
+        for (let i = firstRowToReplace; i < existingVals.length; i++) {
+          if (String(existingVals[i][idIdx]).trim().toUpperCase() === normalizedId) {
+            rowsToDelete++;
+          } else {
+            break;
+          }
+        }
+
+        const deleteRange = sheet.getRangeByIndexes(
+          range.rowIndex + firstRowToReplace,
+          range.columnIndex,
+          rowsToDelete,
+          finalColCount
+        );
+        deleteRange.delete(Excel.DeleteShiftDirection.up);
+
+        // Insert new rows at the same position
+        const insertRange = sheet.getRangeByIndexes(
+          range.rowIndex + firstRowToReplace,
+          range.columnIndex,
+          rowCount,
+          finalColCount
+        );
+        insertRange.insert(Excel.InsertShiftDirection.down);
+        insertRange.values = itemRows;
+      }
+    }
 
     // Expand the Named Range so native Excel dropdowns immediately see the new ID
     // We start from the row after the header (range.rowIndex + 1)
