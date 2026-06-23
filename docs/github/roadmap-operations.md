@@ -6,7 +6,7 @@ This document defines how the CRF.xl roadmap issue (#28) is maintained, structur
 
 ## The roadmap issue
 
-Issue #28 is the **single strategic dashboard** for CRF.xl delivery direction. Its title is:
+Issue [#28](https://github.com/fderuiter/CRF.xl/issues/28) is the **single strategic dashboard** for CRF.xl delivery direction. Its title is:
 
 > `[Roadmap] CRF.xl Strategic Delivery Dashboard`
 
@@ -21,7 +21,10 @@ The roadmap issue body must contain exactly these sections, in this order:
 ### 1. Status line
 One sentence: `Status: Active` or `Status: [milestone] in execution`.
 
-### 2. Milestone Sequence table
+### 2. Purpose
+Statement defining the roadmap as the master issue for milestones, epics, sequencing, and risks.
+
+### 3. Milestone Sequence table
 A table with columns: Milestone, Focus, Status. Status values: 🟡 In Progress, 🔵 Ready, ✅ Complete.
 
 ```markdown
@@ -32,16 +35,19 @@ A table with columns: Milestone, Focus, Status. Status values: 🟡 In Progress,
 
 Update the status column when a milestone enters or exits execution.
 
-### 3. Epic Index
+### 4. Epic Index
 Group all open epics by stream. One stream heading per section. List each epic as `- #N Epic Title`.
 
-### 4. Sequencing Decisions
+### 5. Sequencing Decisions
 Numbered list of explicit decisions about execution order that are not obvious from the milestone sequence alone. Example: "Enterprise hardening runs as near-term closure; provisioning is the only external dependency."
 
-### 5. Blockers / Risk Register
+### 6. Blockers / Risk Register
 A table with columns: Risk, Owner Issue, Status. Update as risks are resolved or discovered.
 
-### 6. Out of Scope note
+### 7. Governance References
+Links to canonical documentation (Issue Governance, Roadmap Operations, DoR/DoD).
+
+### 8. Out of Scope note
 A single line: "Execution tracking, sub-issue structure, and individual acceptance criteria belong in epic and feature issues respectively."
 
 ---
@@ -70,9 +76,11 @@ A single line: "Execution tracking, sub-issue structure, and individual acceptan
 
 ---
 
-## Update cadence
+---
 
-Update the roadmap issue during the weekly backlog review when:
+## Maintenance Policy & Update Cadence
+
+The roadmap is the authoritative strategic reference. It must be updated during the weekly backlog review when:
 
 - A milestone changes status (enters execution, completes)
 - A new epic is added to a stream
