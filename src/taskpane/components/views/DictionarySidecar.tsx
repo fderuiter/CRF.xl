@@ -22,14 +22,17 @@ import {
   MessageBar,
   MessageBarBody,
   ProgressBar,
+  Tooltip,
 } from "@fluentui/react-components";
-import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular } from "@fluentui/react-icons";
+import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, WarningRegular } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
   insertDictionaryToActiveCell,
   saveNewDictionary,
   CodelistGroup,
 } from "../../core/services/dictionary-service";
+import { highlightLocaleColumns } from "../../core/services/annotation-service";
+import { LinguisticService } from "../../core/services/linguistics-service";
 import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
 import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
 import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core/services/cdisc-ct-mapping-service";
@@ -134,6 +137,12 @@ const useStyles = makeStyles({
     flexWrap: "wrap",
     gap: "4px",
     alignItems: "center",
+  },
+  fallbackIndicator: {
+    color: tokens.colorPaletteWarningForeground1,
+    display: "flex",
+    alignItems: "center",
+    marginLeft: "2px",
   },
   tag: {
     fontSize: tokens.fontSizeBase100,
@@ -257,7 +266,15 @@ const useStyles = makeStyles({
 
 const cdiscApi = createCdiscApiService();
 
-export const DictionarySidecar: React.FC = () => {
+export interface DictionarySidecarProps {
+  selectedLanguage?: string;
+  defaultLanguage?: string;
+}
+
+export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
+  selectedLanguage = "en-US",
+  defaultLanguage = "en-US",
+}) => {
   const styles = useStyles();
   const [view, setView] = useState<"loading" | "browse" | "create" | "import">("loading");
   const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
@@ -288,6 +305,7 @@ export const DictionarySidecar: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    highlightLocaleColumns().catch(console.error);
   }, []);
 
   const loadData = async () => {
@@ -497,9 +515,22 @@ export const DictionarySidecar: React.FC = () => {
       }),
       createTableColumn<CodelistGroup>({
         columnId: "preview",
-        renderHeaderCell: () => "Preview",
+        renderHeaderCell: () => `Preview (${selectedLanguage})`,
         renderCell: (item) => {
-          const preview = getDictionaryPreview(item.items);
+          let hasFallback = false;
+          const translatedItems = item.items.map((i) => {
+            const translation = LinguisticService.resolveTranslation(
+              (i as any).decodedText || { [defaultLanguage]: i.decode },
+              selectedLanguage,
+              defaultLanguage
+            );
+            if (translation.isFallback) hasFallback = true;
+            return {
+              ...i,
+              decode: translation.content,
+            };
+          });
+          const preview = getDictionaryPreview(translatedItems);
 
           return (
             <div className={styles.tagRow}>
@@ -508,6 +539,13 @@ export const DictionarySidecar: React.FC = () => {
                   {entry}
                 </span>
               ))}
+              {hasFallback && (
+                <Tooltip content={`Showing fallback translation from ${defaultLanguage}`} relationship="label">
+                  <span className={styles.fallbackIndicator}>
+                    <WarningRegular fontSize={12} />
+                  </span>
+                </Tooltip>
+              )}
               {preview.overflowCount > 0 && (
                 <span className={styles.tag}>+{preview.overflowCount} more</span>
               )}

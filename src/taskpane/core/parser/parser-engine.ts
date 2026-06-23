@@ -13,6 +13,7 @@ import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./
 import { parseRulesSheetRows } from "./rules-parser";
 import { migrateStudyDesign } from "./migration";
 import { getLocaleConfig } from "../locale-config";
+import { LinguisticService } from "../services/linguistics-service";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables } from "./metadata-utils";
 
@@ -89,9 +90,9 @@ export async function parseRawDataToStudyDesign(
       else if (normalized === "code") codeIdx = idx;
       else if (normalized === "decode") decodeIdx = idx;
       else {
-        const match = rawHeader.match(/^decode\s*\(([^)]+)\)$/i);
-        if (match) {
-          const locale = match[1].trim();
+        const match = LinguisticService.discoverLocaleFromHeader(rawHeader);
+        if (match && match.type === "decode") {
+          const locale = match.locale;
           if (localeMap.has(locale)) {
             parseWarnings.push(`Duplicate locale column detected in _Codelists: ${h}`);
           } else {
@@ -100,6 +101,14 @@ export async function parseRawDataToStudyDesign(
         }
       }
     });
+
+    // Update supported languages in metadata
+    study.metadata.supportedLanguages = Array.from(
+      new Set([
+        LinguisticService.normalizeLocale(study.metadata.defaultLanguage),
+        ...Array.from(localeMap.keys()).map(LinguisticService.normalizeLocale),
+      ])
+    );
 
     // Fallback to legacy positional indices if headers are completely missing
     let dataOffset = 1;
@@ -139,7 +148,8 @@ export async function parseRawDataToStudyDesign(
       const decodedText: Record<string, string> = {};
       // Base decode maps to default language
       if (decode !== undefined && decode !== null && String(decode).trim() !== "") {
-        decodedText[study.metadata.defaultLanguage] = String(decode);
+        const normBaseLocale = LinguisticService.normalizeLocale(study.metadata.defaultLanguage);
+        decodedText[normBaseLocale] = String(decode);
       }
 
       // Dynamic locales

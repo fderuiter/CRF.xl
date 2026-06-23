@@ -2,6 +2,7 @@
  * @issue #28, #40
  */
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
+import { LinguisticService } from "../services/linguistics-service";
 import { normalizeDataOrigin } from "./metadata-utils";
 
 export const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
@@ -115,10 +116,9 @@ function mapRowToItem(
     ) {
       item.label["en-US"] = String(value);
     } else {
-      const labelMatch = header.trim().match(/^(?:label|question(?:\s*\/)?\s*text)\s*\(([^)]+)\)$/i);
-      if (labelMatch) {
-        const locale = labelMatch[1].trim();
-        item.label[locale] = String(value);
+      const match = LinguisticService.discoverLocaleFromHeader(header);
+      if (match && match.type === "label") {
+        item.label[match.locale] = String(value);
       }
     }
     if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as any;
@@ -133,11 +133,10 @@ function mapRowToItem(
       if (!item.instructions) item.instructions = {};
       item.instructions["en-US"] = String(value);
     } else {
-      const instMatch = header.trim().match(/^instructions\s*\(([^)]+)\)$/i);
-      if (instMatch) {
+      const match = LinguisticService.discoverLocaleFromHeader(header);
+      if (match && match.type === "instruction") {
         if (!item.instructions) item.instructions = {};
-        const locale = instMatch[1].trim();
-        item.instructions[locale] = String(value);
+        item.instructions[match.locale] = String(value);
       }
     }
     if (normalizedHeader === "show if") item.showIf = String(value);

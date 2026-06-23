@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" 
-     xmlns:crfx="http://www.cdisc.org/ns/odm/v1.3-ext"
      FileType="Snapshot" 
      FileOID="REF-ODM-001_1.0_20260101T000000000Z" 
      CreationDateTime="2026-01-01T00:00:00.000Z" 

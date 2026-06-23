@@ -27,6 +27,8 @@ import {
   DialogContent,
   DialogBody,
   DialogActions,
+  Dropdown,
+  Option,
 } from "@fluentui/react-components";
 
 // Core Logic
@@ -79,8 +81,6 @@ import { TabList, Tab } from "@fluentui/react-components";
 import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
 import { IntegrityHubView } from "./views/IntegrityHubView";
-import { TranslationManagerView } from "./views/TranslationManagerView";
-import { persistTranslation } from "../core/services/translation-persistence-service";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
 
@@ -216,6 +216,7 @@ export const App: React.FC<{ title?: string }> = () => {
   // 1. Telemetry & Initialization State
   const { activeSheet, isCodelistActive, telemetryTrigger } = useExcelTelemetry();
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   // 2. Application State
   const [validationState, setValidationState] = useState(backgroundValidationEngine.getState());
@@ -244,6 +245,16 @@ export const App: React.FC<{ title?: string }> = () => {
   useEffect(() => {
     return backgroundValidationEngine.subscribe(setValidationState);
   }, []);
+
+  useEffect(() => {
+    if (study && study.metadata.defaultLanguage) {
+      const normalizedDefault = LinguisticService.normalizeLocale(study.metadata.defaultLanguage);
+      // Reset language if current selection is null or not supported in the current study
+      if (!selectedLanguage || (study.metadata.supportedLanguages && !study.metadata.supportedLanguages.includes(selectedLanguage))) {
+        setSelectedLanguage(normalizedDefault);
+      }
+    }
+  }, [study]);
 
   useEffect(() => {
     if (study && !isProcessing) {
@@ -892,6 +903,22 @@ export const App: React.FC<{ title?: string }> = () => {
               <span className={styles.sheetLabel}>{activeSheet || "Loading..."}</span>
             )}
           </div>
+          {isInitialized && study?.metadata?.supportedLanguages && study.metadata.supportedLanguages.length > 1 && (
+            <div style={{ marginLeft: "16px" }}>
+              <Dropdown
+                size="small"
+                value={selectedLanguage || study.metadata.defaultLanguage}
+                onOptionSelect={(_e, data) => setSelectedLanguage(data.optionValue!)}
+                aria-label="Language selection"
+              >
+                {study.metadata.supportedLanguages.map((lang) => (
+                  <Option key={lang} value={lang}>
+                    {lang}
+                  </Option>
+                ))}
+              </Dropdown>
+            </div>
+          )}
         </div>
         <Badge appearance="tint" color="informative">
           {displayStatus}
@@ -905,7 +932,6 @@ export const App: React.FC<{ title?: string }> = () => {
           style={{ marginBottom: "12px" }}
         >
           <Tab value="design">Design</Tab>
-          <Tab value="translations">Translations</Tab>
           <Tab value="compliance">Compliance</Tab>
           <Tab value="integrity">Integrity Hub</Tab>
         </TabList>
@@ -954,32 +980,14 @@ export const App: React.FC<{ title?: string }> = () => {
             <MessageBarBody>{storageWarning}</MessageBarBody>
           </MessageBar>
         )}
-        {isCodelistActive && activeTab === "design" && <DictionarySidecar />}
-        {!isCodelistActive && activeTab === "design" && renderContextualView()}
-        {activeTab === "compliance" && <ComplianceGovernanceView />}
-        {activeTab === "translations" && (
-          <TranslationManagerView
-            study={study}
-            onUpdateStudy={(updatedStudy) => {
-               backgroundValidationEngine.updateState(() => ({ study: updatedStudy }));
-            }}
-            onUpdateTranslation={async (item, locale, unit) => {
-              setAppIsProcessing(true);
-              setAppStatus(`Saving translation for ${locale}...`);
-              try {
-                await persistTranslation(item, locale, unit);
-                setAppStatus("Translation saved");
-                // Trigger re-validation to refresh study state
-                backgroundValidationEngine.triggerValidation(undefined, 0);
-              } catch (e) {
-                setAppStatus("Failed to save translation");
-                console.error(e);
-              } finally {
-                setAppIsProcessing(false);
-              }
-            }}
+        {isCodelistActive && activeTab === "design" && (
+          <DictionarySidecar
+            selectedLanguage={selectedLanguage || study?.metadata.defaultLanguage || "en-US"}
+            defaultLanguage={study?.metadata.defaultLanguage || "en-US"}
           />
         )}
+        {!isCodelistActive && activeTab === "design" && renderContextualView()}
+        {activeTab === "compliance" && <ComplianceGovernanceView />}
         {activeTab === "integrity" && (
           <IntegrityHubView
             issues={issues}

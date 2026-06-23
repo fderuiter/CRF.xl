@@ -31,7 +31,6 @@ import {
   TranslatedText,
   isCrfItem,
 } from "../../types/index";
-import { getTranslationValue } from "../../models/multilingual-model";
 
 /**
  * Main entry point for the Paper CRF Generation.
@@ -388,6 +387,5 @@ function renderInvestigatorSignature(form: CrfForm): any[] {
  * Utility to safely fetch translated text with a fallback.
  */
 function getTranslation(textObj: TranslatedText, lang: string): string {
-  // Use the central multilingual model for deterministic fallback logic
-  return getTranslationValue(textObj, lang, "en-US");
+  return textObj[lang] || textObj["en-US"] || Object.values(textObj)[0] || "";
 }

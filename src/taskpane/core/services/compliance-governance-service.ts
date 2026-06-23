@@ -1,6 +1,6 @@
 /* global window, console, btoa, URL, Office */
 /**
- * @issue #89
+ * @issue #28
  */
 
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
