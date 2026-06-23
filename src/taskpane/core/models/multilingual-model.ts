@@ -1,5 +1,5 @@
 /**
- * @issue #182
+ * @issue #28
  */
 import { TranslatedText, TranslationUnit, TranslationStatus } from "../types/common";
 
