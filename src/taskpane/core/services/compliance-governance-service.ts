@@ -20,6 +20,9 @@ export interface EnvironmentComplianceStatus {
   listId?: string;
   versionHistoryEnabled: boolean;
   checkoutRequired: boolean;
+  hasGovernanceSummaryColumn: boolean;
+  hasJustificationCountColumn: boolean;
+  isAdmin: boolean;
   isCompliant: boolean;
 }
 
@@ -104,6 +107,9 @@ export class ComplianceGovernanceService {
         documentUrl,
         versionHistoryEnabled: false,
         checkoutRequired: false,
+        hasGovernanceSummaryColumn: false,
+        hasJustificationCountColumn: false,
+        isAdmin: false,
         isCompliant: false,
       };
     }
@@ -147,8 +153,28 @@ export class ComplianceGovernanceService {
       const versionHistoryEnabled = listInfo?.enableVersioning ?? false;
       const checkoutRequired = listInfo?.requireCheckout ?? false;
 
-      // Compliant if version history is enabled and check-out is NOT required (or required is fine? "disabling check-out requirements if they interfere with the audit trail")
-      const isCompliant = versionHistoryEnabled && !checkoutRequired;
+      let hasGovernanceSummaryColumn = false;
+      let hasJustificationCountColumn = false;
+      try {
+        const columns = await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).get();
+        if (columns && columns.value) {
+          hasGovernanceSummaryColumn = columns.value.some((c: any) => c.name === 'GovernanceSummary');
+          hasJustificationCountColumn = columns.value.some((c: any) => c.name === 'JustificationCount');
+        }
+      } catch (colErr) {
+        console.warn("Failed to fetch columns", colErr);
+      }
+
+      let isAdmin = false;
+      try {
+        await this.graphClient.api(`/sites/${siteId}/permissions`).top(1).get();
+        isAdmin = true;
+      } catch (e) {
+        isAdmin = false;
+      }
+
+      // Compliant if version history is enabled, check-out is NOT required, and required columns exist
+      const isCompliant = versionHistoryEnabled && !checkoutRequired && hasGovernanceSummaryColumn && hasJustificationCountColumn;
 
       return {
         isCloudHosted,
@@ -158,6 +184,9 @@ export class ComplianceGovernanceService {
         listId,
         versionHistoryEnabled,
         checkoutRequired,
+        hasGovernanceSummaryColumn,
+        hasJustificationCountColumn,
+        isAdmin,
         isCompliant,
       };
     } catch (error) {
@@ -168,12 +197,15 @@ export class ComplianceGovernanceService {
         documentUrl,
         versionHistoryEnabled: false,
         checkoutRequired: false,
+        hasGovernanceSummaryColumn: false,
+        hasJustificationCountColumn: false,
+        isAdmin: false,
         isCompliant: false,
       };
     }
   }
 
-  public async remediateSettings(siteId: string, listId: string) {
+  public async remediateSettings(siteId: string, listId: string, missingGovernanceSummary: boolean = false, missingJustificationCount: boolean = false) {
     if (!this.graphClient) throw new Error("Graph client not initialized");
 
     // Update the list to enable versioning and disable required checkout
@@ -183,6 +215,28 @@ export class ComplianceGovernanceService {
         requireCheckout: false,
       },
     });
+
+    if (missingGovernanceSummary) {
+      try {
+        await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
+          name: "GovernanceSummary",
+          text: {}
+        });
+      } catch (e) {
+        console.warn("Could not create GovernanceSummary", e);
+      }
+    }
+
+    if (missingJustificationCount) {
+      try {
+        await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
+          name: "JustificationCount",
+          number: {}
+        });
+      } catch (e) {
+        console.warn("Could not create JustificationCount", e);
+      }
+    }
   }
 
   public async loadJustificationsFromWorkbook(): Promise<Record<string, AuditJustification>> {

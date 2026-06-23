@@ -20,6 +20,7 @@ import {
   complianceGovernanceService as service,
   EnvironmentComplianceStatus,
 } from "../../core/services/compliance-governance-service";
+import { backgroundValidationEngine } from "../../core/services/validation-engine";
 
 const useStyles = makeStyles({
   container: {
@@ -119,8 +120,21 @@ export const ComplianceGovernanceView: React.FC = () => {
     if (!status?.siteId || !status?.listId) return;
     setIsRemediating(true);
     try {
-      await service.remediateSettings(status.siteId, status.listId);
+      await service.remediateSettings(
+        status.siteId,
+        status.listId,
+        !status.hasGovernanceSummaryColumn,
+        !status.hasJustificationCountColumn
+      );
       await fetchStatus();
+      // Remove Host Environment issue immediately after successful remediation
+      backgroundValidationEngine.updateState((prev) => {
+        const filtered = prev.issues.filter(i => i.location !== "Host Environment");
+        return {
+          issues: filtered,
+          status: filtered.length === 0 ? "Ready" : "Issues detected"
+        };
+      });
     } catch (error) {
       console.error("Remediation failed", error);
     } finally {
@@ -190,16 +204,32 @@ export const ComplianceGovernanceView: React.FC = () => {
               <Text>Check-out Required</Text>
               <Text weight="semibold">{status.checkoutRequired ? "Yes" : "No"}</Text>
             </div>
+            <div className={styles.detailRow}>
+              <Text>GovernanceSummary Column</Text>
+              <Text weight="semibold">{status.hasGovernanceSummaryColumn ? "Present" : "Missing"}</Text>
+            </div>
+            <div className={styles.detailRow}>
+              <Text>JustificationCount Column</Text>
+              <Text weight="semibold">{status.hasJustificationCountColumn ? "Present" : "Missing"}</Text>
+            </div>
 
             {!status.isCompliant && (
               <div style={{ marginTop: "16px" }}>
-                <Button
-                  appearance="primary"
-                  onClick={handleRemediate}
-                  disabled={isRemediating || !status.siteId || !status.listId}
-                >
-                  {isRemediating ? <Spinner size="tiny" /> : "Remediate Settings"}
-                </Button>
+                {status.isAdmin ? (
+                  <Button
+                    appearance="primary"
+                    onClick={handleRemediate}
+                    disabled={isRemediating || !status.siteId || !status.listId}
+                  >
+                    {isRemediating ? <Spinner size="tiny" /> : "Apply Fixes"}
+                  </Button>
+                ) : (
+                  <MessageBar intent="warning">
+                    <MessageBarBody>
+                      Contact an administrator to apply necessary configuration fixes.
+                    </MessageBarBody>
+                  </MessageBar>
+                )}
               </div>
             )}
           </>

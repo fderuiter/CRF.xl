@@ -141,7 +141,7 @@ const useStyles = makeStyles({
     alignItems: "center",
   },
   fallbackIndicator: {
-    color: tokens.colorPaletteWarningForeground1,
+    color: tokens.colorPaletteMarigoldForeground1,
     display: "flex",
     alignItems: "center",
     marginLeft: "2px",

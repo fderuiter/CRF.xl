@@ -39,6 +39,7 @@ import { complianceGovernanceService } from "../core/services/compliance-governa
 import { ComplianceExportService } from "../core/services/compliance-export-service";
 import { VaultService } from "../core/services/vault-service";
 import { backgroundValidationEngine } from "../core/services/validation-engine";
+import { LinguisticService } from "../core/services/linguistics-service";
 
 import { diffStudyDesigns } from "../core/services/diff-engine";
 import {
@@ -316,6 +317,16 @@ export const App: React.FC<{ title?: string }> = () => {
                   issues: [...prev.issues, issue],
                   status: "Issues detected"
                 }));
+              }
+            } else {
+              if (issues.some(i => i.location === "Host Environment")) {
+                backgroundValidationEngine.updateState((prev) => {
+                  const filtered = prev.issues.filter(i => i.location !== "Host Environment");
+                  return {
+                    issues: filtered,
+                    status: filtered.length === 0 ? "Ready" : "Issues detected"
+                  };
+                });
               }
             }
           }).catch(console.error);
