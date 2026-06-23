@@ -1,5 +1,5 @@
 /**
- * @issue #90, #57
+ * @issue #28
  */
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";

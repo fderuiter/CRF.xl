@@ -1,16 +1,8 @@
 /**
  * @issue #39, #40
  */
-import { TranslatedText, TranslationUnit } from "../types/common";
-import { LocaleResolutionStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
-
-/**
- * Extracts a plain string from a translation value that may be a TranslationUnit or a raw string.
- */
-function extractString(val: string | TranslationUnit): string {
-  if (typeof val === "string") return val;
-  return val.value;
-}
+import { TranslatedText } from "../types/common";
+import { TranslationStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
 
 /**
  * Locale-aware linguistic engine providing utility, normalization, and fallback logic.
@@ -27,7 +19,9 @@ export class LinguisticService {
     if (!locale) return "";
     const parts = locale.split(/[-_]/);
     if (parts.length === 1) return parts[0].toLowerCase();
-    return `${parts[0].toLowerCase()}-${parts[1].toUpperCase()}`;
+    // Support region codes (e.g. en-US) but be careful with script tags (e.g. zh-Hans)
+    const secondPart = parts[1].length === 2 ? parts[1].toUpperCase() : parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+    return `${parts[0].toLowerCase()}-${secondPart}`;
   }
 
   /**
@@ -63,8 +57,8 @@ export class LinguisticService {
     if (translations[normalizedTarget]) {
       return {
         locale: normalizedTarget,
-        status: LocaleResolutionStatus.COMPLETE,
-        content: extractString(translations[normalizedTarget]),
+        status: TranslationStatus.COMPLETE,
+        content: translations[normalizedTarget],
         isFallback: false,
       };
     }
@@ -73,8 +67,8 @@ export class LinguisticService {
     if (translations[normalizedDefault]) {
       return {
         locale: normalizedDefault,
-        status: LocaleResolutionStatus.COMPLETE, // Or should it be PARTIAL if it's a fallback?
-        content: extractString(translations[normalizedDefault]),
+        status: TranslationStatus.PARTIAL,
+        content: translations[normalizedDefault],
         isFallback: true,
       };
     }
@@ -85,8 +79,8 @@ export class LinguisticService {
       const firstLocale = availableLocales[0];
       return {
         locale: firstLocale,
-        status: LocaleResolutionStatus.PARTIAL,
-        content: extractString(translations[firstLocale]),
+        status: TranslationStatus.PARTIAL,
+        content: translations[firstLocale],
         isFallback: true,
       };
     }
@@ -94,7 +88,7 @@ export class LinguisticService {
     // 4. Missing
     return {
       locale: normalizedTarget,
-      status: LocaleResolutionStatus.MISSING,
+      status: TranslationStatus.MISSING,
       content: "",
       isFallback: false,
     };
@@ -105,8 +99,7 @@ export class LinguisticService {
    */
   public static isTranslationMissing(translations: TranslatedText, targetLocale: string): boolean {
     const normalized = this.normalizeLocale(targetLocale);
-    const val = translations[normalized];
-    return !val || extractString(val).trim() === "";
+    return !translations[normalized] || translations[normalized].trim() === "";
   }
 
   /**

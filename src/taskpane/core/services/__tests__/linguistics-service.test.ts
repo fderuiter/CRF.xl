@@ -2,7 +2,7 @@
  * @issue #39
  */
 import { LinguisticService } from "../linguistics-service";
-import { LocaleResolutionStatus } from "../../types/linguistics";
+import { TranslationStatus } from "../../types/linguistics";
 
 describe("LinguisticService", () => {
   describe("normalizeLocale", () => {
@@ -61,7 +61,7 @@ describe("LinguisticService", () => {
       const result = LinguisticService.resolveTranslation(translations, "es-ES", "en-US");
       expect(result).toEqual({
         locale: "es-ES",
-        status: LocaleResolutionStatus.COMPLETE,
+        status: TranslationStatus.COMPLETE,
         content: "Peso",
         isFallback: false,
       });
@@ -71,7 +71,7 @@ describe("LinguisticService", () => {
       const result = LinguisticService.resolveTranslation(translations, "fr-FR", "en-US");
       expect(result).toEqual({
         locale: "en-US",
-        status: LocaleResolutionStatus.COMPLETE,
+        status: TranslationStatus.COMPLETE,
         content: "Weight",
         isFallback: true,
       });
@@ -82,7 +82,7 @@ describe("LinguisticService", () => {
       const result = LinguisticService.resolveTranslation(partialTranslations, "fr-FR", "en-US");
       expect(result).toEqual({
         locale: "es-ES",
-        status: LocaleResolutionStatus.PARTIAL,
+        status: TranslationStatus.PARTIAL,
         content: "Peso",
         isFallback: true,
       });
@@ -90,7 +90,7 @@ describe("LinguisticService", () => {
 
     it("should return missing if no translations available", () => {
       const result = LinguisticService.resolveTranslation({}, "fr-FR", "en-US");
-      expect(result.status).toBe(LocaleResolutionStatus.MISSING);
+      expect(result.status).toBe(TranslationStatus.MISSING);
     });
   });
 

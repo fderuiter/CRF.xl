@@ -1,5 +1,5 @@
 /**
- * @issue #53, #54, #55, #92
+ * @issue #53, #54, #55
  */
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./dag-validator";

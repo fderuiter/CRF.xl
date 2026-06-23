@@ -172,7 +172,7 @@ export async function highlightLocaleColumns(): Promise<void> {
     if (sheet.isNullObject) return;
 
     const usedRange = sheet.getUsedRangeOrNullObject();
-    usedRange.load(["columnCount", "isNullObject", "values"]);
+    usedRange.load(["columnCount", "rowCount", "columnIndex", "rowIndex", "isNullObject", "values"]);
     await context.sync();
 
     if (usedRange.isNullObject || usedRange.values.length === 0) return;
@@ -181,7 +181,12 @@ export async function highlightLocaleColumns(): Promise<void> {
     for (let i = 0; i < headers.length; i++) {
       const header = String(headers[i]);
       if (LinguisticService.discoverLocaleFromHeader(header)) {
-        const column = sheet.getRangeByIndexes(0, i, usedRange.rowCount, 1);
+        const column = sheet.getRangeByIndexes(
+          usedRange.rowIndex,
+          usedRange.columnIndex + i,
+          usedRange.rowCount,
+          1
+        );
         column.format.fill.color = "#ecfdf5"; // Tailwind green-50
       }
     }
