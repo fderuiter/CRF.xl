@@ -38,9 +38,8 @@ export function useExcelTelemetry() {
     return () => {
       unsubscribe();
       if (dataChangedHandler) dataChangedHandler.remove();
-      // Only terminate if we want to release global listeners when this hook unmounts.
-      // Usually, since it's used in App.tsx, this only happens on refresh.
-      // bindingService.terminate().catch(console.error);
+      // Terminate binding service to release global Excel listeners when the telemetry host unmounts
+      bindingService.terminate().catch(console.error);
     };
   }, []);
 

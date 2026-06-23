@@ -1,3 +1,6 @@
+/**
+ * @issue #165
+ */
 import { bindingService } from "../binding-service";
 
 /* global jest, describe, it, expect, beforeEach, afterEach */
@@ -124,9 +127,9 @@ describe("BindingService", () => {
       load: jest.fn(),
     });
     mockContext.workbook.worksheets.getActiveWorksheet.mockReturnValue({
-        name: "CRF1",
-        load: jest.fn(),
-        getRangeByIndexes: jest.fn(() => mockHeaderRange),
+      name: "CRF1",
+      load: jest.fn(),
+      getRangeByIndexes: jest.fn(() => mockHeaderRange),
     });
 
     (bindingService as any).currentContext = { sheetName: "Other" };
