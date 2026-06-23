@@ -1,5 +1,5 @@
 /**
- * @issue #28
+ * @issue #28, #40
  */
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
 import { normalizeDataOrigin } from "./metadata-utils";
