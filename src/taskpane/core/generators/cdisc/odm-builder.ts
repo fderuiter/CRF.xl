@@ -14,6 +14,7 @@ import {
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
+import { LinguisticService } from "../../services/linguistics-service";
 
 /**
  * Error thrown when rules pre-serialization validation fails.
@@ -652,7 +653,8 @@ function mapDataTypeToOdm(type: DataType): string {
 function renderTranslatedText(text: TranslatedText): string {
   let output = "";
   Object.entries(text).forEach(([lang, val]) => {
-    output += `<TranslatedText xml:lang="${lang}">${escapeXml(val as string)}</TranslatedText>`;
+    const normLang = LinguisticService.normalizeLocale(lang);
+    output += `<TranslatedText xml:lang="${normLang}">${escapeXml(val as string)}</TranslatedText>`;
   });
   return output;
 }

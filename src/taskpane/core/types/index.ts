@@ -16,3 +16,4 @@ export * from "./validation";
 export * from "./hierarchy";
 export * from "./rules-ast";
 export * from "./diff";
+export * from "./linguistics";

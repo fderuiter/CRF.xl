@@ -27,6 +27,8 @@ import {
   DialogContent,
   DialogBody,
   DialogActions,
+  Dropdown,
+  Option,
 } from "@fluentui/react-components";
 
 // Core Logic
@@ -214,6 +216,7 @@ export const App: React.FC<{ title?: string }> = () => {
   // 1. Telemetry & Initialization State
   const { activeSheet, isCodelistActive, telemetryTrigger } = useExcelTelemetry();
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   // 2. Application State
   const [validationState, setValidationState] = useState(backgroundValidationEngine.getState());
@@ -242,6 +245,12 @@ export const App: React.FC<{ title?: string }> = () => {
   useEffect(() => {
     return backgroundValidationEngine.subscribe(setValidationState);
   }, []);
+
+  useEffect(() => {
+    if (study && study.metadata.defaultLanguage && !selectedLanguage) {
+      setSelectedLanguage(LinguisticService.normalizeLocale(study.metadata.defaultLanguage));
+    }
+  }, [study, selectedLanguage]);
 
   useEffect(() => {
     if (study && !isProcessing) {
@@ -890,6 +899,22 @@ export const App: React.FC<{ title?: string }> = () => {
               <span className={styles.sheetLabel}>{activeSheet || "Loading..."}</span>
             )}
           </div>
+          {isInitialized && study?.metadata?.supportedLanguages && study.metadata.supportedLanguages.length > 1 && (
+            <div style={{ marginLeft: "16px" }}>
+              <Dropdown
+                size="small"
+                value={selectedLanguage || study.metadata.defaultLanguage}
+                onOptionSelect={(_e, data) => setSelectedLanguage(data.optionValue!)}
+                aria-label="Language selection"
+              >
+                {study.metadata.supportedLanguages.map((lang) => (
+                  <Option key={lang} value={lang}>
+                    {lang}
+                  </Option>
+                ))}
+              </Dropdown>
+            </div>
+          )}
         </div>
         <Badge appearance="tint" color="informative">
           {displayStatus}
@@ -951,7 +976,12 @@ export const App: React.FC<{ title?: string }> = () => {
             <MessageBarBody>{storageWarning}</MessageBarBody>
           </MessageBar>
         )}
-        {isCodelistActive && activeTab === "design" && <DictionarySidecar />}
+        {isCodelistActive && activeTab === "design" && (
+          <DictionarySidecar
+            selectedLanguage={selectedLanguage || study?.metadata.defaultLanguage || "en-US"}
+            defaultLanguage={study?.metadata.defaultLanguage || "en-US"}
+          />
+        )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
         {activeTab === "integrity" && (
