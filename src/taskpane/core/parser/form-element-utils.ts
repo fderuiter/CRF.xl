@@ -114,6 +114,12 @@ function mapRowToItem(
       normalizedHeader === "question/text"
     ) {
       item.label["en-US"] = String(value);
+    } else {
+      const labelMatch = header.trim().match(/^(?:label|question(?:\s*\/)?\s*text)\s*\(([^)]+)\)$/i);
+      if (labelMatch) {
+        const locale = labelMatch[1].trim();
+        item.label[locale] = String(value);
+      }
     }
     if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as any;
     if (normalizedHeader === "length") item.length = parseNumericMetadata(value);
@@ -123,6 +129,17 @@ function mapRowToItem(
       item.validation.required = String(value).toLowerCase() === "yes";
     if (normalizedHeader === "require change reason" || normalizedHeader === "requirechangereason" || normalizedHeader === "audit threshold")
       item.requireChangeReason = String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "true";
+    if (normalizedHeader === "instructions") {
+      if (!item.instructions) item.instructions = {};
+      item.instructions["en-US"] = String(value);
+    } else {
+      const instMatch = header.trim().match(/^instructions\s*\(([^)]+)\)$/i);
+      if (instMatch) {
+        if (!item.instructions) item.instructions = {};
+        const locale = instMatch[1].trim();
+        item.instructions[locale] = String(value);
+      }
+    }
     if (normalizedHeader === "show if") item.showIf = String(value);
     if (normalizedHeader === "codelist id") item.codelistId = String(value).trim().toUpperCase();
     if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value);
