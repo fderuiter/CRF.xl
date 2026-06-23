@@ -10,6 +10,7 @@ import {
   Button,
   Divider,
   Input,
+  Textarea,
   Dropdown,
   Option,
   Label,
@@ -179,8 +180,7 @@ export const TranslationDetailView: React.FC<TranslationDetailViewProps> = ({
                   <Option value={TranslationStatus.Outdated}>Outdated</Option>
                 </Dropdown>
               </div>
-              <Input
-                multiline
+              <Textarea
                 rows={3}
                 value={edits[locale]?.value}
                 onChange={(_, d) => handleValueChange(locale, d.value)}
