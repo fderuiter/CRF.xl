@@ -29,9 +29,14 @@ import {
 import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, WarningRegular } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
-  saveNewDictionary,
+  saveDictionary,
   CodelistGroup,
+  CodelistItem,
 } from "../../core/services/dictionary-service";
+import {
+  TerminologySearchResult,
+} from "../../core/types/terminology-search";
+import { TerminologySearchService } from "../../core/services/terminology-search-service";
 import { bindingService, SelectionContext } from "../../core/services/binding-service";
 import { highlightLocaleColumns } from "../../core/services/annotation-service";
 import { LinguisticService } from "../../core/services/linguistics-service";
@@ -59,13 +64,13 @@ const useStyles = makeStyles({
     boxShadow: tokens.shadow64,
   },
   header: {
-    padding: "16px",
+    padding: "12px 16px",
     backgroundColor: tokens.colorBrandBackground,
     color: tokens.colorNeutralForegroundOnBrand,
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: "column",
     flexShrink: 0,
+    gap: "4px",
   },
   headerBadge: {
     marginBottom: "6px",
@@ -85,12 +90,49 @@ const useStyles = makeStyles({
   },
   body: {
     flexGrow: 1,
-    padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    position: "relative",
+  },
+  zone1: {
+    flexShrink: 0,
+  },
+  zone2: {
+    padding: "12px 16px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    flexShrink: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  zone3: {
+    flexGrow: 1,
+    overflowY: "auto",
+    padding: "12px 16px",
     backgroundColor: tokens.colorNeutralBackground3,
     display: "flex",
     flexDirection: "column",
+    gap: "8px",
+  },
+  zone4: {
+    flexGrow: 1,
     overflowY: "auto",
+    padding: "16px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    display: "flex",
+    flexDirection: "column",
     gap: "12px",
+  },
+  zone5: {
+    padding: "12px 16px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    flexShrink: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
   },
   loadingState: {
     flexGrow: 1,
@@ -280,7 +322,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   supportedLanguages = ["en-US"],
 }) => {
   const styles = useStyles();
-  const [view, setView] = useState<"loading" | "browse" | "create" | "import">("loading");
+  const [view, setView] = useState<"loading" | "browse" | "create" | "import" | "detail" | "searching">("loading");
   const [localLanguage, setLocalLanguage] = useState(initialLanguage);
 
   useEffect(() => {
@@ -288,6 +330,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   }, [initialLanguage]);
   const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
   const [search, setSearch] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<TerminologySearchResult[]>([]);
+  const [standardResults, setStandardResults] = useState<TerminologySearchResult[]>([]);
+  const [selectedCodelist, setSelectedCodelist] = useState<CodelistGroup | null>(null);
   const [selection, setSelection] = useState<SelectionContext | null>(bindingService.getCurrentContext());
 
   const [newId, setNewId] = useState("");
@@ -344,11 +390,33 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const handleSaveNew = async () => {
     if (!newId || newItems.some((i) => !i.codedValue)) return;
     setView("loading");
-    await saveNewDictionary(newId, newName, newItems);
+    await saveDictionary(newId, newName, newItems, true);
     setNewId("");
     setNewName("");
     setNewItems([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
     await loadData();
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editItems, setEditItems] = useState<CodelistItem[]>([]);
+
+  const handleStartEdit = () => {
+    if (!selectedCodelist) return;
+    setEditItems(JSON.parse(JSON.stringify(selectedCodelist.items)));
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedCodelist || editItems.some(i => !i.codedValue)) return;
+    setView("loading");
+    await saveDictionary(selectedCodelist.id, selectedCodelist.name, editItems, false);
+    setIsEditing(false);
+    await loadData();
+    // Re-select updated codelist
+    const data = await fetchDictionaries();
+    const updated = data.find(d => d.id === selectedCodelist.id);
+    if (updated) setSelectedCodelist(updated);
+    setView("detail");
   };
 
   // ── Import handlers ────────────────────────────────────────────────────────
@@ -500,13 +568,123 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     []
   );
 
-  const filteredDicts = useMemo(
-    () => filterDictionaries(dictionaries, search),
-    [dictionaries, search]
+  const [activeResultIndex, setActiveResultIndex] = useState(-1);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const isInput = (e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA";
+
+      if (view === "browse" || view === "searching") {
+        const items = view === "searching" ? searchResults : dictionaries;
+        if (e.key === "ArrowDown" && !isInput) {
+          e.preventDefault();
+          setActiveResultIndex((prev) => Math.min(prev + 1, items.length - 1));
+        } else if (e.key === "ArrowUp" && !isInput) {
+          e.preventDefault();
+          setActiveResultIndex((prev) => Math.max(prev - 1, 0));
+        } else if (e.key === "Enter") {
+          if (activeResultIndex >= 0 && activeResultIndex < items.length) {
+            e.preventDefault();
+            const item = items[activeResultIndex];
+            const original = "id" in item ? item : dictionaries.find(d => d.id === (item as TerminologySearchResult).id);
+            if (original) {
+              if (e.altKey) {
+                handleUseDictionary(original.id);
+              } else {
+                setSelectedCodelist(original as CodelistGroup);
+                setView("detail");
+              }
+            }
+          }
+        }
+      } else if (view === "detail") {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setView(search.trim() ? "searching" : "browse");
+        } else if (e.key === "Enter" && e.altKey && selectedCodelist) {
+          e.preventDefault();
+          handleUseDictionary(selectedCodelist.id);
+        }
+      }
+    },
+    [view, searchResults, dictionaries, activeResultIndex, selectedCodelist, handleUseDictionary, search]
   );
+
+  useEffect(() => {
+    setActiveResultIndex(-1);
+  }, [view, search]);
+
+  useEffect(() => {
+    const performSearch = async () => {
+      const trimmedSearch = search.trim();
+      if (!trimmedSearch) {
+        setSearchResults([]);
+        setIsSearching(false);
+        if (view === "searching") setView("browse");
+        return;
+      }
+
+      setIsSearching(true);
+      if (view === "browse" || view === "searching") {
+        setView("searching");
+      }
+
+      // Map CodelistGroup to TerminologySearchResult
+      const candidates: TerminologySearchResult[] = dictionaries.map((dict) => ({
+        id: dict.id,
+        title: dict.name || dict.id,
+        value: dict.id,
+        source: "Workbook",
+        matchReason: "fuzzy_match", // Default, will be updated by search service
+        score: 0,
+        actions: ["apply", "preview"],
+        metadata: {
+          codelistId: dict.id,
+          itemCount: dict.items.length,
+          items: dict.items
+        },
+      }));
+
+      const results = await TerminologySearchService.search(
+        {
+          term: trimmedSearch,
+          context: {
+            codelistId: selection?.fieldName,
+          },
+        },
+        candidates
+      );
+
+      setSearchResults(results);
+
+      // Mock CDISC results for demonstration/placeholder
+      if (trimmedSearch.length > 2) {
+        const mockStandard: TerminologySearchResult[] = [
+          {
+            id: `CDISC:${trimmedSearch.toUpperCase()}`,
+            title: `${trimmedSearch.charAt(0).toUpperCase() + trimmedSearch.slice(1)} (Standard)`,
+            value: trimmedSearch.toUpperCase(),
+            source: "CDISC SDTM",
+            matchReason: "fuzzy_match",
+            score: 0.5,
+            actions: ["preview"],
+          }
+        ];
+        setStandardResults(mockStandard);
+      } else {
+        setStandardResults([]);
+      }
+
+      setIsSearching(false);
+    };
+
+    const timer = setTimeout(performSearch, 300);
+    return () => clearTimeout(timer);
+  }, [search, dictionaries, selection, view]);
+
   const hasSearch = search.trim().length > 0;
   const resultSummary = hasSearch
-    ? `Showing ${filteredDicts.length} of ${dictionaries.length} codelists`
+    ? `Showing ${searchResults.length} results`
     : `${dictionaries.length} codelists available`;
 
   const effectiveSelectedLanguage = localLanguage || initialLanguage;
@@ -589,115 +767,341 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   );
 
   return (
-    <div className={styles.root}>
-      <div className={styles.header}>
-        <div>
+    <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
+      {/* Zone 1: Context Header */}
+      <div className={`${styles.header} ${styles.zone1}`}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div className={styles.headerBadge}>
             <Badge appearance="tint" color={selection?.isValid ? "success" : "warning"}>
               {selection?.sheetName || "Excel"} {selection?.isValid ? `> ${selection.fieldName || selection.address}` : "(Selection Invalid)"}
             </Badge>
           </div>
-          <Text className={styles.headerTitle} block>
-            {selection?.value ? (
-              <Tooltip content={`Current Cell Value: ${selection.value}`} relationship="label">
-                <span>📚 {selection.fieldName || "Codelist"}</span>
-              </Tooltip>
-            ) : (
-              <span>📚 Codelist Library</span>
-            )}
-          </Text>
         </div>
-        {view === "browse" && (
-          <div className={styles.headerActions}>
-            <Button
-              appearance="secondary"
-              size="small"
-              icon={<ArrowDownloadRegular />}
-              onClick={handleOpenImport}
-            >
-              Import CDISC CT
-            </Button>
-            <Button
-              appearance="secondary"
-              size="small"
-              icon={<AddRegular />}
-              onClick={() => setView("create")}
-            >
-              New
-            </Button>
-          </div>
-        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Text className={styles.headerTitle}>
+            <span>📚 {selection?.fieldName || "Codelist Library"}</span>
+          </Text>
+          {selection?.value && (
+            <Badge appearance="outline" color="brand" style={{ color: tokens.colorNeutralForegroundOnBrand, borderColor: tokens.colorNeutralForegroundOnBrand }}>
+              Value: {String(selection.value)}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className={styles.body}>
         {view === "loading" && (
           <div className={styles.loadingState}>
-            <Spinner size="medium" label="Syncing Library..." />
+            <Spinner size="medium" label="Syncing..." />
           </div>
         )}
 
-        {view === "browse" && (
+        {view === "detail" && selectedCodelist && (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* Zone 4: Selected Detail Panel */}
+            <div className={styles.zone4}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <Button
+                  appearance="subtle"
+                  icon={<ArrowLeftRegular />}
+                  onClick={() => setView(search.trim() ? "searching" : "browse")}
+                />
+                <Text weight="bold" size={400}>{selectedCodelist.id}</Text>
+                {!isEditing && (
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    onClick={handleStartEdit}
+                    style={{ marginLeft: "auto" }}
+                  >
+                    Edit
+                  </Button>
+                )}
+              </div>
+
+              <div className={styles.formCard}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Text size={100} weight="semibold" style={{ color: tokens.colorNeutralForeground3 }}>DISPLAY NAME</Text>
+                  <Text>{selectedCodelist.name || "—"}</Text>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Text size={100} weight="semibold" style={{ color: tokens.colorNeutralForeground3 }}>SOURCE</Text>
+                  <Text>Workbook</Text>
+                </div>
+              </div>
+
+              <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text weight="semibold">Values & Decodes</Text>
+                  {!isEditing && supportedLanguages.length > 1 && (
+                    <TabList
+                      selectedValue={effectiveSelectedLanguage}
+                      onTabSelect={(_e, data) => setLocalLanguage(data.value as string)}
+                      size="small"
+                    >
+                      {supportedLanguages.map((lang) => (
+                        <Tab key={lang} value={lang}>
+                          {lang}
+                        </Tab>
+                      ))}
+                    </TabList>
+                  )}
+                </div>
+
+                <div style={{ flexGrow: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {(isEditing ? editItems : selectedCodelist.items).map((item, idx) => {
+                    if (isEditing) {
+                      return (
+                        <div key={idx} className={styles.gridCard} style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px" }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                            <Input
+                              size="small"
+                              placeholder="Value"
+                              value={item.codedValue}
+                              onChange={(_, d) => {
+                                const next = [...editItems];
+                                next[idx].codedValue = d.value;
+                                setEditItems(next);
+                              }}
+                              style={{ width: "80px" }}
+                            />
+                            <Button
+                              size="small"
+                              appearance="subtle"
+                              onClick={() => {
+                                const next = editItems.filter((_, i) => i !== idx);
+                                setEditItems(next);
+                              }}
+                            >
+                              Del
+                            </Button>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                            {supportedLanguages.map(lang => (
+                              <Input
+                                key={lang}
+                                size="small"
+                                placeholder={`Decode (${lang})`}
+                                value={item.decodedText[lang] || ""}
+                                onChange={(_, d) => {
+                                  const next = [...editItems];
+                                  next[idx].decodedText = { ...next[idx].decodedText, [lang]: d.value };
+                                  setEditItems(next);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const translation = LinguisticService.resolveTranslation(
+                      item.decodedText,
+                      effectiveSelectedLanguage,
+                      defaultLanguage
+                    );
+                    return (
+                      <div key={idx} className={styles.gridCard} style={{ display: "flex", gap: "12px", alignItems: "center", padding: "10px" }}>
+                        <Badge appearance="filled" color="brand" style={{ minWidth: "30px", justifyContent: "center" }}>
+                          {item.codedValue}
+                        </Badge>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                          <Text>{translation.content}</Text>
+                          {translation.isFallback && (
+                            <Text size={100} italic style={{ color: tokens.colorPaletteMarigoldForeground1 }}>
+                              Showing fallback ({translation.locale})
+                            </Text>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {isEditing && (
+                    <Button
+                      appearance="subtle"
+                      icon={<AddRegular />}
+                      onClick={() => setEditItems([...editItems, { codedValue: "", decodedText: { [defaultLanguage]: "" } }])}
+                    >
+                      Add Row
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Zone 5: Footer Actions */}
+            <div className={styles.zone5}>
+              {isEditing ? (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Button appearance="secondary" style={{ flexGrow: 1 }} onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button appearance="primary" style={{ flexGrow: 1 }} onClick={handleSaveEdit} disabled={editItems.length === 0 || editItems.some(i => !i.codedValue)}>Save Changes</Button>
+                </div>
+              ) : (
+                <Button
+                  appearance="primary"
+                  className={styles.saveButton}
+                  onClick={() => handleUseDictionary(selectedCodelist.id)}
+                >
+                  Apply Codelist to Cell
+                </Button>
+              )}
+            </div>
+          </>
+        )}
+
+        {(view === "browse" || view === "searching") && (
+          <>
+            {/* Zone 2: Search & Input */}
+            <div className={styles.zone2}>
               <Input
                 className={styles.searchInput}
-                placeholder="Search by ID, name, value, or decode..."
+                placeholder="Search by ID, name, or value..."
                 value={search}
                 onChange={(_, d) => setSearch(d.value)}
                 aria-label="Search codelists"
               />
               {supportedLanguages.length > 1 && (
-                <div style={{ backgroundColor: tokens.colorNeutralBackground1, borderRadius: tokens.borderRadiusMedium, padding: "4px" }}>
-                  <TabList
-                    selectedValue={effectiveSelectedLanguage}
-                    onTabSelect={(_e, data) => setLocalLanguage(data.value as string)}
-                    size="small"
-                  >
-                    {supportedLanguages.map((lang) => (
-                      <Tab key={lang} value={lang}>
-                        {lang}
-                      </Tab>
-                    ))}
-                  </TabList>
+                <TabList
+                  selectedValue={effectiveSelectedLanguage}
+                  onTabSelect={(_e, data) => setLocalLanguage(data.value as string)}
+                  size="small"
+                >
+                  {supportedLanguages.map((lang) => (
+                    <Tab key={lang} value={lang}>
+                      {lang}
+                    </Tab>
+                  ))}
+                </TabList>
+              )}
+            </div>
+
+            {/* Zone 3: Ranked Result List */}
+            <div className={styles.zone3}>
+              <div className={styles.resultsSummary}>
+                <Text size={100} italic>{resultSummary}</Text>
+                {isSearching && <Spinner size="tiny" label="Searching..." labelPosition="after" />}
+              </div>
+
+              {view === "searching" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {searchResults.length > 0 ? (
+                    <>
+                      <Text weight="semibold" size={100} style={{ color: tokens.colorNeutralForeground3 }}>WORKBOOK MATCHES</Text>
+                      {searchResults.map((result, index) => (
+                        <div
+                          key={result.id}
+                          className={styles.gridCard}
+                      style={{
+                        cursor: "pointer",
+                        padding: "12px",
+                        border: activeResultIndex === index ? `2px solid ${tokens.colorBrandStroke1}` : `1px solid ${tokens.colorNeutralStroke1}`
+                      }}
+                          onClick={() => {
+                            const original = dictionaries.find(d => d.id === result.id);
+                            if (original) {
+                              setSelectedCodelist(original);
+                              setView("detail");
+                            }
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{result.id}</Text>
+                            <Badge size="small" color="brand" appearance="tint">
+                              {Math.round(result.score * 100)}%
+                            </Badge>
+                          </div>
+                          <Text size={100} block style={{ marginBottom: "4px" }}>{result.title}</Text>
+                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>{result.matchReason.replace("_", " ")}</Text>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    !isSearching && <Text className={styles.emptyText} size={100}>No workbook matches.</Text>
+                  )}
+
+                  {standardResults.length > 0 && (
+                    <>
+                      <Divider />
+                      <Text weight="semibold" size={100} style={{ color: tokens.colorNeutralForeground3 }}>STANDARD MATCHES (CDISC)</Text>
+                      {standardResults.map((result) => (
+                        <div
+                          key={result.id}
+                          className={styles.gridCard}
+                          style={{ padding: "12px", opacity: 0.8 }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{result.id}</Text>
+                            <Badge size="small" appearance="tint">Standard</Badge>
+                          </div>
+                          <Text size={100} block style={{ marginBottom: "4px" }}>{result.title}</Text>
+                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>Source: {result.source}</Text>
+                          <Button size="small" appearance="subtle" style={{ marginTop: "4px" }} disabled>Import to Workbook</Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {dictionaries.length > 0 ? (
+                    dictionaries.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className={styles.gridCard}
+                        style={{
+                          cursor: "pointer",
+                          padding: "12px",
+                          border: activeResultIndex === index ? `2px solid ${tokens.colorBrandStroke1}` : `1px solid ${tokens.colorNeutralStroke1}`
+                        }}
+                        onClick={() => {
+                          setSelectedCodelist(item);
+                          setView("detail");
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{item.id}</Text>
+                          <Badge size="small" appearance="outline">{item.items.length} items</Badge>
+                        </div>
+                        <Text size={100} block style={{ marginBottom: "4px" }}>{item.name}</Text>
+
+                        <div className={styles.tagRow}>
+                          {getDictionaryPreview(item.items, effectiveSelectedLanguage, defaultLanguage).previewItems.map(p => (
+                            <span key={p} className={styles.tag}>{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <Text className={styles.emptyText}>No codelists available yet.</Text>
+                  )}
                 </div>
               )}
             </div>
-            <div className={styles.resultsSummary}>
-              <Text>{resultSummary}</Text>
-              {hasSearch && <Text>{`Search: "${search.trim()}"`}</Text>}
-            </div>
-            {filteredDicts.length > 0 ? (
-              <div className={styles.gridCard}>
-                <DataGrid
-                  items={filteredDicts}
-                  columns={columns}
-                  sortable
-                  getRowId={(item) => item.id}
-                  className={styles.dataGrid}
+
+            {/* Zone 5: Footer Actions */}
+            <div className={styles.zone5}>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <Button
+                  appearance="secondary"
+                  size="small"
+                  style={{ flexGrow: 1 }}
+                  icon={<ArrowDownloadRegular />}
+                  onClick={handleOpenImport}
                 >
-                  <DataGridHeader>
-                    <DataGridRow>
-                      {({ renderHeaderCell }) => (
-                        <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-                      )}
-                    </DataGridRow>
-                  </DataGridHeader>
-                  <DataGridBody<CodelistGroup>>
-                    {({ item, rowId }) => (
-                      <DataGridRow<CodelistGroup> key={rowId}>
-                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                      </DataGridRow>
-                    )}
-                  </DataGridBody>
-                </DataGrid>
+                  Import
+                </Button>
+                <Button
+                  appearance="primary"
+                  size="small"
+                  style={{ flexGrow: 1 }}
+                  icon={<AddRegular />}
+                  onClick={() => setView("create")}
+                >
+                  Create New
+                </Button>
               </div>
-            ) : (
-              <Text className={styles.emptyText}>
-                {dictionaries.length === 0
-                  ? "No codelists available yet."
-                  : "No codelists found for the current search."}
-              </Text>
-            )}
+            </div>
           </>
         )}
 
