@@ -33,7 +33,10 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
 
     const headers = vals[0].map((h: any) => String(h || "").trim());
     const localeMap = new Map<string, number>();
-    let idIdx = -1, nameIdx = -1, codeIdx = -1, decodeIdx = -1;
+    let idIdx = -1,
+      nameIdx = -1,
+      codeIdx = -1,
+      decodeIdx = -1;
 
     headers.forEach((h, idx) => {
       const normalized = h.toLowerCase();
@@ -51,7 +54,10 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
 
     // Fallback if no headers found
     if (idIdx === -1) {
-      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
+      idIdx = 0;
+      nameIdx = 1;
+      codeIdx = 2;
+      decodeIdx = 3;
     }
 
     const groups: Record<string, CodelistGroup> = {};
@@ -118,7 +124,10 @@ export async function saveNewDictionary(
 
     const headers = range.values[0].map((h: any) => String(h || "").trim());
     const localeMap = new Map<string, number>();
-    let idIdx = -1, nameIdx = -1, codeIdx = -1, decodeIdx = -1;
+    let idIdx = -1,
+      nameIdx = -1,
+      codeIdx = -1,
+      decodeIdx = -1;
 
     headers.forEach((h, idx) => {
       const normalized = h.toLowerCase();
@@ -136,28 +145,43 @@ export async function saveNewDictionary(
 
     // Fallback if no headers
     if (idIdx === -1) {
-      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
+      idIdx = 0;
+      nameIdx = 1;
+      codeIdx = 2;
+      decodeIdx = 3;
     }
 
     // Collect all locales present in items
     const allLocales = new Set<string>();
-    items.forEach(item => {
-      Object.keys(item.decodedText).forEach(l => {
+    items.forEach((item) => {
+      Object.keys(item.decodedText).forEach((l) => {
         if (l !== "en-US") allLocales.add(l);
       });
     });
 
     // Ensure headers for all locales exist
-    let maxColIdx = Math.max(range.columnCount - 1, idIdx, nameIdx, codeIdx, decodeIdx, ...Array.from(localeMap.values()));
+    let maxColIdx = Math.max(
+      range.columnCount - 1,
+      idIdx,
+      nameIdx,
+      codeIdx,
+      decodeIdx,
+      ...Array.from(localeMap.values())
+    );
 
-    allLocales.forEach(locale => {
+    allLocales.forEach((locale) => {
       if (!localeMap.has(locale)) {
         if (locale === "en-US" && decodeIdx !== -1) {
           localeMap.set("en-US", decodeIdx);
         } else {
           maxColIdx++;
           const newHeader = `Decode (${locale})`;
-          const headerRange = sheet.getRangeByIndexes(range.rowIndex, range.columnIndex + maxColIdx, 1, 1);
+          const headerRange = sheet.getRangeByIndexes(
+            range.rowIndex,
+            range.columnIndex + maxColIdx,
+            1,
+            1
+          );
           headerRange.values = [[newHeader]];
           localeMap.set(locale, maxColIdx);
         }
@@ -188,7 +212,12 @@ export async function saveNewDictionary(
       });
     });
 
-    const insertRange = sheet.getRangeByIndexes(range.rowIndex + range.rowCount, range.columnIndex, rowCount, finalColCount);
+    const insertRange = sheet.getRangeByIndexes(
+      range.rowIndex + range.rowCount,
+      range.columnIndex,
+      rowCount,
+      finalColCount
+    );
     insertRange.values = newRows;
 
     // Expand the Named Range so native Excel dropdowns immediately see the new ID

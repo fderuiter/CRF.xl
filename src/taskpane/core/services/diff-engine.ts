@@ -48,10 +48,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * `baseline` and `current`. Comparison is deep.
  */
 function changedKeys<T extends object>(baseline: T, current: T): string[] {
-  const allKeys = new Set([
-    ...Object.keys(baseline),
-    ...Object.keys(current),
-  ]);
+  const allKeys = new Set([...Object.keys(baseline), ...Object.keys(current)]);
   const changed: string[] = [];
   for (const key of Array.from(allKeys).sort()) {
     const bVal = (baseline as Record<string, unknown>)[key];
@@ -95,9 +92,7 @@ function diffForms(
       formOid,
       ...(b !== undefined ? { baseline: b } : {}),
       ...(c !== undefined ? { current: c } : {}),
-      ...(changedFields !== undefined && changedFields.length > 0
-        ? { changedFields }
-        : {}),
+      ...(changedFields !== undefined && changedFields.length > 0 ? { changedFields } : {}),
     });
   }
 
@@ -125,10 +120,7 @@ function collectItems(study: StudyDesign): Map<string, CrfItem> {
   return map;
 }
 
-function diffItems(
-  baseline: StudyDesign,
-  current: StudyDesign
-): ItemDiffEntry[] {
+function diffItems(baseline: StudyDesign, current: StudyDesign): ItemDiffEntry[] {
   const bItems = collectItems(baseline);
   const cItems = collectItems(current);
 
@@ -160,9 +152,7 @@ function diffItems(
       itemOid,
       ...(b !== undefined ? { baseline: b } : {}),
       ...(c !== undefined ? { current: c } : {}),
-      ...(changedFields !== undefined && changedFields.length > 0
-        ? { changedFields }
-        : {}),
+      ...(changedFields !== undefined && changedFields.length > 0 ? { changedFields } : {}),
     });
   }
 
@@ -201,9 +191,7 @@ function diffCodelists(
       codelistId,
       ...(b !== undefined ? { baseline: b } : {}),
       ...(c !== undefined ? { current: c } : {}),
-      ...(changedFields !== undefined && changedFields.length > 0
-        ? { changedFields }
-        : {}),
+      ...(changedFields !== undefined && changedFields.length > 0 ? { changedFields } : {}),
     });
   }
 
@@ -218,12 +206,8 @@ function diffRules(
   baseline: RuleDefinition[] | undefined,
   current: RuleDefinition[] | undefined
 ): RuleDiffEntry[] {
-  const bRules = new Map<string, RuleDefinition>(
-    (baseline ?? []).map((r) => [r.ruleId, r])
-  );
-  const cRules = new Map<string, RuleDefinition>(
-    (current ?? []).map((r) => [r.ruleId, r])
-  );
+  const bRules = new Map<string, RuleDefinition>((baseline ?? []).map((r) => [r.ruleId, r]));
+  const cRules = new Map<string, RuleDefinition>((current ?? []).map((r) => [r.ruleId, r]));
 
   const allIds = new Set([...Array.from(bRules.keys()), ...Array.from(cRules.keys())]);
   const entries: RuleDiffEntry[] = [];
@@ -249,9 +233,7 @@ function diffRules(
       ruleId,
       ...(b !== undefined ? { baseline: b } : {}),
       ...(c !== undefined ? { current: c } : {}),
-      ...(changedFields !== undefined && changedFields.length > 0
-        ? { changedFields }
-        : {}),
+      ...(changedFields !== undefined && changedFields.length > 0 ? { changedFields } : {}),
     });
   }
 
@@ -286,10 +268,7 @@ function diffMetadata(
  * @param current  - The study design to compare against the baseline.
  * @returns A `StudyDiffReport` describing all differences.
  */
-export function diffStudyDesigns(
-  baseline: StudyDesign,
-  current: StudyDesign
-): StudyDiffReport {
+export function diffStudyDesigns(baseline: StudyDesign, current: StudyDesign): StudyDiffReport {
   return {
     baselineProtocolId: baseline.metadata.protocolId,
     currentProtocolId: current.metadata.protocolId,

@@ -71,7 +71,15 @@ export interface LifecycleResult {
 }
 
 const DEFAULT_SOURCE = "CDISC Library API";
-const PACKAGE_KEYS = new Set(["packageOid", "oid", "name", "href", "title", "label", "effectiveDate"]);
+const PACKAGE_KEYS = new Set([
+  "packageOid",
+  "oid",
+  "name",
+  "href",
+  "title",
+  "label",
+  "effectiveDate",
+]);
 const CODELIST_KEYS = new Set([
   "codelistOid",
   "oid",
@@ -110,7 +118,12 @@ function extractOidFromHref(href: unknown): string {
 }
 
 function normalizePackageOid(pkg: CdiscCtPackage): string {
-  return asString(pkg.packageOid) || asString(pkg.name) || asString(pkg.oid) || extractOidFromHref(pkg.href);
+  return (
+    asString(pkg.packageOid) ||
+    asString(pkg.name) ||
+    asString(pkg.oid) ||
+    extractOidFromHref(pkg.href)
+  );
 }
 
 function normalizeCodelistOid(codelist: CdiscCtCodelist): string {
@@ -123,7 +136,12 @@ function normalizeCodelistOid(codelist: CdiscCtCodelist): string {
 }
 
 function normalizeTermOid(term: CdiscCtTerm): string {
-  return asString(term.termOid) || asString(term.conceptId) || asString(term.oid) || extractOidFromHref(term.href);
+  return (
+    asString(term.termOid) ||
+    asString(term.conceptId) ||
+    asString(term.oid) ||
+    extractOidFromHref(term.href)
+  );
 }
 
 function normalizePackageVersion(pkg: CdiscCtPackage, packageOid: string): string {
@@ -319,7 +337,8 @@ export function mapCdiscApiResponseToCrfCodelists(input: unknown): CdiscCtMappin
       };
     }
 
-    const codelistId = asString(codelist.submissionValue) || asString(codelist.title) || codelistOid;
+    const codelistId =
+      asString(codelist.submissionValue) || asString(codelist.title) || codelistOid;
     const codelistName = asString(codelist.title) || codelistId;
 
     for (let termIndex = 0; termIndex < termEntries.length; termIndex += 1) {

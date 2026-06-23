@@ -110,11 +110,15 @@ describe("cdisc-ct-mapping-service", () => {
     }
 
     const incomingRows = mapped.rows;
-    const sexMaleIncoming = incomingRows.find((row) => row.codelistId === "SEX" && row.codedValue === "M");
+    const sexMaleIncoming = incomingRows.find(
+      (row) => row.codelistId === "SEX" && row.codedValue === "M"
+    );
     const sexFemaleIncoming = incomingRows.find(
       (row) => row.codelistId === "SEX" && row.codedValue === "F"
     );
-    const nyIncoming = incomingRows.find((row) => row.codelistId === "NY" && row.codedValue === "Y");
+    const nyIncoming = incomingRows.find(
+      (row) => row.codelistId === "NY" && row.codedValue === "Y"
+    );
 
     if (!sexMaleIncoming || !sexFemaleIncoming || !nyIncoming) {
       throw new Error("fixture mapping did not produce expected rows");
@@ -137,7 +141,11 @@ describe("cdisc-ct-mapping-service", () => {
       },
     ];
 
-    const lifecycle = applyCodelistLifecycle(existingRows, [sexMaleIncoming, sexFemaleIncoming, nyIncoming]);
+    const lifecycle = applyCodelistLifecycle(existingRows, [
+      sexMaleIncoming,
+      sexFemaleIncoming,
+      nyIncoming,
+    ]);
 
     expect(lifecycle.rowsToUpsert).toEqual([sexFemaleIncoming]);
     expect(lifecycle.decisions).toEqual(

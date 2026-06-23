@@ -104,7 +104,10 @@ export async function generateOdmXml(
         if (!isCrfItem(item)) return;
         if (item.showIf) {
           const hasCentralRule = study.rules?.some(
-            (r) => r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+            (r) =>
+              r.ruleType === RuleType.SHOW_IF &&
+              r.target &&
+              targetMatchesItem(r.target, item.itemOid)
           );
           if (!hasCentralRule) {
             const ruleId = `COND.${item.itemOid}`;
@@ -128,10 +131,10 @@ export async function generateOdmXml(
   });
 
   if (study.methods) {
-    Object.values(study.methods).forEach(method => {
+    Object.values(study.methods).forEach((method) => {
       if (method.expression) {
         const ruleId = method.methodOid.trim();
-        if (!study.rules?.some(r => r.ruleId === ruleId)) {
+        if (!study.rules?.some((r) => r.ruleId === ruleId)) {
           const syntheticRule: RuleDefinition = {
             ruleId,
             name: method.name,
@@ -142,7 +145,7 @@ export async function generateOdmXml(
           };
           try {
             syntheticRule.ast = parseRuleExpression(method.expression);
-          } catch(e) {
+          } catch (e) {
             syntheticRule.parseError = e instanceof Error ? e.message : String(e);
           }
           syntheticRules.push(syntheticRule);
@@ -161,20 +164,22 @@ export async function generateOdmXml(
 
     const criticalErrors = validationResult.errors.filter((e) => e.type === "CYCLE");
     const errors = validationResult.errors.filter((e) => e.level === "Error");
-    
+
     if (criticalErrors.length > 0) {
       throw new OdmSerializationError("Rule pre-serialization validation failed", criticalErrors);
     }
-    
+
     if (errors.length > 0 && !options.bestEffort) {
       throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
     }
-    
+
     if (errors.length > 0 && options.bestEffort) {
       diagnosticsLines.push("=== Export Diagnostic Report ===");
       diagnosticsLines.push("Best-Effort mode active. The following logic errors were ignored:");
-      errors.forEach(e => {
-        diagnosticsLines.push(`- Rule '${e.ruleId}'${e.rowIndex && e.rowIndex > 0 ? ` (Row ${e.rowIndex})` : ""}: ${e.message}`);
+      errors.forEach((e) => {
+        diagnosticsLines.push(
+          `- Rule '${e.ruleId}'${e.rowIndex && e.rowIndex > 0 ? ` (Row ${e.rowIndex})` : ""}: ${e.message}`
+        );
       });
     }
 
@@ -318,11 +323,14 @@ export async function generateOdmXml(
 
         // Find matching VALIDATION rules
         const validationRules = allRules.filter(
-          (r) => r.ruleType === RuleType.VALIDATION && r.target && targetMatchesItem(r.target, item.itemOid)
+          (r) =>
+            r.ruleType === RuleType.VALIDATION &&
+            r.target &&
+            targetMatchesItem(r.target, item.itemOid)
         );
 
         if (validationRules.length > 0) {
-          const ruleOids = validationRules.map(r => r.ruleId).join(" ");
+          const ruleOids = validationRules.map((r) => r.ruleId).join(" ");
           conditionAttr += ` crfx:ValidationConditionOIDs="${escapeXml(ruleOids)}"`;
         }
 
@@ -406,7 +414,8 @@ export async function generateOdmXml(
         </Description>`;
         }
 
-        const formalExpressionString = rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
+        const formalExpressionString =
+          rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
 
         xml += `
       <ConditionDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}">${descElement}
@@ -478,7 +487,8 @@ export async function generateOdmXml(
         </Description>`;
         }
 
-        const formalExpressionString = rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
+        const formalExpressionString =
+          rule.ast && !rule.parseError ? serializeAST(rule.ast) : rule.expression;
 
         xml += `
       <MethodDef OID="${escapeXml(rule.ruleId)}" Name="${escapeXml(rule.name || rule.ruleId)}" Type="Computation">${descElement}
@@ -581,16 +591,16 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
     item.validation.rangeChecks.forEach((rc) => {
       const comparator = mapComparatorToOdm(rc.comparator);
       const softHard = rc.severity === "HardError" ? "Hard" : "Soft";
-      
+
       output += `
         <RangeCheck Comparator="${comparator}" SoftHard="${softHard}">
           <CheckValue>${escapeXml(String(rc.value))}</CheckValue>`;
-          
+
       if (rc.errorMessage) {
         output += `
           <ErrorMessage>${renderTranslatedText(rc.errorMessage)}</ErrorMessage>`;
       }
-      
+
       output += `
         </RangeCheck>`;
     });
@@ -617,13 +627,20 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
  */
 function mapComparatorToOdm(comparator: string): string {
   switch (comparator) {
-    case "<": return "LT";
-    case "<=": return "LE";
-    case ">": return "GT";
-    case ">=": return "GE";
-    case "==": return "EQ";
-    case "!=": return "NE";
-    default: return "EQ";
+    case "<":
+      return "LT";
+    case "<=":
+      return "LE";
+    case ">":
+      return "GT";
+    case ">=":
+      return "GE";
+    case "==":
+      return "EQ";
+    case "!=":
+      return "NE";
+    default:
+      return "EQ";
   }
 }
 
@@ -664,7 +681,7 @@ function renderTranslatedText(text: TranslatedText): string {
  */
 function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
-  
+
   // 1. Strip prohibited control characters in U+0000-U+001F (excluding allowed XML 1.0 whitespace)
   const stripped = unsafe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 

@@ -1,7 +1,11 @@
 /**
  * @issue #39
  */
-import { TerminologySearchQuery, TerminologySearchResult, MatchReason } from "../types/terminology-search";
+import {
+  TerminologySearchQuery,
+  TerminologySearchResult,
+  MatchReason,
+} from "../types/terminology-search";
 
 export class TerminologySearchService {
   /**
@@ -31,7 +35,8 @@ export class TerminologySearchService {
       const titleLower = candidate.title.toLowerCase();
       const valueLower = candidate.value.toLowerCase();
       const idLower = candidate.id.toLowerCase();
-      const synonyms = (candidate.metadata?.synonyms as string[])?.map((s) => s.toLowerCase()) || [];
+      const synonyms =
+        (candidate.metadata?.synonyms as string[])?.map((s) => s.toLowerCase()) || [];
 
       // 1. Exact Match
       if (activeModes.includes("exact") && titleLower === normalizedTerm) {
@@ -102,10 +107,7 @@ export class TerminologySearchService {
         score = 1.0;
       }
       // Rule 2: Boost user-context-relevant match
-      else if (
-        context?.codelistId &&
-        result.metadata?.codelistId === context.codelistId
-      ) {
+      else if (context?.codelistId && result.metadata?.codelistId === context.codelistId) {
         score = 0.8;
       }
       // Rule 3: Generic exact match remains at baseScore (0.75)

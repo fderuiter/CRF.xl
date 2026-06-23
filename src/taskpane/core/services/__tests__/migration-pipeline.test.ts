@@ -57,11 +57,7 @@ describe("createImportProvenance", () => {
 // ---------------------------------------------------------------------------
 
 describe("createImportManifest", () => {
-  const provenance: ImportProvenance = createImportProvenance(
-    "test-study.xml",
-    "odm-xml",
-    "1.0"
-  );
+  const provenance: ImportProvenance = createImportProvenance("test-study.xml", "odm-xml", "1.0");
 
   const cleanDiagnostic: ImportDiagnostic = {
     severity: "info",
@@ -139,11 +135,7 @@ describe("ImportDiagnostic type contract", () => {
   });
 
   it("accepts all three severity levels", () => {
-    const severities: Array<ImportDiagnostic["severity"]> = [
-      "error",
-      "warning",
-      "info",
-    ];
+    const severities: Array<ImportDiagnostic["severity"]> = ["error", "warning", "info"];
     severities.forEach((sev) => {
       const diag: ImportDiagnostic = { severity: sev, category: "test", message: "msg" };
       expect(diag.severity).toBe(sev);
@@ -158,8 +150,14 @@ describe("ImportDiagnostic type contract", () => {
 describe("WorkbookProjection type contract", () => {
   it("allows a minimal projection with only formsRows and codelistRows", () => {
     const proj: WorkbookProjection = {
-      formsRows: [["Form OID", "Form Name"], ["DM", "Demographics"]],
-      codelistRows: [["Codelist ID", "Name"], ["SEX", "Gender"]],
+      formsRows: [
+        ["Form OID", "Form Name"],
+        ["DM", "Demographics"],
+      ],
+      codelistRows: [
+        ["Codelist ID", "Name"],
+        ["SEX", "Gender"],
+      ],
     };
     expect(proj.studyRows).toBeUndefined();
     expect(proj.formItemRows).toBeUndefined();

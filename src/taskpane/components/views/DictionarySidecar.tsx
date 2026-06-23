@@ -29,10 +29,10 @@ import {
 import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, WarningRegular } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
-  insertDictionaryToActiveCell,
   saveNewDictionary,
   CodelistGroup,
 } from "../../core/services/dictionary-service";
+import { bindingService, SelectionContext } from "../../core/services/binding-service";
 import { highlightLocaleColumns } from "../../core/services/annotation-service";
 import { LinguisticService } from "../../core/services/linguistics-service";
 import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
@@ -288,6 +288,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   }, [initialLanguage]);
   const [dictionaries, setDictionaries] = useState<CodelistGroup[]>([]);
   const [search, setSearch] = useState("");
+  const [selection, setSelection] = useState<SelectionContext | null>(bindingService.getCurrentContext());
 
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
@@ -315,6 +316,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   useEffect(() => {
     loadData();
     highlightLocaleColumns().catch(console.error);
+
+    const unsubscribe = bindingService.subscribe((context) => {
+      setSelection(context);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const loadData = async () => {
@@ -325,7 +334,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   };
 
   const handleUseDictionary = useCallback(async (id: string) => {
-    await insertDictionaryToActiveCell(id);
+    await bindingService.performInternalOperation(async (context) => {
+      const range = context.workbook.getSelectedRange();
+      range.values = [[id]];
+      await context.sync();
+    });
   }, []);
 
   const handleSaveNew = async () => {
@@ -580,12 +593,18 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       <div className={styles.header}>
         <div>
           <div className={styles.headerBadge}>
-            <Badge appearance="tint" color="success">
-              Active Context
+            <Badge appearance="tint" color={selection?.isValid ? "success" : "warning"}>
+              {selection?.sheetName || "Excel"} {selection?.isValid ? `> ${selection.fieldName || selection.address}` : "(Selection Invalid)"}
             </Badge>
           </div>
           <Text className={styles.headerTitle} block>
-            <span>📚</span> Codelist Library
+            {selection?.value ? (
+              <Tooltip content={`Current Cell Value: ${selection.value}`} relationship="label">
+                <span>📚 {selection.fieldName || "Codelist"}</span>
+              </Tooltip>
+            ) : (
+              <span>📚 Codelist Library</span>
+            )}
           </Text>
         </div>
         {view === "browse" && (

@@ -866,7 +866,9 @@ describe("Clinical Validator Engine", () => {
         },
       ];
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = (await issues).find((i) => i.level === "Error" && i.message.includes("DER_TEST"));
+      const error = (await issues).find(
+        (i) => i.level === "Error" && i.message.includes("DER_TEST")
+      );
       expect(error).toBeUndefined();
     });
   });

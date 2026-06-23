@@ -3,7 +3,11 @@
  * @issue #76
  */
 
-import { applyCodelistLifecycle, CrfCodelistsRow, LifecycleAction } from "./cdisc-ct-mapping-service";
+import {
+  applyCodelistLifecycle,
+  CrfCodelistsRow,
+  LifecycleAction,
+} from "./cdisc-ct-mapping-service";
 
 export type ConflictResolution = "skip" | "overwrite" | "append";
 
@@ -245,12 +249,7 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
 
     // Clear any surplus rows from a previously larger dataset
     if (existingRowCount > newRowCount) {
-      const clearRange = sheet.getRangeByIndexes(
-        newRowCount,
-        0,
-        existingRowCount - newRowCount,
-        4
-      );
+      const clearRange = sheet.getRangeByIndexes(newRowCount, 0, existingRowCount - newRowCount, 4);
       clearRange.clear("Contents");
     }
 
