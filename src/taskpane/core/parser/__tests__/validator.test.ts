@@ -1,12 +1,8 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
-import {
-  validateStudyDesign,
-  ValidationIssue,
-  validateSubmissionMetadataForRelease,
-} from "../validator";
+import { validateStudyDesign, validateSubmissionMetadataForRelease } from "../validator";
 import {
   StudyDesign,
   DataType,
@@ -866,7 +862,9 @@ describe("Clinical Validator Engine", () => {
         },
       ];
       const issues = validateSubmissionMetadataForRelease(mockStudy);
-      const error = (await issues).find((i) => i.level === "Error" && i.message.includes("DER_TEST"));
+      const error = (await issues).find(
+        (i) => i.level === "Error" && i.message.includes("DER_TEST")
+      );
       expect(error).toBeUndefined();
     });
   });

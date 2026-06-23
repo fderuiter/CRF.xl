@@ -416,8 +416,10 @@ describe("diffStudyDesigns – report shape", () => {
     const r2 = diffStudyDesigns(study, deepClone(study));
 
     // generatedAt will differ; strip it before comparing
-    const { generatedAt: _t1, ...rest1 } = r1;
-    const { generatedAt: _t2, ...rest2 } = r2;
+    delete (r1 as any).generatedAt;
+    const rest1 = r1;
+    delete (r2 as any).generatedAt;
+    const rest2 = r2;
     expect(JSON.stringify(rest1)).toBe(JSON.stringify(rest2));
   });
 

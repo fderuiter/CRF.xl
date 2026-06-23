@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @issue #76, #63, #64, #93
  */

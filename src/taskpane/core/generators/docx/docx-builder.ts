@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #56, #57
  */
-/* eslint-disable no-undef */
 import {
   Document,
   Packer,
@@ -324,6 +324,7 @@ function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | nu
     rows: [
       // Header Row
       new TableRow({
+        tableHeader: true,
         children: items.map(
           (item) =>
             new TableCell({

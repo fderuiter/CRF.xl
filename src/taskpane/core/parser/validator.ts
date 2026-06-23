@@ -33,7 +33,11 @@ export interface CrossFormDependency {
 export async function validateStudyDesign(
   study: StudyDesign,
   activeSheetFilter?: string,
-  options?: { isExport?: boolean, yieldControl?: () => Promise<void>, cancellationToken?: { isCancelled: () => boolean } }
+  options?: {
+    isExport?: boolean;
+    yieldControl?: () => Promise<void>;
+    cancellationToken?: { isCancelled: () => boolean };
+  }
 ): Promise<ValidationIssue[]> {
   let issues: ValidationIssue[] = [];
 
@@ -293,7 +297,10 @@ export async function validateStudyDesign(
   return issues;
 }
 
-export function validateCrossFormDependencies(study: StudyDesign, options?: { isExport?: boolean }): {
+export function validateCrossFormDependencies(
+  study: StudyDesign,
+  options?: { isExport?: boolean }
+): {
   issues: ValidationIssue[];
   dependencies: CrossFormDependency[];
 } {
@@ -451,7 +458,7 @@ export function validateCrossFormDependencies(study: StudyDesign, options?: { is
 
         const isLocal = !ident.includes(".");
         const isExport = options?.isExport === true;
-        const missingSeverity = (isExport || isLocal) ? "Error" : "Warning";
+        const missingSeverity = isExport || isLocal ? "Error" : "Warning";
 
         dependencies.push({
           id: `${sourceFormOid}_${sourceOid}_to_${ident}_${dependencyType}`.replace(/\s+/g, "_"),

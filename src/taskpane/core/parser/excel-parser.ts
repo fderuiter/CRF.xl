@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable office-addins/no-context-sync-in-loop */
 /* global Excel, window, Worker, URL, MessageEvent */
 /**
  * @issue #53, #118, #137
@@ -13,7 +15,10 @@ export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
 
 export async function parseExcelToStudyDesign(
   options: ParseExcelToStudyDesignOptions = {}
-): Promise<{ studyDesign: StudyDesign; validationIssues: import("../parser/validator").ValidationIssue[] }> {
+): Promise<{
+  studyDesign: StudyDesign;
+  validationIssues: import("../parser/validator").ValidationIssue[];
+}> {
   const rawData = await fetchRawDataFromExcel(options);
 
   if (typeof window !== "undefined" && typeof Worker !== "undefined") {
@@ -130,7 +135,10 @@ async function fetchRawDataFromExcel(
 function runInWorker(
   rawData: Record<string, any[][]>,
   options: ParseExcelToStudyDesignOptions
-): Promise<{ studyDesign: StudyDesign; validationIssues: import("../parser/validator").ValidationIssue[] }> {
+): Promise<{
+  studyDesign: StudyDesign;
+  validationIssues: import("../parser/validator").ValidationIssue[];
+}> {
   return new Promise((resolve, reject) => {
     // Webpack 5 standard worker creation
     const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));

@@ -1,10 +1,10 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";
-import { buildCtImportPlan, executeCtImport, CtImportPlan, ConflictResolution } from "../ct-import-service";
+import { buildCtImportPlan, executeCtImport, ConflictResolution } from "../ct-import-service";
 import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "../cdisc-ct-mapping-service";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ function makeMockExcel(sheet: MockSheet | null) {
   const mockContext = {
     workbook: {
       worksheets: {
-        getItemOrNullObject: (_name: string) => {
+        getItemOrNullObject: () => {
           if (!sheet) {
             return {
               isNullObject: true,
@@ -52,15 +52,14 @@ function makeMockExcel(sheet: MockSheet | null) {
               load: () => {},
               values: sheet.rows,
               rowCount: sheet.rows.length,
-              clear: (_clearType?: string) => {
+              clear: () => {
                 // Simulate clearing rows beyond new data
               },
             }),
             getRangeByIndexes: (
               rowStart: number,
-              _colStart: number,
-              rowCount: number,
-              _colCount: number
+
+              rowCount: number
             ) => ({
               load: () => {},
               get values() {
@@ -71,7 +70,7 @@ function makeMockExcel(sheet: MockSheet | null) {
                   sheet.rows[rowStart + i] = v[i];
                 }
               },
-              clear: (_clearType?: string) => {},
+              clear: () => {},
             }),
           };
         },
@@ -161,9 +160,7 @@ describe("ct-import-service", () => {
     it("returns conflict items with proper metadata for the UI", () => {
       const incomingRows = getMappedRows();
       const existingModified = incomingRows.map((r) =>
-        r.codelistId === "SEX"
-          ? { ...r, decode: "Modified decode", codelistVersion: "" }
-          : r
+        r.codelistId === "SEX" ? { ...r, decode: "Modified decode", codelistVersion: "" } : r
       );
 
       const plan = buildCtImportPlan(existingModified, incomingRows);
@@ -260,7 +257,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Everything that was in conflict should be skipped
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.skipped).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -289,7 +288,9 @@ describe("ct-import-service", () => {
       );
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.updated).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -319,7 +320,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Appended rows count as "added"
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.added).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });

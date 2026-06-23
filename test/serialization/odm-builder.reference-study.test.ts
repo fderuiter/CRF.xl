@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /** @jest-environment node */
 import fs from "fs";
 import os from "os";

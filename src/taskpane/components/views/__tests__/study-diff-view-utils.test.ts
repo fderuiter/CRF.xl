@@ -3,8 +3,7 @@
  * @issue #28
  */
 
-
-import { DataType, EventType, RuleType, StudyDiffReport } from "../../../core/types";
+import { DataType, RuleType, StudyDiffReport } from "../../../core/types";
 import {
   buildStudyDiffList,
   filterStudyDiffList,

@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /**
  * @issue #138
  */
@@ -51,14 +52,14 @@ export function evaluateStaticCondition(node: ASTNode): boolean | null {
   // Since static evaluation of small expressions is typically not deep enough to cause stack overflows,
   // we can use a bottom-up iterative post-order traversal to be perfectly safe, or just keep it simple.
   // We'll refactor it to an iterative approach using a stack.
-  
+
   const postOrder: ASTNode[] = [];
   const stack = [node];
   while (stack.length > 0) {
     const curr = stack.pop();
     if (!curr) continue;
     postOrder.push(curr);
-    
+
     if (curr.type === "UnaryExpression") {
       stack.push(curr.argument);
     } else if (curr.type === "BinaryExpression") {
@@ -180,7 +181,15 @@ export function matchesRef(identifier: string, ref: string): boolean {
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
  */
-export async function validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean, yieldControl?: () => Promise<void>, cancellationToken?: { isCancelled: () => boolean } }): Promise<RuleValidationResult> {
+export async function validateRules(
+  rules: RuleDefinition[],
+  study?: StudyDesign,
+  options?: {
+    isExport?: boolean;
+    yieldControl?: () => Promise<void>;
+    cancellationToken?: { isCancelled: () => boolean };
+  }
+): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const dependencyMap: Record<string, string[]> = {};
   const topologicalOrder: string[] = [];
@@ -332,12 +341,12 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
       break;
     }
     const rule = validRules[i];
-    
+
     // Chunking to prevent blocking UI during dependency map build
     if (i % 250 === 0 && options?.yieldControl) {
       await options.yieldControl();
     }
-    
+
     const deps = new Set<string>();
     if (!rule.ast) {
       dependencyMap[rule.ruleId] = [];
@@ -396,7 +405,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
         if (!existsInForms) {
           const isLocal = !ident.includes(".");
           const isExport = options?.isExport === true;
-          const severity = (isExport || isLocal) ? "Error" : "Warning";
+          const severity = isExport || isLocal ? "Error" : "Warning";
           errors.push({
             level: severity,
             ruleId: rule.ruleId,
@@ -455,17 +464,18 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
       break;
     }
     if (visited.has(rule.ruleId)) continue;
-    
-    const stack: { nodeId: string, originRowIndex?: number, deps: string[], depIndex: number }[] = [];
+
+    const stack: { nodeId: string; originRowIndex?: number; deps: string[]; depIndex: number }[] =
+      [];
     stack.push({
       nodeId: rule.ruleId,
       originRowIndex: rule._sourceRowIndex,
       deps: dependencyMap[rule.ruleId] || [],
-      depIndex: 0
+      depIndex: 0,
     });
-    
+
     visiting.add(rule.ruleId);
-    
+
     while (stack.length > 0) {
       dfsIterations++;
       if (dfsIterations % 100 === 0 && options?.yieldControl) {
@@ -473,16 +483,16 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
       }
 
       const top = stack[stack.length - 1];
-      
+
       if (top.depIndex < top.deps.length) {
         const nextDep = top.deps[top.depIndex];
         top.depIndex++;
-        
+
         if (visiting.has(nextDep)) {
           // Cycle found!
-          const cyclePathNodes = stack.map(s => s.nodeId);
+          const cyclePathNodes = stack.map((s) => s.nodeId);
           const cycleStart = cyclePathNodes.indexOf(nextDep);
-          
+
           if (cycleStart !== -1) {
             const rawCyclePath = cyclePathNodes.slice(cycleStart);
             rawCyclePath.push(nextDep);
@@ -507,7 +517,8 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
                 type: "CYCLE",
                 cyclePath: rawCyclePath,
                 actionableExplanation: `Circular logic loop detected: ${details.join(", ")}. Please remove circular dependencies.`,
-                rowIndex: top.originRowIndex || rules.find((r) => r.ruleId === nextDep)?._sourceRowIndex,
+                rowIndex:
+                  top.originRowIndex || rules.find((r) => r.ruleId === nextDep)?._sourceRowIndex,
               });
             }
           }
@@ -517,7 +528,7 @@ export async function validateRules(rules: RuleDefinition[], study?: StudyDesign
             nodeId: nextDep,
             originRowIndex: top.originRowIndex,
             deps: dependencyMap[nextDep] || [],
-            depIndex: 0
+            depIndex: 0,
           });
         }
       } else {

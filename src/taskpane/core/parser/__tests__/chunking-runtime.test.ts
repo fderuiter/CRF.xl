@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import { createParseRuntime, processRowsInChunks } from "../chunking-runtime";
 
 describe("chunking runtime", () => {

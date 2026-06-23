@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import {
   RECOVERY_STORAGE_KEY,
   RECOVERY_SNAPSHOT_TTL_MS,

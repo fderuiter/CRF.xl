@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import {
   VERSION_DISMISSAL_STORAGE_KEY,
   checkForVersionUpdate,

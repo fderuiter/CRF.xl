@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #68
  */
-/* eslint-disable no-undef */
 export type ParsePhase =
   | "metadata"
   | "codelists"

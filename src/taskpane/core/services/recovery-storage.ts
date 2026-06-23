@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #68
  */
-/* eslint-disable no-undef */
 import { StudyDesign, isCrfItem } from "../types";
 import { ValidationIssue } from "../parser/validator";
 

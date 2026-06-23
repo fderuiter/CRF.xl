@@ -1,3 +1,4 @@
+/* eslint-disable office-addins/no-context-sync-in-loop */
 /* global Excel */
 /**
  * @issue #68
@@ -77,7 +78,14 @@ export async function initializeWorkbook(): Promise<void> {
       },
       {
         name: "_Methods",
-        headers: ["Method OID", "Name", "Type", "Description", "Expression", "Referenced Variables"],
+        headers: [
+          "Method OID",
+          "Name",
+          "Type",
+          "Description",
+          "Expression",
+          "Referenced Variables",
+        ],
         data: [
           [
             "M_DERIVED_BMI",

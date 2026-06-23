@@ -33,7 +33,7 @@ export function useExcelTelemetry() {
               await ctx.sync();
               setActiveSheet(sheet.name);
               setIsCodelistActive(false); // Reset sidecar on sheet change
-              setTelemetryTrigger(prev => prev + 1);
+              setTelemetryTrigger((prev) => prev + 1);
             });
           });
 
@@ -54,13 +54,13 @@ export function useExcelTelemetry() {
               } else {
                 setIsCodelistActive(false);
               }
-              setTelemetryTrigger(prev => prev + 1);
+              setTelemetryTrigger((prev) => prev + 1);
             });
           });
 
           // Listener 3: Data Changed (Values updated)
           dataChangedHandler = workbook.worksheets.onChanged.add(async () => {
-            setTelemetryTrigger(prev => prev + 1);
+            setTelemetryTrigger((prev) => prev + 1);
           });
 
           await context.sync();

@@ -1,17 +1,18 @@
+/* eslint-disable no-undef */
 /**
  * @issue #40
  */
 import { parseRawDataToStudyDesign } from "../parser-engine";
-import { DataType } from "../../types";
+import {} from "../../types";
 
 describe("Locale-Aware Parsing", () => {
   it("should parse standard single-language codelists (regression)", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Codelists": [
+      _Codelists: [
         ["ID", "Name", "Code", "Decode"],
         ["CL1", "YesNo", "1", "Yes"],
         ["CL1", "YesNo", "0", "No"],
@@ -26,11 +27,11 @@ describe("Locale-Aware Parsing", () => {
 
   it("should parse multi-language codelists", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Codelists": [
+      _Codelists: [
         ["ID", "Name", "Code", "Decode", "Decode(es-ES)", "Decode (fr-FR)"],
         ["CL1", "YesNo", "1", "Yes", "Sí", "Oui"],
         ["CL1", "YesNo", "0", "No", "No", "Non"],
@@ -51,11 +52,11 @@ describe("Locale-Aware Parsing", () => {
 
   it("should ignore empty translation cells", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Codelists": [
+      _Codelists: [
         ["ID", "Name", "Code", "Decode", "Decode (es-ES)"],
         ["CL1", "YesNo", "1", "Yes", ""],
       ],
@@ -69,11 +70,11 @@ describe("Locale-Aware Parsing", () => {
 
   it("should report duplicate locale columns as warnings", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Codelists": [
+      _Codelists: [
         ["ID", "Name", "Code", "Decode (es-ES)", "Decode (es-ES)"],
         ["CL1", "YesNo", "1", "Sí-1", "Sí-2"],
       ],
@@ -81,23 +82,34 @@ describe("Locale-Aware Parsing", () => {
 
     const studyDesign = await parseRawDataToStudyDesign(rawData);
     const warnings = studyDesign.metadata.customProperties?.parseWarnings || [];
-    expect(warnings.some((w: string) => w.includes("Duplicate locale column detected in _Codelists: Decode (es-ES)"))).toBe(true);
+    expect(
+      warnings.some((w: string) =>
+        w.includes("Duplicate locale column detected in _Codelists: Decode (es-ES)")
+      )
+    ).toBe(true);
     // Should take the first one
     expect(studyDesign.codelists["CL1"].items[0].decodedText["es-ES"]).toBe("Sí-1");
   });
 
   it("should parse multi-language CRF labels and instructions", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Forms": [
+      _Forms: [
         ["ID", "Name", "Repeating"],
         ["F1", "Form 1", "No"],
       ],
-      "F1": [
-        ["Variable Name", "Label", "Label (es-ES)", "Instructions", "Instructions (es-ES)", "Variable Type"],
+      F1: [
+        [
+          "Variable Name",
+          "Label",
+          "Label (es-ES)",
+          "Instructions",
+          "Instructions (es-ES)",
+          "Variable Type",
+        ],
         ["VAR1", "Weight", "Peso", "Measure weight", "Mida el peso", "Integer"],
       ],
     };
@@ -113,15 +125,15 @@ describe("Locale-Aware Parsing", () => {
 
   it("should support Question / Text (locale) pattern", async () => {
     const rawData = {
-      "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Forms": [
+      _Forms: [
         ["ID", "Name", "Repeating"],
         ["F1", "Form 1", "No"],
       ],
-      "F1": [
+      F1: [
         ["Variable Name", "Question / Text (es-ES)", "Variable Type"],
         ["VAR1", "Pregunta", "Integer"],
       ],
@@ -134,11 +146,11 @@ describe("Locale-Aware Parsing", () => {
 
   it("should fall back to positional indices for _Codelists if headers are missing", async () => {
     const rawData = {
-       "_Study": [
+      _Study: [
         ["Protocol ID", "Study Name", "Version", "Default Language"],
         ["PROT-001", "Test Study", "1.0", "en-US"],
       ],
-      "_Codelists": [
+      _Codelists: [
         // No header row or malformed header row
         ["CL1", "YesNo", "1", "Yes"],
         ["CL1", "YesNo", "0", "No"],

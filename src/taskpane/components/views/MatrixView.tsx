@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
@@ -33,6 +34,7 @@ import {
   MatrixRequiredFilter,
 } from "./matrix-view-utils";
 import { StudyDiffView } from "./StudyDiffView";
+import { InteractiveElement } from "../ui/InteractiveElement";
 
 interface MatrixProps {
   onComplianceExport: () => Promise<void>;
@@ -404,14 +406,6 @@ export const MatrixView: React.FC<MatrixProps> = ({
   const hasDeps = study?.crossFormDependencies && study.crossFormDependencies.length > 0;
   const [selectedDepId, setSelectedDepId] = React.useState<string | null>(null);
 
-  // Keyboard navigation helper
-  const handleDepKeyDown = (e: React.KeyboardEvent, depId: string) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setSelectedDepId((prev) => (prev === depId ? null : depId));
-    }
-  };
-
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -631,14 +625,13 @@ export const MatrixView: React.FC<MatrixProps> = ({
                         key={dep.id}
                         style={{ display: "flex", flexDirection: "column", gap: "6px" }}
                       >
-                        <div
+                        <InteractiveElement
                           className={`${styles.depItem} ${severityClass} ${isSelected ? styles.depItemActive : ""}`}
                           onClick={() => setSelectedDepId(isSelected ? null : dep.id)}
-                          onKeyDown={(e) => handleDepKeyDown(e, dep.id)}
                           tabIndex={0}
                           role="button"
-                          aria-expanded={isSelected}
-                          aria-label={`Dependency from ${dep.sourceOid} to ${dep.targetOid} in form ${dep.targetFormOid}. Severity ${dep.severity}. Click for details.`}
+                          ariaExpanded={isSelected}
+                          ariaLabel={`Dependency from ${dep.sourceOid} to ${dep.targetOid} in form ${dep.targetFormOid}. Severity ${dep.severity}. Click for details.`}
                         >
                           <div className={styles.depItemHeader}>
                             <div className={styles.depItemTitle}>{dep.sourceOid}</div>
@@ -669,7 +662,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
                             </span>
                           </div>
                           <div className={styles.depItemExpression}>{dep.expression}</div>
-                        </div>
+                        </InteractiveElement>
 
                         {isSelected && (
                           <div className={styles.detailPanel}>

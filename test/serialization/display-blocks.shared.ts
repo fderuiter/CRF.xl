@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /** @jest-environment node */
 import ExcelJS from "exceljs";
 import fs from "fs";

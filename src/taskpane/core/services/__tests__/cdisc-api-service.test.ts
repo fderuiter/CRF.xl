@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";
 import {
@@ -150,7 +150,10 @@ describe("cdisc-api-service", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const fetchMock: MockFetch = jest.fn().mockResolvedValueOnce(token).mockResolvedValueOnce(terms);
+    const fetchMock: MockFetch = jest
+      .fn()
+      .mockResolvedValueOnce(token)
+      .mockResolvedValueOnce(terms);
 
     const service = createCdiscApiService(
       {
@@ -161,10 +164,7 @@ describe("cdisc-api-service", () => {
       createMockClient(fetchMock)
     );
 
-    const result = await service.listCodelistTerms(
-      "C66741",
-      "NCI_CDISC_Terminology_2026-03-27"
-    );
+    const result = await service.listCodelistTerms("C66741", "NCI_CDISC_Terminology_2026-03-27");
 
     expect(result.ok).toBe(true);
     if (!result.ok) {

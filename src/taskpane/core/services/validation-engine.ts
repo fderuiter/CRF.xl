@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
@@ -47,13 +48,13 @@ class BackgroundValidationEngine {
     if (this.validationTimeout !== null) {
       window.clearTimeout(this.validationTimeout);
     }
-    
+
     // Immediately mark as processing to indicate UI is stale
-    this.updateState(() => ({ 
+    this.updateState(() => ({
       isProcessing: true,
-      status: "Validation pending..."
+      status: "Validation pending...",
     }));
-    
+
     this.validationTimeout = window.setTimeout(() => {
       this.runValidation(this.latestSheetFilter);
     }, delayMs);
@@ -121,7 +122,7 @@ class BackgroundValidationEngine {
           : "Specification clean",
       };
       this.notify();
-    } catch (e) {
+    } catch {
       if (cancelled) return;
       this.state = {
         ...this.state,

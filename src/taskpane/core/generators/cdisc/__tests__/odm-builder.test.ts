@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import { generateOdmXml } from "../odm-builder";
 import { StudyDesign, DataType, EventType, RuleType, isCrfItem, CrfItem } from "../../../types";
 
@@ -125,7 +125,9 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      await expect(generateOdmXml(mockStudy)).rejects.toThrow("Rule pre-serialization validation failed");
+      await expect(generateOdmXml(mockStudy)).rejects.toThrow(
+        "Rule pre-serialization validation failed"
+      );
     });
 
     it("should throw OdmSerializationError on duplicate rule IDs", async () => {
@@ -148,7 +150,9 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
 
-      await expect(generateOdmXml(mockStudy)).rejects.toThrow("Rule pre-serialization validation failed");
+      await expect(generateOdmXml(mockStudy)).rejects.toThrow(
+        "Rule pre-serialization validation failed"
+      );
     });
   });
 
@@ -357,11 +361,31 @@ describe("CDISC ODM XML Builder", () => {
   describe("VLM & Methods Serialization Integration", () => {
     it("should serialize study.methods to MethodDef elements", async () => {
       mockStudy.forms["F1"].itemGroups[0].items.push(
-        { itemOid: "WEIGHT", name: "Weight", formOid: "F1", groupOid: "G1", orderNumber: 4, dataType: DataType.FLOAT, label: { "en-US": "W" }, effectiveVersion: "1.0", validation: { required: false } },
-        { itemOid: "HEIGHT", name: "Height", formOid: "F1", groupOid: "G1", orderNumber: 5, dataType: DataType.FLOAT, label: { "en-US": "H" }, effectiveVersion: "1.0", validation: { required: false } }
+        {
+          itemOid: "WEIGHT",
+          name: "Weight",
+          formOid: "F1",
+          groupOid: "G1",
+          orderNumber: 4,
+          dataType: DataType.FLOAT,
+          label: { "en-US": "W" },
+          effectiveVersion: "1.0",
+          validation: { required: false },
+        },
+        {
+          itemOid: "HEIGHT",
+          name: "Height",
+          formOid: "F1",
+          groupOid: "G1",
+          orderNumber: 5,
+          dataType: DataType.FLOAT,
+          label: { "en-US": "H" },
+          effectiveVersion: "1.0",
+          validation: { required: false },
+        }
       );
       mockStudy.methods = {
-        "M_BMI": {
+        M_BMI: {
           methodOid: "M_BMI",
           name: "BMI Derivation",
           type: "Computation",
@@ -372,23 +396,27 @@ describe("CDISC ODM XML Builder", () => {
 
       const { xml } = await generateOdmXml(mockStudy);
       expect(xml).toContain('<MethodDef OID="M_BMI" Name="BMI Derivation" Type="Computation">');
-      expect(xml).toContain('<Description>');
+      expect(xml).toContain("<Description>");
       expect(xml).toContain('<TranslatedText xml:lang="en-US">Calculates BMI</TranslatedText>');
-      expect(xml).toContain('<FormalExpression Context="CRF.xl">WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100))</FormalExpression>');
+      expect(xml).toContain(
+        '<FormalExpression Context="CRF.xl">WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100))</FormalExpression>'
+      );
     });
 
     it("should serialize Origin, Comment and explicit MethodOID directly onto ItemDef elements", async () => {
-      const item = mockStudy.forms["F1"].itemGroups[0].items.find(i => isCrfItem(i) && i.itemOid === "IT_WT") as CrfItem;
+      const item = mockStudy.forms["F1"].itemGroups[0].items.find(
+        (i) => isCrfItem(i) && i.itemOid === "IT_WT"
+      ) as CrfItem;
       item.origin = "Pre-Specified" as any;
       item.comment = "Collected weight at baseline";
       item.methodOid = "M_WT_COLLECT";
 
       mockStudy.methods = {
-        "M_WT_COLLECT": {
+        M_WT_COLLECT: {
           methodOid: "M_WT_COLLECT",
           name: "Collect Weight",
           type: "Interview",
-        }
+        },
       };
 
       const { xml } = await generateOdmXml(mockStudy);
@@ -398,7 +426,9 @@ describe("CDISC ODM XML Builder", () => {
     });
 
     it("should prioritize item.methodOid over rules-derived MethodOID on ItemDef", async () => {
-      const item = mockStudy.forms["F1"].itemGroups[0].items.find(i => isCrfItem(i) && i.itemOid === "IT_WT") as CrfItem;
+      const item = mockStudy.forms["F1"].itemGroups[0].items.find(
+        (i) => isCrfItem(i) && i.itemOid === "IT_WT"
+      ) as CrfItem;
       item.methodOid = "M_EXPLICIT_BMI";
 
       mockStudy.rules = [
@@ -415,11 +445,11 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
 
       mockStudy.methods = {
-        "M_EXPLICIT_BMI": {
+        M_EXPLICIT_BMI: {
           methodOid: "M_EXPLICIT_BMI",
           name: "Explicit BMI",
           type: "Computation",
-        }
+        },
       };
 
       const { xml } = await generateOdmXml(mockStudy);

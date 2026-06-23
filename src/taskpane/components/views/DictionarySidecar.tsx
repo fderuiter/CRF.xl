@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @issue #46, #44
  */
@@ -36,6 +37,7 @@ import {
 import { highlightLocaleColumns } from "../../core/services/annotation-service";
 import { LinguisticService } from "../../core/services/linguistics-service";
 import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
+import { InteractiveElement } from "../ui/InteractiveElement";
 import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
 import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core/services/cdisc-ct-mapping-service";
 import {
@@ -829,7 +831,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
                       )
                       .map((pkg) => (
-                        <div
+                        <InteractiveElement
                           key={pkg.packageOid}
                           style={{
                             padding: "8px",
@@ -838,6 +840,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent",
                           }}
                           onClick={() => setSelectedPackage(pkg)}
+                          ariaExpanded={selectedPackage?.packageOid === pkg.packageOid}
                         >
                           <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                             {pkg.title || pkg.packageOid}
@@ -845,7 +848,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
                             OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                           </Text>
-                        </div>
+                        </InteractiveElement>
                       ))}
                     {importPackages.length > 0 && 
                       importPackages.filter((pkg) => 

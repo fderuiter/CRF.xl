@@ -127,8 +127,13 @@ function mapRowToItem(
       item.significantDigits = parseNumericMetadata(value);
     if (normalizedHeader === "required")
       item.validation.required = String(value).toLowerCase() === "yes";
-    if (normalizedHeader === "require change reason" || normalizedHeader === "requirechangereason" || normalizedHeader === "audit threshold")
-      item.requireChangeReason = String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "true";
+    if (
+      normalizedHeader === "require change reason" ||
+      normalizedHeader === "requirechangereason" ||
+      normalizedHeader === "audit threshold"
+    )
+      item.requireChangeReason =
+        String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "true";
     if (normalizedHeader === "instructions") {
       if (!item.instructions) item.instructions = {};
       item.instructions["en-US"] = String(value);

@@ -206,7 +206,8 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
       diagnostics.push({
         severity: "error",
         category: "Semantic",
-        message: "Encountered CodeList without an OID; the codelist cannot be mapped into _Codelists.",
+        message:
+          "Encountered CodeList without an OID; the codelist cannot be mapped into _Codelists.",
         location: "_Codelists",
       });
       continue;
@@ -224,7 +225,9 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
 
     const codeListItems = findXmlElements(codeListMatch.innerXml, "CodeListItem");
     const enumeratedItems = findXmlElements(codeListMatch.innerXml, "EnumeratedItem");
-    const allItems = codeListItems.concat(enumeratedItems).sort((left, right) => left.index - right.index);
+    const allItems = codeListItems
+      .concat(enumeratedItems)
+      .sort((left, right) => left.index - right.index);
 
     for (let itemIndex = 0; itemIndex < allItems.length; itemIndex += 1) {
       const itemMatch = allItems[itemIndex];
@@ -240,7 +243,9 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
       }
 
       const decode =
-        getDecodeText(itemMatch.innerXml) || getPreferredTranslatedText(itemMatch.innerXml) || codedValue;
+        getDecodeText(itemMatch.innerXml) ||
+        getPreferredTranslatedText(itemMatch.innerXml) ||
+        codedValue;
       if (decode === codedValue && itemMatch.innerXml.indexOf("Decode") === -1) {
         diagnostics.push({
           severity: "warning",
@@ -264,12 +269,16 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   }
 
   collectUnsupportedConstructDiagnostics(activeMetaDataVersion.innerXml, diagnostics);
-  collectLanguageDiagnostics(activeMetaDataVersion.innerXml, study.metadata.defaultLanguage, diagnostics);
+  collectLanguageDiagnostics(
+    activeMetaDataVersion.innerXml,
+    study.metadata.defaultLanguage,
+    diagnostics
+  );
 
   const validationIssues = await validateStudyDesign(study);
   validationIssues.forEach((issue) => {
     diagnostics.push({
-      severity: (issue.level.toLowerCase() as OdmImportDiagnosticSeverity),
+      severity: issue.level.toLowerCase() as OdmImportDiagnosticSeverity,
       category: "Semantic",
       message: issue.message,
       location: issue.sheetName || issue.location,
@@ -291,12 +300,7 @@ export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProje
   const formRows = Object.values(study.forms)
     .slice()
     .sort((left, right) => left.orderNumber - right.orderNumber)
-    .map((form) => [
-      form.formOid,
-      form.formName,
-      form.repeating ? "Yes" : "No",
-      "Portrait",
-    ]);
+    .map((form) => [form.formOid, form.formName, form.repeating ? "Yes" : "No", "Portrait"]);
 
   const codelistRows: string[][] = [];
   Object.values(study.codelists)
@@ -339,7 +343,9 @@ export function applyOdmImportToWorkbook(
     (diagnostic) => diagnostic.severity === "error"
   );
   if (blockingDiagnostics.length > 0) {
-    throw new Error("ODM import contains blocking diagnostics; review the import summary before write-back.");
+    throw new Error(
+      "ODM import contains blocking diagnostics; review the import summary before write-back."
+    );
   }
 
   writeWorksheetRows(workbook, "_Study", importPackage.projection.studyRows);
@@ -347,7 +353,10 @@ export function applyOdmImportToWorkbook(
   writeWorksheetRows(workbook, "_Codelists", importPackage.projection.codelistRows);
 }
 
-function buildImportPackage(study: StudyDesign, diagnostics: OdmImportDiagnostic[]): OdmImportPackage {
+function buildImportPackage(
+  study: StudyDesign,
+  diagnostics: OdmImportDiagnostic[]
+): OdmImportPackage {
   const projection = projectOdmImportToWorkbook(study);
   const warningCount = diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length;
   const errorCount = diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
@@ -481,8 +490,7 @@ function collectLanguages(xml: string): string[] {
 
   for (let index = 0; index < matches.length; index += 1) {
     const language =
-      nonEmpty(matches[index].attributes["xml:lang"]) ||
-      nonEmpty(matches[index].attributes.lang);
+      nonEmpty(matches[index].attributes["xml:lang"]) || nonEmpty(matches[index].attributes.lang);
     if (!language || seen[language]) {
       continue;
     }
@@ -530,10 +538,7 @@ function findXmlElements(xml: string, localName: string): XmlElementMatch[] {
     `<((?:[\\w.-]+:)?${escapedName})\\b([^>]*)>([\\s\\S]*?)</\\1>`,
     "gi"
   );
-  const selfClosingPattern = new RegExp(
-    `<((?:[\\w.-]+:)?${escapedName})\\b([^>]*)/\\s*>`,
-    "gi"
-  );
+  const selfClosingPattern = new RegExp(`<((?:[\\w.-]+:)?${escapedName})\\b([^>]*)/\\s*>`, "gi");
 
   let blockMatch: RegExpExecArray | null;
   while ((blockMatch = blockPattern.exec(xml)) !== null) {
@@ -617,9 +622,11 @@ function normalizeDataType(value: string | undefined): DataType {
 }
 
 function normalizeOdmBoolean(value: string | undefined): boolean {
-  return String(value || "")
-    .trim()
-    .toLowerCase() === "yes";
+  return (
+    String(value || "")
+      .trim()
+      .toLowerCase() === "yes"
+  );
 }
 
 function getPreferredText(xml: string, localName: string): string | undefined {
@@ -650,7 +657,12 @@ function getPreferredTranslatedText(xml: string): string | undefined {
 }
 
 function extractInnerText(xml: string): string {
-  return decodeXml(xml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+  return decodeXml(
+    xml
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 function readTranslatedText(

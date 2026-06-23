@@ -18,11 +18,7 @@
  * No Excel.run / Office.js calls live here so the module is fully unit-testable.
  */
 
-import {
-  ImportDiagnostic,
-  ImportProvenance,
-  WorkbookProjection,
-} from "./migration-pipeline";
+import { ImportDiagnostic, ImportProvenance, WorkbookProjection } from "./migration-pipeline";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -201,7 +197,6 @@ export function mapRow(
 
   return [];
 }
-
 
 /** Full catalog of all mappable CRF.xl target fields. */
 export const TARGET_FIELDS: TargetFieldDescriptor[] = [
@@ -520,7 +515,11 @@ const HEADER_ALIAS_MAP: Array<{
   },
   // ---- cl_codelist_id ----
   {
-    aliases: [/^cl(?:_|\s*)codelist(?:_|\s*)id$/i, /^codelist(?:\s*)identifier$/i, /^codelist\s*id$/i],
+    aliases: [
+      /^cl(?:_|\s*)codelist(?:_|\s*)id$/i,
+      /^codelist(?:\s*)identifier$/i,
+      /^codelist\s*id$/i,
+    ],
     field: "cl_codelist_id",
     confidence: "high",
   },
@@ -572,16 +571,13 @@ function resolveHeaderToFields(
 // ---------------------------------------------------------------------------
 
 /** Heuristically determine what kind of CRF data a sheet contains. */
-function detectSheetStructure(
-  columns: ColumnCandidate[]
-): SheetScanResult["detectedStructure"] {
+function detectSheetStructure(columns: ColumnCandidate[]): SheetScanResult["detectedStructure"] {
   const headers = columns.map((c) => c.columnName.toLowerCase().trim());
 
   const hasCodelistMarkers =
     (headers.some((h) => /coded\s*value|submission\s*value/.test(h)) &&
       headers.some((h) => /decode|display\s*value/.test(h))) ||
-    (headers.some((h) => /codelist\s*(name|id)/.test(h)) &&
-      headers.some((h) => /value/.test(h)));
+    (headers.some((h) => /codelist\s*(name|id)/.test(h)) && headers.some((h) => /value/.test(h)));
 
   const hasFormRegistryMarkers =
     headers.some((h) => /^form\s*(oid|id|name)/.test(h)) &&
@@ -622,9 +618,7 @@ export function detectColumnMappings(
   >();
   for (const column of columns) {
     const allResolved = resolveHeaderToFields(column.columnName);
-    const relevant = allResolved.filter((r) =>
-      relevantFields.some((f) => f.field === r.field)
-    );
+    const relevant = allResolved.filter((r) => relevantFields.some((f) => f.field === r.field));
     if (relevant.length > 0) {
       columnResolutions.set(column.columnIndex, relevant);
     }
@@ -707,9 +701,8 @@ export function validateMappings(
       const fieldLabels = fields
         .map((f) => TARGET_FIELDS.find((d) => d.field === f)?.label ?? f)
         .join(", ");
-      const col = mappings
-        .find((m) => m.sourceColumn?.columnIndex === colIdx)
-        ?.sourceColumn?.columnName;
+      const col = mappings.find((m) => m.sourceColumn?.columnIndex === colIdx)?.sourceColumn
+        ?.columnName;
       diagnostics.push({
         severity: "warning",
         category: "ambiguous",
@@ -777,11 +770,14 @@ export function buildIngestionPreview(
   scanResult: SheetScanResult,
   mappings: FieldMapping[]
 ): IngestionPreview {
-  const diagnostics = validateMappings(mappings, scanResult.detectedStructure === "codelists"
-    ? "codelists"
-    : scanResult.detectedStructure === "forms_registry"
-    ? "forms_registry"
-    : "form_item");
+  const diagnostics = validateMappings(
+    mappings,
+    scanResult.detectedStructure === "codelists"
+      ? "codelists"
+      : scanResult.detectedStructure === "forms_registry"
+        ? "forms_registry"
+        : "form_item"
+  );
   const hasBlockingErrors = diagnostics.some((d) => d.severity === "error");
 
   const projectedRows: IngestionPreview["projectedRows"] = {
@@ -815,9 +811,7 @@ export function buildIngestionPreview(
       projectedRows.formItemRows = [headers];
 
       const rowCount = Math.max(
-        ...mappings
-          .map((m) => m.sourceColumn?.sampleValues.length ?? 0)
-          .filter((n) => n > 0),
+        ...mappings.map((m) => m.sourceColumn?.sampleValues.length ?? 0).filter((n) => n > 0),
         0
       );
 
@@ -848,9 +842,7 @@ export function buildIngestionPreview(
       projectedRows.formsRows = [headers];
 
       const rowCount = Math.max(
-        ...mappings
-          .map((m) => m.sourceColumn?.sampleValues.length ?? 0)
-          .filter((n) => n > 0),
+        ...mappings.map((m) => m.sourceColumn?.sampleValues.length ?? 0).filter((n) => n > 0),
         0
       );
 
@@ -869,9 +861,7 @@ export function buildIngestionPreview(
       projectedRows.codelistRows = [headers];
 
       const rowCount = Math.max(
-        ...mappings
-          .map((m) => m.sourceColumn?.sampleValues.length ?? 0)
-          .filter((n) => n > 0),
+        ...mappings.map((m) => m.sourceColumn?.sampleValues.length ?? 0).filter((n) => n > 0),
         0
       );
 

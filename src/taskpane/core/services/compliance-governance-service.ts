@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* global window, console, btoa, URL, Office */
 /**
  * @issue #28
@@ -30,7 +32,10 @@ export class ComplianceGovernanceService {
   private msalInstance: PublicClientApplication;
   private graphClient: Client | null = null;
   private account: any = null;
-  private pendingSync: { documentUrl: string; justifications: Record<string, AuditJustification> } | null = null;
+  private pendingSync: {
+    documentUrl: string;
+    justifications: Record<string, AuditJustification>;
+  } | null = null;
 
   constructor(clientId: string = "PLACEHOLDER_CLIENT_ID") {
     this.msalInstance = new PublicClientApplication({
@@ -79,7 +84,7 @@ export class ComplianceGovernanceService {
           let response;
           try {
             response = await this.msalInstance.acquireTokenSilent(request);
-          } catch (e) {
+          } catch (e: any) {
             if (e instanceof InteractionRequiredAuthError) {
               response = await this.msalInstance.acquireTokenPopup(request);
             } else {
@@ -156,10 +161,16 @@ export class ComplianceGovernanceService {
       let hasGovernanceSummaryColumn = false;
       let hasJustificationCountColumn = false;
       try {
-        const columns = await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).get();
+        const columns = await this.graphClient
+          .api(`/sites/${siteId}/lists/${listId}/columns`)
+          .get();
         if (columns && columns.value) {
-          hasGovernanceSummaryColumn = columns.value.some((c: any) => c.name === 'GovernanceSummary');
-          hasJustificationCountColumn = columns.value.some((c: any) => c.name === 'JustificationCount');
+          hasGovernanceSummaryColumn = columns.value.some(
+            (c: any) => c.name === "GovernanceSummary"
+          );
+          hasJustificationCountColumn = columns.value.some(
+            (c: any) => c.name === "JustificationCount"
+          );
         }
       } catch (colErr) {
         console.warn("Failed to fetch columns", colErr);
@@ -169,12 +180,16 @@ export class ComplianceGovernanceService {
       try {
         await this.graphClient.api(`/sites/${siteId}/permissions`).top(1).get();
         isAdmin = true;
-      } catch (e) {
+      } catch (e: any) {
         isAdmin = false;
       }
 
       // Compliant if version history is enabled, check-out is NOT required, and required columns exist
-      const isCompliant = versionHistoryEnabled && !checkoutRequired && hasGovernanceSummaryColumn && hasJustificationCountColumn;
+      const isCompliant =
+        versionHistoryEnabled &&
+        !checkoutRequired &&
+        hasGovernanceSummaryColumn &&
+        hasJustificationCountColumn;
 
       return {
         isCloudHosted,
@@ -205,7 +220,12 @@ export class ComplianceGovernanceService {
     }
   }
 
-  public async remediateSettings(siteId: string, listId: string, missingGovernanceSummary: boolean = false, missingJustificationCount: boolean = false) {
+  public async remediateSettings(
+    siteId: string,
+    listId: string,
+    missingGovernanceSummary: boolean = false,
+    missingJustificationCount: boolean = false
+  ) {
     if (!this.graphClient) throw new Error("Graph client not initialized");
 
     // Update the list to enable versioning and disable required checkout
@@ -220,9 +240,9 @@ export class ComplianceGovernanceService {
       try {
         await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
           name: "GovernanceSummary",
-          text: {}
+          text: {},
         });
-      } catch (e) {
+      } catch (e: any) {
         console.warn("Could not create GovernanceSummary", e);
       }
     }
@@ -231,9 +251,9 @@ export class ComplianceGovernanceService {
       try {
         await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
           name: "JustificationCount",
-          number: {}
+          number: {},
         });
-      } catch (e) {
+      } catch (e: any) {
         console.warn("Could not create JustificationCount", e);
       }
     }
@@ -275,7 +295,9 @@ export class ComplianceGovernanceService {
     });
   }
 
-  public async saveJustificationsToWorkbook(justifications: Record<string, AuditJustification>): Promise<void> {
+  public async saveJustificationsToWorkbook(
+    justifications: Record<string, AuditJustification>
+  ): Promise<void> {
     const SHEET_PROTECTION_PASSWORD = "SystemManagedPassword_123!";
 
     await Excel.run(async (context) => {
@@ -327,10 +349,13 @@ export class ComplianceGovernanceService {
       // Make it visible or hidden but not veryHidden for auditor accessibility
       sheet.visibility = Excel.SheetVisibility.visible;
 
-      sheet.protection.protect({
-        allowAutoFilter: true,
-        allowSort: true
-      }, SHEET_PROTECTION_PASSWORD);
+      sheet.protection.protect(
+        {
+          allowAutoFilter: true,
+          allowSort: true,
+        },
+        SHEET_PROTECTION_PASSWORD
+      );
 
       await context.sync();
     });
@@ -338,10 +363,13 @@ export class ComplianceGovernanceService {
 
   private syncTimeout: any = null;
 
-  public syncSharePointMetadata(documentUrl: string, justifications: Record<string, AuditJustification>): void {
+  public syncSharePointMetadata(
+    documentUrl: string,
+    justifications: Record<string, AuditJustification>
+  ): void {
     const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
     if (!isCloudHosted) return;
-    
+
     this.pendingSync = { documentUrl, justifications };
 
     if (this.syncTimeout) {
@@ -357,27 +385,27 @@ export class ComplianceGovernanceService {
       try {
         const { documentUrl: url, justifications: justs } = this.pendingSync;
         const count = Object.keys(justs).length;
-        const recentChange = Object.values(justs).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-        const summaryText = count > 0 ? `${count} justifications recorded. Last update: ${recentChange?.timestamp}` : "No justifications.";
+        const recentChange = Object.values(justs).sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )[0];
+        const summaryText =
+          count > 0
+            ? `${count} justifications recorded. Last update: ${recentChange?.timestamp}`
+            : "No justifications.";
 
-        const encodedUrl = btoa(url)
-          .replace(/\+/g, "-")
-          .replace(/\//g, "_")
-          .replace(/=+$/, "");
-        const driveItem = await this.graphClient
-          .api(`/shares/u!${encodedUrl}/driveItem`)
-          .get();
+        const encodedUrl = btoa(url).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        const driveItem = await this.graphClient.api(`/shares/u!${encodedUrl}/driveItem`).get();
 
         // Update listItem associated with this file
         await this.graphClient
           .api(`/drives/${driveItem.parentReference.driveId}/items/${driveItem.id}/listItem/fields`)
           .patch({
-            "GovernanceSummary": summaryText, // Custom column Name
-            "JustificationCount": count       // Custom column Name
+            GovernanceSummary: summaryText, // Custom column Name
+            JustificationCount: count, // Custom column Name
           });
 
         if (this.pendingSync?.documentUrl === url) {
-           this.pendingSync = null;
+          this.pendingSync = null;
         }
       } catch (error) {
         console.warn("Failed to sync SharePoint metadata for justifications", error);

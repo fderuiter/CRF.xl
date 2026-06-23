@@ -6,13 +6,18 @@
     "jest": true
   },
   "plugins": [
-    "office-addins"
+    "office-addins",
+    "jsx-a11y"
   ],
   "extends": [
-    "plugin:office-addins/react"
+    "plugin:office-addins/react",
+    "plugin:jsx-a11y/recommended"
   ],
   "rules": {
-    "no-undef": "off"
+    "no-undef": "off",
+    "jsx-a11y/no-static-element-interactions": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "@typescript-eslint/no-unused-vars": "off"
   },
   "overrides": [
     {
@@ -21,7 +26,8 @@
         "**/*.tsx"
       ],
       "rules": {
-        "no-undef": "off"
+        "no-undef": "off",
+        "@typescript-eslint/no-unused-vars": "off"
       }
     }
   ]

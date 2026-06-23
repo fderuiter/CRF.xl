@@ -1,7 +1,7 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
 import { tokenize, parseRuleExpression, parseRulesSheetRows } from "../rules-parser";
 import { ParseError, RuleType } from "../../types/index";
 

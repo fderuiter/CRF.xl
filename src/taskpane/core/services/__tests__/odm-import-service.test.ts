@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @issue #28
  */
@@ -8,12 +9,15 @@ import { EventType, DataType, StudyDesign } from "../../types";
 import { applyOdmImportToWorkbook, importOdmXml } from "../odm-import-service";
 
 function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {
-  return worksheet.getSheetValues().slice(1).map((row) => {
-    if (Array.isArray(row)) {
-      return row.slice(1);
-    }
-    return [];
-  });
+  return worksheet
+    .getSheetValues()
+    .slice(1)
+    .map((row) => {
+      if (Array.isArray(row)) {
+        return row.slice(1);
+      }
+      return [];
+    });
 }
 
 describe("odm-import-service", () => {
