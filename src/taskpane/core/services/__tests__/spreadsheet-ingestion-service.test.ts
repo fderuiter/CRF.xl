@@ -16,11 +16,7 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeColumn(
-  index: number,
-  name: string,
-  samples: string[] = []
-): ColumnCandidate {
+function makeColumn(index: number, name: string, samples: string[] = []): ColumnCandidate {
   return { columnIndex: index, columnName: name, sampleValues: samples };
 }
 
@@ -65,10 +61,7 @@ describe("buildSheetScanResult", () => {
   });
 
   it("respects sampleSize limit", () => {
-    const rows = [
-      ["Variable Name"],
-      ...Array.from({ length: 20 }, (_, i) => [`VAR${i}`]),
-    ];
+    const rows = [["Variable Name"], ...Array.from({ length: 20 }, (_, i) => [`VAR${i}`])];
     const result = buildSheetScanResult("Sheet", rows, 3);
     expect(result.columnCandidates[0].sampleValues).toHaveLength(3);
   });
@@ -150,10 +143,7 @@ describe("detectColumnMappings", () => {
   });
 
   it("only returns fields for the requested target sheet", () => {
-    const columns = [
-      makeColumn(0, "Form OID"),
-      makeColumn(1, "Variable Name"),
-    ];
+    const columns = [makeColumn(0, "Form OID"), makeColumn(1, "Variable Name")];
     const mappings = detectColumnMappings(columns, "forms_registry");
     const fields = mappings.map((m) => m.targetField);
     expect(fields).not.toContain("variable_name");

@@ -52,7 +52,10 @@ describe("TerminologySearchService", () => {
   });
 
   it("performs exact matching with highest priority for authoritative source", async () => {
-    const results = await TerminologySearchService.search({ term: "Adverse Event" }, mockCandidates);
+    const results = await TerminologySearchService.search(
+      { term: "Adverse Event" },
+      mockCandidates
+    );
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].id).toBe("C1");
     expect(results[0].matchReason).toBe("exact_match");

@@ -3,11 +3,7 @@
  * @issue #28
  */
 
-
-import {
-  AdamDatasetClass,
-  SdtmDatasetClass,
-} from "../../../core/types";
+import { AdamDatasetClass, SdtmDatasetClass } from "../../../core/types";
 import {
   createAdamDatasetDrafts,
   createEmptyAdamDatasetMetadata,

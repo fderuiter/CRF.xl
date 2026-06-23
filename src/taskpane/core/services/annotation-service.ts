@@ -49,7 +49,7 @@ export async function applyValidationVisuals(
   await Excel.run(async (context) => {
     const rt = runtime ?? createParseRuntime({ chunkSize: 100 });
     const originalYield = rt.yieldToHost;
-    
+
     // Weaving context.sync() into the chunking lifecycle to prevent memory overflows
     rt.yieldToHost = async () => {
       await context.sync();
@@ -89,7 +89,7 @@ export async function applyValidationVisuals(
 
     // 2. Clear previous annotations
     const allComments: Excel.Comment[] = [];
-    
+
     for (const name of sheetNamesToClear) {
       const state = cache.get(name);
       if (!state) continue;
@@ -112,7 +112,7 @@ export async function applyValidationVisuals(
         phase: "items",
         completed: 0,
         total: allComments.length,
-        message: "Clearing previous comments"
+        message: "Clearing previous comments",
       });
       await processRowsInChunks(allComments, rt, "items", (c, index) => {
         c.delete();
@@ -120,7 +120,7 @@ export async function applyValidationVisuals(
           phase: "items",
           completed: index + 1,
           total: allComments.length,
-          message: "Clearing previous comments"
+          message: "Clearing previous comments",
         });
       });
     }
@@ -131,7 +131,7 @@ export async function applyValidationVisuals(
         phase: "items",
         completed: 0,
         total: issuesToHighlight.length,
-        message: "Highlighting validation errors"
+        message: "Highlighting validation errors",
       });
       await processRowsInChunks(issuesToHighlight, rt, "items", (issue, index) => {
         if (!issue.sheetName || issue.rowIndex === undefined) return;
@@ -152,7 +152,7 @@ export async function applyValidationVisuals(
           phase: "items",
           completed: index + 1,
           total: issuesToHighlight.length,
-          message: "Highlighting validation errors"
+          message: "Highlighting validation errors",
         });
       });
     }
@@ -172,7 +172,14 @@ export async function highlightLocaleColumns(): Promise<void> {
     if (sheet.isNullObject) return;
 
     const usedRange = sheet.getUsedRangeOrNullObject();
-    usedRange.load(["columnCount", "rowCount", "columnIndex", "rowIndex", "isNullObject", "values"]);
+    usedRange.load([
+      "columnCount",
+      "rowCount",
+      "columnIndex",
+      "rowIndex",
+      "isNullObject",
+      "values",
+    ]);
     await context.sync();
 
     if (usedRange.isNullObject || usedRange.values.length === 0) return;

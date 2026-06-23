@@ -4,7 +4,12 @@
 /* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";
-import { buildCtImportPlan, executeCtImport, CtImportPlan, ConflictResolution } from "../ct-import-service";
+import {
+  buildCtImportPlan,
+  executeCtImport,
+  CtImportPlan,
+  ConflictResolution,
+} from "../ct-import-service";
 import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "../cdisc-ct-mapping-service";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -161,9 +166,7 @@ describe("ct-import-service", () => {
     it("returns conflict items with proper metadata for the UI", () => {
       const incomingRows = getMappedRows();
       const existingModified = incomingRows.map((r) =>
-        r.codelistId === "SEX"
-          ? { ...r, decode: "Modified decode", codelistVersion: "" }
-          : r
+        r.codelistId === "SEX" ? { ...r, decode: "Modified decode", codelistVersion: "" } : r
       );
 
       const plan = buildCtImportPlan(existingModified, incomingRows);
@@ -260,7 +263,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Everything that was in conflict should be skipped
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.skipped).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -289,7 +294,9 @@ describe("ct-import-service", () => {
       );
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.updated).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });
@@ -319,7 +326,9 @@ describe("ct-import-service", () => {
       const summary = await executeCtImport(existingConflict, plan, resolutions);
 
       // Appended rows count as "added"
-      const conflictRowCount = incomingRows.filter((r) => plan.conflictIds.has(r.codelistId)).length;
+      const conflictRowCount = incomingRows.filter((r) =>
+        plan.conflictIds.has(r.codelistId)
+      ).length;
       expect(summary.added).toBeGreaterThanOrEqual(conflictRowCount);
       expect(summary.failed).toBe(0);
     });

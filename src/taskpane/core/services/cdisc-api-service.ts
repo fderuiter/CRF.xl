@@ -108,7 +108,10 @@ export type CdiscApiError =
 export interface CdiscApiService {
   listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>;
   listPackageCodelists(packageOid: string): Promise<CdiscApiResult<CdiscCtCodelist[]>>;
-  listCodelistTerms(codelistOid: string, packageOid?: string): Promise<CdiscApiResult<CdiscCtTerm[]>>;
+  listCodelistTerms(
+    codelistOid: string,
+    packageOid?: string
+  ): Promise<CdiscApiResult<CdiscCtTerm[]>>;
 }
 
 function asFailure<T>(result: CdiscApiResult<T>): CdiscApiFailure {
@@ -654,9 +657,10 @@ export function createCdiscApiService(
       };
     }
 
-    const result = await requestJsonArray(`/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`, [
-      "codelists",
-    ]);
+    const result = await requestJsonArray(
+      `/mdr/ct/packages/${encodeURIComponent(packageOid)}/codelists`,
+      ["codelists"]
+    );
     if (!result.ok) return { ok: false, error: asFailure(result).error };
 
     return {

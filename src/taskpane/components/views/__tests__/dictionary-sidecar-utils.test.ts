@@ -3,7 +3,6 @@
  * @issue #28
  */
 
-
 import { filterDictionaries, getDictionaryPreview } from "../dictionary-sidecar-utils";
 import { CodelistGroup } from "../../../core/services/dictionary-service";
 

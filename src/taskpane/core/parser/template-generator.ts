@@ -77,7 +77,14 @@ export async function initializeWorkbook(): Promise<void> {
       },
       {
         name: "_Methods",
-        headers: ["Method OID", "Name", "Type", "Description", "Expression", "Referenced Variables"],
+        headers: [
+          "Method OID",
+          "Name",
+          "Type",
+          "Description",
+          "Expression",
+          "Referenced Variables",
+        ],
         data: [
           [
             "M_DERIVED_BMI",

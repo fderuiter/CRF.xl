@@ -40,7 +40,12 @@ describe("Schema Migration Utility", () => {
       codelists: {},
       submissionMetadata: {
         sdtmDatasets: [
-          { domain: "DM", label: "Demographics", class: "Special Purpose", structure: "One per subject" }
+          {
+            domain: "DM",
+            label: "Demographics",
+            class: "Special Purpose",
+            structure: "One per subject",
+          },
         ],
       },
     };
@@ -103,7 +108,12 @@ describe("Schema Migration Utility", () => {
 
   it("should initialize all eight submissionMetadata sub-arrays for a legacy study", () => {
     const legacyStudy: any = {
-      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      metadata: {
+        protocolId: "T101",
+        studyName: "Test Study",
+        version: "1.0",
+        defaultLanguage: "en-US",
+      },
       events: [],
       forms: {},
       codelists: {},
@@ -126,17 +136,25 @@ describe("Schema Migration Utility", () => {
 
   it("should preserve existing sub-arrays and default only the absent new ones", () => {
     const partialStudy: any = {
-      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      metadata: {
+        protocolId: "T101",
+        studyName: "Test Study",
+        version: "1.0",
+        defaultLanguage: "en-US",
+      },
       events: [],
       forms: {},
       codelists: {},
       submissionMetadata: {
         sdtmDatasets: [
-          { domain: "DM", label: "Demographics", class: "SpecialPurpose", structure: "One per subject" },
+          {
+            domain: "DM",
+            label: "Demographics",
+            class: "SpecialPurpose",
+            structure: "One per subject",
+          },
         ],
-        comments: [
-          { commentOid: "CMT.DM.SUBJID", text: "Collected as screen number" },
-        ],
+        comments: [{ commentOid: "CMT.DM.SUBJID", text: "Collected as screen number" }],
       },
     };
 
@@ -159,7 +177,12 @@ describe("Schema Migration Utility", () => {
 
   it("should preserve pre-populated VLM rows and standards through migration", () => {
     const studyWithVlm: any = {
-      metadata: { protocolId: "T101", studyName: "Test Study", version: "1.0", defaultLanguage: "en-US" },
+      metadata: {
+        protocolId: "T101",
+        studyName: "Test Study",
+        version: "1.0",
+        defaultLanguage: "en-US",
+      },
       events: [],
       forms: {},
       codelists: {},
@@ -172,9 +195,7 @@ describe("Schema Migration Utility", () => {
             sdtmMapping: { domain: "DM", variable: "RACE" },
           },
         ],
-        standards: [
-          { standardOid: "STD.1", name: "SDTMIG", version: "3.4", status: "Final" },
-        ],
+        standards: [{ standardOid: "STD.1", name: "SDTMIG", version: "3.4", status: "Final" }],
       },
     };
 

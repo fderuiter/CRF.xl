@@ -2,7 +2,11 @@
  * @issue #39, #40
  */
 import { TranslatedText } from "../types/common";
-import { TranslationStatus, TranslationModel, StudyLinguisticCompleteness } from "../types/linguistics";
+import {
+  TranslationStatus,
+  TranslationModel,
+  StudyLinguisticCompleteness,
+} from "../types/linguistics";
 
 /**
  * Locale-aware linguistic engine providing utility, normalization, and fallback logic.
@@ -20,14 +24,19 @@ export class LinguisticService {
     const parts = locale.split(/[-_]/);
     if (parts.length === 1) return parts[0].toLowerCase();
     // Support region codes (e.g. en-US) but be careful with script tags (e.g. zh-Hans)
-    const secondPart = parts[1].length === 2 ? parts[1].toUpperCase() : parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+    const secondPart =
+      parts[1].length === 2
+        ? parts[1].toUpperCase()
+        : parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
     return `${parts[0].toLowerCase()}-${secondPart}`;
   }
 
   /**
    * Discovers the locale from a header string based on known patterns.
    */
-  public static discoverLocaleFromHeader(header: string): { locale: string; type: "decode" | "label" | "instruction" } | null {
+  public static discoverLocaleFromHeader(
+    header: string
+  ): { locale: string; type: "decode" | "label" | "instruction" } | null {
     const trimmed = header.trim();
 
     let match = trimmed.match(this.DECODE_REGEX);
