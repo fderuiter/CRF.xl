@@ -1,3 +1,6 @@
+/**
+ * @issue #84
+ */
 import { TranslatedText } from "./common";
 
 /**

@@ -4,6 +4,7 @@
 import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
 import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
+import { detectAnnotationConflicts } from "../services/annotation-service";
 
 export interface ValidationIssue {
   level: "Error" | "Warning";
@@ -287,6 +288,12 @@ export async function validateStudyDesign(
   const crossFormResult = validateCrossFormDependencies(study, options);
   issues.push(...crossFormResult.issues);
   study.crossFormDependencies = crossFormResult.dependencies;
+
+  // 5. Validate Annotation Conflicts
+  if (activeSheetFilter) {
+    const annotationIssues = await detectAnnotationConflicts(activeSheetFilter);
+    issues.push(...annotationIssues);
+  }
 
   // Contextual Filtering: If a filter is provided, only return issues for that sheet.
   // Allow system sheets to see everything, but CRF tabs only see their own errors.
