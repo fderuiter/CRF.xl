@@ -10,7 +10,6 @@ import {
   Divider,
   Dropdown,
   Input,
-  Spinner,
   Text,
   makeStyles,
   tokens,
@@ -26,7 +25,7 @@ import {
   ErrorCircleRegular,
   CheckmarkCircleRegular,
 } from "@fluentui/react-icons";
-import { StudyDesign, StudyDiffReport } from "../../core/types";
+import { StudyDesign, StudyDiffReport } from "../../core";
 import {
   buildMatrixSearchIndex,
   filterMatrixSearchIndex,

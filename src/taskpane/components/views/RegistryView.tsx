@@ -12,15 +12,14 @@ import {
   makeStyles,
   tokens,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogTitle,
   DialogContent,
   DialogBody,
   DialogActions,
 } from "@fluentui/react-components";
-import { StudyDesign, SubmissionMetadata } from "../../core/types";
-import { VaultService } from "../../core/services/vault-service";
+import { StudyDesign, SubmissionMetadata } from "../../core";
+import { VaultService } from "../../core";
 import * as CryptoJS from "crypto-js";
 
 import { SubmissionMetadataView } from "./SubmissionMetadataView";

@@ -4,7 +4,6 @@
 /* eslint-disable no-undef */
 import {
   validateStudyDesign,
-  ValidationIssue,
   validateSubmissionMetadataForRelease,
 } from "../validator";
 import {

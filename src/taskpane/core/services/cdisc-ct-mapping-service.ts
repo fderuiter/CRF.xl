@@ -16,33 +16,27 @@ export interface CrfCodelistsRow {
   sourcePackageTitle: string;
 }
 
-export interface CdiscCtMappingInput {
-  package: CdiscCtPackage;
-  codelists: CdiscCtCodelist[];
-  termsByCodelistOid: Record<string, CdiscCtTerm[]>;
-  source?: string;
-}
 
-export type MappingWarningCode =
+type MappingWarningCode =
   | "unsupported_field"
   | "ambiguous_term_decode"
   | "lifecycle_conflict_requires_user_prompt";
 
-export interface MappingWarning {
+interface MappingWarning {
   code: MappingWarningCode;
   message: string;
   path: string;
 }
 
-export type MappingErrorCode = "invalid_payload" | "partial_payload" | "invalid_field";
+type MappingErrorCode = "invalid_payload" | "partial_payload" | "invalid_field";
 
-export interface MappingError {
+interface MappingError {
   code: MappingErrorCode;
   message: string;
   path: string;
 }
 
-export interface CdiscCtMappingSuccess {
+interface CdiscCtMappingSuccess {
   ok: true;
   rows: CrfCodelistsRow[];
   warnings: MappingWarning[];
@@ -54,17 +48,17 @@ export interface CdiscCtMappingFailure {
   warnings: MappingWarning[];
 }
 
-export type CdiscCtMappingResult = CdiscCtMappingSuccess | CdiscCtMappingFailure;
+type CdiscCtMappingResult = CdiscCtMappingSuccess | CdiscCtMappingFailure;
 
 export type LifecycleAction = "insert" | "overwrite" | "skip_identical" | "prompt_user";
 
-export interface LifecycleDecision {
+interface LifecycleDecision {
   action: LifecycleAction;
   row: CrfCodelistsRow;
   message: string;
 }
 
-export interface LifecycleResult {
+interface LifecycleResult {
   decisions: LifecycleDecision[];
   rowsToUpsert: CrfCodelistsRow[];
   warnings: MappingWarning[];

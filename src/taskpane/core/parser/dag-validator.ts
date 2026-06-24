@@ -38,14 +38,14 @@ export interface RuleValidationError {
   rowIndex?: number;
 }
 
-export interface RuleValidationResult {
+interface RuleValidationResult {
   isValid: boolean;
   errors: RuleValidationError[];
   topologicalOrder: string[];
   dependencyMap: Record<string, string[]>;
 }
 
-export function evaluateStaticCondition(node: ASTNode): boolean | null {
+function evaluateStaticCondition(node: ASTNode): boolean | null {
   if (!node) return null;
 
   // Since static evaluation of small expressions is typically not deep enough to cause stack overflows,
@@ -169,7 +169,7 @@ export function collectIdentifiers(node: ASTNode): string[] {
  * Matches either the exact name or the final dot-separated segment.
  * E.g., "VS.WT" matches "WT", and "VISIT_1.VS.WT" matches "WT".
  */
-export function matchesRef(identifier: string, ref: string): boolean {
+function matchesRef(identifier: string, ref: string): boolean {
   const identLower = identifier.toLowerCase();
   const refLower = ref.toLowerCase();
   if (identLower === refLower) return true;

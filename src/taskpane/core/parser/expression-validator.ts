@@ -3,7 +3,7 @@
  */
 import { ASTNode, DataType, SourceLocation } from "../types/index";
 
-export interface ExpressionDiagnostic {
+interface ExpressionDiagnostic {
   level: "Error" | "Warning";
   message: string;
   type:
@@ -18,7 +18,7 @@ export interface ExpressionDiagnostic {
 /**
  * Checks if a type is numeric (Integer or Float).
  */
-export function isNumeric(type: string): boolean {
+function isNumeric(type: string): boolean {
   return type === DataType.INTEGER || type === DataType.FLOAT;
 }
 

@@ -17,7 +17,7 @@ import { LinguisticService } from "../services/linguistics-service";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables } from "./metadata-utils";
 
-export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
+interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
 }
 

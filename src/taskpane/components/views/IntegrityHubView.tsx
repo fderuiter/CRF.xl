@@ -12,9 +12,9 @@ import {
   MessageBarBody,
   Divider,
 } from "@fluentui/react-components";
-import { ValidationIssue } from "../../core/parser/validator";
-import { StudyDiffReport } from "../../core/types/diff";
-import { ImportProvenance, loadImportManifest } from "../../core/services/migration-pipeline";
+import { ValidationIssue } from "../../core";
+import { StudyDiffReport } from "../../core";
+import { loadImportManifest } from "../../core";
 
 const useStyles = makeStyles({
   container: {

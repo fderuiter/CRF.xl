@@ -123,11 +123,11 @@ export class ComplianceGovernanceService {
       // We will mock the Graph resolution for the document URL or make a best-effort API call.
 
       // Let's assume we can get the site by hostname and path if it's SharePoint
-      const urlObj = new URL(documentUrl);
-      const hostname = urlObj.hostname;
-      const pathSegments = urlObj.pathname.split("/");
+      
+      
+      
       // Just an example, let's say /sites/SiteName
-      let sitePath = `/${pathSegments[1]}/${pathSegments[2]}`;
+      
 
       // We can use the Graph API to search for the site or just do a generic call
       // In a real app we might use shares API: GET /shares/{base64-encoded-url}/driveItem

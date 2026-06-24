@@ -2,7 +2,7 @@
  * @issue #83, #159, #174, #165, #176, #46, #44
  */
 import * as React from "react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Input,
@@ -12,37 +12,29 @@ import {
   makeStyles,
   tokens,
   Divider,
-  DataGrid,
-  DataGridBody,
-  DataGridCell,
-  DataGridHeader,
-  DataGridHeaderCell,
-  DataGridRow,
-  createTableColumn,
   MessageBar,
   MessageBarBody,
   ProgressBar,
-  Tooltip,
   TabList,
   Tab,
 } from "@fluentui/react-components";
-import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, WarningRegular } from "@fluentui/react-icons";
+import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
   saveDictionary,
   CodelistGroup,
   CodelistItem,
-} from "../../core/services/dictionary-service";
+} from "../../core";
 import {
   TerminologySearchResult,
-} from "../../core/types/terminology-search";
-import { TerminologySearchService } from "../../core/services/terminology-search-service";
-import { bindingService, SelectionContext } from "../../core/services/binding-service";
-import { highlightLocaleColumns } from "../../core/services/annotation-service";
-import { LinguisticService } from "../../core/services/linguistics-service";
-import { createCdiscApiService, CdiscCtPackage, CdiscCtCodelist, CdiscCtTerm, CdiscApiFailure } from "../../core/services/cdisc-api-service";
-import { filterDictionaries, getDictionaryPreview } from "./dictionary-sidecar-utils";
-import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core/services/cdisc-ct-mapping-service";
+} from "../../core";
+import { TerminologySearchService } from "../../core";
+import { bindingService, SelectionContext } from "../../core";
+import { highlightLocaleColumns } from "../../core";
+import { LinguisticService } from "../../core";
+import { createCdiscApiService, CdiscCtPackage, CdiscCtTerm, CdiscApiFailure } from "../../core";
+import { getDictionaryPreview } from "./dictionary-sidecar-utils";
+import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core";
 import {
   buildCtImportPlan,
   executeCtImport,
@@ -51,7 +43,7 @@ import {
   ImportConflictItem,
   ImportSummary,
   CtImportPlan,
-} from "../../core/services/ct-import-service";
+} from "../../core";
 
 const useStyles = makeStyles({
   root: {
@@ -689,82 +681,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
   const effectiveSelectedLanguage = localLanguage || initialLanguage;
 
-  const columns = useMemo(
-    () => [
-      createTableColumn<CodelistGroup>({
-        columnId: "id",
-        compare: (a, b) => a.id.localeCompare(b.id),
-        renderHeaderCell: () => "Codelist ID",
-        renderCell: (item) => (
-          <div className={styles.gridCellStack}>
-            <Text className={styles.dictId} block>
-              {item.id}
-            </Text>
-          </div>
-        ),
-      }),
-      createTableColumn<CodelistGroup>({
-        columnId: "name",
-        compare: (a, b) => a.name.localeCompare(b.name),
-        renderHeaderCell: () => "Display Name",
-        renderCell: (item) => <Text className={styles.dictName}>{item.name || "—"}</Text>,
-      }),
-      createTableColumn<CodelistGroup>({
-        columnId: "items",
-        compare: (a, b) => a.items.length - b.items.length,
-        renderHeaderCell: () => "Values",
-        renderCell: (item) => <Text>{item.items.length}</Text>,
-      }),
-      createTableColumn<CodelistGroup>({
-        columnId: "preview",
-        renderHeaderCell: () => `Preview (${effectiveSelectedLanguage})`,
-        renderCell: (item) => {
-          let hasFallback = false;
-          item.items.forEach((i) => {
-            const translation = LinguisticService.resolveTranslation(
-              i.decodedText,
-              effectiveSelectedLanguage,
-              defaultLanguage
-            );
-            if (translation.isFallback) hasFallback = true;
-          });
-          const preview = getDictionaryPreview(item.items, effectiveSelectedLanguage, defaultLanguage);
-
-          return (
-            <div className={styles.tagRow}>
-              {preview.previewItems.map((entry) => (
-                <span key={entry} className={styles.tag}>
-                  {entry}
-                </span>
-              ))}
-              {hasFallback && (
-                <Tooltip content={`Showing fallback translation`} relationship="label">
-                  <span className={styles.fallbackIndicator}>
-                    <WarningRegular fontSize={12} />
-                  </span>
-                </Tooltip>
-              )}
-              {preview.overflowCount > 0 && (
-                <span className={styles.tag}>+{preview.overflowCount} more</span>
-              )}
-            </div>
-          );
-        },
-      }),
-      createTableColumn<CodelistGroup>({
-        columnId: "actions",
-        renderHeaderCell: () => "Action",
-        renderCell: (item) => (
-          <div className={styles.actionCell}>
-            <Button appearance="outline" size="small" onClick={() => handleUseDictionary(item.id)}>
-              Use
-            </Button>
-          </div>
-        ),
-      }),
-    ],
-    [handleUseDictionary, styles]
-  );
+  
 
   return (
     <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>

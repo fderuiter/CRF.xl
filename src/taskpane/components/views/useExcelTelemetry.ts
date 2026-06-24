@@ -3,7 +3,7 @@
  */
 /* eslint-disable no-undef */
 import { useState, useEffect } from "react";
-import { bindingService } from "../../core/services/binding-service";
+import { bindingService } from "../../core";
 
 export function useExcelTelemetry() {
   const [activeSheet, setActiveSheet] = useState<string>("_Study");

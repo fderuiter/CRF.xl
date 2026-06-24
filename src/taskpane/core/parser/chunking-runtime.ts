@@ -2,7 +2,7 @@
  * @issue #68
  */
 /* eslint-disable no-undef */
-export type ParsePhase =
+type ParsePhase =
   | "metadata"
   | "codelists"
   | "forms"
@@ -19,7 +19,7 @@ export interface ParseProgressUpdate {
   message: string;
 }
 
-export interface ParseCancellationToken {
+interface ParseCancellationToken {
   isCancelled: () => boolean;
 }
 
@@ -82,7 +82,7 @@ export async function processRowsInChunks<T>(
   }
 }
 
-export function normalizeChunkSize(chunkSize?: number): number {
+function normalizeChunkSize(chunkSize?: number): number {
   if (!Number.isFinite(chunkSize) || (chunkSize ?? 0) < 1) return DEFAULT_CHUNK_SIZE;
   return Math.floor(chunkSize as number);
 }

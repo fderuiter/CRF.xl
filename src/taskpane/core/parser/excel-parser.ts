@@ -7,7 +7,7 @@ import { StudyDesign } from "../types/index";
 import { ParseRuntimeOptions } from "./chunking-runtime";
 import { parseRawDataToStudyDesign } from "./parser-engine";
 
-export interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
+interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
 }
 

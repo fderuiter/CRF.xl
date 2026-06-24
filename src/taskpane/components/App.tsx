@@ -4,12 +4,12 @@
 import {
   applyValidationVisuals,
   getOrphanedAnnotationsCount,
-} from "../core/services/annotation-service";
-import { createParseRuntime } from "../core/parser/chunking-runtime";
+} from "../core";
+import { createParseRuntime } from "../core";
 import * as React from "react";
 import * as CryptoJS from "crypto-js";
 import { useState, useEffect, useRef } from "react";
-import { speculativeSyncManager } from "../core/services/speculative-sync-service";
+import { speculativeSyncManager } from "../core";
 
 import {
   makeStyles,
@@ -21,7 +21,6 @@ import {
   MessageBar,
   MessageBarBody,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogTitle,
   DialogContent,
@@ -33,25 +32,24 @@ import {
 
 // Core Logic
 import { ValidationLog } from "./ValidationLog";
-import { ValidationIssue, validateStudyDesign } from "../core/parser/validator";
-import { parseExcelToStudyDesign } from "../core/parser/excel-parser";
-import { complianceGovernanceService } from "../core/services/compliance-governance-service";
-import { ComplianceExportService } from "../core/services/compliance-export-service";
-import { VaultService } from "../core/services/vault-service";
-import { backgroundValidationEngine } from "../core/services/validation-engine";
-import { LinguisticService } from "../core/services/linguistics-service";
+import { ValidationIssue } from "../core";
+import { complianceGovernanceService } from "../core";
+import { ComplianceExportService } from "../core";
+import { VaultService } from "../core";
+import { backgroundValidationEngine } from "../core";
+import { LinguisticService } from "../core";
 
-import { diffStudyDesigns } from "../core/services/diff-engine";
+import { diffStudyDesigns } from "../core";
 import {
   initializeWorkbook,
   navigateToSource,
   syncRegistry,
-} from "../core/parser/template-generator";
-import { StudyDesign, SubmissionMetadata } from "../core/types/index";
+} from "../core";
+import { StudyDesign, SubmissionMetadata } from "../core";
 import {
   BaselineWorkbookParseError,
   parseBaselineWorkbookFile,
-} from "../core/services/baseline-workbook-service";
+} from "../core";
 import {
   RecoverySnapshot,
   RECOVERY_APP_VERSION,
@@ -62,17 +60,17 @@ import {
   persistRecoverySnapshot,
   readRecoverySnapshot,
   summarizeStudyDesign,
-} from "../core/services/recovery-storage";
+} from "../core";
 import {
   createOfficeErrorPresentation,
   OfficeErrorPresentation,
-} from "../core/services/office-error-handling";
+} from "../core";
 import {
   checkForVersionUpdate,
   dismissVersionNotification,
   VersionUpdateMetadata,
-} from "../core/services/version-update-service";
-import { loadImportManifest } from "../core/services/migration-pipeline";
+} from "../core";
+import { loadImportManifest } from "../core";
 
 // Telemetry & Views
 import { useExcelTelemetry } from "./views/useExcelTelemetry";
@@ -335,7 +333,7 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [study, issues, isProcessing, activeSheet]);
 
-  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
+  const [, setIsBackgroundSyncing] = useState(false);
   const [syncConflict, setSyncConflict] = useState<any>(null);
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
@@ -347,7 +345,7 @@ export const App: React.FC<{ title?: string }> = () => {
     visitCount: number;
   } | null>(null);
   const [currentFilter, setCurrentFilter] = useState<string | null>(null);
-  const [workbookFingerprint, setWorkbookFingerprint] = useState<WorkbookFingerprint | undefined>(
+  const [workbookFingerprint] = useState<WorkbookFingerprint | undefined>(
     undefined
   );
   const [recoverySnapshot, setRecoverySnapshot] = useState<{

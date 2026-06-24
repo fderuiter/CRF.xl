@@ -33,19 +33,16 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import {
-  applyOdmImportToWorkbook,
   importOdmXml,
-  OdmImportDiagnostic,
   OdmImportPackage,
-} from "../../core/services/odm-import-service";
+} from "../../core";
 import {
   createImportManifest,
   createImportProvenance,
   ImportManifest,
   persistImportManifest,
-} from "../../core/services/migration-pipeline";
-import ExcelJS from "exceljs";
-import { speculativeSyncManager, getPredictedStudyDesign } from "../../core/services/speculative-sync-service";
+} from "../../core";
+import { speculativeSyncManager, getPredictedStudyDesign } from "../../core";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -235,13 +232,7 @@ const STAGE_LABELS: Record<WizardStage, string> = {
 
 const STAGE_ORDER: WizardStage[] = ["scan", "parse", "preview", "confirm", "summary"];
 
-function diagSeverityIntent(
-  d: OdmImportDiagnostic
-): "error" | "warning" | "info" {
-  if (d.severity === "error") return "error";
-  if (d.severity === "warning") return "warning";
-  return "info";
-}
+
 
 // ---------------------------------------------------------------------------
 // Component props

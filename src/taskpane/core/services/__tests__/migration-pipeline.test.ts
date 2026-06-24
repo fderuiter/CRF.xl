@@ -6,7 +6,6 @@ import {
   createImportProvenance,
   createImportManifest,
   ImportDiagnostic,
-  ImportManifest,
   ImportProvenance,
   ImportSummary,
   WorkbookProjection,

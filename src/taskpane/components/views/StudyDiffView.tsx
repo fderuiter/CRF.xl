@@ -17,7 +17,7 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { StudyDiffReport } from "../../core/types";
+import { StudyDiffReport } from "../../core";
 import {
   DiffChangeClass,
   DiffEntityGroup,

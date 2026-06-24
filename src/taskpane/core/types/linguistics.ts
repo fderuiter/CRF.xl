@@ -1,7 +1,6 @@
 /**
  * @issue #39
  */
-import { TranslatedText } from "./common";
 
 /**
  * States of a translation for a specific locale.

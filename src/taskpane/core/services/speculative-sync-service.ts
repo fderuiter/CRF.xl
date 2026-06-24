@@ -8,7 +8,6 @@ import { StudyDesign } from "../types";
 import { classifyOfficeError } from "./office-error-handling";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { diffStudyDesigns } from "./diff-engine";
-import { StudyDiffReport } from "../types/diff";
 import { WorkbookProjection } from "./migration-pipeline";
 import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";
 

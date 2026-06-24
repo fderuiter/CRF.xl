@@ -7,7 +7,7 @@ import {
   ItemDiffEntry,
   RuleDiffEntry,
   StudyDiffReport,
-} from "../../core/types";
+} from "../../core";
 
 export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
 export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";

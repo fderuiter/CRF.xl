@@ -16,7 +16,7 @@ import {
   tokens,
   Badge,
 } from "@fluentui/react-components";
-import { StudyDiffReport, ItemDiffEntry } from "../core/types/diff";
+import { StudyDiffReport } from "../core";
 
 export interface AuditJustification {
   reason: string;

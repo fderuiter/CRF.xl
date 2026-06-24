@@ -3,7 +3,7 @@
  */
 import * as React from "react";
 import { Body1, Button, Card, Spinner, makeStyles, tokens } from "@fluentui/react-components";
-import { insertDateBlock, insertAEBlock } from "../../core/services/authoring-service";
+import { insertDateBlock, insertAEBlock } from "../../core";
 
 interface AuthoringProps {
   sheetName: string;

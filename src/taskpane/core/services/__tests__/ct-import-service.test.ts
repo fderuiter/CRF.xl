@@ -7,7 +7,6 @@ import { join } from "path";
 import {
   buildCtImportPlan,
   executeCtImport,
-  CtImportPlan,
   ConflictResolution,
 } from "../ct-import-service";
 import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "../cdisc-ct-mapping-service";
