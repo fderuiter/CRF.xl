@@ -44,7 +44,7 @@ export interface BaseASTNode {
   loc: SourceLocation;
 }
 
-export interface LiteralNode extends BaseASTNode {
+interface LiteralNode extends BaseASTNode {
   type: "Literal";
   value: number | string | boolean | null;
   raw: string;

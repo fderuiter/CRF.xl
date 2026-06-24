@@ -8,11 +8,11 @@ import { parseReferencedVariables } from "./metadata-utils";
 import { parseRulesSheetRows } from "./rules-parser";
 import { getLocaleConfig } from "../locale-config";
 
-export interface WorkbookSheetValuesProvider {
+interface WorkbookSheetValuesProvider {
   getSheetValues(sheetName: string): Promise<unknown[][] | null>;
 }
 
-export interface ParseWorkbookSheetValuesOptions {
+interface ParseWorkbookSheetValuesOptions {
   allowPartialSheetFailures?: boolean;
 }
 

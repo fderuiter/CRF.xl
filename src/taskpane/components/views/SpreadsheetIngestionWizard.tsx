@@ -19,7 +19,6 @@
 
 /* global Excel */
 import * as React from "react";
-import { speculativeSyncManager, getPredictedStudyDesign } from "../../core/services/speculative-sync-service";
 import {
   Badge,
   Body1,
@@ -41,14 +40,13 @@ import {
   buildSheetScanResult,
   detectColumnMappings,
   mapRow,
-  ColumnCandidate,
   FieldMapping,
   IngestionPreview,
   SheetScanResult,
   TARGET_FIELDS,
   TargetField,
   TargetSheet,
-} from "../../core/services/spreadsheet-ingestion-service";
+} from "../../core";
 
 // ---------------------------------------------------------------------------
 // Types

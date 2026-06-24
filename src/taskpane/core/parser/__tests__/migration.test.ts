@@ -2,7 +2,6 @@
  * @issue #28
  */
 import { migrateStudyDesign } from "../migration";
-import { StudyDesign } from "../../types/index";
 
 describe("Schema Migration Utility", () => {
   it("should initialize empty submissionMetadata arrays for legacy study designs", () => {

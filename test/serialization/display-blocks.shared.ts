@@ -1,6 +1,5 @@
 /** @jest-environment node */
 import ExcelJS from "exceljs";
-import fs from "fs";
 import path from "path";
 import { execFileSync } from "child_process";
 import { mapRowToFormElement } from "../../src/taskpane/core/parser/form-element-utils";

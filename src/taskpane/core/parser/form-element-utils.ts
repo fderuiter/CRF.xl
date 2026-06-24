@@ -5,7 +5,7 @@ import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
 import { LinguisticService } from "../services/linguistics-service";
 import { normalizeDataOrigin } from "./metadata-utils";
 
-export const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
+const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
 
 export const CRF_VARIABLE_TYPE_OPTIONS = [
   "Text",
@@ -21,7 +21,7 @@ export const CRF_VARIABLE_TYPE_OPTIONS = [
   "Separator",
 ] as const;
 
-export function isDisplayBlockType(value: unknown): value is CrfDisplayBlock["displayType"] {
+function isDisplayBlockType(value: unknown): value is CrfDisplayBlock["displayType"] {
   return DISPLAY_BLOCK_TYPES.includes(
     String(value ?? "")
       .trim()

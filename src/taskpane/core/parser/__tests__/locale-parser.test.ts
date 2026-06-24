@@ -2,7 +2,6 @@
  * @issue #40
  */
 import { parseRawDataToStudyDesign } from "../parser-engine";
-import { DataType } from "../../types";
 
 describe("Locale-Aware Parsing", () => {
   it("should parse standard single-language codelists (regression)", async () => {

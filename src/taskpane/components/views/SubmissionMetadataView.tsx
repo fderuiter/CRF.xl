@@ -26,7 +26,7 @@ import {
   SdtmDatasetClass,
   SdtmDatasetMetadata,
   SubmissionMetadata,
-} from "../../core/types";
+} from "../../core";
 import {
   createAdamDatasetDrafts,
   createEmptyAdamDatasetMetadata,

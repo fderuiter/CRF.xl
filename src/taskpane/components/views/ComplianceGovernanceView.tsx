@@ -13,14 +13,13 @@ import {
   Badge,
   MessageBar,
   MessageBarBody,
-  Link,
-} from "@fluentui/react-components";
-import { CheckmarkCircleRegular, ErrorCircleRegular, DocumentRegular } from "@fluentui/react-icons";
+  } from "@fluentui/react-components";
+import { CheckmarkCircleRegular, ErrorCircleRegular } from "@fluentui/react-icons";
 import {
   complianceGovernanceService as service,
   EnvironmentComplianceStatus,
-} from "../../core/services/compliance-governance-service";
-import { backgroundValidationEngine } from "../../core/services/validation-engine";
+} from "../../core";
+import { backgroundValidationEngine } from "../../core";
 
 const useStyles = makeStyles({
   container: {
