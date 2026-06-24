@@ -1,3 +1,6 @@
+/**
+ * @issue #39
+ */
 import { parseNumber, formatNumber, parseDate, formatDate } from "../locale-utils";
 import * as localeConfig from "../../locale-config";
 
