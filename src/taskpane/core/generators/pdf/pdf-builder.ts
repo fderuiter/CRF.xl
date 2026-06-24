@@ -1,3 +1,7 @@
+/**
+ * PDF Generator for Annotated CRFs
+ * @issue #279
+ */
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";
