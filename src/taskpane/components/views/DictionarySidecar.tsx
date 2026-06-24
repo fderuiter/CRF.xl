@@ -43,6 +43,8 @@ import {
   ImportConflictItem,
   ImportSummary,
   CtImportPlan,
+  OfficeErrorPresentation,
+  createOfficeErrorPresentation,
 } from "../../core";
 
 const useStyles = makeStyles({
@@ -133,6 +135,8 @@ const useStyles = makeStyles({
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
+    padding: "20px",
+    textAlign: "center",
   },
   searchInput: {
     width: "100%",
@@ -314,7 +318,9 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   supportedLanguages = ["en-US"],
 }) => {
   const styles = useStyles();
-  const [view, setView] = useState<"loading" | "browse" | "create" | "import" | "detail" | "searching">("loading");
+  const [view, setView] = useState<
+    "loading" | "browse" | "create" | "import" | "detail" | "searching" | "error" | "no-selection"
+  >("loading");
   const [localLanguage, setLocalLanguage] = useState(initialLanguage);
 
   useEffect(() => {
@@ -351,6 +357,13 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
+  const [globalError, setGlobalError] = useState<OfficeErrorPresentation | null>(null);
+  const [lastActionStatus, setLastActionStatus] = useState<{
+    type: "applied" | "saved" | "imported";
+    message: string;
+  } | null>(null);
+  const [manualOverride, setManualOverride] = useState(false);
+
   useEffect(() => {
     loadData();
     highlightLocaleColumns().catch(console.error);
@@ -364,29 +377,65 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (
+      !manualOverride &&
+      selection &&
+      !selection.isValid &&
+      ["browse", "searching", "detail"].includes(view)
+    ) {
+      setView("no-selection");
+    } else if (selection?.isValid && view === "no-selection") {
+      setView(search.trim() ? "searching" : "browse");
+      setManualOverride(false);
+    }
+  }, [selection, view, search, manualOverride]);
+
   const loadData = async () => {
-    setView("loading");
-    const data = await fetchDictionaries();
-    setDictionaries(data);
-    setView("browse");
+    try {
+      setView("loading");
+      setGlobalError(null);
+      const data = await fetchDictionaries();
+      setDictionaries(data);
+      setView("browse");
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setGlobalError(presentation);
+      setView("error");
+    }
   };
 
   const handleUseDictionary = useCallback(async (id: string) => {
-    await bindingService.performInternalOperation(async (context) => {
-      const range = context.workbook.getSelectedRange();
-      range.values = [[id]];
-      await context.sync();
-    });
+    try {
+      await bindingService.performInternalOperation(async (context) => {
+        const range = context.workbook.getSelectedRange();
+        range.values = [[id]];
+        await context.sync();
+      });
+      setLastActionStatus({ type: "applied", message: `Applied '${id}' to cell.` });
+      setTimeout(() => setLastActionStatus(null), 3000);
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setGlobalError(presentation);
+    }
   }, []);
 
   const handleSaveNew = async () => {
     if (!newId || newItems.some((i) => !i.codedValue)) return;
-    setView("loading");
-    await saveDictionary(newId, newName, newItems, true);
-    setNewId("");
-    setNewName("");
-    setNewItems([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
-    await loadData();
+    try {
+      setView("loading");
+      await saveDictionary(newId, newName, newItems, true);
+      setNewId("");
+      setNewName("");
+      setNewItems([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
+      setLastActionStatus({ type: "saved", message: `Codelist '${newId}' saved.` });
+      setTimeout(() => setLastActionStatus(null), 3000);
+      await loadData();
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setGlobalError(presentation);
+      setView("error");
+    }
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -399,16 +448,24 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedCodelist || editItems.some(i => !i.codedValue)) return;
-    setView("loading");
-    await saveDictionary(selectedCodelist.id, selectedCodelist.name, editItems, false);
-    setIsEditing(false);
-    await loadData();
-    // Re-select updated codelist
-    const data = await fetchDictionaries();
-    const updated = data.find(d => d.id === selectedCodelist.id);
-    if (updated) setSelectedCodelist(updated);
-    setView("detail");
+    if (!selectedCodelist || editItems.some((i) => !i.codedValue)) return;
+    try {
+      setView("loading");
+      await saveDictionary(selectedCodelist.id, selectedCodelist.name, editItems, false);
+      setIsEditing(false);
+      setLastActionStatus({ type: "saved", message: `Changes to '${selectedCodelist.id}' saved.` });
+      setTimeout(() => setLastActionStatus(null), 3000);
+      await loadData();
+      // Re-select updated codelist
+      const data = await fetchDictionaries();
+      const updated = data.find((d) => d.id === selectedCodelist.id);
+      if (updated) setSelectedCodelist(updated);
+      setView("detail");
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setGlobalError(presentation);
+      setView("error");
+    }
   };
 
   // ── Import handlers ────────────────────────────────────────────────────────
@@ -444,20 +501,21 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
   const handlePlanImport = useCallback(async () => {
     if (!selectedPackage) return;
-    setImportParseError(null);
-    setImportPlan(null);
-    setImportSummary(null);
-    setImportError(null);
+    try {
+      setImportParseError(null);
+      setImportPlan(null);
+      setImportSummary(null);
+      setImportError(null);
 
-    setImportProgress({ stage: "Fetching package codelists...", completed: 0, total: 1 });
-    
-    const codelistsResult = await cdiscApi.listPackageCodelists(selectedPackage.packageOid);
-    if (!codelistsResult.ok) {
-      const failure = codelistsResult as CdiscApiFailure;
-      setImportParseError(`Failed to load codelists: ${failure.error.message}`);
-      setImportProgress(null);
-      return;
-    }
+      setImportProgress({ stage: "Fetching package codelists...", completed: 0, total: 1 });
+
+      const codelistsResult = await cdiscApi.listPackageCodelists(selectedPackage.packageOid);
+      if (!codelistsResult.ok) {
+        const failure = codelistsResult as CdiscApiFailure;
+        setImportParseError(`Failed to load codelists: ${failure.error.message}`);
+        setImportProgress(null);
+        return;
+      }
 
     const codelists = codelistsResult.data;
     const termsByCodelistOid: Record<string, CdiscCtTerm[]> = {};
@@ -506,15 +564,20 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       return;
     }
 
-    const plan = buildCtImportPlan(existingRows, mappingResult.rows);
-    // Default: resolve all conflicts as "skip" (safe default)
-    const defaultResolutions: Record<string, ConflictResolution> = {};
-    plan.conflicts.forEach((c) => {
-      defaultResolutions[c.codelistId] = "skip";
-    });
-    setConflictResolutions(defaultResolutions);
-    setImportPlan(plan);
-    setImportProgress(null);
+      const plan = buildCtImportPlan(existingRows, mappingResult.rows);
+      // Default: resolve all conflicts as "skip" (safe default)
+      const defaultResolutions: Record<string, ConflictResolution> = {};
+      plan.conflicts.forEach((c) => {
+        defaultResolutions[c.codelistId] = "skip";
+      });
+      setConflictResolutions(defaultResolutions);
+      setImportPlan(plan);
+      setImportProgress(null);
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setImportParseError(presentation.message);
+      setImportProgress(null);
+    }
   }, [selectedPackage]);
 
   const handleExecuteImport = useCallback(async () => {
@@ -535,21 +598,29 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       Object.entries(conflictResolutions) as [string, ConflictResolution][]
     );
 
-    const summary = await executeCtImport(
-      existingRows,
-      importPlan,
-      resolutionMap,
-      (stage, completed, total) => {
-        setImportProgress({ stage, completed, total });
+    try {
+      const summary = await executeCtImport(
+        existingRows,
+        importPlan,
+        resolutionMap,
+        (stage, completed, total) => {
+          setImportProgress({ stage, completed, total });
+        }
+      );
+
+      setImportProgress(null);
+      setImportSummary(summary);
+
+      if (summary.errors.length === 0) {
+        setLastActionStatus({ type: "imported", message: "CDISC CT Import complete." });
+        setTimeout(() => setLastActionStatus(null), 3000);
+        // Reload the codelist library after a successful import
+        await loadData();
       }
-    );
-
-    setImportProgress(null);
-    setImportSummary(summary);
-
-    if (summary.errors.length === 0) {
-      // Reload the codelist library after a successful import
-      await loadData();
+    } catch (error) {
+      const presentation = createOfficeErrorPresentation(error);
+      setImportError(presentation.message);
+      setImportProgress(null);
     }
   }, [importPlan, conflictResolutions]);
 
@@ -713,6 +784,52 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
           </div>
         )}
 
+        {view === "error" && globalError && (
+          <div className={styles.loadingState}>
+            <div style={{ fontSize: "48px", marginBottom: "12px" }}>⚠️</div>
+            <Text weight="bold" size={400} block>
+              {globalError.message}
+            </Text>
+            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+              {globalError.recoveryAction}
+            </Text>
+            {globalError.allowRetry && (
+              <Button appearance="primary" style={{ marginTop: "16px" }} onClick={loadData}>
+                Retry Sync
+              </Button>
+            )}
+            <Button
+              appearance="subtle"
+              style={{ marginTop: "8px" }}
+              onClick={() => setView("browse")}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+
+        {view === "no-selection" && (
+          <div className={styles.loadingState}>
+            <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎯</div>
+            <Text weight="bold" size={400} block>
+              No Active Context
+            </Text>
+            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+              Select a single cell in a CRF sheet to enable dictionary synchronization.
+            </Text>
+            <Button
+              appearance="outline"
+              style={{ marginTop: "16px" }}
+              onClick={() => {
+                setManualOverride(true);
+                setView("browse");
+              }}
+            >
+              Browse Library Anyway
+            </Button>
+          </div>
+        )}
+
         {view === "detail" && selectedCodelist && (
           <>
             {/* Zone 4: Selected Detail Panel */}
@@ -722,6 +839,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   appearance="subtle"
                   icon={<ArrowLeftRegular />}
                   onClick={() => setView(search.trim() ? "searching" : "browse")}
+                  aria-label="Back to results"
                 />
                 <Text weight="bold" size={400}>{selectedCodelist.id}</Text>
                 {!isEditing && (
@@ -789,6 +907,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                 const next = editItems.filter((_, i) => i !== idx);
                                 setEditItems(next);
                               }}
+                              aria-label={`Delete row ${idx + 1}`}
                             >
                               Del
                             </Button>
@@ -849,6 +968,37 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
             {/* Zone 5: Footer Actions */}
             <div className={styles.zone5}>
+              {lastActionStatus && (
+                <MessageBar intent="success">
+                  <MessageBarBody>{lastActionStatus.message}</MessageBarBody>
+                </MessageBar>
+              )}
+              {globalError && !["error", "loading"].includes(view) && (
+                <MessageBar intent="error">
+                  <MessageBarBody>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div>
+                        <Text weight="bold">{globalError.message}</Text>
+                        <br />
+                        <Text size={100}>{globalError.recoveryAction}</Text>
+                      </div>
+                      <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => setGlobalError(null)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </MessageBarBody>
+                </MessageBar>
+              )}
               {isEditing ? (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <Button appearance="secondary" style={{ flexGrow: 1 }} onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -909,16 +1059,32 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         <div
                           key={result.id}
                           className={styles.gridCard}
-                      style={{
-                        cursor: "pointer",
-                        padding: "12px",
-                        border: activeResultIndex === index ? `2px solid ${tokens.colorBrandStroke1}` : `1px solid ${tokens.colorNeutralStroke1}`
-                      }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`View details for codelist ${result.id}: ${result.title}`}
+                          style={{
+                            cursor: "pointer",
+                            padding: "12px",
+                            border:
+                              activeResultIndex === index
+                                ? `2px solid ${tokens.colorBrandStroke1}`
+                                : `1px solid ${tokens.colorNeutralStroke1}`,
+                          }}
                           onClick={() => {
-                            const original = dictionaries.find(d => d.id === result.id);
+                            const original = dictionaries.find((d) => d.id === result.id);
                             if (original) {
                               setSelectedCodelist(original);
                               setView("detail");
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              const original = dictionaries.find((d) => d.id === result.id);
+                              if (original) {
+                                setSelectedCodelist(original);
+                                setView("detail");
+                              }
                             }
                           }}
                         >
@@ -934,7 +1100,24 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       ))}
                     </>
                   ) : (
-                    !isSearching && <Text className={styles.emptyText} size={100}>No workbook matches.</Text>
+                    !isSearching && (
+                      <div className={styles.emptyText}>
+                        <Text block size={100} style={{ marginBottom: "12px" }}>
+                          No workbook matches found for "{search}".
+                        </Text>
+                        <Button
+                          size="small"
+                          appearance="outline"
+                          icon={<AddRegular />}
+                          onClick={() => {
+                            setNewId(search.toUpperCase());
+                            setView("create");
+                          }}
+                        >
+                          Create New Codelist
+                        </Button>
+                      </div>
+                    )
                   )}
 
                   {standardResults.length > 0 && (
@@ -966,31 +1149,85 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       <div
                         key={item.id}
                         className={styles.gridCard}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View details for codelist ${item.id}: ${item.name}`}
                         style={{
                           cursor: "pointer",
                           padding: "12px",
-                          border: activeResultIndex === index ? `2px solid ${tokens.colorBrandStroke1}` : `1px solid ${tokens.colorNeutralStroke1}`
+                          border:
+                            activeResultIndex === index
+                              ? `2px solid ${tokens.colorBrandStroke1}`
+                              : `1px solid ${tokens.colorNeutralStroke1}`,
                         }}
                         onClick={() => {
                           setSelectedCodelist(item);
                           setView("detail");
                         }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedCodelist(item);
+                            setView("detail");
+                          }
+                        }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                          <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{item.id}</Text>
-                          <Badge size="small" appearance="outline">{item.items.length} items</Badge>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                            {item.id}
+                          </Text>
+                          <Badge size="small" appearance="outline">
+                            {item.items.length} items
+                          </Badge>
                         </div>
-                        <Text size={100} block style={{ marginBottom: "4px" }}>{item.name}</Text>
+                        <Text size={100} block style={{ marginBottom: "4px" }}>
+                          {item.name}
+                        </Text>
 
                         <div className={styles.tagRow}>
-                          {getDictionaryPreview(item.items, effectiveSelectedLanguage, defaultLanguage).previewItems.map(p => (
-                            <span key={p} className={styles.tag}>{p}</span>
+                          {getDictionaryPreview(
+                            item.items,
+                            effectiveSelectedLanguage,
+                            defaultLanguage
+                          ).previewItems.map((p) => (
+                            <span key={p} className={styles.tag}>
+                              {p}
+                            </span>
                           ))}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <Text className={styles.emptyText}>No codelists available yet.</Text>
+                    <div className={styles.emptyText}>
+                      <div style={{ fontSize: "32px", marginBottom: "8px" }}>📖</div>
+                      <Text block size={200} weight="semibold">
+                        Workbook Library is Empty
+                      </Text>
+                      <Text
+                        block
+                        size={100}
+                        style={{
+                          color: tokens.colorNeutralForeground3,
+                          marginTop: "4px",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        You haven't defined any codelists in this workbook yet.
+                      </Text>
+                      <Button
+                        appearance="primary"
+                        icon={<AddRegular />}
+                        onClick={() => setView("create")}
+                      >
+                        Get Started: Create Codelist
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
@@ -998,6 +1235,37 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
             {/* Zone 5: Footer Actions */}
             <div className={styles.zone5}>
+              {lastActionStatus && (
+                <MessageBar intent="success">
+                  <MessageBarBody>{lastActionStatus.message}</MessageBarBody>
+                </MessageBar>
+              )}
+              {globalError && !["error", "loading"].includes(view) && (
+                <MessageBar intent="error">
+                  <MessageBarBody>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div>
+                        <Text weight="bold">{globalError.message}</Text>
+                        <br />
+                        <Text size={100}>{globalError.recoveryAction}</Text>
+                      </div>
+                      <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => setGlobalError(null)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </MessageBarBody>
+                </MessageBar>
+              )}
               <div style={{ display: "flex", gap: "8px" }}>
                 <Button
                   appearance="secondary"
@@ -1029,6 +1297,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               size="small"
               icon={<ArrowLeftRegular />}
               onClick={() => setView("browse")}
+              aria-label="Back to browse library"
             >
               Back to Browse
             </Button>
@@ -1135,6 +1404,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 setImportError(null);
                 setView("browse");
               }}
+              aria-label="Back to browse library"
             >
               Back to Browse
             </Button>

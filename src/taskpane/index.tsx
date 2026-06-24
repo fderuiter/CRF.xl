@@ -15,16 +15,25 @@ const rootElement: HTMLElement | null = document.getElementById("container");
 const root = rootElement ? createRoot(rootElement) : undefined;
 
 /* Render application after Office initializes */
-Office.onReady(() => {
-  const hostLocale = Office.context.displayLanguage || "en-US";
-  initLocale(hostLocale);
+if (typeof Office !== "undefined") {
+  Office.onReady(() => {
+    const hostLocale = Office.context.displayLanguage || "en-US";
+    initLocale(hostLocale);
 
+    root?.render(
+      <FluentProvider theme={webLightTheme}>
+        <App title={title} />
+      </FluentProvider>
+    );
+  });
+} else {
+  // Fallback for standalone browser testing
   root?.render(
     <FluentProvider theme={webLightTheme}>
       <App title={title} />
     </FluentProvider>
   );
-});
+}
 
 if ((module as any).hot) {
   (module as any).hot.accept("./components/App", () => {
