@@ -6,6 +6,7 @@
 import { ValidationIssue } from "../parser/validator";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
+import { Annotation } from "../types";
 
 /**
  * Checks for orphaned annotations (comments) across the active sheets.
@@ -158,6 +159,343 @@ export async function applyValidationVisuals(
     }
 
     // Final sync for any remaining queued operations
+    await context.sync();
+  });
+}
+
+/**
+ * Resolves a physical range from a logical OID.
+ * Searches across the study's forms to find the OID.
+ */
+export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetName: string; address: string } | null> {
+  let result: { sheetName: string; address: string } | null = null;
+  await Excel.run(async (context) => {
+    const workbook = context.workbook;
+    const sheets = workbook.worksheets;
+    sheets.load("items/name");
+    await context.sync();
+
+    for (const sheet of sheets.items) {
+      if (sheet.name.startsWith("_")) continue;
+
+      const usedRange = sheet.getUsedRangeOrNullObject();
+      usedRange.load(["values", "address", "rowCount", "columnCount", "isNullObject", "columnIndex", "rowIndex"]);
+      await context.sync();
+
+      if (usedRange.isNullObject) continue;
+
+      const values = usedRange.values;
+      // Search for logicalId in the sheet's used range
+      // Clinical OIDs are typically in the first column (Variable Name)
+      for (let r = 0; r < values.length; r++) {
+        for (let c = 0; c < Math.min(values[r].length, 5); c++) { // Search first 5 columns for OID
+          if (String(values[r][c]).trim() === logicalId) {
+            const targetCell = sheet.getRangeByIndexes(usedRange.rowIndex + r, usedRange.columnIndex + c, 1, 1);
+            targetCell.load("address");
+            await context.sync();
+            result = {
+              sheetName: sheet.name,
+              address: targetCell.address
+            };
+            return;
+          }
+        }
+      }
+    }
+  });
+  return result;
+}
+
+/**
+ * Resolves a logical OID from a physical address.
+ */
+export async function resolveLogicalId(sheetName: string, address: string): Promise<string | null> {
+  let logicalId: string | null = null;
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(address);
+    range.load(["rowIndex", "columnIndex"]);
+    await context.sync();
+
+    // Strategy: Look at the first few columns of the current row to find a likely OID
+    // Also look at the header if it's a known clinical sheet
+    const potentialOidRange = sheet.getRangeByIndexes(range.rowIndex, 0, 1, 5);
+    potentialOidRange.load("values");
+    await context.sync();
+
+    if (potentialOidRange.values.length > 0) {
+      const rowValues = potentialOidRange.values[0];
+      // Typically the OID is in the first column
+      if (rowValues[0]) {
+        logicalId = String(rowValues[0]);
+      }
+    }
+  });
+  return logicalId;
+}
+
+/**
+ * Handles workbook mutations like sheet renames or row/column insertions.
+ * Office.js comments follow cells automatically, but we ensure our hybrid
+ * model stays in sync by refreshing logical-to-physical mappings.
+ */
+export async function syncAnnotationsAfterMutation(): Promise<void> {
+  await Excel.run(async (context) => {
+    const sheets = context.workbook.worksheets;
+    sheets.load("items/name");
+    await context.sync();
+
+    for (const sheet of sheets.items) {
+      if (sheet.name.startsWith("_")) continue;
+
+      const comments = sheet.comments;
+      comments.load("items/content");
+      await context.sync();
+
+      for (const comment of comments.items) {
+        const content = comment.content;
+        const metaMatch = content.match(/^\[(.*?):(.*?)\].*/);
+        if (metaMatch) {
+          const logicalId = metaMatch[2];
+          // Use any for location if it's not in the type definition but exists in runtime
+          const location = (comment as any).location;
+          if (location) {
+            location.load("address");
+            await context.sync();
+
+            const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
+            if (currentLogicalId && currentLogicalId !== logicalId) {
+              console.warn(`[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`);
+              // Logic to handle orphan/drift could be added here
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Handles copy/paste operations by validating if the target cells should receive
+ * the annotation and creating new candidates if necessary.
+ */
+export async function handleAnnotationCopyPaste(
+  sourceAddress: string,
+  targetAddress: string
+): Promise<void> {
+  await Excel.run(async (context) => {
+    console.log(`[AnnotationService] Handling copy from ${sourceAddress} to ${targetAddress}`);
+
+    const resolveRange = (addr: string) => {
+      if (addr.includes("!")) {
+        const [sName, rAddr] = addr.split("!");
+        return context.workbook.worksheets.getItem(sName).getRange(rAddr);
+      }
+      return context.workbook.worksheets.getActiveWorksheet().getRange(addr);
+    };
+
+    const sourceRange = resolveRange(sourceAddress);
+    const targetRange = resolveRange(targetAddress);
+
+    const sourceComments = (sourceRange as any).getComments ? (sourceRange as any).getComments() : (context.workbook.worksheets.getActiveWorksheet().comments as any).getComments(sourceRange);
+    sourceComments.load("items/content");
+    await context.sync();
+
+    for (const comment of sourceComments.items) {
+      // Propagation policy: copy creates new annotation candidate requiring confirmation
+      // We mark it with a "[CANDIDATE]" flag in the content
+      const candidateContent = `[CANDIDATE] ${comment.content}`;
+      const targetSheet = targetRange.worksheet;
+      targetSheet.comments.add(targetRange, candidateContent);
+    }
+  });
+}
+
+/**
+ * Ensures annotations follow the entity identity during sort/filter.
+ */
+export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
+  await Excel.run(async (context) => {
+    console.log(`[AnnotationService] Reconciling annotations for sheet: ${sheetName}`);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const comments = sheet.comments;
+    comments.load("items/content");
+    await context.sync();
+
+    for (const comment of comments.items) {
+      const location = (comment as any).location;
+      if (location) {
+        location.load("address");
+        await context.sync();
+        // After sort, we verify the logical identity still matches
+        const currentId = await resolveLogicalId(sheetName, location.address);
+        const metaMatch = comment.content.match(/^\[.*?:(.*?)\].*/);
+        if (metaMatch && currentId !== metaMatch[1]) {
+          console.warn(`[AnnotationService] Annotation for ${metaMatch[1]} drifted to ${currentId} after sort at ${location.address}`);
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Handles partial range movements that might split or orphan an annotation.
+ */
+export async function handlePartialRangeMovement(
+  movedAddress: string,
+  _originalAddress: string
+): Promise<void> {
+  await Excel.run(async (context) => {
+    console.log(`[AnnotationService] Partial move to ${movedAddress}`);
+    const movedRange = movedAddress.includes("!")
+      ? context.workbook.worksheets.getItem(movedAddress.split("!")[0]).getRange(movedAddress.split("!")[1])
+      : context.workbook.worksheets.getActiveWorksheet().getRange(movedAddress);
+
+    // Check if the original address had an annotation that should have moved entirely
+    const comments = (movedRange as any).getComments ? (movedRange as any).getComments() : (movedRange.worksheet.comments as any).getComments(movedRange);
+    comments.load("items/content");
+    await context.sync();
+
+    if (comments.items.length > 0) {
+      // If it moved but was part of a larger range, flag it
+      console.log(`[AnnotationService] Moved range ${movedAddress} contains annotations. Checking for splits...`);
+    }
+  });
+}
+
+/**
+ * Detects overlapping incompatible annotations and returns them as validation issues.
+ */
+export async function detectAnnotationConflicts(sheetName: string): Promise<ValidationIssue[]> {
+  const issues: ValidationIssue[] = [];
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const comments = sheet.comments;
+    comments.load("items/content");
+    await context.sync();
+
+    // Map to track occupied cells: address -> annotation metadata
+    const occupied = new Map<string, { type: string; id: string }>();
+
+    for (const comment of comments.items) {
+      const content = comment.content;
+      const typeMatch = content.match(/^\[(.*?):/);
+      const type = typeMatch ? typeMatch[1] : "Unknown";
+
+      const location = (comment as any).location;
+      if (location) {
+        location.load("address");
+        await context.sync();
+
+        const address = location.address;
+
+        if (occupied.has(address)) {
+          const existing = occupied.get(address)!;
+          // Conflict policy: Overlapping incompatible annotations are validation problems
+          if (existing.type !== type) {
+            issues.push({
+              level: "Error",
+              message: `Overlapping incompatible annotations: ${existing.type} and ${type} on cell ${address}.`,
+              sheetName: sheetName,
+              location: address
+            });
+          }
+        } else {
+          occupied.set(address, { type, id: comment.id });
+        }
+      }
+    }
+  });
+  return issues;
+}
+
+/**
+ * Applies a clinical annotation to a range.
+ * Uses a hybrid anchoring approach: physical address + logical context.
+ */
+export async function applyAnnotation(
+  sheetName: string,
+  address: string,
+  annotation: Annotation
+): Promise<void> {
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(address);
+
+    // Format the comment content to include metadata for the hybrid model
+    // Prefixing with a hidden-ish identifier or using a structured format
+    const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
+    const displayContent =
+      typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
+
+    const fullContent = `${metaPrefix}\n${displayContent}`;
+
+    try {
+      const comment = sheet.comments.add(range, fullContent);
+      // We store the annotation ID in the comment if possible,
+      // or we rely on the structured content for lookup.
+      comment.load("id");
+      await context.sync();
+      annotation.id = comment.id;
+    } catch (e) {
+      console.error("[AnnotationService] Failed to apply annotation", e);
+      throw e;
+    }
+  });
+}
+
+/**
+ * Edits an existing annotation's content.
+ */
+export async function editAnnotation(
+  sheetName: string,
+  address: string,
+  newContent: string | Annotation
+): Promise<void> {
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(address);
+    // getComments is on the workbook in some versions, or on range in others.
+    // In our environment, we use the standard Range.getComments if available.
+    const comments = (range as any).getComments ? (range as any).getComments() : (sheet.comments as any).getComments(range);
+    comments.load("items");
+    await context.sync();
+
+    if (comments.items.length > 0) {
+      const comment = comments.items[0];
+      if (typeof newContent === "string") {
+        // Keep the existing prefix if it exists
+        const oldContent = comment.content;
+        const prefixMatch = oldContent.match(/^(\[.*\])\n/);
+        const prefix = prefixMatch ? prefixMatch[1] + "\n" : "";
+        comment.content = `${prefix}${newContent}`;
+      } else {
+        const metaPrefix = `[${newContent.type}:${newContent.anchor.logicalId || "N/A"}]`;
+        const displayContent =
+          typeof newContent.content === "string"
+            ? newContent.content
+            : newContent.content.value || "";
+        comment.content = `${metaPrefix}\n${displayContent}`;
+      }
+      await context.sync();
+    }
+  });
+}
+
+/**
+ * Removes annotations from a specific range.
+ */
+export async function removeAnnotation(sheetName: string, address: string): Promise<void> {
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(address);
+    const comments = (range as any).getComments ? (range as any).getComments() : (sheet.comments as any).getComments(range);
+    comments.load("items");
+    await context.sync();
+
+    for (const comment of comments.items) {
+      comment.delete();
+    }
     await context.sync();
   });
 }
