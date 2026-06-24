@@ -11,6 +11,7 @@ import {
   isCrfItem,
   ASTNode,
   RuleDefinition,
+  ExportOptions,
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
@@ -87,7 +88,7 @@ export function serializeAST(node: ASTNode): string {
  */
 export async function generateOdmXml(
   study: StudyDesign,
-  options: { bestEffort?: boolean } = {}
+  options: { bestEffort?: boolean; exportOptions?: ExportOptions } = {}
 ): Promise<OdmExportResult> {
   const timestamp = new Date().toISOString();
   const metadata = study.metadata;
@@ -362,7 +363,13 @@ export async function generateOdmXml(
             targetMatchesItem(r.target, item.itemOid)
         );
 
-        xml += renderItemDef(item, derivationRule?.ruleId);
+        xml += renderItemDef(
+          item,
+          derivationRule?.ruleId,
+          options.exportOptions,
+          study.metadata.defaultLanguage,
+          serializationWarnings
+        );
       });
     });
   });
@@ -375,7 +382,13 @@ export async function generateOdmXml(
     cl.items.forEach((clItem) => {
       xml += `
         <CodeListItem CodedValue="${escapeXml(clItem.codedValue)}">
-          <Decode>${renderTranslatedText(clItem.decodedText)}</Decode>
+          <Decode>${renderTranslatedText(
+            clItem.decodedText,
+            options.exportOptions,
+            study.metadata.defaultLanguage,
+            serializationWarnings,
+            `Codelist ${cl.codelistId} Item ${clItem.codedValue}`
+          )}</Decode>
         </CodeListItem>`;
     });
     xml += `
@@ -409,8 +422,13 @@ export async function generateOdmXml(
             : rule.description || "";
         if (descText) {
           descElement = `
-        <Description>
-          <TranslatedText xml:lang="en-US">${escapeXml(descText)}</TranslatedText>
+        <Description>${renderTranslatedText(
+          typeof descText === "string" ? { "en-US": descText } : descText,
+          options.exportOptions,
+          study.metadata.defaultLanguage,
+          serializationWarnings,
+          `Condition ${rule.ruleId} Description`
+        )}
         </Description>`;
         }
 
@@ -482,8 +500,13 @@ export async function generateOdmXml(
         let descElement = "";
         if (rule.description) {
           descElement = `
-        <Description>
-          <TranslatedText xml:lang="en-US">${escapeXml(rule.description)}</TranslatedText>
+        <Description>${renderTranslatedText(
+          typeof rule.description === "string" ? { "en-US": rule.description } : rule.description,
+          options.exportOptions,
+          study.metadata.defaultLanguage,
+          serializationWarnings,
+          `Method ${rule.ruleId} Description`
+        )}
         </Description>`;
         }
 
@@ -508,8 +531,13 @@ export async function generateOdmXml(
       let descElement = "";
       if (method.description) {
         descElement = `
-        <Description>
-          <TranslatedText xml:lang="en-US">${escapeXml(method.description)}</TranslatedText>
+        <Description>${renderTranslatedText(
+          typeof method.description === "string" ? { "en-US": method.description } : method.description,
+          options.exportOptions,
+          study.metadata.defaultLanguage,
+          serializationWarnings,
+          `Method ${cleanOid} Description`
+        )}
         </Description>`;
       }
 
@@ -546,6 +574,12 @@ export async function generateOdmXml(
   CRF.xl Serialization Warnings:
 ${safeWarnings.map((w) => `  - ${w}`).join("\n")}
 -->`;
+
+    if (!finalDiagnostics) {
+      finalDiagnostics = "=== Export Fallback Report ===\n" + serializationWarnings.join("\n");
+    } else {
+      finalDiagnostics += "\n\n=== Export Fallback Report ===\n" + serializationWarnings.join("\n");
+    }
   }
 
   return { xml, diagnostics: finalDiagnostics };
@@ -554,7 +588,13 @@ ${safeWarnings.map((w) => `  - ${w}`).join("\n")}
 /**
  * Renders an <ItemDef> block with clinical attributes and SDTM Aliases.
  */
-function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
+function renderItemDef(
+  item: CrfItem,
+  derivationMethodOid?: string,
+  exportOptions?: ExportOptions,
+  defaultLanguage?: string,
+  warnings?: string[]
+): string {
   const odmType = mapDataTypeToOdm(item.dataType);
   let output = `
       <ItemDef OID="${escapeXml(item.itemOid)}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
@@ -585,10 +625,16 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
   }
 
   output += `>
-        <Question>${renderTranslatedText(item.label)}</Question>`;
+        <Question>${renderTranslatedText(
+          item.label,
+          exportOptions,
+          defaultLanguage,
+          warnings,
+          `Item ${item.itemOid} Label`
+        )}</Question>`;
 
   if (item.validation?.rangeChecks && item.validation.rangeChecks.length > 0) {
-    item.validation.rangeChecks.forEach((rc) => {
+    item.validation.rangeChecks.forEach((rc, idx) => {
       const comparator = mapComparatorToOdm(rc.comparator);
       const softHard = rc.severity === "HardError" ? "Hard" : "Soft";
 
@@ -598,7 +644,13 @@ function renderItemDef(item: CrfItem, derivationMethodOid?: string): string {
 
       if (rc.errorMessage) {
         output += `
-          <ErrorMessage>${renderTranslatedText(rc.errorMessage)}</ErrorMessage>`;
+          <ErrorMessage>${renderTranslatedText(
+            rc.errorMessage,
+            exportOptions,
+            defaultLanguage,
+            warnings,
+            `Item ${item.itemOid} RangeCheck ${idx} ErrorMessage`
+          )}</ErrorMessage>`;
       }
 
       output += `
@@ -667,12 +719,36 @@ function mapDataTypeToOdm(type: DataType): string {
 /**
  * Helper to render localized ODM TranslatedText tags.
  */
-function renderTranslatedText(text: TranslatedText): string {
+function renderTranslatedText(
+  text: TranslatedText,
+  exportOptions?: ExportOptions,
+  defaultLanguage?: string,
+  warnings?: string[],
+  context?: string
+): string {
   let output = "";
-  Object.entries(text).forEach(([lang, val]) => {
-    const normLang = LinguisticService.normalizeLocale(lang);
-    output += `<TranslatedText xml:lang="${normLang}">${escapeXml(val as string)}</TranslatedText>`;
-  });
+
+  if (exportOptions) {
+    const translations = LinguisticService.getExportTranslations(
+      text,
+      exportOptions,
+      defaultLanguage || "en-US"
+    );
+
+    translations.forEach((t) => {
+      if (t.isFallback && warnings) {
+        warnings.push(`Fallback used for ${context || "content"}: '${t.locale}' was not found, using fallback.`);
+      }
+      output += `<TranslatedText xml:lang="${t.locale}">${escapeXml(t.content)}</TranslatedText>`;
+    });
+  } else {
+    // Legacy behavior: render all available translations
+    Object.entries(text).forEach(([lang, val]) => {
+      const normLang = LinguisticService.normalizeLocale(lang);
+      output += `<TranslatedText xml:lang="${normLang}">${escapeXml(val as string)}</TranslatedText>`;
+    });
+  }
+
   return output;
 }
 
