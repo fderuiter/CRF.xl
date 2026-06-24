@@ -1112,14 +1112,6 @@ export const App: React.FC<{ title?: string }> = () => {
           />
         )}
 
-        <AuditOrchestratorModal
-          isOpen={showAuditModal}
-          onOpenChange={setShowAuditModal}
-          report={studyDiffReport}
-          justifications={justifications}
-          onSaveJustifications={handleSaveJustifications}
-        />
-
         <Dialog open={showExportOptions} onOpenChange={(_, data) => setShowExportOptions(data.open)}>
           <DialogSurface>
             <DialogBody>
@@ -1197,6 +1189,14 @@ export const App: React.FC<{ title?: string }> = () => {
             </DialogBody>
           </DialogSurface>
         </Dialog>
+
+        <AuditOrchestratorModal
+          isOpen={showAuditModal}
+          onOpenChange={setShowAuditModal}
+          report={studyDiffReport}
+          justifications={justifications}
+          onSaveJustifications={handleSaveJustifications}
+        />
 
         <Dialog open={showGate} onOpenChange={(_, data) => setShowGate(data.open)}>
           <DialogSurface>
