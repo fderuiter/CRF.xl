@@ -5,6 +5,7 @@
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";
+import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
 import pdfMake from "pdfmake/build/pdfmake";
@@ -28,7 +29,7 @@ export async function generatePdfBlob(
   content.push({ text: "Reviewer Export - Annotated CRF", style: "header", headlineLevel: 1 });
   content.push({ text: `Protocol ID: ${protocolId}`, margin: [0, 2, 0, 2] });
   content.push({ text: `Study Version: ${study.metadata.version || "UNKNOWN"}`, margin: [0, 2, 0, 2] });
-  content.push({ text: `Exported At: ${timestamp}`, margin: [0, 2, 0, 2] });
+  content.push({ text: `Exported At: ${formatDate(timestamp)}`, margin: [0, 2, 0, 2] });
   content.push({ text: `Study Cryptographic Hash: ${studyHash}`, margin: [0, 2, 0, 10] });
 
   content.push({ text: "Validation Outcomes Summary", style: "subheader", headlineLevel: 2 });
@@ -163,7 +164,7 @@ export async function generatePdfBlob(
     },
     footer: function(currentPage: number, pageCount: number) {
       return {
-        text: `Protocol: ${protocolId} | Version: ${study.metadata.version || "UNKNOWN"} | Generated: ${timestamp} | Page ${currentPage} of ${pageCount}`,
+        text: `Protocol: ${protocolId} | Version: ${study.metadata.version || "UNKNOWN"} | Generated: ${formatDate(timestamp)} | Page ${currentPage} of ${pageCount}`,
         alignment: "center",
         fontSize: 8,
         color: "#666666",

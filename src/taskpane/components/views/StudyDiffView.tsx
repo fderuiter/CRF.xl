@@ -26,6 +26,7 @@ import {
   filterStudyDiffList,
   paginateStudyDiffList,
 } from "./study-diff-view-utils";
+import { formatDate } from "../../core/utils/locale-utils";
 
 interface StudyDiffViewProps {
   report: StudyDiffReport | null;
@@ -359,7 +360,7 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
                 <>
                   <Text size={200} weight="semibold" style={{ marginTop: "8px" }}>Audit Justification</Text>
                   <Text size={200}>Reason: {(selectedEntry as any).justification.reason}</Text>
-                  <Text size={200}>User: {(selectedEntry as any).justification.userId} @ {new Date((selectedEntry as any).justification.timestamp).toLocaleString()}</Text>
+                  <Text size={200}>User: {(selectedEntry as any).justification.userId} @ {formatDate((selectedEntry as any).justification.timestamp)}</Text>
                 </>
               )}
             </div>

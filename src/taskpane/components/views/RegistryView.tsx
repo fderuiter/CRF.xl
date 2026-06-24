@@ -21,6 +21,7 @@ import {
 import { StudyDesign, SubmissionMetadata } from "../../core";
 import { VaultService } from "../../core";
 import * as CryptoJS from "crypto-js";
+import { formatDate } from "../../core/utils/locale-utils";
 
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
 import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
@@ -252,7 +253,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
                 <ul>
                   {historyItems.map((h, i) => (
                     <li key={i}>
-                      <strong>Version {h.version}</strong> - {new Date(h.timestamp).toLocaleString()}
+                      <strong>Version {h.version}</strong> - {formatDate(h.timestamp)}
                       <br/>
                       Hash: {h.studyHash.substring(0, 8)}...
                     </li>

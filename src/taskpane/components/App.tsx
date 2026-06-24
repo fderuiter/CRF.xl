@@ -60,6 +60,7 @@ import {
   persistRecoverySnapshot,
   readRecoverySnapshot,
   summarizeStudyDesign,
+  formatDate,
 } from "../core";
 import {
   createOfficeErrorPresentation,
@@ -536,7 +537,7 @@ export const App: React.FC<{ title?: string }> = () => {
       handleSaveJustifications(recoverySnapshot.snapshot.justifications);
     }
     setAppStatus(
-      `Recovered snapshot from ${new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}`
+      `Recovered snapshot from ${formatDate(recoverySnapshot.snapshot.savedAt)}`
     );
     setRecoverySnapshot(null);
   };
@@ -970,7 +971,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <MessageBar intent={recoverySnapshot.workbookChanged ? "warning" : "info"}>
             <MessageBarBody>
               Recovery snapshot detected from{" "}
-              {new Date(recoverySnapshot.snapshot.savedAt).toLocaleString()}.
+              {formatDate(recoverySnapshot.snapshot.savedAt)}.
               {recoverySnapshot.workbookChanged &&
                 " Workbook structure has changed since this snapshot; review restored results carefully."}
               <div className={styles.recoveryActions}>
