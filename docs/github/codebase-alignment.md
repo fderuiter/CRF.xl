@@ -6,6 +6,7 @@
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#276` | Refactor Core API encapsulation and automate dead-code detection | Present | [`src/taskpane/core/index.ts`](../../src/taskpane/core/index.ts) |
 | `#176` | [Feature] Dictionary Sidecar UX States & Error Handling | Present | [`src/taskpane/components/views/DictionarySidecar.tsx`](../../src/taskpane/components/views/DictionarySidecar.tsx) |
 | `#174` | [Feature] Terminology Search and Result Model | Present | [`src/taskpane/components/views/DictionarySidecar.tsx`](../../src/taskpane/components/views/DictionarySidecar.tsx) |
 | `#165` | [Feature] Workbook Binding & Selection Synchronization | Present | [`src/taskpane/components/views/DictionarySidecar.tsx`](../../src/taskpane/components/views/DictionarySidecar.tsx)<br>[`src/taskpane/core/services/__tests__/binding-service.test.ts`](../../src/taskpane/core/services/__tests__/binding-service.test.ts)<br>[`src/taskpane/core/services/binding-service.ts`](../../src/taskpane/core/services/binding-service.ts) |

@@ -1,3 +1,6 @@
+/**
+ * @issue #276
+ */
 export { AdamDatasetClass, AdamDatasetMetadata, CodelistDiffEntry, DataType, DatasetPurpose, EventType, FormDiffEntry, ItemDiffEntry, RuleDiffEntry, RuleType, SdtmDatasetClass, SdtmDatasetMetadata, StudyDesign, StudyDiffReport, SubmissionMetadata, isCrfItem } from "./types";
 export { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "./services/baseline-workbook-service";
 export { RECOVERY_APP_VERSION, RecoverySnapshot, WorkbookFingerprint, createRecoverySnapshot, dismissRecoverySnapshot, hasWorkbookChanged, persistRecoverySnapshot, readRecoverySnapshot, summarizeStudyDesign } from "./services/recovery-storage";
