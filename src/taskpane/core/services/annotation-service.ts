@@ -169,6 +169,7 @@ export async function applyValidationVisuals(
  */
 export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetName: string; address: string } | null> {
   let result: { sheetName: string; address: string } | null = null;
+  if (typeof Excel === "undefined") return null;
   await Excel.run(async (context) => {
     const workbook = context.workbook;
     const sheets = workbook.worksheets;
@@ -211,6 +212,7 @@ export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetNa
  */
 export async function resolveLogicalId(sheetName: string, address: string): Promise<string | null> {
   let logicalId: string | null = null;
+  if (typeof Excel === "undefined") return null;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
@@ -240,6 +242,7 @@ export async function resolveLogicalId(sheetName: string, address: string): Prom
  * model stays in sync by refreshing logical-to-physical mappings.
  */
 export async function syncAnnotationsAfterMutation(): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheets = context.workbook.worksheets;
     sheets.load("items/name");
@@ -283,6 +286,7 @@ export async function handleAnnotationCopyPaste(
   sourceAddress: string,
   targetAddress: string
 ): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     console.log(`[AnnotationService] Handling copy from ${sourceAddress} to ${targetAddress}`);
 
@@ -315,6 +319,7 @@ export async function handleAnnotationCopyPaste(
  * Ensures annotations follow the entity identity during sort/filter.
  */
 export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     console.log(`[AnnotationService] Reconciling annotations for sheet: ${sheetName}`);
     const sheet = context.workbook.worksheets.getItem(sheetName);
@@ -345,6 +350,7 @@ export async function handlePartialRangeMovement(
   movedAddress: string,
   _originalAddress: string
 ): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     console.log(`[AnnotationService] Partial move to ${movedAddress}`);
     const movedRange = movedAddress.includes("!")
@@ -368,6 +374,7 @@ export async function handlePartialRangeMovement(
  */
 export async function detectAnnotationConflicts(sheetName: string): Promise<ValidationIssue[]> {
   const issues: ValidationIssue[] = [];
+  if (typeof Excel === "undefined") return issues;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const comments = sheet.comments;
@@ -418,6 +425,7 @@ export async function applyAnnotation(
   address: string,
   annotation: Annotation
 ): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
@@ -452,6 +460,7 @@ export async function editAnnotation(
   address: string,
   newContent: string | Annotation
 ): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
@@ -486,6 +495,7 @@ export async function editAnnotation(
  * Removes annotations from a specific range.
  */
 export async function removeAnnotation(sheetName: string, address: string): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
