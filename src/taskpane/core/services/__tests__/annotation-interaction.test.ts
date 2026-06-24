@@ -1,3 +1,6 @@
+/**
+ * @issue #84
+ */
 import { AnnotationType, AnnotationTargetType, Annotation } from "../../types";
 import { applyAnnotation, editAnnotation, removeAnnotation, detectAnnotationConflicts } from "../annotation-service";
 
