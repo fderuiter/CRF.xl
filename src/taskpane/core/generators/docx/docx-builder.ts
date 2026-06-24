@@ -3,6 +3,8 @@
  */
 /* eslint-disable no-undef */
 import {
+  ImageRun,
+
   Document,
   Packer,
   Paragraph,
@@ -37,12 +39,12 @@ import {
  * Orchestrates the conversion of clinical metadata into a handwriting-ready Word asset.
  */
 export async function generateDocxBlob(study: StudyDesign): Promise<Blob> {
-  const doc = buildDocxDocument(study);
+  const doc = await buildDocxDocument(study);
   return await Packer.toBlob(doc);
 }
 
 export async function generateDocx(study: StudyDesign): Promise<void> {
-  const doc = buildDocxDocument(study);
+  const doc = await buildDocxDocument(study);
 
   // Finalize as Blob and trigger browser download
   const blob = await Packer.toBlob(doc);
@@ -54,7 +56,7 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
   window.URL.revokeObjectURL(url);
 }
 
-export function buildDocxDocument(study: StudyDesign): Document {
+export async function buildDocxDocument(study: StudyDesign): Promise<Document> {
   const sections = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
@@ -74,7 +76,7 @@ export function buildDocxDocument(study: StudyDesign): Document {
         },
         children: [
           ...renderClinicalHeader(study, event.eventName, form),
-          ...renderFormContent(study, form),
+          ...(await renderFormContent(study, form)),
           ...renderInvestigatorSignature(form),
         ],
       });
@@ -82,13 +84,24 @@ export function buildDocxDocument(study: StudyDesign): Document {
   }
 
   return new Document({
+    creator: study.metadata.sponsor || "CRF.xl Engine",
+    description: `Exported CRF for ${study.metadata.protocolId}`,
+    styles: {
+      default: {
+        document: {
+          run: {
+            language: { value: study.metadata.defaultLanguage || "en-US" }
+          }
+        }
+      }
+    },
     title: `${study.metadata.studyName} - Paper CRF`,
     sections,
   });
 }
 
 export async function generateDocxBuffer(study: StudyDesign): Promise<Buffer> {
-  return Packer.toBuffer(buildDocxDocument(study));
+  return Packer.toBuffer(await buildDocxDocument(study));
 }
 
 /**
@@ -128,7 +141,7 @@ function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfFo
 /**
  * Iterates through ItemGroups and Items to generate questions and input areas.
  */
-function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
+async function renderFormContent(study: StudyDesign, form: CrfForm): Promise<any[]> {
   const children: any[] = [];
 
   for (const group of form.itemGroups) {
@@ -156,9 +169,7 @@ function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
       }
     } else {
       // Standard vertical layout
-      group.items.forEach((item) => {
-        children.push(...renderFormElement(item as CrfItem | CrfDisplayBlock, study));
-      });
+      for (const item of group.items) { children.push(...(await renderFormElement(item as CrfItem | CrfDisplayBlock, study))); }
     }
   }
 
@@ -168,7 +179,7 @@ function renderFormContent(study: StudyDesign, form: CrfForm): any[] {
 /**
  * Renders an Item with physical handwriting affordances (lines, boxes, or scales).
  */
-function renderFormElement(item: CrfFormElement, study: StudyDesign): any[] {
+async function renderFormElement(item: CrfFormElement, study: StudyDesign): Promise<any[]> {
   if (!isCrfItem(item)) {
     return renderDisplayBlock(item);
   }
@@ -176,7 +187,7 @@ function renderFormElement(item: CrfFormElement, study: StudyDesign): any[] {
   return renderPhysicalItem(item, study);
 }
 
-function renderPhysicalItem(item: CrfItem, study: StudyDesign): any[] {
+async function renderPhysicalItem(item: CrfItem, study: StudyDesign): Promise<any[]> {
   const lang = study.metadata.defaultLanguage;
   const labelText = getTranslation(item.label, lang);
   const children: any[] = [];
@@ -192,6 +203,26 @@ function renderPhysicalItem(item: CrfItem, study: StudyDesign): any[] {
   });
 
   children.push(question);
+
+  if (item.assetConfig) {
+    const fallbackImage = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
+    children.push(
+      new Paragraph({
+        children: [
+          new ImageRun({
+            type: "png" as const,
+            data: fallbackImage,
+            transformation: { width: 100, height: 100 },
+            altText: {
+              name: "Asset",
+              description: item.assetConfig.altText ? getTranslation(item.assetConfig.altText, lang) : "Image"
+            }
+          })
+        ]
+      })
+    );
+  }
+
 
   // Conditional Instruction Line
   if (item.instructions) {
@@ -323,7 +354,7 @@ function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | nu
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       // Header Row
-      new TableRow({
+      new TableRow({ tableHeader: true,
         children: items.map(
           (item) =>
             new TableCell({
