@@ -6,6 +6,8 @@ import {
   TranslationStatus,
   TranslationModel,
   StudyLinguisticCompleteness,
+  ExportOptions,
+  ExportMode,
 } from "../types/linguistics";
 
 /**
@@ -143,5 +145,61 @@ export class LinguisticService {
       completenessPercentage: totalItems > 0 ? (totalTranslated / totalItems) * 100 : 100,
       missingLocales,
     };
+  }
+
+  /**
+   * Returns a filtered set of translations based on ExportOptions.
+   * Leverages resolveTranslation to handle fallbacks for missing content.
+   */
+  public static getExportTranslations(
+    translations: TranslatedText,
+    options: ExportOptions,
+    defaultLocale: string
+  ): Array<{ locale: string; content: string; isFallback: boolean }> {
+    const results: Array<{ locale: string; content: string; isFallback: boolean }> = [];
+
+    if (options.mode === ExportMode.PRIMARY_ONLY) {
+      const resolved = this.resolveTranslation(translations, options.primaryLocale, defaultLocale);
+      results.push({
+        locale: resolved.locale,
+        content: resolved.content,
+        isFallback: resolved.isFallback,
+      });
+    } else if (options.mode === ExportMode.BILINGUAL) {
+      const primary = this.resolveTranslation(translations, options.primaryLocale, defaultLocale);
+      results.push({
+        locale: primary.locale,
+        content: primary.content,
+        isFallback: primary.isFallback,
+      });
+
+      if (options.secondaryLocale) {
+        const secondary = this.resolveTranslation(
+          translations,
+          options.secondaryLocale,
+          defaultLocale
+        );
+        // Only push if different from primary or if we want both even if they fall back to same thing?
+        // Usually in bilingual export we want both even if they are same due to fallback, to maintain structure.
+        results.push({
+          locale: secondary.locale,
+          content: secondary.content,
+          isFallback: secondary.isFallback,
+        });
+      }
+    } else if (options.mode === ExportMode.ALL) {
+      // For "ALL", we include every locale that has at least one entry in the study
+      // or just all available for this specific item?
+      // Given the requirement "Multi-locale appendix", it suggests all available.
+      Object.keys(translations).forEach((locale) => {
+        results.push({
+          locale: this.normalizeLocale(locale),
+          content: translations[locale],
+          isFallback: false,
+        });
+      });
+    }
+
+    return results;
   }
 }

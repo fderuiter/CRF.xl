@@ -2,8 +2,9 @@
  * PDF Generator for Annotated CRFs
  * @issue #279
  */
-import { StudyDesign, isCrfItem } from "../../types/hierarchy";
+import { StudyDesign, isCrfItem, ExportOptions, ExportMode } from "../../types/hierarchy";
 import { DataType } from "../../types/enums";
+import { LinguisticService } from "../../services/linguistics-service";
 import * as CryptoJS from "crypto-js";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
@@ -15,7 +16,8 @@ import pdfFonts from "pdfmake/build/vfs_fonts";
 export async function generatePdfBlob(
   study: StudyDesign,
   validationIssues: any[] = [],
-  auditSummary?: StudyDiffReport
+  auditSummary?: StudyDiffReport,
+  exportOptions?: ExportOptions
 ): Promise<Blob> {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const timestamp = new Date().toISOString();
@@ -106,9 +108,15 @@ export async function generatePdfBlob(
           const metadataText = `[${item.itemOid}]\nDomain: ${sdtmDomain} | Var: ${sdtmVar} | NCI: ${nciCode}`;
           const commentText = item.comment ? `\n${item.comment}` : "";
 
+          const labelText = getTranslation(
+            item.label,
+            study.metadata.defaultLanguage,
+            exportOptions
+          );
+
           content.push({
             columns: [
-              { text: (item.name as string) || "Unnamed", width: 150 },
+              { text: labelText, width: 150 },
               { text: affordanceText, width: 150 },
               {
                 text: metadataText + commentText,
@@ -180,4 +188,32 @@ export async function generatePdfBlob(
       reject(e);
     }
   });
+}
+
+/**
+ * Utility to safely fetch translated text with a fallback.
+ * Supports BILINGUAL mode by joining translations with a slash.
+ */
+function getTranslation(
+  textObj: Record<string, string>,
+  lang: string,
+  exportOptions?: ExportOptions
+): string {
+  if (exportOptions) {
+    const translations = LinguisticService.getExportTranslations(textObj, exportOptions, lang);
+
+    if (exportOptions.mode === ExportMode.BILINGUAL && translations.length >= 2) {
+      return `${translations[0].content} / ${translations[1].content}`;
+    }
+
+    if (exportOptions.mode === ExportMode.ALL) {
+      return translations.map((t) => `[${t.locale}] ${t.content}`).join(" | ");
+    }
+
+    if (translations.length > 0) {
+      return translations[0].content;
+    }
+  }
+
+  return textObj[lang] || textObj["en-US"] || Object.values(textObj)[0] || "";
 }

@@ -32,19 +32,28 @@ import {
   GroupLayout,
   TranslatedText,
   isCrfItem,
+  ExportOptions,
+  ExportMode,
 } from "../../types/index";
+import { LinguisticService } from "../../services/linguistics-service";
 
 /**
  * Main entry point for the Paper CRF Generation.
  * Orchestrates the conversion of clinical metadata into a handwriting-ready Word asset.
  */
-export async function generateDocxBlob(study: StudyDesign): Promise<Blob> {
-  const doc = await buildDocxDocument(study);
+export async function generateDocxBlob(
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): Promise<Blob> {
+  const doc = await buildDocxDocument(study, exportOptions);
   return await Packer.toBlob(doc);
 }
 
-export async function generateDocx(study: StudyDesign): Promise<void> {
-  const doc = await buildDocxDocument(study);
+export async function generateDocx(
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): Promise<void> {
+  const doc = await buildDocxDocument(study, exportOptions);
 
   // Finalize as Blob and trigger browser download
   const blob = await Packer.toBlob(doc);
@@ -56,7 +65,10 @@ export async function generateDocx(study: StudyDesign): Promise<void> {
   window.URL.revokeObjectURL(url);
 }
 
-export async function buildDocxDocument(study: StudyDesign): Promise<Document> {
+export async function buildDocxDocument(
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): Promise<Document> {
   const sections = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
@@ -76,7 +88,7 @@ export async function buildDocxDocument(study: StudyDesign): Promise<Document> {
         },
         children: [
           ...renderClinicalHeader(study, event.eventName, form),
-          ...(await renderFormContent(study, form)),
+          ...(await renderFormContent(study, form, exportOptions)),
           ...renderInvestigatorSignature(form),
         ],
       });
@@ -141,7 +153,11 @@ function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfFo
 /**
  * Iterates through ItemGroups and Items to generate questions and input areas.
  */
-async function renderFormContent(study: StudyDesign, form: CrfForm): Promise<any[]> {
+async function renderFormContent(
+  study: StudyDesign,
+  form: CrfForm,
+  exportOptions?: ExportOptions
+): Promise<any[]> {
   const children: any[] = [];
 
   for (const group of form.itemGroups) {
@@ -151,7 +167,7 @@ async function renderFormContent(study: StudyDesign, form: CrfForm): Promise<any
         new Paragraph({
           children: [
             new TextRun({
-              text: getTranslation(group.label, study.metadata.defaultLanguage),
+              text: getTranslation(group.label, study.metadata.defaultLanguage, exportOptions),
               bold: true,
               size: 24,
             }),
@@ -163,13 +179,25 @@ async function renderFormContent(study: StudyDesign, form: CrfForm): Promise<any
 
     // Logic check: Repeating Groups (Logs) are rendered as Tables
     if (group.repeating || group.groupLayout === GroupLayout.MATRIX) {
-      const table = renderRepeatingTable(group, study.metadata.defaultLanguage);
+      const table = renderRepeatingTable(
+        group,
+        study.metadata.defaultLanguage,
+        exportOptions
+      );
       if (table) {
         children.push(table);
       }
     } else {
       // Standard vertical layout
-      for (const item of group.items) { children.push(...(await renderFormElement(item as CrfItem | CrfDisplayBlock, study))); }
+      for (const item of group.items) {
+        children.push(
+          ...(await renderFormElement(
+            item as CrfItem | CrfDisplayBlock,
+            study,
+            exportOptions
+          ))
+        );
+      }
     }
   }
 
@@ -179,17 +207,25 @@ async function renderFormContent(study: StudyDesign, form: CrfForm): Promise<any
 /**
  * Renders an Item with physical handwriting affordances (lines, boxes, or scales).
  */
-async function renderFormElement(item: CrfFormElement, study: StudyDesign): Promise<any[]> {
+async function renderFormElement(
+  item: CrfFormElement,
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): Promise<any[]> {
   if (!isCrfItem(item)) {
     return renderDisplayBlock(item);
   }
 
-  return renderPhysicalItem(item, study);
+  return renderPhysicalItem(item, study, exportOptions);
 }
 
-async function renderPhysicalItem(item: CrfItem, study: StudyDesign): Promise<any[]> {
+async function renderPhysicalItem(
+  item: CrfItem,
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): Promise<any[]> {
   const lang = study.metadata.defaultLanguage;
-  const labelText = getTranslation(item.label, lang);
+  const labelText = getTranslation(item.label, lang, exportOptions);
   const children: any[] = [];
 
   // Main Question Paragraph
@@ -198,14 +234,17 @@ async function renderPhysicalItem(item: CrfItem, study: StudyDesign): Promise<an
     children: [
       new TextRun({ text: labelText, size: 22 }),
       new TextRun({ text: "  " }),
-      ...renderInputAffordance(item, study),
+      ...renderInputAffordance(item, study, exportOptions),
     ],
   });
 
   children.push(question);
 
   if (item.assetConfig) {
-    const fallbackImage = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
+    const fallbackImage = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      "base64"
+    );
     children.push(
       new Paragraph({
         children: [
@@ -215,14 +254,15 @@ async function renderPhysicalItem(item: CrfItem, study: StudyDesign): Promise<an
             transformation: { width: 100, height: 100 },
             altText: {
               name: "Asset",
-              description: item.assetConfig.altText ? getTranslation(item.assetConfig.altText, lang) : "Image"
-            }
-          })
-        ]
+              description: item.assetConfig.altText
+                ? getTranslation(item.assetConfig.altText, lang, exportOptions)
+                : "Image",
+            },
+          }),
+        ],
       })
     );
   }
-
 
   // Conditional Instruction Line
   if (item.instructions) {
@@ -230,7 +270,7 @@ async function renderPhysicalItem(item: CrfItem, study: StudyDesign): Promise<an
       new Paragraph({
         children: [
           new TextRun({
-            text: `Instruction: ${getTranslation(item.instructions, lang)}`,
+            text: `Instruction: ${getTranslation(item.instructions, lang, exportOptions)}`,
             italics: true,
             size: 18,
             color: "555555",
@@ -278,7 +318,11 @@ function renderDisplayBlock(block: CrfDisplayBlock): any[] {
  * Advanced Affordance Logic: Combines DataType and PaperLayoutFormat
  * to determine the correct physical UI (e.g., date boxes vs. VAS lines).
  */
-function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
+function renderInputAffordance(
+  item: CrfItem,
+  study: StudyDesign,
+  exportOptions?: ExportOptions
+): any[] {
   const affordances: any[] = [];
   const lang = study.metadata.defaultLanguage;
 
@@ -299,7 +343,7 @@ function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
         codelist.items.forEach((clItem) => {
           affordances.push(
             new TextRun({
-              text: `   □ ${getTranslation(clItem.decodedText, lang)}\n`,
+              text: `   □ ${getTranslation(clItem.decodedText, lang, exportOptions)}\n`,
               break: 1,
             })
           );
@@ -335,7 +379,9 @@ function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
   }
 
   if (item.postText) {
-    affordances.push(new TextRun({ text: ` ${getTranslation(item.postText, lang)}`, size: 20 }));
+    affordances.push(
+      new TextRun({ text: ` ${getTranslation(item.postText, lang, exportOptions)}`, size: 20 })
+    );
   }
 
   return affordances;
@@ -344,7 +390,11 @@ function renderInputAffordance(item: CrfItem, study: StudyDesign): any[] {
 /**
  * Renders a Repeating Table for Logs (AE, ConMed, etc).
  */
-function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | null {
+function renderRepeatingTable(
+  group: ItemGroup,
+  defaultLang: string,
+  exportOptions?: ExportOptions
+): Table | null {
   const items = group.items.filter(isCrfItem);
   if (items.length === 0) {
     return null;
@@ -354,13 +404,14 @@ function renderRepeatingTable(group: ItemGroup, defaultLang: string): Table | nu
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       // Header Row
-      new TableRow({ tableHeader: true,
+      new TableRow({
+        tableHeader: true,
         children: items.map(
           (item) =>
             new TableCell({
               children: [
                 new Paragraph({
-                  text: getTranslation(item.label, defaultLang).toUpperCase(),
+                  text: getTranslation(item.label, defaultLang, exportOptions).toUpperCase(),
                   alignment: AlignmentType.CENTER,
                   spacing: { before: 50, after: 50 },
                 }),
@@ -416,7 +467,28 @@ function renderInvestigatorSignature(form: CrfForm): any[] {
 
 /**
  * Utility to safely fetch translated text with a fallback.
+ * Supports BILINGUAL mode by joining translations with a slash.
  */
-function getTranslation(textObj: TranslatedText, lang: string): string {
+function getTranslation(
+  textObj: TranslatedText,
+  lang: string,
+  exportOptions?: ExportOptions
+): string {
+  if (exportOptions) {
+    const translations = LinguisticService.getExportTranslations(textObj, exportOptions, lang);
+
+    if (exportOptions.mode === ExportMode.BILINGUAL && translations.length >= 2) {
+      return `${translations[0].content} / ${translations[1].content}`;
+    }
+
+    if (exportOptions.mode === ExportMode.ALL) {
+      return translations.map((t) => `[${t.locale}] ${t.content}`).join(" | ");
+    }
+
+    if (translations.length > 0) {
+      return translations[0].content;
+    }
+  }
+
   return textObj[lang] || textObj["en-US"] || Object.values(textObj)[0] || "";
 }
