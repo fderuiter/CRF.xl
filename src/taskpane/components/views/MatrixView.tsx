@@ -7,16 +7,23 @@ import {
   Body1,
   Button,
   Card,
+  DataGrid,
+  DataGridBody,
+  DataGridCell,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridRow,
   Divider,
   Dropdown,
   Input,
-  Text,
-  makeStyles,
-  tokens,
   MessageBar,
   MessageBarBody,
   Option,
+  Text,
+  createTableColumn,
+  makeStyles,
   shorthands,
+  tokens,
 } from "@fluentui/react-components";
 import {
   ArrowRightRegular,
@@ -386,30 +393,59 @@ export const MatrixView: React.FC<MatrixProps> = ({
     setVisitFilter("all");
   }, []);
 
-  // Group cross-form dependencies by their sourceFormOid
-  const dependenciesByForm = React.useMemo(() => {
-    if (!study || !study.crossFormDependencies) return {};
-    const groups: { [key: string]: any[] } = {};
-    study.crossFormDependencies.forEach((dep) => {
-      const form = dep.sourceFormOid || "Unknown";
-      if (!groups[form]) {
-        groups[form] = [];
-      }
-      groups[form].push(dep);
-    });
-    return groups;
-  }, [study]);
-
   const hasDeps = study?.crossFormDependencies && study.crossFormDependencies.length > 0;
   const [selectedDepId, setSelectedDepId] = React.useState<string | null>(null);
 
-  // Keyboard navigation helper
-  const handleDepKeyDown = (e: React.KeyboardEvent, depId: string) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setSelectedDepId((prev) => (prev === depId ? null : depId));
-    }
-  };
+  const selectedDep = React.useMemo(() => {
+    return study?.crossFormDependencies?.find((d: any) => d.id === selectedDepId) || null;
+  }, [study?.crossFormDependencies, selectedDepId]);
+
+  const columns = React.useMemo(() => [
+    createTableColumn<any>({
+      columnId: 'sourceForm',
+      compare: (a, b) => (a.sourceFormOid || '').localeCompare(b.sourceFormOid || ''),
+      renderHeaderCell: () => 'Source Form',
+      renderCell: (item) => <Text weight="semibold">{item.sourceFormOid || 'Unknown'}</Text>,
+    }),
+    createTableColumn<any>({
+      columnId: 'source',
+      renderHeaderCell: () => 'Source',
+      renderCell: (item) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className={styles.depItemTitle}>{item.sourceOid}</div>
+          <div className={styles.badgeRow}>
+            <Badge appearance="tint" color="brand">{item.dependencyType}</Badge>
+            {item.status !== "Valid" && (
+              <Badge appearance="filled" color={item.severity === "Error" ? "danger" : "warning"}>
+                {item.status}
+              </Badge>
+            )}
+          </div>
+        </div>
+      )
+    }),
+    createTableColumn<any>({
+      columnId: 'target',
+      renderHeaderCell: () => 'Target',
+      renderCell: (item) => (
+        <div className={styles.depItemRelation}>
+          <span>{item.sourceType}</span>
+          <ArrowRightRegular style={{ fontSize: "12px" }} />
+          <span>
+            {item.targetFormOid !== "Unknown" ? `${item.targetFormOid}.${item.targetOid}` : item.targetOid}
+          </span>
+          <span style={{ fontSize: "11px", opacity: 0.7 }}>({item.targetType})</span>
+        </div>
+      )
+    }),
+    createTableColumn<any>({
+      columnId: 'expression',
+      renderHeaderCell: () => 'Expression',
+      renderCell: (item) => (
+        <div className={styles.depItemExpression}>{item.expression}</div>
+      )
+    })
+  ], [styles]);
 
   return (
     <div className={styles.container}>
@@ -612,139 +648,118 @@ export const MatrixView: React.FC<MatrixProps> = ({
           <Divider />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "12px" }}>
-            {Object.entries(dependenciesByForm).map(([formOid, deps]) => (
-              <div key={formOid} className={styles.depMapFormGroup}>
-                <div className={styles.depMapFormHeader}>Form: {formOid}</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {deps.map((dep) => {
-                    const isSelected = selectedDepId === dep.id;
-                    const severityClass =
-                      dep.severity === "Error"
-                        ? styles.depItemError
-                        : dep.severity === "Warning"
-                          ? styles.depItemWarning
-                          : styles.depItemOk;
+            <DataGrid
+              items={study.crossFormDependencies || []}
+              columns={columns}
+              focusMode="cell"
+              selectionMode="single"
+              getRowId={(item) => item.id}
+              selectedItems={selectedDepId ? new Set([selectedDepId]) : new Set()}
+              onSelectionChange={(_, data) => {
+                const arr = Array.from(data.selectedItems);
+                setSelectedDepId(arr.length > 0 ? (arr[0] as string) : null);
+              }}
+            >
+              <DataGridHeader>
+                <DataGridRow>
+                  {({ renderHeaderCell }) => (
+                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                  )}
+                </DataGridRow>
+              </DataGridHeader>
+              <DataGridBody<any>>
+                {({ item, rowId }) => {
+                  const isSelected = selectedDepId === item.id;
+                  const severityClass =
+                    item.severity === "Error"
+                      ? styles.depItemError
+                      : item.severity === "Warning"
+                        ? styles.depItemWarning
+                        : styles.depItemOk;
 
-                    return (
-                      <div
-                        key={dep.id}
-                        style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+                  return (
+                    <DataGridRow<any>
+                      key={rowId}
+                      className={`${severityClass} ${isSelected ? styles.depItemActive : ""}`}
+                    >
+                      {({ renderCell }) => (
+                        <DataGridCell>{renderCell(item)}</DataGridCell>
+                      )}
+                    </DataGridRow>
+                  );
+                }}
+              </DataGridBody>
+            </DataGrid>
+
+            {selectedDep && (
+              <div className={styles.detailPanel}>
+                <div className={styles.detailHeader}>
+                  <Text className={styles.detailTitle} block>
+                    Dependency Details
+                  </Text>
+                  {selectedDep.severity === "Error" ? (
+                    <Badge color="danger" icon={<ErrorCircleRegular />}>
+                      Error
+                    </Badge>
+                  ) : selectedDep.severity === "Warning" ? (
+                    <Badge color="warning" icon={<WarningRegular />}>
+                      Warning
+                    </Badge>
+                  ) : (
+                    <Badge color="success" icon={<CheckmarkCircleRegular />}>
+                      Valid
+                    </Badge>
+                  )}
+                </div>
+
+                <Divider />
+
+                <div className={styles.detailMetaGrid}>
+                  <span className={styles.detailMetaLabel}>Status:</span>
+                  <span className={styles.detailMetaVal}>{selectedDep.status}</span>
+
+                  <span className={styles.detailMetaLabel}>Expression:</span>
+                  <code style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+                    {selectedDep.expression}
+                  </code>
+
+                  <span className={styles.detailMetaLabel}>Description:</span>
+                  <span className={styles.detailMetaVal}>{selectedDep.message}</span>
+                </div>
+
+                <div className={styles.detailActionRow}>
+                  {onNavigate && selectedDep.sourceRowIndex !== undefined && (
+                    <Button
+                      size="small"
+                      appearance="primary"
+                      icon={<SearchRegular />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onNavigate(selectedDep.sourceFormOid, selectedDep.sourceRowIndex);
+                      }}
+                    >
+                      Go to Source ({selectedDep.sourceFormOid} row {selectedDep.sourceRowIndex + 1})
+                    </Button>
+                  )}
+
+                  {onNavigate &&
+                    selectedDep.targetRowIndex !== undefined &&
+                    selectedDep.targetFormOid !== "Unknown" && (
+                      <Button
+                        size="small"
+                        appearance="secondary"
+                        icon={<SearchRegular />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate(selectedDep.targetFormOid, selectedDep.targetRowIndex);
+                        }}
                       >
-                        <div
-                          className={`${styles.depItem} ${severityClass} ${isSelected ? styles.depItemActive : ""}`}
-                          onClick={() => setSelectedDepId(isSelected ? null : dep.id)}
-                          onKeyDown={(e) => handleDepKeyDown(e, dep.id)}
-                          tabIndex={0}
-                          role="button"
-                          aria-expanded={isSelected}
-                          aria-label={`Dependency from ${dep.sourceOid} to ${dep.targetOid} in form ${dep.targetFormOid}. Severity ${dep.severity}. Click for details.`}
-                        >
-                          <div className={styles.depItemHeader}>
-                            <div className={styles.depItemTitle}>{dep.sourceOid}</div>
-                            <div className={styles.badgeRow}>
-                              <Badge appearance="tint" color="brand">
-                                {dep.dependencyType}
-                              </Badge>
-                              {dep.status !== "Valid" && (
-                                <Badge
-                                  appearance="filled"
-                                  color={dep.severity === "Error" ? "danger" : "warning"}
-                                >
-                                  {dep.status}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className={styles.depItemRelation}>
-                            <span>{dep.sourceType}</span>
-                            <ArrowRightRegular style={{ fontSize: "12px" }} />
-                            <span>
-                              {dep.targetFormOid !== "Unknown"
-                                ? `${dep.targetFormOid}.${dep.targetOid}`
-                                : dep.targetOid}
-                            </span>
-                            <span style={{ fontSize: "11px", opacity: 0.7 }}>
-                              ({dep.targetType})
-                            </span>
-                          </div>
-                          <div className={styles.depItemExpression}>{dep.expression}</div>
-                        </div>
-
-                        {isSelected && (
-                          <div className={styles.detailPanel}>
-                            <div className={styles.detailHeader}>
-                              <Text className={styles.detailTitle} block>
-                                Dependency Details
-                              </Text>
-                              {dep.severity === "Error" ? (
-                                <Badge color="danger" icon={<ErrorCircleRegular />}>
-                                  Error
-                                </Badge>
-                              ) : dep.severity === "Warning" ? (
-                                <Badge color="warning" icon={<WarningRegular />}>
-                                  Warning
-                                </Badge>
-                              ) : (
-                                <Badge color="success" icon={<CheckmarkCircleRegular />}>
-                                  Valid
-                                </Badge>
-                              )}
-                            </div>
-
-                            <Divider />
-
-                            <div className={styles.detailMetaGrid}>
-                              <span className={styles.detailMetaLabel}>Status:</span>
-                              <span className={styles.detailMetaVal}>{dep.status}</span>
-
-                              <span className={styles.detailMetaLabel}>Expression:</span>
-                              <code style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-                                {dep.expression}
-                              </code>
-
-                              <span className={styles.detailMetaLabel}>Description:</span>
-                              <span className={styles.detailMetaVal}>{dep.message}</span>
-                            </div>
-
-                            <div className={styles.detailActionRow}>
-                              {onNavigate && dep.sourceRowIndex !== undefined && (
-                                <Button
-                                  size="small"
-                                  appearance="primary"
-                                  icon={<SearchRegular />}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onNavigate(dep.sourceFormOid, dep.sourceRowIndex);
-                                  }}
-                                >
-                                  Go to Source ({dep.sourceFormOid} row {dep.sourceRowIndex + 1})
-                                </Button>
-                              )}
-
-                              {onNavigate &&
-                                dep.targetRowIndex !== undefined &&
-                                dep.targetFormOid !== "Unknown" && (
-                                  <Button
-                                    size="small"
-                                    appearance="secondary"
-                                    icon={<SearchRegular />}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onNavigate(dep.targetFormOid, dep.targetRowIndex);
-                                    }}
-                                  >
-                                    Go to Target ({dep.targetFormOid} row {dep.targetRowIndex + 1})
-                                  </Button>
-                                )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        Go to Target ({selectedDep.targetFormOid} row {selectedDep.targetRowIndex + 1})
+                      </Button>
+                    )}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </Card>
       )}
