@@ -2,8 +2,9 @@
  * @issue #28
  */
 import * as React from "react";
-import { Body1, Button, Card, Spinner, makeStyles, tokens } from "@fluentui/react-components";
+import { Body1, Button, Card, Spinner, makeStyles, tokens, Divider } from "@fluentui/react-components";
 import { insertDateBlock, insertAEBlock } from "../../core";
+import { AnnotationPalette } from "../AnnotationPalette";
 
 interface AuthoringProps {
   sheetName: string;
@@ -85,6 +86,8 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
 
   return (
     <div className={styles.container}>
+      <AnnotationPalette />
+      <Divider />
       <Card className={styles.card}>
         <Body1 className={styles.cardTitle}>
           <span>📝</span> Authoring: {sheetName}

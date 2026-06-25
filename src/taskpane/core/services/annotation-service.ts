@@ -293,6 +293,57 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
 }
 
 /**
+ * Refreshes visual highlights for all annotations in the specified sheet.
+ */
+export async function refreshAnnotationHighlights(sheetName: string): Promise<void> {
+  if (typeof Excel === "undefined") return;
+
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const stored = await loadAnnotationsFromStore(context);
+    const relevant = stored.filter((a) => a.anchor.sheetName === sheetName);
+
+    const colorMap: Record<string, string> = {
+      [AnnotationType.SDTM]: "#e0f2fe", // Blue-50
+      [AnnotationType.ADAM]: "#f3e8ff", // Purple-50
+      [AnnotationType.ORIGIN]: "#fef9c3", // Yellow-50
+      [AnnotationType.COMMENT]: "#f0fdf4", // Green-50
+      [AnnotationType.VALIDATION]: "#fee2e2", // Red-50
+    };
+
+    for (const anno of relevant) {
+      try {
+        const range = sheet.getRange(anno.anchor.address);
+        range.format.fill.color = colorMap[anno.type] || "#f3f4f6";
+      } catch (e) {
+        // Range might be invalid if rows/cols deleted
+      }
+    }
+    await context.sync();
+  });
+}
+
+/**
+ * Clears all annotation highlights from the specified sheet.
+ * Only targets the used range to minimize performance impact.
+ */
+export async function clearAnnotationHighlights(sheetName: string): Promise<void> {
+  if (typeof Excel === "undefined") return;
+
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const usedRange = sheet.getUsedRangeOrNullObject();
+    usedRange.load("isNullObject");
+    await context.sync();
+
+    if (!usedRange.isNullObject) {
+      usedRange.format.fill.clear();
+    }
+    await context.sync();
+  });
+}
+
+/**
  * Bulk applies annotations from the store to the workbook.
  */
 export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<void> {
