@@ -1,8 +1,10 @@
 /**
  * @issue #84
  */
+/* global Excel */
 import { AnnotationType, AnnotationTargetType, Annotation } from "../types";
 import { applyAnnotation, resolveLogicalId } from "./annotation-service";
+import { validateAnnotationTarget, getRepairPolicy } from "../validators/annotation-validator";
 
 export interface PaintbrushState {
   isEnabled: boolean;
@@ -73,6 +75,27 @@ class AnnotationPaintbrushService {
    */
   public async applyToRange(sheetName: string, address: string): Promise<void> {
     if (!this.state.isEnabled) return;
+
+    // Validation Check before applying
+    let isBlocked = false;
+    if (typeof Excel !== "undefined") {
+      await Excel.run(async (context) => {
+        const sheet = context.workbook.worksheets.getItem(sheetName);
+        const range = sheet.getRange(address);
+        const issues = await validateAnnotationTarget(range);
+
+        for (const issue of issues) {
+          const policy = getRepairPolicy(issue);
+          if (policy.action === "Block") {
+            console.error(`[AnnotationPaintbrush] Application blocked at ${address}: ${issue.message}`);
+            isBlocked = true;
+            break;
+          }
+        }
+      });
+    }
+
+    if (isBlocked) return;
 
     // Resolve logical ID from the workbook context (e.g., Variable Name)
     const logicalId = await resolveLogicalId(sheetName, address);
