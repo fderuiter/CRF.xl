@@ -4,6 +4,7 @@
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
 import { LinguisticService } from "../services/linguistics-service";
 import { normalizeDataOrigin } from "./metadata-utils";
+import { parseNumber } from "../utils/locale-utils";
 
 const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
 
@@ -192,5 +193,5 @@ function parseNumericMetadata(value: unknown): number | undefined {
   if (value === undefined || value === null || value === "") {
     return undefined;
   }
-  return Number(value);
+  return parseNumber(value as any);
 }

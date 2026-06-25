@@ -5,6 +5,7 @@ import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/
 import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
 import { detectAnnotationConflicts } from "../services/annotation-service";
+import { parseNumber } from "../utils/locale-utils";
 
 export interface ValidationIssue {
   level: "Error" | "Warning";
@@ -118,8 +119,8 @@ export async function validateStudyDesign(
         const hasLength = item.length !== undefined && item.length !== null;
         const hasSignificantDigits =
           item.significantDigits !== undefined && item.significantDigits !== null;
-        const length = Number(item.length);
-        const significantDigits = Number(item.significantDigits);
+        const length = parseNumber(item.length as any);
+        const significantDigits = parseNumber(item.significantDigits as any);
 
         if (hasLength && (!Number.isInteger(length) || length <= 0)) {
           issues.push({

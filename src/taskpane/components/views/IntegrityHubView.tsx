@@ -15,6 +15,7 @@ import {
 import { ValidationIssue } from "../../core";
 import { StudyDiffReport } from "../../core";
 import { loadImportManifest } from "../../core";
+import { formatDate } from "../../core/utils/locale-utils";
 
 const useStyles = makeStyles({
   container: {
@@ -113,7 +114,7 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
               <Badge color="informative">Provenance</Badge>
               <Text block size={200}>
                 Imported from {provenance.sourceType} ({provenance.sourceId}) at{" "}
-                {new Date(provenance.importedAt).toLocaleString()}
+                {formatDate(provenance.importedAt)}
               </Text>
             </div>
           )}
@@ -155,7 +156,7 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
           <MessageBar intent="success">
             <MessageBarBody>
               Study design locked and signed off at{" "}
-              {new Date(signOffTimestamp!).toLocaleString()}. Ready for export.
+              {formatDate(signOffTimestamp!)}. Ready for export.
             </MessageBarBody>
           </MessageBar>
         ) : (

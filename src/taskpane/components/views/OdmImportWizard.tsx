@@ -36,6 +36,7 @@ import {
   importOdmXml,
   OdmImportPackage,
 } from "../../core";
+import { formatNumber } from "../../core/utils/locale-utils";
 import {
   createImportManifest,
   createImportProvenance,
@@ -441,7 +442,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
         />
         {state.xmlInput.trim().length > 0 && (
           <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
-            {state.xmlInput.trim().length.toLocaleString()} characters loaded
+            {formatNumber(state.xmlInput.trim().length)} characters loaded
           </Text>
         )}
       </div>
