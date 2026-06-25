@@ -24,6 +24,17 @@ export enum AnnotationTargetType {
 }
 
 /**
+ * Status of the annotation in its lifecycle.
+ */
+export enum AnnotationStatus {
+  Active = "Active",
+  Draft = "Draft",
+  Archived = "Archived",
+  Orphaned = "Orphaned",
+  Resolved = "Resolved",
+}
+
+/**
  * Hybrid anchoring model combining physical workbook references with logical clinical context.
  */
 export interface AnnotationAnchor {
@@ -45,8 +56,14 @@ export interface Annotation {
   anchor: AnnotationAnchor;
   content: string | TranslatedText;
   author?: string;
-  /** ISO 8601 timestamp. */
+  /** ISO 8601 timestamp of creation. */
   timestamp: string;
+  /** ISO 8601 timestamp of last update. */
+  updatedTimestamp?: string;
+  /** Version number for the annotation. */
+  version: number;
+  /** Current status of the annotation. */
+  status: AnnotationStatus;
   /** Optional metadata for type-specific properties. */
   metadata?: Record<string, any>;
 }
