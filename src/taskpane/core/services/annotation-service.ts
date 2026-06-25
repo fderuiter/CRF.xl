@@ -7,6 +7,12 @@ import { ValidationIssue } from "../parser/validator";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
 import { Annotation, AnnotationType, AnnotationTargetType, TranslatedText } from "../types";
+import {
+  validateAnnotationTarget,
+  detectConflicts,
+  getRepairPolicy,
+  RepairConfidence
+} from "../validators/annotation-validator";
 
 const ANNOTATION_XML_NAMESPACE = "http://schemas.crf-xl.com/annotations";
 
@@ -279,12 +285,22 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
   await Excel.run(async (context) => {
     for (const orphan of orphans) {
       if (orphan.anchor.logicalId) {
-        // resolvePhysicalRange is defined later in this file
         const newLocation = await resolvePhysicalRange(orphan.anchor.logicalId);
         if (newLocation) {
+          // Repair Policy: High confidence (Auto-heal) when logical mapping is certain
           orphan.anchor.address = newLocation.address;
           orphan.anchor.sheetName = newLocation.sheetName;
-          await applyAnnotationInternal(context, newLocation.sheetName, newLocation.address, orphan);
+
+          const policy = getRepairPolicy({
+            category: "Orphaned",
+            message: `Auto-healing orphaned annotation for ${orphan.anchor.logicalId}`,
+            confidence: RepairConfidence.High
+          });
+
+          if (policy.action === "AutoHeal") {
+            console.log(`[AnnotationService] ${policy.description}`);
+            await applyAnnotationInternal(context, newLocation.sheetName, newLocation.address, orphan);
+          }
         }
       }
     }
@@ -372,6 +388,27 @@ async function applyAnnotationInternal(
 ): Promise<void> {
   const sheet = context.workbook.worksheets.getItem(sheetName);
   const range = sheet.getRange(address);
+
+  // 1. Validate Target Range (Merged cells, Protection)
+  const targetIssues = await validateAnnotationTarget(range);
+  for (const issue of targetIssues) {
+    const policy = getRepairPolicy(issue);
+    if (policy.action === "Block") {
+      throw new Error(`[AnnotationService] ${issue.message} (${policy.description})`);
+    }
+    console.warn(`[AnnotationService] ${issue.message} (${policy.description})`);
+  }
+
+  // 2. Conflict Detection
+  const existingAnnotations = await loadAnnotationsFromStore(context);
+  const conflicts = detectConflicts(existingAnnotations, annotation);
+  for (const conflict of conflicts) {
+    const policy = getRepairPolicy(conflict);
+    if (policy.action === "Block") {
+      throw new Error(`[AnnotationService] ${conflict.message} (${policy.description})`);
+    }
+    console.warn(`[AnnotationService] ${conflict.message} (${policy.description})`);
+  }
 
   const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
   const displayContent =
@@ -757,39 +794,19 @@ export async function detectAnnotationConflicts(sheetName: string): Promise<Vali
   const issues: ValidationIssue[] = [];
   if (typeof Excel === "undefined") return issues;
   await Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getItem(sheetName);
-    const comments = sheet.comments;
-    comments.load("items/content");
-    await context.sync();
+    const allStored = await loadAnnotationsFromStore(context);
+    const relevant = allStored.filter(a => a.anchor.sheetName === sheetName);
 
-    // Map to track occupied cells: address -> annotation metadata
-    const occupied = new Map<string, { type: string; id: string }>();
-
-    for (const comment of comments.items) {
-      const content = comment.content;
-      const typeMatch = content.match(/^\[(.*?):/);
-      const type = typeMatch ? typeMatch[1] : "Unknown";
-
-      const location = (comment as any).location;
-      if (location) {
-        location.load("address");
-        await context.sync();
-
-        const address = location.address;
-
-        if (occupied.has(address)) {
-          const existing = occupied.get(address)!;
-          // Conflict policy: Overlapping incompatible annotations are validation problems
-          if (existing.type !== type) {
-            issues.push({
-              level: "Error",
-              message: `Overlapping incompatible annotations: ${existing.type} and ${type} on cell ${address}.`,
-              sheetName: sheetName,
-              location: address
-            });
-          }
-        } else {
-          occupied.set(address, { type, id: comment.id });
+    for (let i = 0; i < relevant.length; i++) {
+      for (let j = i + 1; j < relevant.length; j++) {
+        const conflicts = detectConflicts([relevant[i]], relevant[j]);
+        for (const conflict of conflicts) {
+          issues.push({
+            level: conflict.confidence === RepairConfidence.Low ? "Error" : "Warning",
+            message: conflict.message,
+            sheetName: sheetName,
+            location: conflict.location
+          });
         }
       }
     }
