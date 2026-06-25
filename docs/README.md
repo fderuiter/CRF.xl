@@ -35,6 +35,7 @@ Verify regulatory controls, security postures, and electronic record evidence:
 ### 🚀 For Deployment & Operations
 Understand deployment environments, Office manifests, and release steps:
 * Consult the [Deployment and Manifest Guide](./deployment/manifests.md) for environments and validation.
+* Consult the [Compliance Configuration Guide](./deployment/compliance-configuration-guide.md) for configuring SharePoint and resolving Host Environment validation errors.
 
 ---
 
