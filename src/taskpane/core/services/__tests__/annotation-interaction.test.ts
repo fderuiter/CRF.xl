@@ -7,17 +7,40 @@ import { applyAnnotation, editAnnotation, removeAnnotation, detectAnnotationConf
 /* global jest, describe, it, expect */
 
 describe("Annotation Interaction Semantics", () => {
-  it("should format annotation content with hybrid metadata", async () => {
-    // Mock Excel.run
-    const mockAdd = jest.fn().mockReturnValue({ load: jest.fn(), id: "comment-1" });
-    const mockSheet = {
-      getRange: jest.fn().mockReturnValue({}),
+  let mockContext: any;
+  let mockSheet: any;
+  let mockAdd: any;
+
+  beforeEach(() => {
+    mockAdd = jest.fn().mockReturnValue({ load: jest.fn(), id: "comment-1" });
+    mockSheet = {
+      getRange: jest.fn().mockReturnValue({
+        getComments: jest.fn().mockReturnValue({
+          load: jest.fn(),
+          items: []
+        })
+      }),
       comments: {
-        add: mockAdd
+        add: mockAdd,
+        getComments: jest.fn().mockReturnValue({
+          load: jest.fn(),
+          items: []
+        })
       }
     };
-    const mockContext = {
+
+    mockContext = {
       workbook: {
+        customXmlParts: {
+          getByNamespace: jest.fn().mockReturnValue({
+            load: jest.fn(),
+            items: []
+          }),
+          add: jest.fn().mockReturnValue({
+            setXml: jest.fn(),
+            load: jest.fn()
+          })
+        },
         worksheets: {
           getItem: jest.fn().mockReturnValue(mockSheet)
         }
@@ -28,6 +51,28 @@ describe("Annotation Interaction Semantics", () => {
     (global as any).Excel = {
       run: (callback: any) => callback(mockContext)
     };
+
+    (global as any).DOMParser = class {
+      parseFromString() {
+        return {
+          getElementsByTagName: (name: string) => {
+            if (name === "Annotations") return [{ appendChild: jest.fn(), replaceChild: jest.fn(), removeChild: jest.fn() }];
+            return [];
+          },
+          documentElement: {},
+          importNode: (node: any) => node
+        };
+      }
+    };
+
+    (global as any).XMLSerializer = class {
+      serializeToString() {
+        return "<Annotations></Annotations>";
+      }
+    };
+  });
+
+  it("should format annotation content with hybrid metadata", async () => {
 
     const annotation: Annotation = {
       id: "",
@@ -39,7 +84,8 @@ describe("Annotation Interaction Semantics", () => {
         logicalId: "VSORRES"
       },
       content: "Test annotation",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: 1
     };
 
     await applyAnnotation("Sheet1", "A1", annotation);
@@ -51,29 +97,15 @@ describe("Annotation Interaction Semantics", () => {
   it("should edit annotation and preserve metadata prefix", async () => {
     const mockComment = {
       content: "[SDTM:VSORRES]\nOld content",
-      load: jest.fn()
+      load: jest.fn(),
+      id: "comment-1"
     };
-    const mockRange = {
+    mockSheet.getRange.mockReturnValue({
       getComments: jest.fn().mockReturnValue({
         load: jest.fn(),
         items: [mockComment]
       })
-    };
-    const mockSheet = {
-      getRange: jest.fn().mockReturnValue(mockRange)
-    };
-    const mockContext = {
-      workbook: {
-        worksheets: {
-          getItem: jest.fn().mockReturnValue(mockSheet)
-        }
-      },
-      sync: jest.fn()
-    };
-
-    (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
-    };
+    });
 
     await editAnnotation("Sheet1", "A1", "New content");
 
@@ -82,29 +114,16 @@ describe("Annotation Interaction Semantics", () => {
 
   it("should remove annotations from range", async () => {
     const mockComment = {
-      delete: jest.fn()
+      delete: jest.fn(),
+      load: jest.fn(),
+      id: "comment-1"
     };
-    const mockRange = {
+    mockSheet.getRange.mockReturnValue({
       getComments: jest.fn().mockReturnValue({
         load: jest.fn(),
         items: [mockComment]
       })
-    };
-    const mockSheet = {
-      getRange: jest.fn().mockReturnValue(mockRange)
-    };
-    const mockContext = {
-      workbook: {
-        worksheets: {
-          getItem: jest.fn().mockReturnValue(mockSheet)
-        }
-      },
-      sync: jest.fn()
-    };
-
-    (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
-    };
+    });
 
     await removeAnnotation("Sheet1", "A1");
 

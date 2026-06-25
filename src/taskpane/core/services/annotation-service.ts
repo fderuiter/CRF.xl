@@ -6,13 +6,343 @@
 import { ValidationIssue } from "../parser/validator";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
-import { Annotation } from "../types";
+import { Annotation, AnnotationType, AnnotationTargetType, TranslatedText } from "../types";
+
+const ANNOTATION_XML_NAMESPACE = "http://schemas.crf-xl.com/annotations";
+
+/**
+ * Serializes an annotation to XML string.
+ */
+function serializeAnnotation(annotation: Annotation): string {
+  const content = typeof annotation.content === "string"
+    ? annotation.content
+    : JSON.stringify(annotation.content);
+
+  return `<Annotation>
+    <Id>${annotation.id}</Id>
+    <Type>${annotation.type}</Type>
+    <TargetType>${annotation.targetType}</TargetType>
+    <Anchor>
+      <Address>${annotation.anchor.address}</Address>
+      <LogicalId>${annotation.anchor.logicalId || ""}</LogicalId>
+      <SheetName>${annotation.anchor.sheetName}</SheetName>
+    </Anchor>
+    <Content><![CDATA[${content}]]></Content>
+    <Author>${annotation.author || ""}</Author>
+    <Timestamp>${annotation.timestamp}</Timestamp>
+    <UpdatedTimestamp>${annotation.updatedTimestamp || ""}</UpdatedTimestamp>
+    <Version>${annotation.version}</Version>
+    <Metadata>${JSON.stringify(annotation.metadata || {})}</Metadata>
+  </Annotation>`;
+}
+
+/**
+ * Deserializes an annotation from an XML element.
+ */
+function deserializeAnnotation(element: Element): Annotation {
+  const getTagValue = (tagName: string) => {
+    const el = element.getElementsByTagName(tagName)[0];
+    return el ? el.textContent : "";
+  };
+
+  const contentStr = getTagValue("Content") || "";
+  let content: string | TranslatedText = contentStr;
+  try {
+    if (contentStr.startsWith("{")) {
+      content = JSON.parse(contentStr);
+    }
+  } catch (e) {
+    // Keep as string
+  }
+
+  let metadata = {};
+  try {
+    metadata = JSON.parse(getTagValue("Metadata") || "{}");
+  } catch (e) {
+    console.warn("[AnnotationService] Failed to parse annotation metadata", e);
+  }
+
+  return {
+    id: getTagValue("Id") || "",
+    type: (getTagValue("Type") as AnnotationType) || AnnotationType.COMMENT,
+    targetType: (getTagValue("TargetType") as AnnotationTargetType) || AnnotationTargetType.CELL,
+    anchor: {
+      address: getTagValue("Address") || "",
+      logicalId: getTagValue("LogicalId") || undefined,
+      sheetName: getTagValue("SheetName") || "",
+    },
+    content,
+    author: getTagValue("Author") || undefined,
+    timestamp: getTagValue("Timestamp") || "",
+    updatedTimestamp: getTagValue("UpdatedTimestamp") || undefined,
+    version: parseInt(getTagValue("Version") || "1", 10),
+    metadata,
+  };
+}
+
+/**
+ * Saves an annotation to the CustomXmlParts store.
+ */
+export async function saveAnnotationToStore(
+  annotation: Annotation,
+  existingContext?: Excel.RequestContext
+): Promise<void> {
+  const operation = async (context: Excel.RequestContext) => {
+    const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
+    parts.load("items");
+    await context.sync();
+
+    let xmlDoc: Document;
+    let part: Excel.CustomXmlPart;
+
+    if (parts.items.length === 0) {
+      const initialXml = `<Annotations xmlns="${ANNOTATION_XML_NAMESPACE}"></Annotations>`;
+      part = context.workbook.customXmlParts.add(initialXml);
+      const parser = new DOMParser();
+      xmlDoc = parser.parseFromString(initialXml, "text/xml");
+    } else {
+      part = parts.items[0];
+      (part as any).load("xml");
+      await context.sync();
+      const parser = new DOMParser();
+      xmlDoc = parser.parseFromString((part as any).xml, "text/xml");
+    }
+
+    const annotationsRoot = xmlDoc.getElementsByTagName("Annotations")[0];
+    const existingAnnotations = xmlDoc.getElementsByTagName("Annotation");
+    let existingNode: Element | null = null;
+
+    for (let i = 0; i < existingAnnotations.length; i++) {
+      const idNode = existingAnnotations[i].getElementsByTagName("Id")[0];
+      if (idNode && idNode.textContent === annotation.id) {
+        existingNode = existingAnnotations[i];
+        break;
+      }
+    }
+
+    const annotationXml = serializeAnnotation(annotation);
+    const tempDoc = new DOMParser().parseFromString(annotationXml, "text/xml");
+    const newNode = xmlDoc.importNode(tempDoc.documentElement, true);
+
+    if (existingNode) {
+      annotationsRoot.replaceChild(newNode, existingNode);
+    } else {
+      annotationsRoot.appendChild(newNode);
+    }
+
+    const serializer = new XMLSerializer();
+    const finalXml = serializer.serializeToString(xmlDoc);
+    part.setXml(finalXml);
+  };
+
+  if (existingContext) {
+    await operation(existingContext);
+  } else if (typeof Excel !== "undefined") {
+    await Excel.run(async (context) => {
+      await operation(context);
+      await context.sync();
+    });
+  }
+}
+
+/**
+ * Loads all annotations from the CustomXmlParts store.
+ */
+export async function loadAnnotationsFromStore(
+  existingContext?: Excel.RequestContext
+): Promise<Annotation[]> {
+  const annotations: Annotation[] = [];
+  const operation = async (context: Excel.RequestContext) => {
+    const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
+    parts.load("items");
+    await context.sync();
+
+    if (parts.items.length > 0) {
+      const part = parts.items[0];
+      (part as any).load("xml");
+      await context.sync();
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString((part as any).xml, "text/xml");
+      const annotationNodes = xmlDoc.getElementsByTagName("Annotation");
+      for (let i = 0; i < annotationNodes.length; i++) {
+        annotations.push(deserializeAnnotation(annotationNodes[i]));
+      }
+    }
+  };
+
+  if (existingContext) {
+    await operation(existingContext);
+  } else if (typeof Excel !== "undefined") {
+    await Excel.run(async (context) => {
+      await operation(context);
+    });
+  }
+  return annotations;
+}
+
+/**
+ * Deletes an annotation from the CustomXmlParts store.
+ */
+export async function deleteAnnotationFromStore(
+  id: string,
+  existingContext?: Excel.RequestContext
+): Promise<void> {
+  const operation = async (context: Excel.RequestContext) => {
+    const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
+    parts.load("items");
+    await context.sync();
+
+    if (parts.items.length > 0) {
+      const part = parts.items[0];
+      (part as any).load("xml");
+      await context.sync();
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString((part as any).xml, "text/xml");
+      const annotationsRoot = xmlDoc.getElementsByTagName("Annotations")[0];
+      const annotationNodes = xmlDoc.getElementsByTagName("Annotation");
+
+      for (let i = 0; i < annotationNodes.length; i++) {
+        const idNode = annotationNodes[i].getElementsByTagName("Id")[0];
+        if (idNode && idNode.textContent === id) {
+          annotationsRoot.removeChild(annotationNodes[i]);
+          break;
+        }
+      }
+
+      const serializer = new XMLSerializer();
+      const finalXml = serializer.serializeToString(xmlDoc);
+      part.setXml(finalXml);
+    }
+  };
+
+  if (existingContext) {
+    await operation(existingContext);
+  } else if (typeof Excel !== "undefined") {
+    await Excel.run(async (context) => {
+      await operation(context);
+      await context.sync();
+    });
+  }
+}
+
+/**
+ * Detects orphaned annotations in the store.
+ * An annotation is orphaned if its physical address no longer contains a comment with its ID.
+ */
+export async function detectOrphans(): Promise<Annotation[]> {
+  const orphans: Annotation[] = [];
+  if (typeof Excel === "undefined") return orphans;
+
+  await Excel.run(async (context) => {
+    const stored = await loadAnnotationsFromStore(context);
+
+    for (const annotation of stored) {
+      const sheet = context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName);
+      sheet.load("isNullObject");
+      await context.sync();
+
+      if (sheet.isNullObject) {
+        orphans.push(annotation);
+        continue;
+      }
+
+      try {
+        const range = sheet.getRange(annotation.anchor.address);
+        const comments = (range as any).getComments
+          ? (range as any).getComments()
+          : (sheet.comments as any).getComments(range);
+        comments.load("items");
+        await context.sync();
+
+        const found = comments.items.some((c: any) => c.id === annotation.id);
+        if (!found) {
+          orphans.push(annotation);
+        }
+      } catch (e) {
+        // Range might be invalid if rows/cols deleted
+        orphans.push(annotation);
+      }
+    }
+  });
+
+  return orphans;
+}
+
+/**
+ * Repairs orphaned annotations by attempting to re-anchor them using their logical ID.
+ */
+export async function repairOrphans(orphans: Annotation[]): Promise<void> {
+  if (typeof Excel === "undefined") return;
+
+  await Excel.run(async (context) => {
+    for (const orphan of orphans) {
+      if (orphan.anchor.logicalId) {
+        // resolvePhysicalRange is defined later in this file
+        const newLocation = await resolvePhysicalRange(orphan.anchor.logicalId);
+        if (newLocation) {
+          orphan.anchor.address = newLocation.address;
+          orphan.anchor.sheetName = newLocation.sheetName;
+          await applyAnnotationInternal(context, newLocation.sheetName, newLocation.address, orphan);
+        }
+      }
+    }
+    await context.sync();
+  });
+}
+
+/**
+ * Bulk applies annotations from the store to the workbook.
+ */
+export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<void> {
+  if (typeof Excel === "undefined") return;
+
+  await Excel.run(async (context) => {
+    for (const annotation of annotations) {
+      try {
+        await applyAnnotationInternal(context, annotation.anchor.sheetName, annotation.anchor.address, annotation);
+      } catch (e) {
+        console.warn(`[AnnotationService] Failed to bulk apply annotation ${annotation.id}`, e);
+      }
+    }
+    await context.sync();
+  });
+}
+
+/**
+ * Internal helper to apply annotation content to a cell.
+ */
+async function applyAnnotationInternal(
+  context: Excel.RequestContext,
+  sheetName: string,
+  address: string,
+  annotation: Annotation
+): Promise<void> {
+  const sheet = context.workbook.worksheets.getItem(sheetName);
+  const range = sheet.getRange(address);
+
+  const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
+  const displayContent =
+    typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
+
+  const fullContent = `${metaPrefix}\n${displayContent}`;
+
+  const comment = sheet.comments.add(range, fullContent);
+  comment.load("id");
+  await context.sync();
+  annotation.id = comment.id;
+
+  await saveAnnotationToStore(annotation, context);
+}
 
 /**
  * Checks for orphaned annotations (comments) across the active sheets.
+ * @deprecated Use detectOrphans instead for structured orphan detection.
  */
 export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise<number> {
   let count = 0;
+  if (typeof Excel === "undefined") return 0;
   await Excel.run(async (context) => {
     // Requirement 2: Centralized state-loading
     context.workbook.worksheets.load("items/name");
@@ -427,28 +757,7 @@ export async function applyAnnotation(
 ): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getItem(sheetName);
-    const range = sheet.getRange(address);
-
-    // Format the comment content to include metadata for the hybrid model
-    // Prefixing with a hidden-ish identifier or using a structured format
-    const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
-    const displayContent =
-      typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
-
-    const fullContent = `${metaPrefix}\n${displayContent}`;
-
-    try {
-      const comment = sheet.comments.add(range, fullContent);
-      // We store the annotation ID in the comment if possible,
-      // or we rely on the structured content for lookup.
-      comment.load("id");
-      await context.sync();
-      annotation.id = comment.id;
-    } catch (e) {
-      console.error("[AnnotationService] Failed to apply annotation", e);
-      throw e;
-    }
+    await applyAnnotationInternal(context, sheetName, address, annotation);
   });
 }
 
@@ -461,23 +770,38 @@ export async function editAnnotation(
   newContent: string | Annotation
 ): Promise<void> {
   if (typeof Excel === "undefined") return;
+  let updatedAnnotation: Annotation | null = null;
+
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    // getComments is on the workbook in some versions, or on range in others.
-    // In our environment, we use the standard Range.getComments if available.
-    const comments = (range as any).getComments ? (range as any).getComments() : (sheet.comments as any).getComments(range);
+    const comments = (range as any).getComments
+      ? (range as any).getComments()
+      : (sheet.comments as any).getComments(range);
     comments.load("items");
     await context.sync();
 
     if (comments.items.length > 0) {
       const comment = comments.items[0];
+      comment.load("id");
+      await context.sync();
+
+      const allStored = await loadAnnotationsFromStore(context);
+      const existing = allStored.find((a) => a.id === comment.id);
+
       if (typeof newContent === "string") {
-        // Keep the existing prefix if it exists
         const oldContent = comment.content;
         const prefixMatch = oldContent.match(/^(\[.*\])\n/);
         const prefix = prefixMatch ? prefixMatch[1] + "\n" : "";
         comment.content = `${prefix}${newContent}`;
+
+        if (existing) {
+          updatedAnnotation = {
+            ...existing,
+            content: newContent,
+            updatedTimestamp: new Date().toISOString(),
+          };
+        }
       } else {
         const metaPrefix = `[${newContent.type}:${newContent.anchor.logicalId || "N/A"}]`;
         const displayContent =
@@ -485,6 +809,15 @@ export async function editAnnotation(
             ? newContent.content
             : newContent.content.value || "";
         comment.content = `${metaPrefix}\n${displayContent}`;
+        updatedAnnotation = {
+          ...newContent,
+          id: comment.id,
+          updatedTimestamp: new Date().toISOString(),
+        };
+      }
+
+      if (updatedAnnotation) {
+        await saveAnnotationToStore(updatedAnnotation, context);
       }
       await context.sync();
     }
@@ -496,14 +829,20 @@ export async function editAnnotation(
  */
 export async function removeAnnotation(sheetName: string, address: string): Promise<void> {
   if (typeof Excel === "undefined") return;
+
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    const comments = (range as any).getComments ? (range as any).getComments() : (sheet.comments as any).getComments(range);
+    const comments = (range as any).getComments
+      ? (range as any).getComments()
+      : (sheet.comments as any).getComments(range);
     comments.load("items");
     await context.sync();
 
     for (const comment of comments.items) {
+      comment.load("id");
+      await context.sync();
+      await deleteAnnotationFromStore(comment.id, context);
       comment.delete();
     }
     await context.sync();
@@ -514,6 +853,7 @@ export async function removeAnnotation(sheetName: string, address: string): Prom
  * Visually highlights columns in _Codelists that represent translations.
  */
 export async function highlightLocaleColumns(): Promise<void> {
+  if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
     await context.sync();
