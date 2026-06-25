@@ -3,7 +3,8 @@
  */
 import JSZip from "jszip";
 import * as CryptoJS from "crypto-js";
-import { StudyDesign, ExportOptions } from "../types/hierarchy";
+import { StudyDesign } from "../types/hierarchy";
+import { ExportOptions } from "../types/linguistics";
 import { StudyDiffReport } from "../types/diff";
 import { generateOdmXml } from "../generators/cdisc/odm-builder";
 import { generateDocxBlob } from "../generators/docx/docx-builder";
