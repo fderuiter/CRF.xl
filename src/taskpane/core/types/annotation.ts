@@ -45,8 +45,12 @@ export interface Annotation {
   anchor: AnnotationAnchor;
   content: string | TranslatedText;
   author?: string;
-  /** ISO 8601 timestamp. */
+  /** ISO 8601 timestamp of creation. */
   timestamp: string;
+  /** ISO 8601 timestamp of last update. */
+  updatedTimestamp?: string;
+  /** Schema version for the annotation. */
+  version: number;
   /** Optional metadata for type-specific properties. */
   metadata?: Record<string, any>;
 }
