@@ -2,7 +2,8 @@
  * PDF Generator for Annotated CRFs
  * @issue #279
  */
-import { StudyDesign, isCrfItem, ExportOptions, ExportMode } from "../../types/hierarchy";
+import { StudyDesign, isCrfItem } from "../../types/hierarchy";
+import { ExportOptions, ExportMode } from "../../types";
 import { DataType } from "../../types/enums";
 import { LinguisticService } from "../../services/linguistics-service";
 import * as CryptoJS from "crypto-js";
