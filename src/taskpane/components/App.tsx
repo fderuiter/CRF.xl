@@ -45,7 +45,12 @@ import {
   navigateToSource,
   syncRegistry,
 } from "../core";
-import { StudyDesign, SubmissionMetadata } from "../core";
+import {
+  StudyDesign,
+  SubmissionMetadata,
+  ExportMode,
+  ExportOptions,
+} from "../core";
 import {
   BaselineWorkbookParseError,
   parseBaselineWorkbookFile,
@@ -225,6 +230,11 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const [appIsProcessing, setAppIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState("Ready");
+  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [exportOptions, setExportOptions] = useState<ExportOptions>({
+    mode: ExportMode.PRIMARY_ONLY,
+    primaryLocale: "en-US",
+  });
   const [annotationProgress, setAnnotationProgress] = useState<string | null>(null);
 
   const isProcessing = validationState.isProcessing || appIsProcessing;
@@ -729,6 +739,22 @@ export const App: React.FC<{ title?: string }> = () => {
     }
     if (!s || issues.some((i) => i.level === "Error")) return;
 
+    // Initialize export options with study metadata
+    setExportOptions({
+      mode: ExportMode.PRIMARY_ONLY,
+      primaryLocale: selectedLanguage || s.metadata.defaultLanguage || "en-US",
+      secondaryLocale: s.metadata.supportedLanguages?.find(
+        (l) => l !== (selectedLanguage || s.metadata.defaultLanguage)
+      ),
+    });
+    setShowExportOptions(true);
+  };
+
+  const proceedWithExport = async () => {
+    setShowExportOptions(false);
+    const s = study;
+    if (!s) return;
+
     // Check for orphaned annotations
     const sheets = ["_Study", "_Schedule", "_Codelists", "_Dictionaries", "_Rules"];
     Object.keys(s.forms).forEach((f) => sheets.push(f));
@@ -737,11 +763,11 @@ export const App: React.FC<{ title?: string }> = () => {
       setOrphanedCount(count);
       setShowGate(true);
     } else {
-      await confirmComplianceExport(s);
+      await confirmComplianceExport(s, exportOptions);
     }
   };
 
-  const confirmComplianceExport = async (currentStudy: StudyDesign) => {
+  const confirmComplianceExport = async (currentStudy: StudyDesign, options?: ExportOptions) => {
     setShowGate(false);
     setAppIsProcessing(true);
     try {
@@ -753,7 +779,8 @@ export const App: React.FC<{ title?: string }> = () => {
         {
           signedOffAt: signOffTimestamp,
           source_provenance: manifest?.provenance,
-          justifications: justifications
+          justifications: justifications,
+          exportOptions: options,
         }
       );
       const url = window.URL.createObjectURL(zipBlob);
@@ -1085,6 +1112,84 @@ export const App: React.FC<{ title?: string }> = () => {
             }}
           />
         )}
+
+        <Dialog open={showExportOptions} onOpenChange={(_, data) => setShowExportOptions(data.open)}>
+          <DialogSurface>
+            <DialogBody>
+              <DialogTitle>Export Configuration</DialogTitle>
+              <DialogContent style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <Text block weight="semibold">
+                    Export Mode
+                  </Text>
+                  <Dropdown
+                    value={exportOptions.mode}
+                    onOptionSelect={(_e, data) =>
+                      setExportOptions((prev) => ({ ...prev, mode: data.optionValue as ExportMode }))
+                    }
+                    style={{ width: "100%" }}
+                  >
+                    <Option value={ExportMode.PRIMARY_ONLY}>Primary Locale Only</Option>
+                    <Option value={ExportMode.BILINGUAL}>Bilingual (Primary / Secondary)</Option>
+                    <Option value={ExportMode.ALL}>All Locales (Multi-locale appendix)</Option>
+                  </Dropdown>
+                </div>
+
+                <div>
+                  <Text block weight="semibold">
+                    Primary Locale
+                  </Text>
+                  <Dropdown
+                    value={exportOptions.primaryLocale}
+                    onOptionSelect={(_e, data) =>
+                      setExportOptions((prev) => ({ ...prev, primaryLocale: data.optionValue! }))
+                    }
+                    style={{ width: "100%" }}
+                  >
+                    {study?.metadata.supportedLanguages?.map((lang) => (
+                      <Option key={lang} value={lang}>
+                        {lang}
+                      </Option>
+                    )) || (
+                      <Option value={study?.metadata.defaultLanguage}>
+                        {study?.metadata.defaultLanguage}
+                      </Option>
+                    )}
+                  </Dropdown>
+                </div>
+
+                {exportOptions.mode === ExportMode.BILINGUAL && (
+                  <div>
+                    <Text block weight="semibold">
+                      Secondary Locale
+                    </Text>
+                    <Dropdown
+                      value={exportOptions.secondaryLocale}
+                      onOptionSelect={(_e, data) =>
+                        setExportOptions((prev) => ({ ...prev, secondaryLocale: data.optionValue! }))
+                      }
+                      style={{ width: "100%" }}
+                    >
+                      {study?.metadata.supportedLanguages?.map((lang) => (
+                        <Option key={lang} value={lang}>
+                          {lang}
+                        </Option>
+                      )) || <Option value="">None</Option>}
+                    </Dropdown>
+                  </div>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button appearance="primary" onClick={proceedWithExport}>
+                  Export
+                </Button>
+                <Button appearance="secondary" onClick={() => setShowExportOptions(false)}>
+                  Cancel
+                </Button>
+              </DialogActions>
+            </DialogBody>
+          </DialogSurface>
+        </Dialog>
 
         <AuditOrchestratorModal
           isOpen={showAuditModal}

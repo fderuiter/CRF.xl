@@ -40,3 +40,21 @@ export interface StudyLinguisticCompleteness {
   completenessPercentage: number;
   missingLocales: Record<string, string[]>; // locale -> OIDs
 }
+
+/**
+ * Modes for multilingual export.
+ */
+export enum ExportMode {
+  PRIMARY_ONLY = "PRIMARY_ONLY",
+  BILINGUAL = "BILINGUAL",
+  ALL = "ALL",
+}
+
+/**
+ * Configuration for a specific export operation.
+ */
+export interface ExportOptions {
+  mode: ExportMode;
+  primaryLocale: string;
+  secondaryLocale?: string;
+}

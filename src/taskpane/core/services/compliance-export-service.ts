@@ -3,7 +3,7 @@
  */
 import JSZip from "jszip";
 import * as CryptoJS from "crypto-js";
-import { StudyDesign } from "../types/hierarchy";
+import { StudyDesign, ExportOptions } from "../types/hierarchy";
 import { StudyDiffReport } from "../types/diff";
 import { generateOdmXml } from "../generators/cdisc/odm-builder";
 import { generateDocxBlob } from "../generators/docx/docx-builder";
@@ -36,12 +36,13 @@ export class ComplianceExportService {
       source_provenance?: ImportProvenance;
       signedOffAt?: string | null;
       justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
+      exportOptions?: ExportOptions;
     }
   ): Promise<Blob> {
     const zip = new JSZip();
 
     // 1. Generate DOCX
-    const docxBlob = await generateDocxBlob(currentStudy);
+    const docxBlob = await generateDocxBlob(currentStudy, options?.exportOptions);
     const docxArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as ArrayBuffer);
@@ -63,7 +64,12 @@ export class ComplianceExportService {
     }
 
     // PDF Generation
-    const pdfBlob = await generatePdfBlob(currentStudy, validationIssues, auditSummary);
+    const pdfBlob = await generatePdfBlob(
+      currentStudy,
+      validationIssues,
+      auditSummary,
+      options?.exportOptions
+    );
     const pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as ArrayBuffer);
@@ -75,12 +81,15 @@ export class ComplianceExportService {
     zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
 
     // 3. Generate ODM XML
-    const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, { bestEffort: true });
+    const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, {
+      bestEffort: true,
+      exportOptions: options?.exportOptions,
+    });
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
 
     zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);
     if (diagnostics) {
-      zip.file(`${protocolId || "UNKNOWN"}_Diagnostics.txt`, diagnostics);
+      zip.file(`${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`, diagnostics);
     }
 
     // 4. Create Verification Manifest
