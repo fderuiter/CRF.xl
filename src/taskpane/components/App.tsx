@@ -4,6 +4,9 @@
 import {
   applyValidationVisuals,
   getOrphanedAnnotationsCount,
+  annotationPaintbrushService,
+  refreshAnnotationHighlights,
+  bindingService,
 } from "../core";
 import { createParseRuntime } from "../core";
 import * as React from "react";
@@ -249,8 +252,26 @@ export const App: React.FC<{ title?: string }> = () => {
         activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
         1000 // Throttle
       );
+
+      // Handle Paintbrush application on selection change
+      const paintbrush = annotationPaintbrushService.getState();
+      if (paintbrush.isEnabled && activeSheet && !activeSheet.startsWith("_")) {
+        const context = bindingService.getCurrentContext();
+        if (context && context.isValid) {
+          annotationPaintbrushService.applyToRange(context.sheetName, context.address)
+            .then(() => refreshAnnotationHighlights(context.sheetName))
+            .catch(console.error);
+        }
+      }
     }
   }, [telemetryTrigger, isInitialized, activeSheet]);
+
+  // Initial highlight refresh on sheet change
+  useEffect(() => {
+    if (isInitialized && activeSheet && !activeSheet.startsWith("_")) {
+      refreshAnnotationHighlights(activeSheet).catch(console.error);
+    }
+  }, [activeSheet, isInitialized]);
 
   useEffect(() => {
     return backgroundValidationEngine.subscribe(setValidationState);

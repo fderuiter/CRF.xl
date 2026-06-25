@@ -5,7 +5,8 @@ export { AdamDatasetClass, AdamDatasetMetadata, CodelistDiffEntry, DataType, Dat
 export { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "./services/baseline-workbook-service";
 export { RECOVERY_APP_VERSION, RecoverySnapshot, WorkbookFingerprint, createRecoverySnapshot, dismissRecoverySnapshot, hasWorkbookChanged, persistRecoverySnapshot, readRecoverySnapshot, summarizeStudyDesign } from "./services/recovery-storage";
 export { TerminologySearchResult } from "./types/terminology-search";
-export { applyValidationVisuals, getOrphanedAnnotationsCount, highlightLocaleColumns } from "./services/annotation-service";
+export { applyValidationVisuals, getOrphanedAnnotationsCount, highlightLocaleColumns, refreshAnnotationHighlights, clearAnnotationHighlights } from "./services/annotation-service";
+export { annotationPaintbrushService } from "./services/annotation-paintbrush-service";
 export { ConflictResolution, CtImportPlan, ImportConflictItem, ImportSummary, buildCtImportPlan, executeCtImport, readExistingCodelistRows } from "./services/ct-import-service";
 export { FieldMapping, IngestionPreview, SheetScanResult, TARGET_FIELDS, TargetField, TargetSheet, buildIngestionPreview, buildSheetScanResult, detectColumnMappings, mapRow } from "./services/spreadsheet-ingestion-service";
 export { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "./services/version-update-service";
