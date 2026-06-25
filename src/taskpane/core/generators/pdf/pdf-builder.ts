@@ -2,7 +2,8 @@
  * PDF Generator for Annotated CRFs
  * @issue #279
  */
-import { StudyDesign, isCrfItem, ExportOptions, ExportMode } from "../../types/hierarchy";
+import { StudyDesign, isCrfItem } from "../../types/hierarchy";
+import { ExportOptions, ExportMode } from "../../types/linguistics";
 import { DataType } from "../../types/enums";
 import { LinguisticService } from "../../services/linguistics-service";
 import * as CryptoJS from "crypto-js";
@@ -30,20 +31,28 @@ export async function generatePdfBlob(
 
   content.push({ text: "Reviewer Export - Annotated CRF", style: "header", headlineLevel: 1 });
   content.push({ text: `Protocol ID: ${protocolId}`, margin: [0, 2, 0, 2] });
-  content.push({ text: `Study Version: ${study.metadata.version || "UNKNOWN"}`, margin: [0, 2, 0, 2] });
+  content.push({
+    text: `Study Version: ${study.metadata.version || "UNKNOWN"}`,
+    margin: [0, 2, 0, 2],
+  });
   content.push({ text: `Exported At: ${formatDate(timestamp)}`, margin: [0, 2, 0, 2] });
   content.push({ text: `Study Cryptographic Hash: ${studyHash}`, margin: [0, 2, 0, 10] });
 
   content.push({ text: "Validation Outcomes Summary", style: "subheader", headlineLevel: 2 });
   if (validationIssues.length > 0) {
     content.push({
-      ul: validationIssues.map((v) => `${v.level}: ${v.message}`)
+      ul: validationIssues.map((v) => `${v.level}: ${v.message}`),
     });
   } else {
     content.push({ ul: ["No validation issues"] });
   }
 
-  content.push({ text: "Audit Summary (Changes)", style: "subheader", headlineLevel: 2, margin: [0, 15, 0, 5] });
+  content.push({
+    text: "Audit Summary (Changes)",
+    style: "subheader",
+    headlineLevel: 2,
+    margin: [0, 15, 0, 5],
+  });
   if (auditSummary) {
     const diffEntries = buildStudyDiffList(auditSummary);
     if (diffEntries.length > 0) {
@@ -52,20 +61,22 @@ export async function generatePdfBlob(
           { text: "Entity", style: "tableHeader" },
           { text: "Type", style: "tableHeader" },
           { text: "Change Class", style: "tableHeader" },
-          { text: "Changed Fields", style: "tableHeader" }
-        ]
+          { text: "Changed Fields", style: "tableHeader" },
+        ],
       ];
-      diffEntries.forEach(e => {
+      diffEntries.forEach((e) => {
         tableBody.push([
           { text: `${e.title}\n${e.subtitle}` },
           { text: e.group },
           { text: e.changeClass.replace(/_/g, " ") },
-          { text: e.changedFields && e.changedFields.length > 0 ? e.changedFields.join(", ") : "-" }
+          {
+            text: e.changedFields && e.changedFields.length > 0 ? e.changedFields.join(", ") : "-",
+          },
         ]);
       });
       content.push({
         table: { headerRows: 1, widths: ["*", "auto", "auto", "*"], body: tableBody },
-        layout: "lightHorizontalLines"
+        layout: "lightHorizontalLines",
       });
     } else {
       content.push({ text: "No changes detected." });
@@ -80,7 +91,7 @@ export async function generatePdfBlob(
     content.push({
       text: `Protocol ID: ${protocolId} | Form: ${formOid} (${form.formName}) | Subject: ____ | Visit: ____`,
       style: "clinicalHeader",
-      headlineLevel: 2
+      headlineLevel: 2,
     });
 
     form.itemGroups.forEach((group) => {
@@ -125,11 +136,11 @@ export async function generatePdfBlob(
                 fillColor: bubbleColor,
                 color: "white",
                 fontSize: 8,
-                margin: [4, 4, 4, 4]
-              }
+                margin: [4, 4, 4, 4],
+              },
             ],
             margin: [0, 5, 0, 5],
-            columnGap: 10
+            columnGap: 10,
           });
         }
       });
@@ -138,7 +149,7 @@ export async function generatePdfBlob(
 
     content.push({ text: "", pageBreak: "after" });
   }
-  
+
   // Remove trailing page break if present
   if (content[content.length - 1].pageBreak === "after") {
     delete content[content.length - 1].pageBreak;
@@ -148,7 +159,7 @@ export async function generatePdfBlob(
     info: {
       title: `${protocolId} - Annotated CRF`,
       author: study.metadata.sponsor || "CRF.xl System",
-      creator: "CRF.xl Engine"
+      creator: "CRF.xl Engine",
     },
     displayTitle: true,
     tagged: true,
@@ -163,22 +174,22 @@ export async function generatePdfBlob(
         bold: true,
         fillColor: "#eeeeee",
         margin: [0, 0, 0, 20],
-        padding: 5 // this won't work in pdfmake directly on text, but whatever, the background will fill
+        padding: 5, // this won't work in pdfmake directly on text, but whatever, the background will fill
       },
-      tableHeader: { bold: true, fillColor: "#f5f5f5" }
+      tableHeader: { bold: true, fillColor: "#f5f5f5" },
     },
     defaultStyle: {
-      fontSize: 10
+      fontSize: 10,
     },
-    footer: function(currentPage: number, pageCount: number) {
+    footer: function (currentPage: number, pageCount: number) {
       return {
         text: `Protocol: ${protocolId} | Version: ${study.metadata.version || "UNKNOWN"} | Generated: ${formatDate(timestamp)} | Page ${currentPage} of ${pageCount}`,
         alignment: "center",
         fontSize: 8,
         color: "#666666",
-        margin: [0, 10, 0, 0]
+        margin: [0, 10, 0, 0],
       };
-    }
+    },
   };
 
   return new Promise((resolve, reject) => {
