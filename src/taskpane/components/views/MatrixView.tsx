@@ -20,6 +20,7 @@ import {
   MessageBarBody,
   Option,
   Text,
+  Tooltip,
   createTableColumn,
   makeStyles,
   shorthands,
@@ -28,6 +29,7 @@ import {
 import {
   ArrowRightRegular,
   SearchRegular,
+  InfoRegular,
   WarningRegular,
   ErrorCircleRegular,
   CheckmarkCircleRegular,
@@ -448,12 +450,17 @@ export const MatrixView: React.FC<MatrixProps> = ({
   ], [styles]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} id="tour-matrix">
       <Card className={styles.card}>
         <div className={styles.cardHeader}>
           <div className={styles.iconBox}>📅</div>
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <Body1 className={styles.cardTitle}>Visit Matrix</Body1>
+            <Tooltip content="The schedule of events (SoE) mapping forms to visits/timepoints." relationship="label">
+              <InfoRegular style={{ fontSize: "14px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+            </Tooltip>
+          </div>
+          <div>
             <Body1 className={styles.cardSubtitle}>Schedule &amp; Export</Body1>
             {baselineStudy && (
               <Body1 className={styles.cardSubtitle}>

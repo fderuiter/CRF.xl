@@ -13,7 +13,9 @@ import { buildStudyDiffList } from "../../../components/views/study-diff-view-ut
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
+if (pdfFonts && (pdfFonts as any).pdfMake) {
+  (pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
+}
 
 export async function generatePdfBlob(
   study: StudyDesign,

@@ -85,7 +85,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
   const isBusy = isProcessing || insertingType !== null;
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} id="tour-authoring">
       <AnnotationPalette />
       <Divider />
       <Card className={styles.card}>

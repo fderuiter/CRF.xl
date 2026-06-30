@@ -137,7 +137,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
 
   return (
     <div className={styles.container}>
-      <Card className={styles.card}>
+      <Card className={styles.card} id="tour-registry">
         <div className={styles.cardHeader}>
           <span role="img" aria-label="registry">
             🏛️

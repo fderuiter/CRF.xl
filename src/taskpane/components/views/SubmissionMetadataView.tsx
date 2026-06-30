@@ -15,6 +15,7 @@ import {
   Option,
   Text,
   Textarea,
+  Tooltip,
   makeStyles,
   shorthands,
   tokens,
@@ -27,6 +28,7 @@ import {
   SdtmDatasetMetadata,
   SubmissionMetadata,
 } from "../../core";
+import { InfoRegular } from "@fluentui/react-icons";
 import {
   createAdamDatasetDrafts,
   createEmptyAdamDatasetMetadata,
@@ -333,7 +335,19 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
 
           {scope === "SDTM" && selectedSdtm && (
             <div className={styles.fieldGrid}>
-              <Field label="SDTM Domain" validationMessage={fieldErrors.domain}>
+              <Field
+                label={{
+                  children: (
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      SDTM Domain
+                      <Tooltip content="The two-character domain code (e.g., AE, DM, LB) as defined by CDISC SDTM." relationship="label">
+                        <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
+                      </Tooltip>
+                    </div>
+                  ),
+                }}
+                validationMessage={fieldErrors.domain}
+              >
                 <Input
                   value={selectedSdtm.metadata.domain}
                   onChange={(_, data) => updateSdtm((metadata) => ({ ...metadata, domain: data.value }))}
@@ -371,7 +385,19 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
                   }
                 />
               </Field>
-              <Field label="Key Variables (comma separated)" className={styles.full}>
+              <Field
+                label={{
+                  children: (
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      Key Variables (comma separated)
+                      <Tooltip content="Variables that uniquely identify a record in the dataset (e.g., USUBJID, AESEQ)." relationship="label">
+                        <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
+                      </Tooltip>
+                    </div>
+                  ),
+                }}
+                className={styles.full}
+              >
                 <Input
                   value={(selectedSdtm.metadata.keyVariables || []).join(", ")}
                   onChange={(_, data) =>

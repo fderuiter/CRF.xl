@@ -30,3 +30,4 @@ export { insertAEBlock, insertDateBlock } from "./services/authoring-service";
 export { CdiscCtMappingFailure, mapCdiscApiResponseToCrfCodelists } from "./services/cdisc-ct-mapping-service";
 export { getPredictedStudyDesign, speculativeSyncManager } from "./services/speculative-sync-service";
 export { formatNumber, parseNumber, formatDate, parseDate, formatCurrency } from "./utils/locale-utils";
+export { onboardingService, OnboardingState } from "./services/onboarding-service";
