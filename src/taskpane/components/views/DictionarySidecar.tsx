@@ -18,6 +18,7 @@ import {
   TabList,
   Tab,
 } from "@fluentui/react-components";
+import { AccessibleWrapper } from "../ui/DesignSystem";
 import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
@@ -1056,12 +1057,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     <>
                       <Text weight="semibold" size={100} style={{ color: tokens.colorNeutralForeground3 }}>WORKBOOK MATCHES</Text>
                       {searchResults.map((result, index) => (
-                        <div
+                        <AccessibleWrapper
                           key={result.id}
                           className={styles.gridCard}
-                          tabIndex={0}
-                          role="button"
-                          aria-label={`View details for codelist ${result.id}: ${result.title}`}
+                          ariaLabel={`View details for codelist ${result.id}: ${result.title}`}
                           style={{
                             cursor: "pointer",
                             padding: "12px",
@@ -1077,16 +1076,6 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               setView("detail");
                             }
                           }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              const original = dictionaries.find((d) => d.id === result.id);
-                              if (original) {
-                                setSelectedCodelist(original);
-                                setView("detail");
-                              }
-                            }
-                          }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{result.id}</Text>
@@ -1096,7 +1085,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           </div>
                           <Text size={100} block style={{ marginBottom: "4px" }}>{result.title}</Text>
                           <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>{result.matchReason.replace("_", " ")}</Text>
-                        </div>
+                        </AccessibleWrapper>
                       ))}
                     </>
                   ) : (
@@ -1146,12 +1135,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {dictionaries.length > 0 ? (
                     dictionaries.map((item, index) => (
-                      <div
+                      <AccessibleWrapper
                         key={item.id}
                         className={styles.gridCard}
-                        tabIndex={0}
-                        role="button"
-                        aria-label={`View details for codelist ${item.id}: ${item.name}`}
+                        ariaLabel={`View details for codelist ${item.id}: ${item.name}`}
                         style={{
                           cursor: "pointer",
                           padding: "12px",
@@ -1163,13 +1150,6 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         onClick={() => {
                           setSelectedCodelist(item);
                           setView("detail");
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedCodelist(item);
-                            setView("detail");
-                          }
                         }}
                       >
                         <div
@@ -1201,7 +1181,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             </span>
                           ))}
                         </div>
-                      </div>
+                      </AccessibleWrapper>
                     ))
                   ) : (
                     <div className={styles.emptyText}>
@@ -1439,7 +1419,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
                       )
                       .map((pkg) => (
-                        <div
+                        <AccessibleWrapper
                           key={pkg.packageOid}
                           style={{
                             padding: "8px",
@@ -1448,6 +1428,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent",
                           }}
                           onClick={() => setSelectedPackage(pkg)}
+                          ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
                         >
                           <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                             {pkg.title || pkg.packageOid}
@@ -1455,7 +1436,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
                             OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                           </Text>
-                        </div>
+                        </AccessibleWrapper>
                       ))}
                     {importPackages.length > 0 && 
                       importPackages.filter((pkg) => 
