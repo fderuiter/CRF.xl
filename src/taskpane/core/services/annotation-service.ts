@@ -93,6 +93,16 @@ export async function saveAnnotationToStore(
   annotation: Annotation,
   existingContext?: Excel.RequestContext
 ): Promise<void> {
+  await saveAnnotationsToStoreBatch([annotation], existingContext);
+}
+
+/**
+ * Saves multiple annotations to the CustomXmlParts store in a single operation.
+ */
+export async function saveAnnotationsToStoreBatch(
+  annotations: Annotation[],
+  existingContext?: Excel.RequestContext
+): Promise<void> {
   const operation = async (context: Excel.RequestContext) => {
     const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
     parts.load("items");
@@ -115,25 +125,27 @@ export async function saveAnnotationToStore(
     }
 
     const annotationsRoot = xmlDoc.getElementsByTagName("Annotations")[0];
-    const existingAnnotations = xmlDoc.getElementsByTagName("Annotation");
-    let existingNode: Element | null = null;
+    const existingAnnotationNodes = Array.from(xmlDoc.getElementsByTagName("Annotation"));
 
-    for (let i = 0; i < existingAnnotations.length; i++) {
-      const idNode = existingAnnotations[i].getElementsByTagName("Id")[0];
-      if (idNode && idNode.textContent === annotation.id) {
-        existingNode = existingAnnotations[i];
-        break;
+    for (const annotation of annotations) {
+      let existingNode: Element | null = null;
+      for (const node of existingAnnotationNodes) {
+        const idNode = node.getElementsByTagName("Id")[0];
+        if (idNode && idNode.textContent === annotation.id) {
+          existingNode = node;
+          break;
+        }
       }
-    }
 
-    const annotationXml = serializeAnnotation(annotation);
-    const tempDoc = new DOMParser().parseFromString(annotationXml, "text/xml");
-    const newNode = xmlDoc.importNode(tempDoc.documentElement, true);
+      const annotationXml = serializeAnnotation(annotation);
+      const tempDoc = new DOMParser().parseFromString(annotationXml, "text/xml");
+      const newNode = xmlDoc.importNode(tempDoc.documentElement, true);
 
-    if (existingNode) {
-      annotationsRoot.replaceChild(newNode, existingNode);
-    } else {
-      annotationsRoot.appendChild(newNode);
+      if (existingNode) {
+        annotationsRoot.replaceChild(newNode, existingNode);
+      } else {
+        annotationsRoot.appendChild(newNode);
+      }
     }
 
     const serializer = new XMLSerializer();
@@ -194,6 +206,16 @@ export async function deleteAnnotationFromStore(
   id: string,
   existingContext?: Excel.RequestContext
 ): Promise<void> {
+  await deleteAnnotationsFromStoreBatch([id], existingContext);
+}
+
+/**
+ * Deletes multiple annotations from the CustomXmlParts store in a single operation.
+ */
+export async function deleteAnnotationsFromStoreBatch(
+  ids: string[],
+  existingContext?: Excel.RequestContext
+): Promise<void> {
   const operation = async (context: Excel.RequestContext) => {
     const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
     parts.load("items");
@@ -207,13 +229,15 @@ export async function deleteAnnotationFromStore(
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString((part as any).xml, "text/xml");
       const annotationsRoot = xmlDoc.getElementsByTagName("Annotations")[0];
-      const annotationNodes = xmlDoc.getElementsByTagName("Annotation");
+      const annotationNodes = Array.from(xmlDoc.getElementsByTagName("Annotation"));
 
-      for (let i = 0; i < annotationNodes.length; i++) {
-        const idNode = annotationNodes[i].getElementsByTagName("Id")[0];
-        if (idNode && idNode.textContent === id) {
-          annotationsRoot.removeChild(annotationNodes[i]);
-          break;
+      for (const id of ids) {
+        for (const node of annotationNodes) {
+          const idNode = node.getElementsByTagName("Id")[0];
+          if (idNode && idNode.textContent === id) {
+            annotationsRoot.removeChild(node);
+            break;
+          }
         }
       }
 
@@ -335,6 +359,7 @@ export async function refreshAnnotationHighlights(sheetName: string): Promise<vo
         // Range might be invalid if rows/cols deleted
       }
     }
+
     await context.sync();
   });
 }
@@ -361,18 +386,67 @@ export async function clearAnnotationHighlights(sheetName: string): Promise<void
 
 /**
  * Bulk applies annotations from the store to the workbook.
+ * Optimized to load existing annotations once.
  */
 export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<void> {
   if (typeof Excel === "undefined") return;
 
   await Excel.run(async (context) => {
+    const existingAnnotations = await loadAnnotationsFromStore(context);
+
     for (const annotation of annotations) {
       try {
-        await applyAnnotationInternal(context, annotation.anchor.sheetName, annotation.anchor.address, annotation);
+        await applyAnnotationInternal(context, annotation.anchor.sheetName, annotation.anchor.address, annotation, existingAnnotations);
       } catch (e) {
         console.warn(`[AnnotationService] Failed to bulk apply annotation ${annotation.id}`, e);
       }
     }
+
+    // Save all to store at once
+    await saveAnnotationsToStoreBatch(annotations, context);
+    await context.sync();
+  });
+}
+
+/**
+ * Bulk deletes annotations from the workbook and store.
+ */
+export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
+  if (typeof Excel === "undefined") return;
+
+  await Excel.run(async (context) => {
+    const allStored = await loadAnnotationsFromStore(context);
+    const toDelete = allStored.filter(a => ids.includes(a.id));
+
+    // Group by sheet for efficient comment deletion
+    const bySheet: Record<string, Annotation[]> = {};
+    for (const anno of toDelete) {
+      if (!bySheet[anno.anchor.sheetName]) bySheet[anno.anchor.sheetName] = [];
+      bySheet[anno.anchor.sheetName].push(anno);
+    }
+
+    for (const sheetName in bySheet) {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      for (const anno of bySheet[sheetName]) {
+        try {
+          const range = sheet.getRange(anno.anchor.address);
+          const comments = (range as any).getComments
+            ? (range as any).getComments()
+            : (sheet.comments as any).getComments(range);
+          comments.load("items");
+          await context.sync();
+
+          const comment = comments.items.find((c: any) => c.id === anno.id);
+          if (comment) {
+            comment.delete();
+          }
+        } catch (e) {
+          // Range or comment might be gone
+        }
+      }
+    }
+
+    await deleteAnnotationsFromStoreBatch(ids, context);
     await context.sync();
   });
 }
@@ -384,7 +458,8 @@ async function applyAnnotationInternal(
   context: Excel.RequestContext,
   sheetName: string,
   address: string,
-  annotation: Annotation
+  annotation: Annotation,
+  existingAnnotationsCache?: Annotation[]
 ): Promise<void> {
   const sheet = context.workbook.worksheets.getItem(sheetName);
   const range = sheet.getRange(address);
@@ -400,7 +475,7 @@ async function applyAnnotationInternal(
   }
 
   // 2. Conflict Detection
-  const existingAnnotations = await loadAnnotationsFromStore(context);
+  const existingAnnotations = existingAnnotationsCache || await loadAnnotationsFromStore(context);
   const conflicts = detectConflicts(existingAnnotations, annotation);
   for (const conflict of conflicts) {
     const policy = getRepairPolicy(conflict);
@@ -421,7 +496,9 @@ async function applyAnnotationInternal(
   await context.sync();
   annotation.id = comment.id;
 
-  await saveAnnotationToStore(annotation, context);
+  if (!existingAnnotationsCache) {
+    await saveAnnotationToStore(annotation, context);
+  }
 }
 
 /**
