@@ -34,7 +34,7 @@ jobs:
             def deprecated_milestone:
               (.milestone.title // "" | test("^(Phase\\s|Build Queue\\s|Dev Best Practices:)"));
             [
-              .[] |
+              .[] | select(.title | startswith("Weekly Backlog Review") | not) |
               (
                 (labels_by("type:") | length) as $types |
                 (labels_by("status:") | length) as $statuses |
