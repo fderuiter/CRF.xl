@@ -71,8 +71,8 @@ import {
   formatDate,
 } from "../core";
 import {
-  createOfficeErrorPresentation,
-  OfficeErrorPresentation,
+  createOfficeDiagnostic,
+  Diagnostic,
 } from "../core";
 import {
   checkForVersionUpdate,
@@ -399,7 +399,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [uiError, setUiError] = useState<
-    (OfficeErrorPresentation & { retryAction?: () => Promise<void> }) | null
+    (Diagnostic & { retryAction?: () => Promise<void> }) | null
   >(null);
   const [activeTab, setActiveTab] = useState("design");
   const [isSignedOff, setIsSignedOff] = useState(false);
@@ -413,14 +413,23 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [study, issues]);
 
+  useEffect(() => {
+    const unsubscribeError = bindingService.subscribeError((diagnostic) => {
+      setUiError({
+        ...diagnostic.toJSON(),
+      });
+    });
+    return () => unsubscribeError();
+  }, []);
+
   const dismissUiError = () => setUiError(null);
 
   const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
-    const presentation = createOfficeErrorPresentation(error);
-    console.error(`[${presentation.diagnosticCode}]`, error);
+    const diagnostic = createOfficeDiagnostic(error);
+    console.error(`[${diagnostic.category}]`, error);
     setUiError({
-      ...presentation,
-      retryAction: presentation.allowRetry ? retryAction : undefined,
+      ...diagnostic.toJSON(),
+      retryAction: diagnostic.allowRetry ? retryAction : undefined,
     });
   };
 
@@ -432,9 +441,9 @@ export const App: React.FC<{ title?: string }> = () => {
     try {
       return await operation();
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
+      const diagnostic = createOfficeDiagnostic(error);
 
-      if (presentation.errorClass === "contextSyncFailure") {
+      if (diagnostic.category.includes("OFFICE_CONTEXT_SYNC_FAILURE")) {
         try {
           return await operation();
         } catch (retryError) {
@@ -466,11 +475,11 @@ export const App: React.FC<{ title?: string }> = () => {
       } else if (state === "error") {
         setIsBackgroundSyncing(false);
         setUiError({
-          errorClass: "unknownOfficeError",
+          severity: "error",
+          category: "SYNC_ERROR",
           message: "Background sync failed.",
           recoveryAction: "Check workbook and retry.",
           allowRetry: true,
-          diagnosticCode: "SYNC_ERROR",
         });
       }
     });
@@ -745,12 +754,12 @@ export const App: React.FC<{ title?: string }> = () => {
 
     if (!envStatus || !envStatus.isCompliant) {
       setUiError({
-        errorClass: "unknownOfficeError",
+        severity: "error",
+        category: "ENV_NONCOMPLIANT",
         message: "Environment is not compliant.",
         recoveryAction:
           "Open the Compliance tab to view and remediate environment issues before exporting.",
         allowRetry: false,
-        diagnosticCode: "ENV_NONCOMPLIANT",
       });
       setActiveTab("compliance");
       return;
@@ -759,11 +768,11 @@ export const App: React.FC<{ title?: string }> = () => {
     const s = study;
     if (isProcessing) {
       setUiError({
-        errorClass: "unknownOfficeError",
+        severity: "error",
+        category: "ANALYSIS_IN_PROGRESS",
         message: "Analysis is currently running in the background.",
         recoveryAction: "Please wait a moment and try again.",
         allowRetry: false,
-        diagnosticCode: "ANALYSIS_IN_PROGRESS",
       });
       return;
     }
@@ -954,6 +963,7 @@ export const App: React.FC<{ title?: string }> = () => {
         <AuthoringView
           sheetName={activeSheet}
           isProcessing={isProcessing}
+          onError={presentOfficeError}
         />
       );
     }
@@ -1125,7 +1135,7 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
 
         {uiError && (
-          <MessageBar intent="error">
+          <MessageBar intent={uiError.severity === "warning" ? "warning" : uiError.severity === "info" ? "info" : "error"}>
             <MessageBarBody>
               <strong>{uiError.message}</strong> {uiError.recoveryAction}
               {uiError.retryAction && (

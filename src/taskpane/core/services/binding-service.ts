@@ -3,6 +3,9 @@
  * @issue #165
  */
 
+import { DiagnosticError } from "./diagnostic-framework";
+import { createOfficeDiagnostic } from "./office-error-handling";
+
 export interface SelectionContext {
   sheetName: string;
   address: string;
@@ -17,6 +20,7 @@ export type SelectionChangeListener = (context: SelectionContext) => void;
 
 class BindingService {
   private listeners: Set<SelectionChangeListener> = new Set();
+  private errorListeners: Set<(error: DiagnosticError) => void> = new Set();
   private currentContext: SelectionContext | null = null;
   private debounceTimer: any = null;
   private isInternalOperation = false;
@@ -36,6 +40,27 @@ class BindingService {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  /**
+   * Subscribes to binding service errors.
+   */
+  public subscribeError(listener: (error: DiagnosticError) => void): () => void {
+    this.errorListeners.add(listener);
+    return () => {
+      this.errorListeners.delete(listener);
+    };
+  }
+
+  private emitError(error: unknown) {
+    const diagnostic = createOfficeDiagnostic(error);
+    this.errorListeners.forEach((listener) => {
+      try {
+        listener(diagnostic);
+      } catch (e) {
+        console.error("Error in error listener:", e);
+      }
+    });
   }
 
   /**
@@ -63,7 +88,7 @@ class BindingService {
         await context.sync();
       });
     } catch (error) {
-      console.error("Failed to initialize BindingService", error);
+      this.emitError(error);
     }
   }
 
@@ -86,7 +111,7 @@ class BindingService {
         this.isInitialized = false;
       });
     } catch (error) {
-      console.error("Failed to terminate BindingService", error);
+      this.emitError(error);
     }
   }
 
@@ -125,7 +150,7 @@ class BindingService {
       clearTimeout(this.debounceTimer);
     }
     this.debounceTimer = setTimeout(() => {
-      this.refreshContext().catch((err) => console.error("Error refreshing context:", err));
+      this.refreshContext().catch((err) => this.emitError(err));
     }, 150);
   }
 
@@ -191,7 +216,7 @@ class BindingService {
         try {
           l(contextToNotify);
         } catch (err) {
-          console.error("Error in selection listener:", err);
+          this.emitError(err);
         }
       });
     }

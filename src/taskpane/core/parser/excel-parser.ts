@@ -6,6 +6,7 @@
 import { StudyDesign } from "../types/index";
 import { ParseRuntimeOptions } from "./chunking-runtime";
 import { parseRawDataToStudyDesign } from "./parser-engine";
+import { DiagnosticError } from "../services/diagnostic-framework";
 
 interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -158,7 +159,11 @@ function runInWorker(
         resolve(payload);
       } else if (type === "ERROR") {
         worker.terminate();
-        reject(new Error(payload));
+        if (payload && typeof payload === "object" && "category" in payload) {
+          reject(DiagnosticError.fromJSON(payload));
+        } else {
+          reject(new Error(String(payload)));
+        }
       } else if (type === "CANCELLED") {
         worker.terminate();
         reject(new Error("Parsing cancelled"));

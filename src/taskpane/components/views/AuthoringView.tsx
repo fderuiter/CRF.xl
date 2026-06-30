@@ -9,6 +9,7 @@ import { AnnotationPalette } from "../AnnotationPalette";
 interface AuthoringProps {
   sheetName: string;
   isProcessing: boolean;
+  onError?: (error: unknown) => void;
 }
 
 const useStyles = makeStyles({
@@ -60,6 +61,7 @@ const useStyles = makeStyles({
 export const AuthoringView: React.FC<AuthoringProps> = ({
   sheetName,
   isProcessing,
+  onError,
 }) => {
   const styles = useStyles();
   const [insertingType, setInsertingType] = React.useState<'date' | 'ae' | null>(null);
@@ -68,6 +70,8 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
     setInsertingType('date');
     try {
       await insertDateBlock();
+    } catch (err) {
+      if (onError) onError(err);
     } finally {
       setInsertingType(null);
     }
@@ -77,6 +81,8 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
     setInsertingType('ae');
     try {
       await insertAEBlock();
+    } catch (err) {
+      if (onError) onError(err);
     } finally {
       setInsertingType(null);
     }

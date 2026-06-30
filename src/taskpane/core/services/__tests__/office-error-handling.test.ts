@@ -5,7 +5,7 @@
 import {
   OFFICE_ERROR_MESSAGES,
   classifyOfficeError,
-  createOfficeErrorPresentation,
+  createOfficeDiagnostic,
 } from "../office-error-handling";
 
 describe("office-error-handling", () => {
@@ -34,7 +34,7 @@ describe("office-error-handling", () => {
   });
 
   it("returns plain-language sheet missing message with extracted name", () => {
-    const presentation = createOfficeErrorPresentation({
+    const presentation = createOfficeDiagnostic({
       code: "ItemNotFound",
       message: "Worksheet 'DEMO' not found",
     });
@@ -43,12 +43,12 @@ describe("office-error-handling", () => {
     expect(presentation.recoveryAction).toBe(
       OFFICE_ERROR_MESSAGES.sheetOrRangeMissing.recoveryAction
     );
-    expect(presentation.diagnosticCode).toBe("OFFICE_SHEET_OR_RANGE_MISSING:ItemNotFound");
+    expect(presentation.category).toBe("OFFICE_SHEET_OR_RANGE_MISSING:ItemNotFound");
   });
 
   it("falls back to unknownOfficeError for unmatched errors", () => {
-    const presentation = createOfficeErrorPresentation({ code: "X", message: "Unexpected xyz" });
-    expect(presentation.errorClass).toBe("unknownOfficeError");
+    const presentation = createOfficeDiagnostic({ code: "X", message: "Unexpected xyz" });
+    expect(presentation.category).toBe("OFFICE_UNKNOWN_ERROR:X");
     expect(presentation.message).toBe(OFFICE_ERROR_MESSAGES.unknownOfficeError.message);
   });
 });
