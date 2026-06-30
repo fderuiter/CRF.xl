@@ -183,14 +183,20 @@ describe("persistImportManifest / loadImportManifest", () => {
   // Node environment doesn't have sessionStorage — verify graceful no-op
   it("gracefully handles missing sessionStorage", () => {
     const { persistImportManifest, loadImportManifest } = require("../migration-pipeline");
+    const originalSessionStorage = global.sessionStorage;
+    delete (global as any).sessionStorage;
 
     const prov = createImportProvenance("test.xml", "odm-xml");
     const summary: ImportSummary = { status: "clean", diagnostics: [], canCommit: true };
     const manifest = createImportManifest(prov, summary, [], 0);
 
-    // In node (no sessionStorage), persistImportManifest must not throw
-    expect(() => persistImportManifest(manifest)).not.toThrow();
-    // loadImportManifest must return null (sessionStorage absent)
-    expect(loadImportManifest()).toBeNull();
+    try {
+      // In node (no sessionStorage), persistImportManifest must not throw
+      expect(() => persistImportManifest(manifest)).not.toThrow();
+      // loadImportManifest must return null (sessionStorage absent)
+      expect(loadImportManifest()).toBeNull();
+    } finally {
+      global.sessionStorage = originalSessionStorage;
+    }
   });
 });
