@@ -8,6 +8,9 @@ import { DATA_ORIGIN_OPTIONS } from "./metadata-utils";
 
 import { getLocaleConfig } from "../locale-config";
 
+import { SHEET_NAMES, getDefaultData } from "../registry/sheet-metadata-registry";
+import { createOrClearSystemSheet } from "../factory/sheet-factory";
+
 interface SheetProtectionConfig {
   sheetName: "_Forms" | "_Schedule";
   protectionArea: string;
@@ -48,80 +51,18 @@ export async function initializeWorkbook(): Promise<void> {
     const locale = getLocaleConfig().currentLocale;
 
     // System Control Sheets Definition
-    const controlConfigs = [
-      {
-        name: "_Study",
-        headers: ["Protocol ID", "Study Name", "Version", "Default Language"],
-        data: [["PROT-001", "Matrix Clinical Trial", "1.0", locale]],
-      },
-      {
-        name: "_Forms",
-        headers: ["Form OID", "Form Name", "Repeating", "Page Layout"],
-        data: [
-          ["DEMO", "Demographics", "No", "Portrait"],
-          ["VS", "Vital Signs", "Yes", "Portrait"],
-        ],
-      },
-      {
-        name: "_Schedule",
-        headers: ["Form OID", "Visit 1 (Day 0)", "Visit 2 (Day 14)", "Visit 3 (Day 28)"],
-        data: [],
-      }, // Populated dynamically via formula
-      {
-        name: "_Codelists",
-        headers: ["Codelist ID", "Codelist Name", "Coded Value", "Decode"],
-        data: [
-          ["GENDER", "Gender", "M", "Male"],
-          ["GENDER", "Gender", "F", "Female"],
-        ],
-      },
-      {
-        name: "_Methods",
-        headers: [
-          "Method OID",
-          "Name",
-          "Type",
-          "Description",
-          "Expression",
-          "Referenced Variables",
-        ],
-        data: [
-          [
-            "M_DERIVED_BMI",
-            "BMI Derivation",
-            "Computation",
-            "Body Mass Index",
-            "[WEIGHT] / ([HEIGHT]/100)^2",
-            "WEIGHT, HEIGHT",
-          ],
-        ],
-      },
+    const controlSheetsToInitialize = [
+      SHEET_NAMES.STUDY,
+      SHEET_NAMES.FORMS,
+      SHEET_NAMES.SCHEDULE,
+      SHEET_NAMES.CODELISTS,
+      SHEET_NAMES.METHODS,
+      SHEET_NAMES.RULES
     ];
 
-    for (const config of controlConfigs) {
-      let sheet = sheets.getItemOrNullObject(config.name);
-      await context.sync();
-
-      if (sheet.isNullObject) {
-        sheet = sheets.add(config.name);
-      } else {
-        sheet.getUsedRange().clear();
-      }
-
-      // Apply Headers (System sheets are Slate 900)
-      const headerRange = sheet.getRangeByIndexes(0, 0, 1, config.headers.length);
-      headerRange.values = [config.headers];
-      headerRange.format.fill.color = "#1e293b";
-      headerRange.format.font.color = "white";
-      headerRange.format.font.bold = true;
-
-      if (config.data && config.data.length > 0) {
-        const dataRange = sheet.getRangeByIndexes(1, 0, config.data.length, config.headers.length);
-        dataRange.values = config.data;
-      }
-
-      headerRange.format.autofitColumns();
-      sheet.freezePanes.freezeRows(1);
+    for (const sheetName of controlSheetsToInitialize) {
+      const data = getDefaultData(sheetName, locale);
+      await createOrClearSystemSheet(context, sheetName, data);
     }
 
     // TASK 1.1: Dynamic Codelist Dropdowns (Named Range)
