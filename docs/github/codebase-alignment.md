@@ -6,6 +6,7 @@
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#289` | feat: implement standardized accessible framework and semantic exports | Present | [`src/taskpane/components/ui/__tests__/AccessibleWrapper.test.tsx`](../../src/taskpane/components/ui/__tests__/AccessibleWrapper.test.tsx) |
 | `#279` | Implement Unified Accessibility Pipeline for Section 508 compliance | Present | [`src/taskpane/core/generators/pdf/pdf-builder.ts`](../../src/taskpane/core/generators/pdf/pdf-builder.ts) |
 | `#276` | Refactor Core API encapsulation and automate dead-code detection | Present | [`src/taskpane/core/index.ts`](../../src/taskpane/core/index.ts) |
 | `#176` | [Feature] Dictionary Sidecar UX States & Error Handling | Present | [`src/taskpane/components/views/DictionarySidecar.tsx`](../../src/taskpane/components/views/DictionarySidecar.tsx) |
