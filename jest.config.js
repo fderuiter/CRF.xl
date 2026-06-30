@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.ts', '**/test/serialization/**/*.test.ts'],
+  testEnvironment: 'jsdom',
+  testMatch: ['**/__tests__/**/*.test.ts', '**/*.test.tsx', '**/test/serialization/**/*.test.ts'],
   verbose: true,
   collectCoverage: true,
   coverageDirectory: 'coverage',
