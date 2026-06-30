@@ -1,4 +1,7 @@
 /* global Excel */
+/**
+ * @issue #292
+ */
 import { SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 
 export async function createOrClearSystemSheet(

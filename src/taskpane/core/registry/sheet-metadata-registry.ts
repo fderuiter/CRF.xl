@@ -1,3 +1,6 @@
+/**
+ * @issue #292
+ */
 export const SHEET_NAMES = {
   STUDY: "_Study",
   FORMS: "_Forms",
