@@ -5,6 +5,8 @@
 
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
+import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
+import { applyThemeToHeader } from "../factory/sheet-factory";
 
 export interface AuditJustification {
   reason: string;
@@ -333,7 +335,7 @@ export class ComplianceGovernanceService {
       const mergedJustifications = { ...existingJustifications, ...justifications };
 
       const keys = Object.keys(mergedJustifications);
-      const data: any[][] = [["ItemKey", "Reason", "UserId", "Timestamp"]];
+      const data: any[][] = [[...SHEET_HEADERS[SHEET_NAMES.JUSTIFICATIONS]]];
 
       for (const key of keys) {
         const j = mergedJustifications[key];
@@ -342,7 +344,10 @@ export class ComplianceGovernanceService {
 
       const range = sheet.getRangeByIndexes(0, 0, data.length, 4);
       range.values = data;
-      range.format.autofitColumns();
+      
+      const headerRange = sheet.getRangeByIndexes(0, 0, 1, 4);
+      applyThemeToHeader(headerRange);
+      sheet.freezePanes.freezeRows(1);
 
       // Make it visible or hidden but not veryHidden for auditor accessibility
       sheet.visibility = Excel.SheetVisibility.visible;

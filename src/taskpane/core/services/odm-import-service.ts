@@ -10,6 +10,7 @@ import {
   ImportStatus,
   WorkbookProjection,
 } from "./migration-pipeline";
+import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 
 /**
  * Normalised severity for ODM import diagnostics.
@@ -75,9 +76,9 @@ interface XmlElementMatch {
   index: number;
 }
 
-const STUDY_HEADERS = ["Protocol ID", "Study Name", "Version", "Default Language"];
-const FORMS_HEADERS = ["Form OID", "Form Name", "Repeating", "Page Layout"];
-const CODELIST_HEADERS = ["Codelist ID", "Codelist Name", "Coded Value", "Decode"];
+const STUDY_HEADERS = SHEET_HEADERS[SHEET_NAMES.STUDY];
+const FORMS_HEADERS = SHEET_HEADERS[SHEET_NAMES.FORMS];
+const CODELIST_HEADERS = SHEET_HEADERS[SHEET_NAMES.CODELISTS];
 const UNSUPPORTED_ELEMENT_NAMES = [
   "StudyEventDef",
   "ItemGroupDef",

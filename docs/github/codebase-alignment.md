@@ -6,6 +6,7 @@
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#292` | Implement Unified Sheet Metadata Registry and Factory | Present | [`src/taskpane/core/factory/sheet-factory.ts`](../../src/taskpane/core/factory/sheet-factory.ts)<br>[`src/taskpane/core/registry/sheet-metadata-registry.ts`](../../src/taskpane/core/registry/sheet-metadata-registry.ts) |
 | `#289` | feat: implement standardized accessible framework and semantic exports | Present | [`src/taskpane/components/ui/__tests__/AccessibleWrapper.test.tsx`](../../src/taskpane/components/ui/__tests__/AccessibleWrapper.test.tsx) |
 | `#279` | Implement Unified Accessibility Pipeline for Section 508 compliance | Present | [`src/taskpane/core/generators/pdf/pdf-builder.ts`](../../src/taskpane/core/generators/pdf/pdf-builder.ts) |
 | `#276` | Refactor Core API encapsulation and automate dead-code detection | Present | [`src/taskpane/core/index.ts`](../../src/taskpane/core/index.ts) |

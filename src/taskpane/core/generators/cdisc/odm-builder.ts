@@ -99,9 +99,9 @@ export async function generateOdmXml(
 
   // Gather synthetic rules from inline showIf and methods
   const syntheticRules: RuleDefinition[] = [];
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
+  Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
+    [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
+      [...group.items].sort((a,b) => (a.itemOid || "").localeCompare(b.itemOid || "")).forEach((item) => {
         if (!isCrfItem(item)) return;
         if (item.showIf) {
           const hasCentralRule = study.rules?.some(
@@ -194,9 +194,9 @@ export async function generateOdmXml(
 
     // Check if targets exist in study design for SHOW_IF and DERIVATION rules
     const studyItemOids = new Set<string>();
-    Object.values(study.forms).forEach((form) => {
-      form.itemGroups.forEach((group) => {
-        group.items.forEach((item) => {
+    Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
+      [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
+        [...group.items].sort((a,b) => (a.itemOid || "").localeCompare(b.itemOid || "")).forEach((item) => {
           if (!isCrfItem(item)) {
             return;
           }
@@ -253,7 +253,7 @@ export async function generateOdmXml(
 <ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" 
      xmlns:crfx="http://www.cdisc.org/ns/odm/v1.3-ext"
      FileType="Snapshot" 
-     FileOID="${escapeXml(metadata.protocolId)}_${escapeXml(metadata.version)}_${timestamp.replace(/[:.-]/g, "")}" 
+     FileOID="${escapeXml(metadata.protocolId)}_${escapeXml(metadata.version)}" 
      CreationDateTime="${timestamp}" 
      ODMVersion="1.3.2">`;
 
@@ -269,7 +269,7 @@ export async function generateOdmXml(
   // 1. Protocol / Event References
   xml += `
       <Protocol>`;
-  study.events.forEach((event) => {
+  [...study.events].sort((a,b) => a.eventOid.localeCompare(b.eventOid)).forEach((event) => {
     xml += `
         <StudyEventRef StudyEventOID="${escapeXml(event.eventOid)}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
   });
@@ -277,10 +277,10 @@ export async function generateOdmXml(
       </Protocol>`;
 
   // 2. Study Event Definitions (Visits)
-  study.events.forEach((event) => {
+  [...study.events].sort((a,b) => a.eventOid.localeCompare(b.eventOid)).forEach((event) => {
     xml += `
       <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
-    event.forms.forEach((fRef) => {
+    [...event.forms].sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((fRef) => {
       xml += `
         <FormRef FormOID="${escapeXml(fRef.formOid)}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? "Yes" : "No"}"/>`;
     });
@@ -289,10 +289,10 @@ export async function generateOdmXml(
   });
 
   // 3. Form Definitions (Pages)
-  Object.values(study.forms).forEach((form) => {
+  Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
     xml += `
       <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
-    form.itemGroups.forEach((group) => {
+    [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
       xml += `
         <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
     });
@@ -335,8 +335,19 @@ export async function generateOdmXml(
           conditionAttr += ` crfx:ValidationConditionOIDs="${escapeXml(ruleOids)}"`;
         }
 
+        // MethodOID on ItemRef
+        const derivationRule = allRules.find(
+          (r) =>
+            r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+        );
+        let methodAttr = "";
+        const effectiveMethodOid = item.methodOid || derivationRule?.ruleId;
+        if (effectiveMethodOid) {
+          methodAttr = ` MethodOID="${escapeXml(effectiveMethodOid)}"`;
+        }
+
         xml += `
-        <ItemRef ItemOID="${escapeXml(item.itemOid)}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}/>`;
+        <ItemRef ItemOID="${escapeXml(item.itemOid)}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}${methodAttr}/>`;
       });
       xml += `
       </ItemGroupDef>`;
@@ -355,7 +366,7 @@ export async function generateOdmXml(
         if (processedItems.has(item.itemOid)) return;
         processedItems.add(item.itemOid);
 
-        // Find matching derivation rule
+        // Find matching derivation rule for legacy fallback
         const derivationRule = study.rules?.find(
           (r) =>
             r.ruleType === RuleType.DERIVATION &&
@@ -375,11 +386,11 @@ export async function generateOdmXml(
   });
 
   // 6. CodeLists (Dictionaries)
-  Object.values(study.codelists).forEach((cl) => {
+  Object.values(study.codelists).sort((a,b) => a.codelistId.localeCompare(b.codelistId)).forEach((cl) => {
     const odmType = mapDataTypeToOdm(cl.dataType);
     xml += `
       <CodeList OID="${escapeXml(cl.codelistId)}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
-    cl.items.forEach((clItem) => {
+    [...cl.items].sort((a,b) => String(a.codedValue).localeCompare(String(b.codedValue))).forEach((clItem) => {
       xml += `
         <CodeListItem CodedValue="${escapeXml(clItem.codedValue)}">
           <Decode>${renderTranslatedText(
@@ -610,6 +621,11 @@ function renderItemDef(
   if (item.sdtmMapping?.sasFieldName) {
     output += ` SASFieldName="${escapeXml(item.sdtmMapping.sasFieldName)}"`;
   }
+  
+  const sasLabel = item.sdtmMapping?.sasLabel || item.adamMapping?.sasLabel;
+  if (sasLabel) {
+    output += ` SASLabel="${escapeXml(sasLabel)}"`;
+  }
 
   if (item.origin) {
     output += ` Origin="${escapeXml(item.origin)}"`;
@@ -619,6 +635,8 @@ function renderItemDef(
   if (effectiveMethodOid) {
     output += ` MethodOID="${escapeXml(effectiveMethodOid)}"`;
   }
+
+
 
   if (item.comment) {
     output += ` Comment="${escapeXml(item.comment)}"`;
@@ -667,6 +685,11 @@ function renderItemDef(
   if (item.sdtmMapping?.domain && item.sdtmMapping?.variable) {
     output += `
         <Alias Context="SDTM" Name="${escapeXml(item.sdtmMapping.domain + "." + item.sdtmMapping.variable)}"/>`;
+  }
+  
+  if (item.sdtmMapping?.sasFieldName) {
+    output += `
+        <Alias Context="SAS" Name="${escapeXml(item.sdtmMapping.sasFieldName)}"/>`;
   }
 
   output += `

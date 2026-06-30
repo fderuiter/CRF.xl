@@ -8,6 +8,7 @@ import {
   CrfCodelistsRow,
   LifecycleAction,
 } from "./cdisc-ct-mapping-service";
+import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 
 export type ConflictResolution = "skip" | "overwrite" | "append";
 
@@ -46,12 +47,7 @@ export interface CtImportPlan {
 // Internal helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
-const CODELISTS_HEADER: (string | number | boolean)[] = [
-  "Codelist ID",
-  "Codelist Name",
-  "Coded Value",
-  "Decode",
-];
+const CODELISTS_HEADER = SHEET_HEADERS[SHEET_NAMES.CODELISTS];
 
 function groupByCodelistId(rows: CrfCodelistsRow[]): Map<string, CrfCodelistsRow[]> {
   const map = new Map<string, CrfCodelistsRow[]>();

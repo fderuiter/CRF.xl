@@ -136,8 +136,8 @@ describe("odm-import-service", () => {
     ]);
     expect(imported.projection.codelistRows).toEqual([
       ["Codelist ID", "Codelist Name", "Coded Value", "Decode"],
-      ["SEX", "Sex", "M", "Male"],
       ["SEX", "Sex", "F", "Female"],
+      ["SEX", "Sex", "M", "Male"],
     ]);
     expect(imported.summary.status).toBe("warnings");
     expect(imported.summary.actionsCount.addedForms).toBe(2);
