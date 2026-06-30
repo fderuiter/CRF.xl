@@ -4,6 +4,8 @@
 /* eslint-disable no-undef */
 /* global Excel */
 
+import { createOfficeDiagnostic } from "./office-error-handling";
+
 /**
  * Inserts a standard CDISC-style Date/Time variable block.
  */
@@ -24,7 +26,7 @@ export const insertDateBlock = async () => {
       await context.sync();
     });
   } catch (error) {
-    console.error(error);
+    throw createOfficeDiagnostic(error);
   }
 };
 
@@ -51,6 +53,6 @@ export const insertAEBlock = async () => {
       await context.sync();
     });
   } catch (error) {
-    console.error(error);
+    throw createOfficeDiagnostic(error);
   }
 };

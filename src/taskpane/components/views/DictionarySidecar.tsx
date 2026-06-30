@@ -45,8 +45,8 @@ import {
   ImportConflictItem,
   ImportSummary,
   CtImportPlan,
-  OfficeErrorPresentation,
-  createOfficeErrorPresentation,
+  Diagnostic,
+  createOfficeDiagnostic,
 } from "../../core";
 
 const useStyles = makeStyles({
@@ -359,7 +359,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
-  const [globalError, setGlobalError] = useState<OfficeErrorPresentation | null>(null);
+  const [globalError, setGlobalError] = useState<Diagnostic | null>(null);
   const [lastActionStatus, setLastActionStatus] = useState<{
     type: "applied" | "saved" | "imported";
     message: string;
@@ -401,8 +401,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setDictionaries(data);
       setView("browse");
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setGlobalError(presentation);
+      const diagnostic = createOfficeDiagnostic(error);
+      setGlobalError(diagnostic);
       setView("error");
     }
   };
@@ -417,8 +417,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setLastActionStatus({ type: "applied", message: `Applied '${id}' to cell.` });
       setTimeout(() => setLastActionStatus(null), 3000);
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setGlobalError(presentation);
+      const diagnostic = createOfficeDiagnostic(error);
+      setGlobalError(diagnostic);
     }
   }, []);
 
@@ -434,8 +434,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setTimeout(() => setLastActionStatus(null), 3000);
       await loadData();
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setGlobalError(presentation);
+      const diagnostic = createOfficeDiagnostic(error);
+      setGlobalError(diagnostic);
       setView("error");
     }
   };
@@ -464,8 +464,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       if (updated) setSelectedCodelist(updated);
       setView("detail");
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setGlobalError(presentation);
+      const diagnostic = createOfficeDiagnostic(error);
+      setGlobalError(diagnostic);
       setView("error");
     }
   };
@@ -576,8 +576,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setImportPlan(plan);
       setImportProgress(null);
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setImportParseError(presentation.message);
+      const diagnostic = createOfficeDiagnostic(error);
+      setImportParseError(diagnostic.message);
       setImportProgress(null);
     }
   }, [selectedPackage]);
@@ -620,8 +620,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         await loadData();
       }
     } catch (error) {
-      const presentation = createOfficeErrorPresentation(error);
-      setImportError(presentation.message);
+      const diagnostic = createOfficeDiagnostic(error);
+      setImportError(diagnostic.message);
       setImportProgress(null);
     }
   }, [importPlan, conflictResolutions]);

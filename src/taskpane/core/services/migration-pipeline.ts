@@ -27,8 +27,10 @@
 // Diagnostic model
 // ---------------------------------------------------------------------------
 
+import { Diagnostic, DiagnosticSeverity } from "./diagnostic-framework";
+
 /** Normalised severity used across all import flows. */
-export type ImportSeverity = "error" | "warning" | "info";
+export type ImportSeverity = DiagnosticSeverity;
 
 /**
  * Shared diagnostic record emitted by every ingestion/migration service.
@@ -39,14 +41,7 @@ export type ImportSeverity = "error" | "warning" | "info";
  * category checks (e.g. `d.category === "Parse"`) continue to work in all
  * import services without alteration.
  */
-export interface ImportDiagnostic {
-  severity: ImportSeverity;
-  /** Source-specific category or code string (e.g. "Parse", "missing-required"). */
-  category: string;
-  message: string;
-  /** Sheet, field, or element location string (optional). */
-  location?: string;
-}
+export type ImportDiagnostic = Diagnostic;
 
 // ---------------------------------------------------------------------------
 // Status / gate model

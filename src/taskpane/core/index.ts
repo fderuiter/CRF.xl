@@ -12,7 +12,8 @@ export { FieldMapping, IngestionPreview, SheetScanResult, TARGET_FIELDS, TargetF
 export { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "./services/version-update-service";
 export { EnvironmentComplianceStatus, complianceGovernanceService } from "./services/compliance-governance-service";
 export { ImportManifest, createImportManifest, createImportProvenance, loadImportManifest, persistImportManifest } from "./services/migration-pipeline";
-export { OfficeErrorPresentation, createOfficeErrorPresentation } from "./services/office-error-handling";
+export { createOfficeDiagnostic } from "./services/office-error-handling";
+export { Diagnostic, DiagnosticError, DiagnosticSeverity } from "./services/diagnostic-framework";
 export { CodelistGroup, CodelistItem, fetchDictionaries, saveDictionary } from "./services/dictionary-service";
 export { OdmImportPackage, importOdmXml } from "./services/odm-import-service";
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";

@@ -6,6 +6,7 @@
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ParseProgressUpdate } from "../parser/chunking-runtime";
 import { validateStudyDesign } from "../parser/validator";
+import { DiagnosticError } from "../services/diagnostic-framework";
 
 const ctx: Worker = self as any;
 
@@ -60,8 +61,8 @@ ctx.onmessage = async (event: MessageEvent) => {
       if (isCancelled) {
         ctx.postMessage({ type: "CANCELLED" });
       } else {
-        const message = error instanceof Error ? error.message : String(error);
-        ctx.postMessage({ type: "ERROR", payload: message });
+        const payload = error instanceof DiagnosticError ? error.toJSON() : (error instanceof Error ? error.message : String(error));
+        ctx.postMessage({ type: "ERROR", payload });
       }
     } finally {
       ctx.removeEventListener("message", cancelListener);

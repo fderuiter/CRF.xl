@@ -1,3 +1,5 @@
+import { DiagnosticError } from "./diagnostic-framework";
+
 /**
  * @issue #68
  */
@@ -12,14 +14,6 @@ export type OfficeErrorClass =
   | "unknownOfficeError";
 
 interface OfficeErrorMessageDefinition {
-  message: string;
-  recoveryAction: string;
-  allowRetry: boolean;
-  diagnosticCode: string;
-}
-
-export interface OfficeErrorPresentation {
-  errorClass: OfficeErrorClass;
   message: string;
   recoveryAction: string;
   allowRetry: boolean;
@@ -163,7 +157,7 @@ export function classifyOfficeError(error: unknown): OfficeErrorClass {
   return "unknownOfficeError";
 }
 
-export function createOfficeErrorPresentation(error: unknown): OfficeErrorPresentation {
+export function createOfficeDiagnostic(error: unknown): DiagnosticError {
   const normalized = normalizeOfficeError(error);
   const errorClass = classifyOfficeError(error);
   const baseMessage = OFFICE_ERROR_MESSAGES[errorClass];
@@ -174,15 +168,15 @@ export function createOfficeErrorPresentation(error: unknown): OfficeErrorPresen
       ? `Required sheet or range '${missingName}' is missing. Please check workbook structure.`
       : baseMessage.message;
 
-  const diagnosticCode = normalized.code
+  const category = normalized.code
     ? `${baseMessage.diagnosticCode}:${normalized.code}`
     : baseMessage.diagnosticCode;
 
-  return {
-    errorClass,
+  return new DiagnosticError({
+    severity: "error",
+    category,
     message,
     recoveryAction: baseMessage.recoveryAction,
     allowRetry: baseMessage.allowRetry,
-    diagnosticCode,
-  };
+  });
 }
