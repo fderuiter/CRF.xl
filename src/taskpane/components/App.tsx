@@ -262,12 +262,12 @@ export const App: React.FC<{ title?: string }> = () => {
         1000 // Throttle
       );
 
-      // Handle Paintbrush application on selection change
+      // Handle Paintbrush target selection on change
       const paintbrush = annotationPaintbrushService.getState();
       if (paintbrush.isEnabled && activeSheet && !activeSheet.startsWith("_")) {
         const context = bindingService.getCurrentContext();
         if (context && context.isValid) {
-          annotationPaintbrushService.applyToRange(context.sheetName, context.address)
+          annotationPaintbrushService.toggleTarget(context.sheetName, context.address)
             .then(() => refreshAnnotationHighlights(context.sheetName))
             .catch(console.error);
         }
