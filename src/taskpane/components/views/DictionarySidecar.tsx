@@ -17,9 +17,10 @@ import {
   ProgressBar,
   TabList,
   Tab,
+  Tooltip,
 } from "@fluentui/react-components";
 import { AccessibleWrapper } from "../ui/DesignSystem";
-import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, } from "@fluentui/react-icons";
+import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, InfoRegular } from "@fluentui/react-icons";
 import {
   fetchDictionaries,
   saveDictionary,
@@ -1284,7 +1285,12 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
             <div className={styles.formCard}>
               <div>
-                <label className={styles.fieldLabel}>Codelist ID</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
+                  <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>Codelist ID</label>
+                  <Tooltip content="A unique identifier for the codelist (OID). In CDISC, this often matches the NCI Code or a study-specific alias." relationship="label">
+                    <InfoRegular style={{ fontSize: "12px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+                  </Tooltip>
+                </div>
                 <Input
                   value={newId}
                   onChange={(_, d) => setNewId(d.value.toUpperCase())}
@@ -1327,9 +1333,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     }}>
                       {supportedLanguages.map((lang) => (
                         <div key={lang} style={{ marginBottom: "4px" }}>
-                          <label className={styles.fieldLabel} style={{ fontSize: tokens.fontSizeBase100 }}>
-                            Decode ({lang}) {lang === defaultLanguage && "(Default)"}
-                          </label>
+                          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
+                            <label className={styles.fieldLabel} style={{ fontSize: tokens.fontSizeBase100, marginBottom: 0 }}>
+                              Decode ({lang}) {lang === defaultLanguage && "(Default)"}
+                            </label>
+                            <Tooltip content="The user-friendly text associated with the coded value for this locale." relationship="label">
+                              <InfoRegular style={{ fontSize: "10px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+                            </Tooltip>
+                          </div>
                           <Input
                             placeholder={`Decode in ${lang}`}
                             value={item.decodedText[lang] || ""}

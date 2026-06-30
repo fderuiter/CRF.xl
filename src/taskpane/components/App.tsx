@@ -79,7 +79,7 @@ import {
   dismissVersionNotification,
   VersionUpdateMetadata,
 } from "../core";
-import { loadImportManifest } from "../core";
+import { loadImportManifest, onboardingService } from "../core";
 
 // Telemetry & Views
 import { useExcelTelemetry } from "./views/useExcelTelemetry";
@@ -91,6 +91,7 @@ import { AuthoringView } from "./views/AuthoringView";
 import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
+import { OnboardingTour } from "./OnboardingTour";
 
 const useAppStyles = makeStyles({
   root: {
@@ -221,6 +222,14 @@ function toSafeHttpUrl(url: string | undefined): string | null {
 export const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    const onboarding = onboardingService.getState();
+    if (!onboarding.isCompleted && !onboarding.isActive) {
+      onboardingService.start();
+    }
+  }, []);
+
   // 1. Telemetry & Initialization State
   const { activeSheet, isCodelistActive, telemetryTrigger } = useExcelTelemetry();
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
@@ -872,6 +881,7 @@ export const App: React.FC<{ title?: string }> = () => {
             Architecture to set up your clinical study.
           </Text>
           <Button
+            id="tour-init-canvas"
             appearance="secondary"
             onClick={handleInitialize}
             disabled={isProcessing}
@@ -978,9 +988,20 @@ export const App: React.FC<{ title?: string }> = () => {
             </div>
           )}
         </div>
-        <Badge appearance="tint" color="informative">
-          {displayStatus}
-        </Badge>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Badge appearance="tint" color="informative">
+            {displayStatus}
+          </Badge>
+          <Button
+            size="small"
+            appearance="subtle"
+            onClick={() => onboardingService.start()}
+            icon={<span>💡</span>}
+            title="Start Guided Tour"
+          >
+            Tour
+          </Button>
+        </div>
       </header>
 
       <main className={styles.main}>
@@ -991,7 +1012,7 @@ export const App: React.FC<{ title?: string }> = () => {
         >
           <Tab value="design">Design</Tab>
           <Tab value="compliance">Compliance</Tab>
-          <Tab value="integrity">Integrity Hub</Tab>
+          <Tab value="integrity" id="tour-integrity">Integrity Hub</Tab>
         </TabList>
 
         {versionUpdate && (
@@ -1060,6 +1081,8 @@ export const App: React.FC<{ title?: string }> = () => {
             signOffTimestamp={signOffTimestamp}
           />
         )}
+
+        <OnboardingTour />
 
         {syncConflict && (
           <MessageBar intent="error">
