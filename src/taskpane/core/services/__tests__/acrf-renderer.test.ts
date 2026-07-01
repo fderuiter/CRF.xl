@@ -105,7 +105,7 @@ describe("aCRF Rendering Pipeline", () => {
     expect(item.annotations).toHaveLength(2); // SDTM + Rule
 
     const sdtmAnno = item.annotations.find(a => a.label === "SDTM");
-    expect(sdtmAnno?.content).toBe("DM.BRTHDTC");
+    expect(sdtmAnno?.content).toBe("[DM_BRTHDTC]<br/>Domain: DM | Var: BRTHDTC | NCI: N/A");
 
     const ruleAnno = item.annotations.find(a => a.label === "Rule");
     expect(ruleAnno?.content).toBe("RULE_01");
@@ -122,7 +122,7 @@ describe("aCRF Rendering Pipeline", () => {
     expect(html).toContain("<!DOCTYPE html>");
     expect(html).toContain("PRT-001");
     expect(html).toContain("Demographics");
-    expect(html).toContain("DM.BRTHDTC");
+    expect(html).toContain("[DM_BRTHDTC]<br/>Domain: DM | Var: BRTHDTC | NCI: N/A");
     expect(html).toContain("RULE_01");
     expect(html).toContain("ADSL.TESTVAR");
     expect(html).toContain('id="form-FORM_01"');

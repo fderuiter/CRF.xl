@@ -149,6 +149,8 @@ export interface AnnotatedCrfPipelineResult {
   manifest: AnnotatedCrfPipelineManifest;
   verificationResult?: AcrfVerificationResult;
   blob?: Blob;
+  pdfBlob?: Blob;
+  docxBlob?: Blob;
 }
 
 /**

@@ -7,19 +7,23 @@ global.TextDecoder = TextDecoder as any;
 
 import * as excelParser from "../../parser/excel-parser";
 import * as annotationService from "../../services/annotation-service";
-import * as pdfBuilder from "../pdf/pdf-builder";
+import * as pdfAdapter from "../../services/pdf-export-adapter";
 
 // Mock dependencies BEFORE importing the pipeline
 jest.mock("../../parser/excel-parser", () => ({
   parseExcelToStudyDesign: jest.fn(),
 }));
 jest.mock("../../services/annotation-service");
-jest.mock("../pdf/pdf-builder");
+jest.mock("../../services/pdf-export-adapter", () => ({
+  generatePdfBlobFromHtml: jest.fn(),
+}));
+jest.mock("html-to-docx", () => jest.fn());
 jest.mock("../../../components/views/study-diff-view-utils", () => ({
   buildStudyDiffList: jest.fn(() => []),
 }));
 
 import { AnnotatedCrfPipeline } from "../annotated-crf-pipeline";
+import HTMLtoDOCX from "html-to-docx";
 
 describe("AnnotatedCrfPipeline", () => {
   const mockStudyDesign = {
@@ -76,7 +80,8 @@ describe("AnnotatedCrfPipeline", () => {
       validationIssues: [],
     });
     (annotationService.loadAnnotationsFromStore as jest.Mock).mockResolvedValue(mockAnnotations);
-    (pdfBuilder.generatePdfBlob as jest.Mock).mockResolvedValue(new Blob(["mock pdf content"], { type: "application/pdf" }));
+    (pdfAdapter.generatePdfBlobFromHtml as jest.Mock).mockResolvedValue(new Blob(["mock pdf content"], { type: "application/pdf" }));
+    (HTMLtoDOCX as jest.Mock).mockResolvedValue(new Blob(["mock docx content"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
   });
 
   it("should execute all 6 stages correctly", async () => {
@@ -94,7 +99,8 @@ describe("AnnotatedCrfPipeline", () => {
 
     expect(excelParser.parseExcelToStudyDesign).toHaveBeenCalled();
     expect(annotationService.loadAnnotationsFromStore).toHaveBeenCalled();
-    expect(pdfBuilder.generatePdfBlob).toHaveBeenCalled();
+    expect(pdfAdapter.generatePdfBlobFromHtml).toHaveBeenCalled();
+    expect(HTMLtoDOCX).toHaveBeenCalled();
 
     expect(result.manifest.diagnostics.some(d => d.message.includes("Completed stage: Export Artifact Generation"))).toBe(true);
   });
