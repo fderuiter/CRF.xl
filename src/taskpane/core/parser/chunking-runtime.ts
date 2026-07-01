@@ -19,14 +19,10 @@ export interface ParseProgressUpdate {
   message: string;
 }
 
-interface ParseCancellationToken {
-  isCancelled: () => boolean;
-}
-
 export interface ParseRuntimeOptions {
   chunkSize?: number;
   timeoutMs?: number;
-  cancellationToken?: ParseCancellationToken;
+  signal?: AbortSignal;
   onProgress?: (update: ParseProgressUpdate) => void;
   yieldControl?: () => Promise<void>;
 }
@@ -44,15 +40,19 @@ const DEFAULT_TIMEOUT_MS = 45_000;
 export function createParseRuntime(options: ParseRuntimeOptions = {}): ParseRuntime {
   const chunkSize = normalizeChunkSize(options.chunkSize);
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const startTime = Date.now();
+
+  let combinedSignal: AbortSignal | undefined = options.signal;
+  if (timeoutMs > 0) {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    combinedSignal = combinedSignal ? AbortSignal.any([combinedSignal, timeoutSignal]) : timeoutSignal;
+  }
 
   const throwIfStopped = (phase: ParsePhase): void => {
-    if (options.cancellationToken?.isCancelled()) {
+    if (combinedSignal?.aborted) {
+      if (combinedSignal.reason && combinedSignal.reason.name === "TimeoutError") {
+        throw new Error(`Parsing timed out during ${phase} after ${timeoutMs}ms`);
+      }
       throw new Error(`Parsing cancelled during ${phase}`);
-    }
-
-    if (timeoutMs > 0 && Date.now() - startTime > timeoutMs) {
-      throw new Error(`Parsing timed out during ${phase} after ${timeoutMs}ms`);
     }
   };
 

@@ -29,25 +29,22 @@ describe("chunking runtime", () => {
     expect(chunkedResult).toEqual(singlePassResult);
   });
 
-  it("emits cancellation and timeout errors from runtime checks", () => {
+  it("emits cancellation and timeout errors from runtime checks", async () => {
+    const controller = new AbortController();
+    controller.abort();
     const cancelledRuntime = createParseRuntime({
-      cancellationToken: {
-        isCancelled: () => true,
-      },
+      signal: controller.signal,
     });
     expect(() => cancelledRuntime.throwIfStopped("items")).toThrow(
       "Parsing cancelled during items"
     );
 
-    const nowSpy = jest.spyOn(Date, "now");
-    nowSpy.mockReturnValueOnce(0);
     const timedOutRuntime = createParseRuntime({
       timeoutMs: 1,
     });
-    nowSpy.mockReturnValue(5);
+    await new Promise(resolve => setTimeout(resolve, 5));
     expect(() => timedOutRuntime.throwIfStopped("items")).toThrow(
       "Parsing timed out during items after 1ms"
     );
-    nowSpy.mockRestore();
   });
 });
