@@ -158,6 +158,52 @@ describe("recovery-storage", () => {
     expect(readRecoverySnapshot({ storage })).toBeNull();
   });
 
+  it("sanitizes recovery messages containing clinical data before storage", () => {
+    const clinicalIssues: ValidationIssue[] = [
+      {
+        level: "Error",
+        message: "Invalid value 'John Doe' in cell A1",
+        location: "F1 > Row 2",
+        sheetName: "F1",
+      },
+      {
+        level: "Warning",
+        message: 'Value "HIV+" is not allowed here',
+        location: "F2 > Row 1",
+        sheetName: "F2",
+      }
+    ];
+
+    const snapshot = createRecoverySnapshot({
+      issues: clinicalIssues,
+      studySummary: summarizeStudyDesign(mockStudy),
+    });
+
+    expect(snapshot.issues[0].message).toBe("Invalid value '[REDACTED]' in cell A1");
+    expect(snapshot.issues[1].message).toBe('Value "[REDACTED]" is not allowed here');
+  });
+
+  it("rejects restoring a session when an unauthorized field is manually injected into storage", () => {
+    const storage = createMockStorage();
+    const snapshot = createRecoverySnapshot({
+      issues,
+      studySummary: summarizeStudyDesign(mockStudy),
+    });
+    
+    // Inject unauthorized field
+    const taintedSnapshot = {
+      ...snapshot,
+      unauthorizedData: "secret clinical info"
+    };
+
+    storage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(taintedSnapshot));
+    
+    const restored = readRecoverySnapshot({ storage });
+    expect(restored).toBeNull();
+    // Storage should be cleared because schema validation fails
+    expect(storage.getItem(RECOVERY_STORAGE_KEY)).toBeNull();
+  });
+
   it("detects workbook shape changes between snapshot and current workbook", () => {
     expect(
       hasWorkbookChanged(

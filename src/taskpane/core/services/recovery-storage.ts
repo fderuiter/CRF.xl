@@ -2,6 +2,7 @@
  * @issue #68
  */
 /* eslint-disable no-undef */
+import { z } from "zod";
 import { StudyDesign, isCrfItem } from "../types";
 import { ValidationIssue } from "../parser/validator";
 
@@ -31,7 +32,7 @@ export interface ValidationSummary {
 export interface RecoveryIssue {
   level: ValidationIssue["level"];
   message: ValidationIssue["message"];
-  location: ValidationIssue["location"];
+  location?: ValidationIssue["location"];
   rowIndex?: ValidationIssue["rowIndex"];
   sheetName?: ValidationIssue["sheetName"];
 }
@@ -54,6 +55,52 @@ export interface RecoverySnapshot {
   workbookFingerprint?: WorkbookFingerprint;
   justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
 }
+
+const StudyDesignSummarySchema = z.object({
+  formCount: z.number(),
+  variableCount: z.number(),
+  visitCount: z.number(),
+}).strict();
+
+const ValidationSummarySchema = z.object({
+  totalIssues: z.number(),
+  errorCount: z.number(),
+  warningCount: z.number(),
+  analyzedAt: z.number(),
+}).strict();
+
+const RecoveryIssueSchema = z.object({
+  level: z.enum(["Error", "Warning"]),
+  message: z.string(),
+  location: z.string().optional(),
+  rowIndex: z.number().optional(),
+  sheetName: z.string().optional(),
+}).strict();
+
+const WorkbookFingerprintSchema = z.object({
+  sheetCount: z.number(),
+  sheetNames: z.array(z.string()),
+}).strict();
+
+const JustificationSchema = z.object({
+  reason: z.string(),
+  userId: z.string(),
+  timestamp: z.string(),
+}).strict();
+
+export const RecoverySnapshotSchema = z.object({
+  appVersion: z.string(),
+  savedAt: z.number(),
+  validationSummary: ValidationSummarySchema,
+  studySummary: StudyDesignSummarySchema,
+  uiState: z.object({
+    openForm: z.string().optional(),
+    currentFilter: z.string().optional(),
+  }).strict(),
+  issues: z.array(RecoveryIssueSchema),
+  workbookFingerprint: WorkbookFingerprintSchema.optional(),
+  justifications: z.record(z.string(), JustificationSchema).optional(),
+}).strict();
 
 type PersistResult =
   | { saved: true }
@@ -109,10 +156,17 @@ export function summarizeValidation(
   };
 }
 
+function sanitizeMessage(message: string): string {
+  if (!message) return message;
+  return message
+    .replace(/'[^']*'/g, "'[REDACTED]'")
+    .replace(/"[^"]*"/g, '"[REDACTED]"');
+}
+
 export function toRecoveryIssues(issues: ValidationIssue[]): RecoveryIssue[] {
   return issues.map((issue) => ({
     level: issue.level,
-    message: issue.message,
+    message: sanitizeMessage(issue.message),
     location: issue.location,
     rowIndex: issue.rowIndex,
     sheetName: issue.sheetName,
@@ -161,7 +215,8 @@ export function persistRecoverySnapshot(
   if (!resolvedStorage) return { saved: false, reason: "storage-unavailable" };
 
   try {
-    resolvedStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(snapshot));
+    const validatedSnapshot = RecoverySnapshotSchema.parse(snapshot);
+    resolvedStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(validatedSnapshot));
     return { saved: true };
   } catch (error) {
     if (isQuotaError(error)) return { saved: false, reason: "quota-exceeded" };
@@ -200,17 +255,9 @@ export function readRecoverySnapshot({
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as RecoverySnapshot;
-    if (
-      !parsed ||
-      typeof parsed.savedAt !== "number" ||
-      !parsed.validationSummary ||
-      !parsed.studySummary ||
-      !Array.isArray(parsed.issues)
-    ) {
-      dismissRecoverySnapshot(resolvedStorage);
-      return null;
-    }
+    const rawParsed = JSON.parse(raw);
+    const parsed = RecoverySnapshotSchema.parse(rawParsed);
+
     if (now - parsed.savedAt > ttlMs) {
       dismissRecoverySnapshot(resolvedStorage);
       return null;
