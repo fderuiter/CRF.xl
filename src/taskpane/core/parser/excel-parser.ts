@@ -140,6 +140,7 @@ function runInWorker(
 }> {
   return new Promise((resolve, reject) => {
     // Webpack 5 standard worker creation
+    // @ts-ignore: import.meta.url is supported by Webpack 5 but not by Jest/ts-jest with current config
     const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
 
     // Handle incoming messages
