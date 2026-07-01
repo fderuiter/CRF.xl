@@ -12,8 +12,8 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { ArrowDownloadRegular, ArrowClockwiseRegular } from "@fluentui/react-icons";
-import { StudyDesign, AcrfVerificationResult } from "../core/types";
+import { ArrowDownloadRegular, ArrowClockwiseRegular, CheckmarkCircleRegular, EyeRegular } from "@fluentui/react-icons";
+import { StudyDesign, AcrfVerificationResult, navigateToSource } from "../core";
 import { renderToHtml } from "../core/services/acrf-renderer";
 import { exportToPdf } from "../core/services/pdf-export-adapter";
 import { AnnotatedCrfPipeline } from "../core/generators/annotated-crf-pipeline";
@@ -75,9 +75,11 @@ const useStyles = makeStyles({
 interface AcrfPreviewProps {
   study: StudyDesign;
   validationIssues?: any[];
+  acknowledgedWarnings?: Set<string>;
+  onAcknowledge?: (key: string) => void;
 }
 
-export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study }) => {
+export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, acknowledgedWarnings, onAcknowledge }) => {
   const styles = useStyles();
   const [html, setHtml] = React.useState<string>("");
   const [isExporting, setIsExporting] = React.useState(false);
@@ -197,8 +199,49 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study }) => {
               level: i.severity === "error" ? "Error" : "Warning",
               message: i.message,
               location: i.location || i.category,
+              category: i.category,
+              entityId: i.entityId,
+              isAcknowledged: acknowledgedWarnings?.has(i.message + (i.location || i.category))
             })) || []}
             isProcessing={isVerifying}
+            onNavigate={(issue: any) => {
+              if (issue.location && study.forms[issue.location]) {
+                const iframe = document.querySelector('iframe');
+                if (iframe?.contentWindow) {
+                  iframe.contentWindow.location.hash = `#form-${issue.location}`;
+                }
+                // Also navigate in Excel
+                navigateToSource(issue.location, 0);
+              }
+            }}
+            renderActions={(issue: any) => (
+              <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
+                {issue.level === "Warning" && onAcknowledge && (
+                  <Button
+                    size="small"
+                    icon={<CheckmarkCircleRegular />}
+                    onClick={() => onAcknowledge(issue.message + issue.location)}
+                  >
+                    {issue.isAcknowledged ? "Unacknowledge" : "Acknowledge"}
+                  </Button>
+                )}
+                {issue.location && (
+                   <Button
+                    size="small"
+                    icon={<EyeRegular />}
+                    onClick={() => {
+                      const iframe = document.querySelector('iframe');
+                      if (iframe?.contentWindow) {
+                        iframe.contentWindow.location.hash = `#form-${issue.location}`;
+                      }
+                      navigateToSource(issue.location, 0);
+                    }}
+                  >
+                    View Source
+                  </Button>
+                )}
+              </div>
+            )}
           />
         </div>
       </div>
