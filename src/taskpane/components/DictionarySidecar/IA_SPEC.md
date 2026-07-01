@@ -38,7 +38,7 @@ graph TD
 *   **Content:** Unified search bar with "Global Search" toggle.
 *   **Behavior:**
     *   Auto-suggest based on field name in Zone 1.
-    *   Supports CDISC OIDs, aliases, and decoded text.
+    *   Supports CDISC OIDs, synonyms, and decoded text.
 
 ### Zone 3: Ranked Result List
 *   **Purpose:** Provides a prioritized list of potential matches.

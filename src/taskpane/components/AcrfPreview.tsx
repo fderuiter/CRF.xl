@@ -13,7 +13,8 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import { ArrowDownloadRegular, ArrowClockwiseRegular, CheckmarkCircleRegular, EyeRegular } from "@fluentui/react-icons";
-import { StudyDesign, AcrfVerificationResult, navigateToSource } from "../core";
+import { StudyDesign, AcrfVerificationResult } from "../core/types";
+import { navigateToSource } from "../core";
 import { renderToHtml } from "../core/services/acrf-renderer";
 import { exportToPdf } from "../core/services/pdf-export-adapter";
 import { AnnotatedCrfPipeline } from "../core/generators/annotated-crf-pipeline";

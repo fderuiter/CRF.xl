@@ -4,7 +4,7 @@
 /* eslint-disable no-undef */
 import { z } from "zod";
 import { StudyDesign, isCrfItem } from "../types";
-import { ValidationIssue } from "../parser/validator";
+import { ValidationIssue } from "../types";
 
 export const RECOVERY_STORAGE_KEY = "crf-xl-recovery-snapshot-v1";
 export const RECOVERY_SNAPSHOT_TTL_MS = 7 * 24 * 60 * 60 * 1000;

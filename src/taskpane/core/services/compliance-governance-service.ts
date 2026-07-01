@@ -7,12 +7,7 @@ import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/ms
 import { Client } from "@microsoft/microsoft-graph-client";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { applyThemeToHeader } from "../factory/sheet-factory";
-
-export interface AuditJustification {
-  reason: string;
-  userId: string;
-  timestamp: string;
-}
+import { AuditJustification } from "../types";
 
 export interface EnvironmentComplianceStatus {
   isCloudHosted: boolean;

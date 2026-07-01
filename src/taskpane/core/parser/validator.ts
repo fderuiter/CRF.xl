@@ -1,19 +1,11 @@
 /**
  * @issue #53, #54, #55
  */
-import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem } from "../types/index";
+import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem, ValidationIssue } from "../types/index";
 import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
 import { detectAnnotationConflicts } from "../services/annotation-service";
 import { parseNumber } from "../utils/locale-utils";
-
-export interface ValidationIssue {
-  level: "Error" | "Warning";
-  message: string;
-  location?: string;
-  rowIndex?: number;
-  sheetName?: string; // Tracks which tab the error lives on
-}
 
 export interface CrossFormDependency {
   id: string;

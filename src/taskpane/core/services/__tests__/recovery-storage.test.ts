@@ -12,7 +12,7 @@ import {
   summarizeStudyDesign,
 } from "../recovery-storage";
 import { StudyDesign } from "../../types";
-import { ValidationIssue } from "../../parser/validator";
+import { ValidationIssue } from "../../types";
 
 function createMockStorage(initialData: Record<string, string> = {}) {
   const state = new Map<string, string>(Object.entries(initialData));

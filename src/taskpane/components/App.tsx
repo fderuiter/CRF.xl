@@ -89,7 +89,8 @@ import { MatrixView } from "./views/MatrixView";
 import { AuthoringView } from "./views/AuthoringView";
 import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
-import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
+import { AuditOrchestratorModal } from "./AuditOrchestratorModal";
+import { AuditJustification } from "../core";
 import { OnboardingTour } from "./OnboardingTour";
 import { ReviewView } from "./views/ReviewView";
 

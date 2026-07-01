@@ -371,151 +371,151 @@ export const TARGET_FIELDS: TargetFieldDescriptor[] = [
 // ---------------------------------------------------------------------------
 
 /**
- * Maps normalised header aliases to target fields and an initial confidence.
+ * Maps normalised header synonyms to target fields and an initial confidence.
  * Exact canonical matches score "high"; common synonyms score "medium".
  */
 const HEADER_ALIAS_MAP: Array<{
-  aliases: RegExp[];
+  synonyms: RegExp[];
   field: TargetField;
   confidence: ConfidenceLevel;
 }> = [
   // ---- variable_name ----
   {
-    aliases: [/^variable\s*name$/i, /^item\s*oid$/i, /^field\s*name$/i, /^var$/i],
+    synonyms: [/^variable\s*name$/i, /^item\s*oid$/i, /^field\s*name$/i, /^var$/i],
     field: "variable_name",
     confidence: "high",
   },
   {
-    aliases: [/^question\s*id$/i, /^item\s*id$/i, /^name$/i, /^id$/i],
+    synonyms: [/^question\s*id$/i, /^item\s*id$/i, /^name$/i, /^id$/i],
     field: "variable_name",
     confidence: "medium",
   },
   // ---- label ----
   {
-    aliases: [/^label$/i, /^question\s*[\\/]?\s*text$/i, /^prompt$/i],
+    synonyms: [/^label$/i, /^question\s*[\\/]?\s*text$/i, /^prompt$/i],
     field: "label",
     confidence: "high",
   },
   {
-    aliases: [/^description$/i, /^display\s*text$/i, /^text$/i, /^question$/i],
+    synonyms: [/^description$/i, /^display\s*text$/i, /^text$/i, /^question$/i],
     field: "label",
     confidence: "medium",
   },
   // ---- variable_type ----
   {
-    aliases: [/^variable\s*type$/i, /^data\s*type$/i, /^type$/i],
+    synonyms: [/^variable\s*type$/i, /^data\s*type$/i, /^type$/i],
     field: "variable_type",
     confidence: "high",
   },
   {
-    aliases: [/^field\s*type$/i, /^item\s*type$/i, /^format$/i],
+    synonyms: [/^field\s*type$/i, /^item\s*type$/i, /^format$/i],
     field: "variable_type",
     confidence: "medium",
   },
   // ---- required ----
   {
-    aliases: [/^required$/i, /^mandatory$/i, /^obligatory$/i],
+    synonyms: [/^required$/i, /^mandatory$/i, /^obligatory$/i],
     field: "required",
     confidence: "high",
   },
   // ---- length ----
   {
-    aliases: [/^length$/i, /^max\s*length$/i, /^maxlength$/i],
+    synonyms: [/^length$/i, /^max\s*length$/i, /^maxlength$/i],
     field: "length",
     confidence: "high",
   },
   // ---- significant_digits ----
   {
-    aliases: [/^significant\s*digits$/i, /^precision$/i, /^decimals?$/i],
+    synonyms: [/^significant\s*digits$/i, /^precision$/i, /^decimals?$/i],
     field: "significant_digits",
     confidence: "high",
   },
   // ---- minimum ----
   {
-    aliases: [/^min(?:imum)?$/i, /^range\s*low$/i, /^lower\s*limit$/i],
+    synonyms: [/^min(?:imum)?$/i, /^range\s*low$/i, /^lower\s*limit$/i],
     field: "minimum",
     confidence: "high",
   },
   // ---- maximum ----
   {
-    aliases: [/^max(?:imum)?$/i, /^range\s*high$/i, /^upper\s*limit$/i],
+    synonyms: [/^max(?:imum)?$/i, /^range\s*high$/i, /^upper\s*limit$/i],
     field: "maximum",
     confidence: "high",
   },
   // ---- show_if ----
   {
-    aliases: [/^show\s*if$/i, /^display\s*condition$/i, /^condition$/i, /^skip\s*pattern$/i],
+    synonyms: [/^show\s*if$/i, /^display\s*condition$/i, /^condition$/i, /^skip\s*pattern$/i],
     field: "show_if",
     confidence: "high",
   },
   // ---- codelist_id ----
   {
-    aliases: [/^codelist\s*id$/i, /^codelist$/i, /^dict(?:ionary)?$/i],
+    synonyms: [/^codelist\s*id$/i, /^codelist$/i, /^dict(?:ionary)?$/i],
     field: "codelist_id",
     confidence: "high",
   },
   {
-    aliases: [/^response\s*list$/i, /^value\s*list$/i],
+    synonyms: [/^response\s*list$/i, /^value\s*list$/i],
     field: "codelist_id",
     confidence: "medium",
   },
   // ---- origin ----
   {
-    aliases: [/^origin$/i, /^data\s*origin$/i, /^source$/i],
+    synonyms: [/^origin$/i, /^data\s*origin$/i, /^source$/i],
     field: "origin",
     confidence: "high",
   },
   // ---- method_oid ----
   {
-    aliases: [/^method\s*oid$/i, /^method$/i, /^derivation$/i],
+    synonyms: [/^method\s*oid$/i, /^method$/i, /^derivation$/i],
     field: "method_oid",
     confidence: "high",
   },
   // ---- sdtm_domain ----
   {
-    aliases: [/^sdtm\s*domain$/i, /^domain$/i],
+    synonyms: [/^sdtm\s*domain$/i, /^domain$/i],
     field: "sdtm_domain",
     confidence: "high",
   },
   // ---- sdtm_variable ----
   {
-    aliases: [/^sdtm\s*variable$/i, /^sdtm\s*var$/i, /^submission\s*variable$/i],
+    synonyms: [/^sdtm\s*variable$/i, /^sdtm\s*var$/i, /^submission\s*variable$/i],
     field: "sdtm_variable",
     confidence: "high",
   },
   // ---- comment ----
   {
-    aliases: [/^comment(?:s)?$/i, /^note(?:s)?$/i, /^annotation(?:s)?$/i],
+    synonyms: [/^comment(?:s)?$/i, /^note(?:s)?$/i, /^annotation(?:s)?$/i],
     field: "comment",
     confidence: "high",
   },
   // ---- form_oid ----
   {
-    aliases: [/^form\s*oid$/i, /^form\s*id$/i],
+    synonyms: [/^form\s*oid$/i, /^form\s*id$/i],
     field: "form_oid",
     confidence: "high",
   },
   // ---- form_name ----
   {
-    aliases: [/^form\s*name$/i, /^form(?:\s*title)?$/i],
+    synonyms: [/^form\s*name$/i, /^form(?:\s*title)?$/i],
     field: "form_name",
     confidence: "high",
   },
   // ---- repeating ----
   {
-    aliases: [/^repeating$/i, /^repeat(?:able)?$/i, /^is\s*repeating$/i],
+    synonyms: [/^repeating$/i, /^repeat(?:able)?$/i, /^is\s*repeating$/i],
     field: "repeating",
     confidence: "high",
   },
   // ---- page_layout ----
   {
-    aliases: [/^page\s*layout$/i, /^layout$/i, /^orientation$/i],
+    synonyms: [/^page\s*layout$/i, /^layout$/i, /^orientation$/i],
     field: "page_layout",
     confidence: "high",
   },
   // ---- cl_codelist_id ----
   {
-    aliases: [
+    synonyms: [
       /^cl(?:_|\s*)codelist(?:_|\s*)id$/i,
       /^codelist(?:\s*)identifier$/i,
       /^codelist\s*id$/i,
@@ -525,19 +525,19 @@ const HEADER_ALIAS_MAP: Array<{
   },
   // ---- cl_codelist_name ----
   {
-    aliases: [/^codelist\s*name$/i, /^cl(?:_|\s*)name$/i],
+    synonyms: [/^codelist\s*name$/i, /^cl(?:_|\s*)name$/i],
     field: "cl_codelist_name",
     confidence: "high",
   },
   // ---- cl_coded_value ----
   {
-    aliases: [/^coded\s*value$/i, /^code(?:\s*value)?$/i, /^value$/i, /^submission\s*value$/i],
+    synonyms: [/^coded\s*value$/i, /^code(?:\s*value)?$/i, /^value$/i, /^submission\s*value$/i],
     field: "cl_coded_value",
     confidence: "high",
   },
   // ---- cl_decode ----
   {
-    aliases: [/^decode(?:d)?(?:\s*text)?$/i, /^display\s*value$/i, /^term$/i, /^meaning$/i],
+    synonyms: [/^decode(?:d)?(?:\s*text)?$/i, /^display\s*value$/i, /^term$/i, /^meaning$/i],
     field: "cl_decode",
     confidence: "high",
   },
@@ -556,7 +556,7 @@ function resolveHeaderToFields(
   const trimmed = headerName.trim();
   const results: Array<{ field: TargetField; confidence: ConfidenceLevel }> = [];
   for (const entry of HEADER_ALIAS_MAP) {
-    for (const alias of entry.aliases) {
+    for (const alias of entry.synonyms) {
       if (alias.test(trimmed)) {
         results.push({ field: entry.field, confidence: entry.confidence });
         break; // only the first alias that matches within this entry

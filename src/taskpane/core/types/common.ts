@@ -10,9 +10,10 @@
 
 export type TranslatedText = Record<string, string>; // e.g., { "en": "Weight", "es": "Peso" }
 
-export interface SystemAlias {
-  context: string; // e.g., 'IRT', 'ePRO', 'CentralLab'
-  variableName: string; // How the external system refers to this field
+export interface AuditJustification {
+  reason: string;
+  userId: string;
+  timestamp: string;
 }
 
 export interface RolePermissions {
