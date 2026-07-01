@@ -54,7 +54,40 @@ export function verifyAnnotatedCrf(
     }
   });
 
-  // 3. Annotation Coverage Checks
+  // 3. Structural Consistency (Orphans)
+  doc.forms.forEach((docForm) => {
+    totalChecks++;
+    if (!studyFormOids.includes(docForm.formOid)) {
+      issues.push({
+        severity: "error",
+        category: "Structure",
+        message: `Form '${docForm.formOid}' exists in document but is missing from study design (Orphan).`,
+        entityId: docForm.formOid,
+      });
+    }
+
+    docForm.itemGroups.forEach((docGroup) => {
+      docGroup.items.forEach((docItem) => {
+        totalChecks++;
+        const studyForm = study.forms[docForm.formOid];
+        const studyItem = studyForm?.itemGroups
+          .flatMap((g) => g.items)
+          .find((i) => i.itemOid === docItem.itemOid);
+
+        if (!studyItem) {
+          issues.push({
+            severity: "error",
+            category: "Structure",
+            message: `Item '${docItem.itemOid}' in form '${docForm.formOid}' exists in document but is missing from study design (Orphan).`,
+            entityId: docItem.itemOid,
+            location: docForm.formOid,
+          });
+        }
+      });
+    });
+  });
+
+  // 4. Annotation Coverage and Content Consistency Checks
   for (const [formOid, studyForm] of Object.entries(study.forms)) {
     const docForm = doc.forms.find((f) => f.formOid === formOid);
     if (!docForm) continue;
@@ -79,10 +112,36 @@ export function verifyAnnotatedCrf(
           continue;
         }
 
-        // Check if SDTM mapping exists in source but not in doc
+        // Check for duplicate annotations of the same type
+        const typeCounts: Record<string, number> = {};
+        docItem.annotations.forEach((a) => {
+          typeCounts[a.type] = (typeCounts[a.type] || 0) + 1;
+        });
+
+        Object.entries(typeCounts).forEach(([type, count]) => {
+          totalChecks++;
+          if (count > 1) {
+            issues.push({
+              severity: "warning",
+              category: "Annotation",
+              message: `Duplicate '${type}' annotations found for item '${item.itemOid}'.`,
+              entityId: item.itemOid,
+              location: formOid,
+            });
+          }
+        });
+
+        // Check SDTM mapping and content
         if (item.sdtmMapping) {
-          const hasSdtmAnno = docItem.annotations.some((a) => a.type === "SDTM");
-          if (!hasSdtmAnno) {
+          totalChecks++;
+          const domain = item.sdtmMapping.domain || "N/A";
+          const variable = item.sdtmMapping.variable || "N/A";
+          const expectedContent = `${domain}.${variable}`;
+
+          const sdtmAnnos = docItem.annotations.filter((a) => a.type === "SDTM");
+          const sdtmAnno = sdtmAnnos[0];
+
+          if (!sdtmAnno) {
             issues.push({
               severity: "error",
               category: "Annotation",
@@ -90,17 +149,40 @@ export function verifyAnnotatedCrf(
               entityId: item.itemOid,
               location: formOid,
             });
+          } else if (sdtmAnno.content !== expectedContent) {
+            issues.push({
+              severity: "error",
+              category: "Consistency",
+              message: `SDTM content mismatch for '${item.itemOid}': Expected '${expectedContent}', got '${sdtmAnno.content}'.`,
+              entityId: item.itemOid,
+              location: formOid,
+            });
           }
         }
 
-        // Check if ADaM mapping exists in source but not in doc
+        // Check ADaM mapping and content
         if (item.adamMapping) {
-          const hasAdamAnno = docItem.annotations.some((a) => a.type === "ADaM");
-          if (!hasAdamAnno) {
+          totalChecks++;
+          const dataset = item.adamMapping.dataset || "N/A";
+          const variable = item.adamMapping.variable || "N/A";
+          const expectedContent = `${dataset}.${variable}`;
+
+          const adamAnnos = docItem.annotations.filter((a) => a.type === "ADaM");
+          const adamAnno = adamAnnos[0];
+
+          if (!adamAnno) {
             issues.push({
               severity: "warning",
               category: "Annotation",
               message: `ADaM mapping for '${item.itemOid}' is present in study design but missing in aCRF output.`,
+              entityId: item.itemOid,
+              location: formOid,
+            });
+          } else if (adamAnno.content !== expectedContent) {
+            issues.push({
+              severity: "error",
+              category: "Consistency",
+              message: `ADaM content mismatch for '${item.itemOid}': Expected '${expectedContent}', got '${adamAnno.content}'.`,
               entityId: item.itemOid,
               location: formOid,
             });
