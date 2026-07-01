@@ -13,10 +13,10 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import { ArrowDownloadRegular, ArrowClockwiseRegular } from "@fluentui/react-icons";
-import { StudyDesign, AcrfVerificationResult } from "../core/types";
-import { buildAnnotatedCrfDocument, renderToHtml } from "../core/services/acrf-renderer";
+import { StudyDesign, AcrfVerificationResult, AcrfVerificationIssue } from "../core/types";
+import { renderToHtml } from "../core/services/acrf-renderer";
 import { exportToPdf } from "../core/services/pdf-export-adapter";
-import { verifyAnnotatedCrf } from "../core/validators/acrf-output-validator";
+import { AnnotatedCrfPipeline } from "../core/generators/annotated-crf-pipeline";
 import { ValidationLog } from "./ValidationLog";
 
 const useStyles = makeStyles({
@@ -46,7 +46,9 @@ const useStyles = makeStyles({
     boxShadow: tokens.shadow4,
   },
   sidebar: {
-    width: "300px",
+    width: "30%",
+    minWidth: "250px",
+    maxWidth: "400px",
     borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
     padding: "10px",
     backgroundColor: tokens.colorNeutralBackground1,
@@ -75,29 +77,34 @@ interface AcrfPreviewProps {
   validationIssues?: any[];
 }
 
-export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, validationIssues = [] }) => {
+export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study }) => {
   const styles = useStyles();
   const [html, setHtml] = React.useState<string>("");
   const [isExporting, setIsExporting] = React.useState(false);
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<AcrfVerificationResult | null>(null);
+  const [pdfBlob, setPdfBlob] = React.useState<Blob | null>(null);
 
-  const runVerification = React.useCallback(() => {
+  const runVerification = React.useCallback(async () => {
     setIsVerifying(true);
+    setError(null);
     try {
-      const doc = buildAnnotatedCrfDocument(study, validationIssues);
-      const renderedHtml = renderToHtml(doc);
-      setHtml(renderedHtml);
+      const pipeline = new AnnotatedCrfPipeline();
+      const result = await pipeline.execute();
 
-      const result = verifyAnnotatedCrf(study, doc);
-      setVerification(result);
+      const renderedHtml = renderToHtml(result.document);
+      setHtml(renderedHtml);
+      setVerification(result.verificationResult || null);
+      if (result.blob) {
+        setPdfBlob(result.blob);
+      }
     } catch (e: any) {
-      setError(`Failed to generate preview or verify: ${e.message}`);
+      setError(`Failed to run aCRF pipeline: ${e.message}`);
     } finally {
       setIsVerifying(false);
     }
-  }, [study, validationIssues]);
+  }, []);
 
   React.useEffect(() => {
     runVerification();
@@ -108,7 +115,18 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, validationIssue
     setError(null);
     try {
       const filename = `${study.metadata.protocolId}_AnnotatedCRF_v${study.metadata.version}.pdf`;
-      await exportToPdf(html, filename);
+
+      if (pdfBlob) {
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Fallback to HTML-based export if blob not available
+        await exportToPdf(html, filename);
+      }
     } catch (e: any) {
       setError(`Export failed: ${e.message}`);
     } finally {
@@ -156,7 +174,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, validationIssue
           )}
 
           {verification?.isValid === false && (
-            <MessageBar intent="warning" style={{ marginBottom: "10px" }}>
+            <MessageBar intent="error" style={{ marginBottom: "10px" }}>
               <MessageBarBody>
                 <MessageBarTitle>Blocking Verification Issues</MessageBarTitle>
                 Please resolve the errors in the Diagnostic Log before exporting.
