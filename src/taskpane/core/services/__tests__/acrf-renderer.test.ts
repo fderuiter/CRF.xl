@@ -75,7 +75,7 @@ describe("aCRF Rendering Pipeline", () => {
                   dataset: "ADSL",
                   variable: "TESTVAR",
                 },
-              }
+              },
             ],
           },
         ],
@@ -89,7 +89,7 @@ describe("aCRF Rendering Pipeline", () => {
         target: "DM_BRTHDTC",
         expression: "DM_BRTHDTC > TODAY",
         _sourceRowIndex: 10,
-      }
+      },
     ],
   };
 
@@ -104,14 +104,14 @@ describe("aCRF Rendering Pipeline", () => {
     expect(item.itemOid).toBe("DM_BRTHDTC");
     expect(item.annotations).toHaveLength(2); // SDTM + Rule
 
-    const sdtmAnno = item.annotations.find(a => a.label === "SDTM");
+    const sdtmAnno = item.annotations.find((a) => a.label === "SDTM");
     expect(sdtmAnno?.content).toBe("[DM_BRTHDTC]<br/>Domain: DM | Var: BRTHDTC | NCI: N/A");
 
-    const ruleAnno = item.annotations.find(a => a.label === "Rule");
+    const ruleAnno = item.annotations.find((a) => a.label === "Rule");
     expect(ruleAnno?.content).toBe("RULE_01");
 
     const adamItem = doc.forms[0].itemGroups[0].items[1];
-    const adamAnno = adamItem.annotations.find(a => a.label === "ADaM");
+    const adamAnno = adamItem.annotations.find((a) => a.label === "ADaM");
     expect(adamAnno?.content).toBe("ADSL.TESTVAR");
   });
 

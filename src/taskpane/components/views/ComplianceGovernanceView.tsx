@@ -13,12 +13,9 @@ import {
   Badge,
   MessageBar,
   MessageBarBody,
-  } from "@fluentui/react-components";
+} from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ErrorCircleRegular } from "@fluentui/react-icons";
-import {
-  complianceGovernanceService as service,
-  EnvironmentComplianceStatus,
-} from "../../core";
+import { complianceGovernanceService as service, EnvironmentComplianceStatus } from "../../core";
 import { backgroundValidationEngine } from "../../core";
 
 const useStyles = makeStyles({
@@ -128,10 +125,10 @@ export const ComplianceGovernanceView: React.FC = () => {
       await fetchStatus();
       // Remove Host Environment issue immediately after successful remediation
       backgroundValidationEngine.updateState((prev) => {
-        const filtered = prev.issues.filter(i => i.location !== "Host Environment");
+        const filtered = prev.issues.filter((i) => i.location !== "Host Environment");
         return {
           issues: filtered,
-          status: filtered.length === 0 ? "Ready" : "Issues detected"
+          status: filtered.length === 0 ? "Ready" : "Issues detected",
         };
       });
     } catch (error) {
@@ -205,11 +202,15 @@ export const ComplianceGovernanceView: React.FC = () => {
             </div>
             <div className={styles.detailRow}>
               <Text>GovernanceSummary Column</Text>
-              <Text weight="semibold">{status.hasGovernanceSummaryColumn ? "Present" : "Missing"}</Text>
+              <Text weight="semibold">
+                {status.hasGovernanceSummaryColumn ? "Present" : "Missing"}
+              </Text>
             </div>
             <div className={styles.detailRow}>
               <Text>JustificationCount Column</Text>
-              <Text weight="semibold">{status.hasJustificationCountColumn ? "Present" : "Missing"}</Text>
+              <Text weight="semibold">
+                {status.hasJustificationCountColumn ? "Present" : "Missing"}
+              </Text>
             </div>
 
             {!status.isCompliant && (

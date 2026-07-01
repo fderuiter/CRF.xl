@@ -61,7 +61,12 @@ ctx.onmessage = async (event: MessageEvent) => {
       if (isCancelled) {
         ctx.postMessage({ type: "CANCELLED" });
       } else {
-        const payload = error instanceof DiagnosticError ? error.toJSON() : (error instanceof Error ? error.message : String(error));
+        const payload =
+          error instanceof DiagnosticError
+            ? error.toJSON()
+            : error instanceof Error
+              ? error.message
+              : String(error);
         ctx.postMessage({ type: "ERROR", payload });
       }
     } finally {

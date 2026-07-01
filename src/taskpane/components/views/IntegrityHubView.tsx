@@ -155,8 +155,8 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
         {isSignedOff ? (
           <MessageBar intent="success">
             <MessageBarBody>
-              Study design locked and signed off at{" "}
-              {formatDate(signOffTimestamp!)}. Ready for export.
+              Study design locked and signed off at {formatDate(signOffTimestamp!)}. Ready for
+              export.
             </MessageBarBody>
           </MessageBar>
         ) : (
@@ -175,11 +175,7 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
           >
             Sign-off
           </Button>
-          <Button
-            appearance="primary"
-            onClick={onExport}
-            disabled={!isSignedOff}
-          >
+          <Button appearance="primary" onClick={onExport} disabled={!isSignedOff}>
             Export
           </Button>
         </div>

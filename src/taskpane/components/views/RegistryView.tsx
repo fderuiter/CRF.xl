@@ -103,12 +103,17 @@ export const RegistryView: React.FC<RegistryProps> = ({
   const baselineFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
   const [historyItems, setHistoryItems] = React.useState<any[]>([]);
-  
+
   const handleFreeze = async () => {
     if (!study) return;
     const vaultService = new VaultService();
     const studyHash = CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex);
-    await vaultService.freezeVersion(study.metadata.protocolId || "UNKNOWN", study.metadata.version || "1.0", studyHash, issues || []);
+    await vaultService.freezeVersion(
+      study.metadata.protocolId || "UNKNOWN",
+      study.metadata.version || "1.0",
+      studyHash,
+      issues || []
+    );
     alert("Version frozen in Vault!");
   };
 
@@ -249,12 +254,14 @@ export const RegistryView: React.FC<RegistryProps> = ({
           <DialogBody>
             <DialogTitle>Vault History</DialogTitle>
             <DialogContent>
-              {historyItems.length === 0 ? <p>No history found.</p> : (
+              {historyItems.length === 0 ? (
+                <p>No history found.</p>
+              ) : (
                 <ul>
                   {historyItems.map((h, i) => (
                     <li key={i}>
                       <strong>Version {h.version}</strong> - {formatDate(h.timestamp)}
-                      <br/>
+                      <br />
                       Hash: {h.studyHash.substring(0, 8)}...
                     </li>
                   ))}
@@ -262,7 +269,9 @@ export const RegistryView: React.FC<RegistryProps> = ({
               )}
             </DialogContent>
             <DialogActions>
-              <Button appearance="primary" onClick={() => setShowHistory(false)}>Close</Button>
+              <Button appearance="primary" onClick={() => setShowHistory(false)}>
+                Close
+              </Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>

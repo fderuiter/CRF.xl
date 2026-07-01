@@ -56,51 +56,65 @@ export interface RecoverySnapshot {
   justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
 }
 
-const StudyDesignSummarySchema = z.object({
-  formCount: z.number(),
-  variableCount: z.number(),
-  visitCount: z.number(),
-}).strict();
+const StudyDesignSummarySchema = z
+  .object({
+    formCount: z.number(),
+    variableCount: z.number(),
+    visitCount: z.number(),
+  })
+  .strict();
 
-const ValidationSummarySchema = z.object({
-  totalIssues: z.number(),
-  errorCount: z.number(),
-  warningCount: z.number(),
-  analyzedAt: z.number(),
-}).strict();
+const ValidationSummarySchema = z
+  .object({
+    totalIssues: z.number(),
+    errorCount: z.number(),
+    warningCount: z.number(),
+    analyzedAt: z.number(),
+  })
+  .strict();
 
-const RecoveryIssueSchema = z.object({
-  level: z.enum(["Error", "Warning"]),
-  message: z.string(),
-  location: z.string().optional(),
-  rowIndex: z.number().optional(),
-  sheetName: z.string().optional(),
-}).strict();
+const RecoveryIssueSchema = z
+  .object({
+    level: z.enum(["Error", "Warning"]),
+    message: z.string(),
+    location: z.string().optional(),
+    rowIndex: z.number().optional(),
+    sheetName: z.string().optional(),
+  })
+  .strict();
 
-const WorkbookFingerprintSchema = z.object({
-  sheetCount: z.number(),
-  sheetNames: z.array(z.string()),
-}).strict();
+const WorkbookFingerprintSchema = z
+  .object({
+    sheetCount: z.number(),
+    sheetNames: z.array(z.string()),
+  })
+  .strict();
 
-const JustificationSchema = z.object({
-  reason: z.string(),
-  userId: z.string(),
-  timestamp: z.string(),
-}).strict();
+const JustificationSchema = z
+  .object({
+    reason: z.string(),
+    userId: z.string(),
+    timestamp: z.string(),
+  })
+  .strict();
 
-export const RecoverySnapshotSchema = z.object({
-  appVersion: z.string(),
-  savedAt: z.number(),
-  validationSummary: ValidationSummarySchema,
-  studySummary: StudyDesignSummarySchema,
-  uiState: z.object({
-    openForm: z.string().optional(),
-    currentFilter: z.string().optional(),
-  }).strict(),
-  issues: z.array(RecoveryIssueSchema),
-  workbookFingerprint: WorkbookFingerprintSchema.optional(),
-  justifications: z.record(z.string(), JustificationSchema).optional(),
-}).strict();
+export const RecoverySnapshotSchema = z
+  .object({
+    appVersion: z.string(),
+    savedAt: z.number(),
+    validationSummary: ValidationSummarySchema,
+    studySummary: StudyDesignSummarySchema,
+    uiState: z
+      .object({
+        openForm: z.string().optional(),
+        currentFilter: z.string().optional(),
+      })
+      .strict(),
+    issues: z.array(RecoveryIssueSchema),
+    workbookFingerprint: WorkbookFingerprintSchema.optional(),
+    justifications: z.record(z.string(), JustificationSchema).optional(),
+  })
+  .strict();
 
 type PersistResult =
   | { saved: true }
@@ -158,9 +172,7 @@ export function summarizeValidation(
 
 function sanitizeMessage(message: string): string {
   if (!message) return message;
-  return message
-    .replace(/'[^']*'/g, "'[REDACTED]'")
-    .replace(/"[^"]*"/g, '"[REDACTED]"');
+  return message.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
 }
 
 export function toRecoveryIssues(issues: ValidationIssue[]): RecoveryIssue[] {

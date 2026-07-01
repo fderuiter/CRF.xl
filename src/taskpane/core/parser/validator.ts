@@ -1,7 +1,14 @@
 /**
  * @issue #53, #54, #55
  */
-import { StudyDesign, RuleType, CrfItem, DataOrigin, isCrfItem, ValidationIssue } from "../types/index";
+import {
+  StudyDesign,
+  RuleType,
+  CrfItem,
+  DataOrigin,
+  isCrfItem,
+  ValidationIssue,
+} from "../types/index";
 import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
 import { detectAnnotationConflicts } from "../services/annotation-service";

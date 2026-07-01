@@ -1,11 +1,7 @@
 /**
  * @issue #84
  */
-import {
-  detectConflicts,
-  getRepairPolicy,
-  RepairConfidence
-} from "../annotation-validator";
+import { detectConflicts, getRepairPolicy, RepairConfidence } from "../annotation-validator";
 import { Annotation, AnnotationType, AnnotationTargetType } from "../../types";
 
 describe("AnnotationValidator", () => {
@@ -16,11 +12,11 @@ describe("AnnotationValidator", () => {
     anchor: {
       address,
       sheetName: "Sheet1",
-      logicalId: "VAR1"
+      logicalId: "VAR1",
     },
     content: "Test Content",
     timestamp: new Date().toISOString(),
-    version: 1
+    version: 1,
   });
 
   describe("detectConflicts", () => {
@@ -46,19 +42,19 @@ describe("AnnotationValidator", () => {
     });
 
     it("should not detect conflict when annotations are on different addresses", () => {
-        const existing = [mockAnnotation("1", AnnotationType.SDTM, "A1")];
-        const candidate = mockAnnotation("2", AnnotationType.ADAM, "B2");
+      const existing = [mockAnnotation("1", AnnotationType.SDTM, "A1")];
+      const candidate = mockAnnotation("2", AnnotationType.ADAM, "B2");
 
-        const issues = detectConflicts(existing, candidate);
-        expect(issues.length).toBe(0);
+      const issues = detectConflicts(existing, candidate);
+      expect(issues.length).toBe(0);
     });
 
     it("should not detect conflict when updating the same annotation", () => {
-        const existing = [mockAnnotation("1", AnnotationType.SDTM, "A1")];
-        const candidate = mockAnnotation("1", AnnotationType.SDTM, "A1");
+      const existing = [mockAnnotation("1", AnnotationType.SDTM, "A1")];
+      const candidate = mockAnnotation("1", AnnotationType.SDTM, "A1");
 
-        const issues = detectConflicts(existing, candidate);
-        expect(issues.length).toBe(0);
+      const issues = detectConflicts(existing, candidate);
+      expect(issues.length).toBe(0);
     });
   });
 
@@ -67,7 +63,7 @@ describe("AnnotationValidator", () => {
       const policy = getRepairPolicy({
         category: "Orphaned",
         message: "Test",
-        confidence: RepairConfidence.High
+        confidence: RepairConfidence.High,
       });
       expect(policy.action).toBe("AutoHeal");
     });
@@ -76,7 +72,7 @@ describe("AnnotationValidator", () => {
       const policy = getRepairPolicy({
         category: "MergedCell",
         message: "Test",
-        confidence: RepairConfidence.Medium
+        confidence: RepairConfidence.Medium,
       });
       expect(policy.action).toBe("Warn");
     });
@@ -85,7 +81,7 @@ describe("AnnotationValidator", () => {
       const policy = getRepairPolicy({
         category: "ProtectedRange",
         message: "Test",
-        confidence: RepairConfidence.Low
+        confidence: RepairConfidence.Low,
       });
       expect(policy.action).toBe("Block");
     });

@@ -4,7 +4,6 @@
 /* eslint-disable no-undef */
 import {
   ImageRun,
-
   Document,
   Packer,
   Paragraph,
@@ -102,10 +101,10 @@ export async function buildDocxDocument(
       default: {
         document: {
           run: {
-            language: { value: study.metadata.defaultLanguage || "en-US" }
-          }
-        }
-      }
+            language: { value: study.metadata.defaultLanguage || "en-US" },
+          },
+        },
+      },
     },
     title: `${study.metadata.studyName} - Paper CRF`,
     sections,
@@ -179,11 +178,7 @@ async function renderFormContent(
 
     // Logic check: Repeating Groups (Logs) are rendered as Tables
     if (group.repeating || group.groupLayout === GroupLayout.MATRIX) {
-      const table = renderRepeatingTable(
-        group,
-        study.metadata.defaultLanguage,
-        exportOptions
-      );
+      const table = renderRepeatingTable(group, study.metadata.defaultLanguage, exportOptions);
       if (table) {
         children.push(table);
       }
@@ -191,11 +186,7 @@ async function renderFormContent(
       // Standard vertical layout
       for (const item of group.items) {
         children.push(
-          ...(await renderFormElement(
-            item as CrfItem | CrfDisplayBlock,
-            study,
-            exportOptions
-          ))
+          ...(await renderFormElement(item as CrfItem | CrfDisplayBlock, study, exportOptions))
         );
       }
     }

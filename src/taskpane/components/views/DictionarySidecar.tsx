@@ -20,16 +20,14 @@ import {
   Tooltip,
 } from "@fluentui/react-components";
 import { AccessibleWrapper } from "../ui/DesignSystem";
-import { AddRegular, ArrowLeftRegular, ArrowDownloadRegular, InfoRegular } from "@fluentui/react-icons";
 import {
-  fetchDictionaries,
-  saveDictionary,
-  CodelistGroup,
-  CodelistItem,
-} from "../../core";
-import {
-  TerminologySearchResult,
-} from "../../core";
+  AddRegular,
+  ArrowLeftRegular,
+  ArrowDownloadRegular,
+  InfoRegular,
+} from "@fluentui/react-icons";
+import { fetchDictionaries, saveDictionary, CodelistGroup, CodelistItem } from "../../core";
+import { TerminologySearchResult } from "../../core";
 import { TerminologySearchService } from "../../core";
 import { bindingService, SelectionContext } from "../../core";
 import { highlightLocaleColumns } from "../../core";
@@ -334,11 +332,15 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const [searchResults, setSearchResults] = useState<TerminologySearchResult[]>([]);
   const [standardResults, setStandardResults] = useState<TerminologySearchResult[]>([]);
   const [selectedCodelist, setSelectedCodelist] = useState<CodelistGroup | null>(null);
-  const [selection, setSelection] = useState<SelectionContext | null>(bindingService.getCurrentContext());
+  const [selection, setSelection] = useState<SelectionContext | null>(
+    bindingService.getCurrentContext()
+  );
 
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
-  const [newItems, setNewItems] = useState([{ codedValue: "", decodedText: { [defaultLanguage]: "" } }]);
+  const [newItems, setNewItems] = useState([
+    { codedValue: "", decodedText: { [defaultLanguage]: "" } },
+  ]);
 
   // ── Import view state ──────────────────────────────────────────────────────
   const [importPackages, setImportPackages] = useState<CdiscCtPackage[]>([]);
@@ -519,52 +521,57 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         return;
       }
 
-    const codelists = codelistsResult.data;
-    const termsByCodelistOid: Record<string, CdiscCtTerm[]> = {};
-    
-    setImportProgress({ stage: "Fetching terms...", completed: 0, total: codelists.length });
-    
-    // Fetch terms in batches to avoid overwhelming the network
-    const BATCH_SIZE = 10;
-    for (let i = 0; i < codelists.length; i += BATCH_SIZE) {
-      const batch = codelists.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        batch.map(async (codelist) => {
-          const termsResult = await cdiscApi.listCodelistTerms(codelist.codelistOid, selectedPackage.packageOid);
-          if (termsResult.ok) {
-            termsByCodelistOid[codelist.codelistOid] = termsResult.data;
-          }
-        })
-      );
-      setImportProgress({ stage: "Fetching terms...", completed: Math.min(i + BATCH_SIZE, codelists.length), total: codelists.length });
-    }
+      const codelists = codelistsResult.data;
+      const termsByCodelistOid: Record<string, CdiscCtTerm[]> = {};
 
-    setImportProgress({ stage: "Validating & Planning...", completed: 1, total: 1 });
+      setImportProgress({ stage: "Fetching terms...", completed: 0, total: codelists.length });
 
-    const mappingInput = {
-      package: selectedPackage,
-      codelists,
-      termsByCodelistOid,
-    };
+      // Fetch terms in batches to avoid overwhelming the network
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < codelists.length; i += BATCH_SIZE) {
+        const batch = codelists.slice(i, i + BATCH_SIZE);
+        await Promise.all(
+          batch.map(async (codelist) => {
+            const termsResult = await cdiscApi.listCodelistTerms(
+              codelist.codelistOid,
+              selectedPackage.packageOid
+            );
+            if (termsResult.ok) {
+              termsByCodelistOid[codelist.codelistOid] = termsResult.data;
+            }
+          })
+        );
+        setImportProgress({
+          stage: "Fetching terms...",
+          completed: Math.min(i + BATCH_SIZE, codelists.length),
+          total: codelists.length,
+        });
+      }
 
-    const mappingResult = mapCdiscApiResponseToCrfCodelists(mappingInput);
-    if (!mappingResult.ok) {
-      const failure = mappingResult as CdiscCtMappingFailure;
-      setImportParseError(
-        `Mapping error (${failure.error.code}): ${failure.error.message}`
-      );
-      setImportProgress(null);
-      return;
-    }
+      setImportProgress({ stage: "Validating & Planning...", completed: 1, total: 1 });
 
-    let existingRows;
-    try {
-      existingRows = await readExistingCodelistRows();
-    } catch (err) {
-      setImportParseError(err instanceof Error ? err.message : String(err));
-      setImportProgress(null);
-      return;
-    }
+      const mappingInput = {
+        package: selectedPackage,
+        codelists,
+        termsByCodelistOid,
+      };
+
+      const mappingResult = mapCdiscApiResponseToCrfCodelists(mappingInput);
+      if (!mappingResult.ok) {
+        const failure = mappingResult as CdiscCtMappingFailure;
+        setImportParseError(`Mapping error (${failure.error.code}): ${failure.error.message}`);
+        setImportProgress(null);
+        return;
+      }
+
+      let existingRows;
+      try {
+        existingRows = await readExistingCodelistRows();
+      } catch (err) {
+        setImportParseError(err instanceof Error ? err.message : String(err));
+        setImportProgress(null);
+        return;
+      }
 
       const plan = buildCtImportPlan(existingRows, mappingResult.rows);
       // Default: resolve all conflicts as "skip" (safe default)
@@ -637,7 +644,9 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      const isInput = (e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA";
+      const isInput =
+        (e.target as HTMLElement).tagName === "INPUT" ||
+        (e.target as HTMLElement).tagName === "TEXTAREA";
 
       if (view === "browse" || view === "searching") {
         const items = view === "searching" ? searchResults : dictionaries;
@@ -651,7 +660,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
           if (activeResultIndex >= 0 && activeResultIndex < items.length) {
             e.preventDefault();
             const item = items[activeResultIndex];
-            const original = "id" in item ? item : dictionaries.find(d => d.id === (item as TerminologySearchResult).id);
+            const original =
+              "id" in item
+                ? item
+                : dictionaries.find((d) => d.id === (item as TerminologySearchResult).id);
             if (original) {
               if (e.altKey) {
                 handleUseDictionary(original.id);
@@ -672,7 +684,15 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         }
       }
     },
-    [view, searchResults, dictionaries, activeResultIndex, selectedCodelist, handleUseDictionary, search]
+    [
+      view,
+      searchResults,
+      dictionaries,
+      activeResultIndex,
+      selectedCodelist,
+      handleUseDictionary,
+      search,
+    ]
   );
 
   useEffect(() => {
@@ -706,7 +726,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         metadata: {
           codelistId: dict.id,
           itemCount: dict.items.length,
-          items: dict.items
+          items: dict.items,
         },
       }));
 
@@ -733,7 +753,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             matchReason: "fuzzy_match",
             score: 0.5,
             actions: ["preview"],
-          }
+          },
         ];
         setStandardResults(mockStandard);
       } else {
@@ -754,8 +774,6 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
   const effectiveSelectedLanguage = localLanguage || initialLanguage;
 
-  
-
   return (
     <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Zone 1: Context Header */}
@@ -763,7 +781,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div className={styles.headerBadge}>
             <Badge appearance="tint" color={selection?.isValid ? "success" : "warning"}>
-              {selection?.sheetName || "Excel"} {selection?.isValid ? `> ${selection.fieldName || selection.address}` : "(Selection Invalid)"}
+              {selection?.sheetName || "Excel"}{" "}
+              {selection?.isValid
+                ? `> ${selection.fieldName || selection.address}`
+                : "(Selection Invalid)"}
             </Badge>
           </div>
         </div>
@@ -772,7 +793,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             <span>📚 {selection?.fieldName || "Codelist Library"}</span>
           </Text>
           {selection?.value && (
-            <Badge appearance="outline" color="brand" style={{ color: tokens.colorNeutralForegroundOnBrand, borderColor: tokens.colorNeutralForegroundOnBrand }}>
+            <Badge
+              appearance="outline"
+              color="brand"
+              style={{
+                color: tokens.colorNeutralForegroundOnBrand,
+                borderColor: tokens.colorNeutralForegroundOnBrand,
+              }}
+            >
               Value: {String(selection.value)}
             </Badge>
           )}
@@ -836,14 +864,18 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
           <>
             {/* Zone 4: Selected Detail Panel */}
             <div className={styles.zone4}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}
+              >
                 <Button
                   appearance="subtle"
                   icon={<ArrowLeftRegular />}
                   onClick={() => setView(search.trim() ? "searching" : "browse")}
                   aria-label="Back to results"
                 />
-                <Text weight="bold" size={400}>{selectedCodelist.id}</Text>
+                <Text weight="bold" size={400}>
+                  {selectedCodelist.id}
+                </Text>
                 {!isEditing && (
                   <Button
                     size="small"
@@ -858,17 +890,39 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
               <div className={styles.formCard}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <Text size={100} weight="semibold" style={{ color: tokens.colorNeutralForeground3 }}>DISPLAY NAME</Text>
+                  <Text
+                    size={100}
+                    weight="semibold"
+                    style={{ color: tokens.colorNeutralForeground3 }}
+                  >
+                    DISPLAY NAME
+                  </Text>
                   <Text>{selectedCodelist.name || "—"}</Text>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <Text size={100} weight="semibold" style={{ color: tokens.colorNeutralForeground3 }}>SOURCE</Text>
+                  <Text
+                    size={100}
+                    weight="semibold"
+                    style={{ color: tokens.colorNeutralForeground3 }}
+                  >
+                    SOURCE
+                  </Text>
                   <Text>Workbook</Text>
                 </div>
               </div>
 
-              <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                style={{
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
                   <Text weight="semibold">Values & Decodes</Text>
                   {!isEditing && supportedLanguages.length > 1 && (
                     <TabList
@@ -885,11 +939,28 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   )}
                 </div>
 
-                <div style={{ flexGrow: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div
+                  style={{
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
                   {(isEditing ? editItems : selectedCodelist.items).map((item, idx) => {
                     if (isEditing) {
                       return (
-                        <div key={idx} className={styles.gridCard} style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px" }}>
+                        <div
+                          key={idx}
+                          className={styles.gridCard}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                            padding: "10px",
+                          }}
+                        >
                           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                             <Input
                               size="small"
@@ -915,7 +986,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             </Button>
                           </div>
                           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                            {supportedLanguages.map(lang => (
+                            {supportedLanguages.map((lang) => (
                               <Input
                                 key={lang}
                                 size="small"
@@ -923,7 +994,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                 value={item.decodedText[lang] || ""}
                                 onChange={(_, d) => {
                                   const next = [...editItems];
-                                  next[idx].decodedText = { ...next[idx].decodedText, [lang]: d.value };
+                                  next[idx].decodedText = {
+                                    ...next[idx].decodedText,
+                                    [lang]: d.value,
+                                  };
                                   setEditItems(next);
                                 }}
                               />
@@ -939,14 +1013,31 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       defaultLanguage
                     );
                     return (
-                      <div key={idx} className={styles.gridCard} style={{ display: "flex", gap: "12px", alignItems: "center", padding: "10px" }}>
-                        <Badge appearance="filled" color="brand" style={{ minWidth: "30px", justifyContent: "center" }}>
+                      <div
+                        key={idx}
+                        className={styles.gridCard}
+                        style={{
+                          display: "flex",
+                          gap: "12px",
+                          alignItems: "center",
+                          padding: "10px",
+                        }}
+                      >
+                        <Badge
+                          appearance="filled"
+                          color="brand"
+                          style={{ minWidth: "30px", justifyContent: "center" }}
+                        >
                           {item.codedValue}
                         </Badge>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           <Text>{translation.content}</Text>
                           {translation.isFallback && (
-                            <Text size={100} italic style={{ color: tokens.colorPaletteMarigoldForeground1 }}>
+                            <Text
+                              size={100}
+                              italic
+                              style={{ color: tokens.colorPaletteMarigoldForeground1 }}
+                            >
                               Showing fallback ({translation.locale})
                             </Text>
                           )}
@@ -959,7 +1050,12 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     <Button
                       appearance="subtle"
                       icon={<AddRegular />}
-                      onClick={() => setEditItems([...editItems, { codedValue: "", decodedText: { [defaultLanguage]: "" } }])}
+                      onClick={() =>
+                        setEditItems([
+                          ...editItems,
+                          { codedValue: "", decodedText: { [defaultLanguage]: "" } },
+                        ])
+                      }
                     >
                       Add Row
                     </Button>
@@ -990,11 +1086,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         <br />
                         <Text size={100}>{globalError.recoveryAction}</Text>
                       </div>
-                      <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => setGlobalError(null)}
-                      >
+                      <Button size="small" appearance="subtle" onClick={() => setGlobalError(null)}>
                         Dismiss
                       </Button>
                     </div>
@@ -1003,8 +1095,21 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               )}
               {isEditing ? (
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <Button appearance="secondary" style={{ flexGrow: 1 }} onClick={() => setIsEditing(false)}>Cancel</Button>
-                  <Button appearance="primary" style={{ flexGrow: 1 }} onClick={handleSaveEdit} disabled={editItems.length === 0 || editItems.some(i => !i.codedValue)}>Save Changes</Button>
+                  <Button
+                    appearance="secondary"
+                    style={{ flexGrow: 1 }}
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    appearance="primary"
+                    style={{ flexGrow: 1 }}
+                    onClick={handleSaveEdit}
+                    disabled={editItems.length === 0 || editItems.some((i) => !i.codedValue)}
+                  >
+                    Save Changes
+                  </Button>
                 </div>
               ) : (
                 <Button
@@ -1048,7 +1153,9 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             {/* Zone 3: Ranked Result List */}
             <div className={styles.zone3}>
               <div className={styles.resultsSummary}>
-                <Text size={100} italic>{resultSummary}</Text>
+                <Text size={100} italic>
+                  {resultSummary}
+                </Text>
                 {isSearching && <Spinner size="tiny" label="Searching..." labelPosition="after" />}
               </div>
 
@@ -1056,7 +1163,13 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {searchResults.length > 0 ? (
                     <>
-                      <Text weight="semibold" size={100} style={{ color: tokens.colorNeutralForeground3 }}>WORKBOOK MATCHES</Text>
+                      <Text
+                        weight="semibold"
+                        size={100}
+                        style={{ color: tokens.colorNeutralForeground3 }}
+                      >
+                        WORKBOOK MATCHES
+                      </Text>
                       {searchResults.map((result, index) => (
                         <AccessibleWrapper
                           key={result.id}
@@ -1078,14 +1191,26 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             }
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{result.id}</Text>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                            }}
+                          >
+                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                              {result.id}
+                            </Text>
                             <Badge size="small" color="brand" appearance="tint">
                               {Math.round(result.score * 100)}%
                             </Badge>
                           </div>
-                          <Text size={100} block style={{ marginBottom: "4px" }}>{result.title}</Text>
-                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>{result.matchReason.replace("_", " ")}</Text>
+                          <Text size={100} block style={{ marginBottom: "4px" }}>
+                            {result.title}
+                          </Text>
+                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
+                            {result.matchReason.replace("_", " ")}
+                          </Text>
                         </AccessibleWrapper>
                       ))}
                     </>
@@ -1113,20 +1238,47 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   {standardResults.length > 0 && (
                     <>
                       <Divider />
-                      <Text weight="semibold" size={100} style={{ color: tokens.colorNeutralForeground3 }}>STANDARD MATCHES (CDISC)</Text>
+                      <Text
+                        weight="semibold"
+                        size={100}
+                        style={{ color: tokens.colorNeutralForeground3 }}
+                      >
+                        STANDARD MATCHES (CDISC)
+                      </Text>
                       {standardResults.map((result) => (
                         <div
                           key={result.id}
                           className={styles.gridCard}
                           style={{ padding: "12px", opacity: 0.8 }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>{result.id}</Text>
-                            <Badge size="small" appearance="tint">Standard</Badge>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                            }}
+                          >
+                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                              {result.id}
+                            </Text>
+                            <Badge size="small" appearance="tint">
+                              Standard
+                            </Badge>
                           </div>
-                          <Text size={100} block style={{ marginBottom: "4px" }}>{result.title}</Text>
-                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>Source: {result.source}</Text>
-                          <Button size="small" appearance="subtle" style={{ marginTop: "4px" }} disabled>Import to Workbook</Button>
+                          <Text size={100} block style={{ marginBottom: "4px" }}>
+                            {result.title}
+                          </Text>
+                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
+                            Source: {result.source}
+                          </Text>
+                          <Button
+                            size="small"
+                            appearance="subtle"
+                            style={{ marginTop: "4px" }}
+                            disabled
+                          >
+                            Import to Workbook
+                          </Button>
                         </div>
                       ))}
                     </>
@@ -1236,11 +1388,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         <br />
                         <Text size={100}>{globalError.recoveryAction}</Text>
                       </div>
-                      <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => setGlobalError(null)}
-                      >
+                      <Button size="small" appearance="subtle" onClick={() => setGlobalError(null)}>
                         Dismiss
                       </Button>
                     </div>
@@ -1285,10 +1433,23 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
             <div className={styles.formCard}>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-                  <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>Codelist ID</label>
-                  <Tooltip content="A unique identifier for the codelist (OID). In CDISC, this often matches the NCI Code or a study-specific alias." relationship="label">
-                    <InfoRegular style={{ fontSize: "12px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}
+                >
+                  <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>
+                    Codelist ID
+                  </label>
+                  <Tooltip
+                    content="A unique identifier for the codelist (OID). In CDISC, this often matches the NCI Code or a study-specific alias."
+                    relationship="label"
+                  >
+                    <InfoRegular
+                      style={{
+                        fontSize: "12px",
+                        cursor: "help",
+                        color: tokens.colorNeutralForeground3,
+                      }}
+                    />
                   </Tooltip>
                 </div>
                 <Input
@@ -1313,7 +1474,17 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               <div>
                 <label className={styles.fieldLabel}>Values &amp; Decodes</label>
                 {newItems.map((item, idx) => (
-                  <div key={idx} style={{ marginBottom: "16px", borderBottom: idx < newItems.length - 1 ? `1px solid ${tokens.colorNeutralStroke2}` : "none", paddingBottom: "8px" }}>
+                  <div
+                    key={idx}
+                    style={{
+                      marginBottom: "16px",
+                      borderBottom:
+                        idx < newItems.length - 1
+                          ? `1px solid ${tokens.colorNeutralStroke2}`
+                          : "none",
+                      paddingBottom: "8px",
+                    }}
+                  >
                     <div className={styles.valueRow} style={{ marginBottom: "8px" }}>
                       <Input
                         placeholder="Value (e.g. 1)"
@@ -1326,19 +1497,43 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         style={{ width: "100%" }}
                       />
                     </div>
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: supportedLanguages.length > 1 ? "repeat(auto-fit, minmax(200px, 1fr))" : "1fr",
-                      gap: "12px"
-                    }}>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          supportedLanguages.length > 1
+                            ? "repeat(auto-fit, minmax(200px, 1fr))"
+                            : "1fr",
+                        gap: "12px",
+                      }}
+                    >
                       {supportedLanguages.map((lang) => (
                         <div key={lang} style={{ marginBottom: "4px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-                            <label className={styles.fieldLabel} style={{ fontSize: tokens.fontSizeBase100, marginBottom: 0 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            <label
+                              className={styles.fieldLabel}
+                              style={{ fontSize: tokens.fontSizeBase100, marginBottom: 0 }}
+                            >
                               Decode ({lang}) {lang === defaultLanguage && "(Default)"}
                             </label>
-                            <Tooltip content="The user-friendly text associated with the coded value for this locale." relationship="label">
-                              <InfoRegular style={{ fontSize: "10px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+                            <Tooltip
+                              content="The user-friendly text associated with the coded value for this locale."
+                              relationship="label"
+                            >
+                              <InfoRegular
+                                style={{
+                                  fontSize: "10px",
+                                  cursor: "help",
+                                  color: tokens.colorNeutralForeground3,
+                                }}
+                              />
                             </Tooltip>
                           </div>
                           <Input
@@ -1364,7 +1559,12 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   appearance="subtle"
                   size="small"
                   icon={<AddRegular />}
-                  onClick={() => setNewItems([...newItems, { codedValue: "", decodedText: { [defaultLanguage]: "" } }])}
+                  onClick={() =>
+                    setNewItems([
+                      ...newItems,
+                      { codedValue: "", decodedText: { [defaultLanguage]: "" } },
+                    ])
+                  }
                 >
                   Add Row
                 </Button>
@@ -1406,8 +1606,15 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                   Import Controlled Terminology
                 </Text>
-                <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
-                  Search and browse CDISC Controlled Terminology packages to import into your workbook.
+                <Text
+                  block
+                  style={{
+                    color: tokens.colorNeutralForeground3,
+                    fontSize: tokens.fontSizeBase100,
+                  }}
+                >
+                  Search and browse CDISC Controlled Terminology packages to import into your
+                  workbook.
                 </Text>
 
                 <Input
@@ -1423,11 +1630,17 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     <Spinner size="small" label="Loading packages from CDISC Library..." />
                   </div>
                 ) : (
-                  <div className={styles.gridCard} style={{ maxHeight: "300px", overflowY: "auto" }}>
+                  <div
+                    className={styles.gridCard}
+                    style={{ maxHeight: "300px", overflowY: "auto" }}
+                  >
                     {importPackages
-                      .filter((pkg) => 
-                        (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) ||
-                        pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
+                      .filter(
+                        (pkg) =>
+                          (pkg.title || pkg.packageOid)
+                            .toLowerCase()
+                            .includes(importPackageSearch.toLowerCase()) ||
+                          pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
                       )
                       .map((pkg) => (
                         <AccessibleWrapper
@@ -1436,7 +1649,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             padding: "8px",
                             cursor: "pointer",
                             borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-                            backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent",
+                            backgroundColor:
+                              selectedPackage?.packageOid === pkg.packageOid
+                                ? tokens.colorNeutralBackground1Selected
+                                : "transparent",
                           }}
                           onClick={() => setSelectedPackage(pkg)}
                           ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
@@ -1444,20 +1660,33 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                             {pkg.title || pkg.packageOid}
                           </Text>
-                          <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
-                            OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
+                          <Text
+                            block
+                            style={{
+                              fontSize: tokens.fontSizeBase100,
+                              color: tokens.colorNeutralForeground3,
+                            }}
+                          >
+                            OID: {pkg.packageOid}{" "}
+                            {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                           </Text>
                         </AccessibleWrapper>
                       ))}
-                    {importPackages.length > 0 && 
-                      importPackages.filter((pkg) => 
-                        (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) ||
-                        pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
+                    {importPackages.length > 0 &&
+                      importPackages.filter(
+                        (pkg) =>
+                          (pkg.title || pkg.packageOid)
+                            .toLowerCase()
+                            .includes(importPackageSearch.toLowerCase()) ||
+                          pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
                       ).length === 0 && (
-                      <Text block style={{ padding: "8px", color: tokens.colorNeutralForeground3 }}>
-                        No packages match your search.
-                      </Text>
-                    )}
+                        <Text
+                          block
+                          style={{ padding: "8px", color: tokens.colorNeutralForeground3 }}
+                        >
+                          No packages match your search.
+                        </Text>
+                      )}
                   </div>
                 )}
 
@@ -1485,9 +1714,18 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   {importProgress.stage}
                 </Text>
                 <ProgressBar
-                  value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined}
+                  value={
+                    importProgress.total > 0
+                      ? importProgress.completed / importProgress.total
+                      : undefined
+                  }
                 />
-                <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                <Text
+                  style={{
+                    fontSize: tokens.fontSizeBase100,
+                    color: tokens.colorNeutralForeground3,
+                  }}
+                >
                   {importProgress.total > 0
                     ? `${importProgress.completed} / ${importProgress.total}`
                     : "Processing…"}
@@ -1527,8 +1765,15 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                       Resolve Conflicts
                     </Text>
-                    <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
-                      Each codelist below has a conflict with existing data. Choose how to handle it.
+                    <Text
+                      block
+                      style={{
+                        color: tokens.colorNeutralForeground3,
+                        fontSize: tokens.fontSizeBase100,
+                      }}
+                    >
+                      Each codelist below has a conflict with existing data. Choose how to handle
+                      it.
                     </Text>
                     {importPlan.conflicts.map((conflict: ImportConflictItem) => (
                       <div key={conflict.codelistId} className={styles.conflictItem}>
@@ -1538,23 +1783,44 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             ? ` — ${conflict.codelistName}`
                             : ""}
                         </Text>
-                        <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
-                          Existing: {conflict.existingTermCount} term(s) · Incoming: {conflict.incomingTermCount} term(s)
+                        <Text
+                          block
+                          style={{
+                            fontSize: tokens.fontSizeBase100,
+                            color: tokens.colorNeutralForeground3,
+                          }}
+                        >
+                          Existing: {conflict.existingTermCount} term(s) · Incoming:{" "}
+                          {conflict.incomingTermCount} term(s)
                         </Text>
-                        <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                        <Text
+                          block
+                          style={{
+                            fontSize: tokens.fontSizeBase100,
+                            color: tokens.colorNeutralForeground3,
+                          }}
+                        >
                           {conflict.message}
                         </Text>
                         <div className={styles.conflictActions}>
-                          {(["skip", "overwrite", "append"] as ConflictResolution[]).map((resolution) => (
-                            <Button
-                              key={resolution}
-                              size="small"
-                              appearance={conflictResolutions[conflict.codelistId] === resolution ? "primary" : "outline"}
-                              onClick={() => handleConflictResolution(conflict.codelistId, resolution)}
-                            >
-                              {resolution.charAt(0).toUpperCase() + resolution.slice(1)}
-                            </Button>
-                          ))}
+                          {(["skip", "overwrite", "append"] as ConflictResolution[]).map(
+                            (resolution) => (
+                              <Button
+                                key={resolution}
+                                size="small"
+                                appearance={
+                                  conflictResolutions[conflict.codelistId] === resolution
+                                    ? "primary"
+                                    : "outline"
+                                }
+                                onClick={() =>
+                                  handleConflictResolution(conflict.codelistId, resolution)
+                                }
+                              >
+                                {resolution.charAt(0).toUpperCase() + resolution.slice(1)}
+                              </Button>
+                            )
+                          )}
                         </div>
                       </div>
                     ))}

@@ -69,7 +69,11 @@ export class AnnotatedCrfPipeline {
       const verification = await this.executeStage("Output Verification", async () => {
         const result = verifyAnnotatedCrf(stage1.data.studyDesign, stage3.data);
         if (!result.isValid) {
-          this.addDiagnostic("Output Verification", "error", `Verification failed: ${result.summary.errorCount} errors found.`);
+          this.addDiagnostic(
+            "Output Verification",
+            "error",
+            `Verification failed: ${result.summary.errorCount} errors found.`
+          );
         }
         return result;
       });
@@ -84,25 +88,29 @@ export class AnnotatedCrfPipeline {
       // Stage 6: Export artifact generation handoff
       let pdfBlob: Blob | undefined = undefined;
       let docxBlob: Blob | undefined = undefined;
-      
+
       if (verification.data.isValid) {
         const stage6 = await this.executeStage("Export Artifact Generation", async () => {
           const htmlContent = renderToHtml(stage3.data);
-          
+
           const generatedPdf = await generatePdfBlobFromHtml(htmlContent);
-          
+
           const generatedDocx = await HTMLtoDOCX(htmlContent, null, {
             table: { row: { cantSplit: true } },
             footer: true,
             pageNumber: true,
           });
-          
+
           return { pdf: generatedPdf, docx: generatedDocx };
         });
         pdfBlob = stage6.data.pdf;
         docxBlob = stage6.data.docx as Blob;
       } else {
-        this.addDiagnostic("Export Artifact Generation", "warning", "Export skipped due to verification errors.");
+        this.addDiagnostic(
+          "Export Artifact Generation",
+          "warning",
+          "Export skipped due to verification errors."
+        );
       }
 
       // Stage 7: Verification manifest generation
@@ -117,12 +125,19 @@ export class AnnotatedCrfPipeline {
         docxBlob: docxBlob,
       };
     } catch (error) {
-      this.addDiagnostic("Pipeline", "error", `Pipeline failed: ${error instanceof Error ? error.message : String(error)}`);
+      this.addDiagnostic(
+        "Pipeline",
+        "error",
+        `Pipeline failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     }
   }
 
-  private async executeStage<T>(name: string, action: () => Promise<T>): Promise<PipelineStageResult<T>> {
+  private async executeStage<T>(
+    name: string,
+    action: () => Promise<T>
+  ): Promise<PipelineStageResult<T>> {
     const stageStart = Date.now();
     this.stages.push(name);
     this.addDiagnostic(name, "info", `Starting stage: ${name}`);
@@ -135,7 +150,7 @@ export class AnnotatedCrfPipeline {
       return {
         stage: name,
         data,
-        diagnostics: this.diagnostics.filter(d => d.stage === name),
+        diagnostics: this.diagnostics.filter((d) => d.stage === name),
         durationMs: duration,
       };
     } catch (error) {
@@ -145,7 +160,12 @@ export class AnnotatedCrfPipeline {
     }
   }
 
-  private addDiagnostic(stage: string, severity: "info" | "warning" | "error", message: string, metadata?: any): void {
+  private addDiagnostic(
+    stage: string,
+    severity: "info" | "warning" | "error",
+    message: string,
+    metadata?: any
+  ): void {
     this.diagnostics.push({
       stage,
       severity,

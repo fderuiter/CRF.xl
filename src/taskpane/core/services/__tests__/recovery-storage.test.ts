@@ -171,7 +171,7 @@ describe("recovery-storage", () => {
         message: 'Value "HIV+" is not allowed here',
         location: "F2 > Row 1",
         sheetName: "F2",
-      }
+      },
     ];
 
     const snapshot = createRecoverySnapshot({
@@ -189,15 +189,15 @@ describe("recovery-storage", () => {
       issues,
       studySummary: summarizeStudyDesign(mockStudy),
     });
-    
+
     // Inject unauthorized field
     const taintedSnapshot = {
       ...snapshot,
-      unauthorizedData: "secret clinical info"
+      unauthorizedData: "secret clinical info",
     };
 
     storage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(taintedSnapshot));
-    
+
     const restored = readRecoverySnapshot({ storage });
     expect(restored).toBeNull();
     // Storage should be cleared because schema validation fails

@@ -197,7 +197,9 @@ export async function saveDictionary(
     // Build 2D array for rows
     const rowCount = items.length;
     const finalColCount = maxColIdx + 1;
-    const itemRows: (string | number | boolean)[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
+    const itemRows: (string | number | boolean)[][] = Array.from({ length: rowCount }, () =>
+      Array(finalColCount).fill("")
+    );
 
     items.forEach((item, idx) => {
       itemRows[idx][idIdx] = id.toUpperCase();
