@@ -1,5 +1,5 @@
 /**
- * @issue #28
+ * @issue #28, #92
  */
 import * as React from "react";
 import {
