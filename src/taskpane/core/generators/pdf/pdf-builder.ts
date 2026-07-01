@@ -1,6 +1,6 @@
 /**
  * PDF Generator for Annotated CRFs
- * @issue #279
+ * @issue #279, #90
  */
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { ExportOptions, ExportMode } from "../../types/linguistics";
