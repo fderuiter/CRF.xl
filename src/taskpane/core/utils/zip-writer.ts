@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 export class ZipWriter {
   private files: { name: string; data: Uint8Array; compressedData: Uint8Array; crc: number }[] = [];
 
