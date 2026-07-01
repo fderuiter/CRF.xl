@@ -270,7 +270,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
     }
 
     formsHtml += `
-      <div class="form-page">
+      <div class="form-page" id="form-${form.formOid}">
         <div class="clinical-header">
           Protocol: ${doc.protocolId} | Form: ${form.formName} | Subject: ________ | Visit: ________
         </div>
