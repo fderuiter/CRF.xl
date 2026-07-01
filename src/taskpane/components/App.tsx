@@ -92,7 +92,7 @@ import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal } from "./AuditOrchestratorModal";
 import { AuditJustification } from "../core";
 import { OnboardingTour } from "./OnboardingTour";
-import { AcrfPreview } from "./AcrfPreview";
+import { ReviewView } from "./views/ReviewView";
 
 const useAppStyles = makeStyles({
   root: {
@@ -490,7 +490,7 @@ export const App: React.FC<{ title?: string }> = () => {
   useEffect(() => {
     const checkInit = async () => {
       if (typeof Excel === "undefined") {
-        setIsInitialized(false);
+        setIsInitialized(true);
         return;
       }
       const result = await runWithOfficeErrorHandling(
@@ -992,9 +992,12 @@ export const App: React.FC<{ title?: string }> = () => {
         <div className={styles.headerLeft}>
           <div className={styles.logoBox}>C</div>
           <div className={styles.titleBlock}>
-            <span className={styles.appTitle}>CRF.xl</span>
-            {isInitialized && (
+            <span className={styles.appTitle}>CRF.xl{activeTab === "review" ? " | Review" : ""}</span>
+            {isInitialized && activeTab !== "review" && (
               <span className={styles.sheetLabel}>{activeSheet || "Loading..."}</span>
+            )}
+            {isInitialized && activeTab === "review" && (
+              <span className={styles.sheetLabel}>Review Mode</span>
             )}
           </div>
           {isInitialized && study?.metadata?.supportedLanguages && study.metadata.supportedLanguages.length > 1 && (
@@ -1039,7 +1042,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <Tab value="design">Design</Tab>
           <Tab value="compliance">Compliance</Tab>
           <Tab value="integrity" id="tour-integrity">Integrity Hub</Tab>
-          <Tab value="acrf">aCRF Preview</Tab>
+          <Tab value="review">Review</Tab>
         </TabList>
 
         {versionUpdate && (
@@ -1095,8 +1098,8 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
-        {activeTab === "acrf" && study && (
-          <AcrfPreview study={study} validationIssues={issues} />
+        {activeTab === "review" && study && (
+          <ReviewView study={study} issues={issues} />
         )}
         {activeTab === "integrity" && (
           <IntegrityHubView

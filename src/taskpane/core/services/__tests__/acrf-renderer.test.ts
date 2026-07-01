@@ -125,6 +125,7 @@ describe("aCRF Rendering Pipeline", () => {
     expect(html).toContain("DM.BRTHDTC");
     expect(html).toContain("RULE_01");
     expect(html).toContain("ADSL.TESTVAR");
+    expect(html).toContain('id="form-FORM_01"');
   });
 
   test("exportToPdf calls html2pdf with expected parameters", async () => {
