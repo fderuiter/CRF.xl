@@ -28,16 +28,18 @@ export function useExcelTelemetry() {
 
     // 3. Keep data change listener for general telemetry (non-selection updates)
     let dataChangedHandler: any;
-    Excel.run(async (context) => {
-      dataChangedHandler = context.workbook.worksheets.onChanged.add(async () => {
-        setTelemetryTrigger((prev) => prev + 1);
-      });
-      await context.sync();
-    }).catch(console.error);
+    if (typeof Excel !== "undefined") {
+      Excel.run(async (context) => {
+        dataChangedHandler = context.workbook.worksheets.onChanged.add(async () => {
+          setTelemetryTrigger((prev) => prev + 1);
+        });
+        await context.sync();
+      }).catch(console.error);
+    }
 
     return () => {
       unsubscribe();
-      if (dataChangedHandler) dataChangedHandler.remove();
+      if (dataChangedHandler && typeof Excel !== "undefined") dataChangedHandler.remove();
       // Terminate binding service to release global Excel listeners when the telemetry host unmounts
       bindingService.terminate().catch(console.error);
     };
