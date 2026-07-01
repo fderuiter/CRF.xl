@@ -22,6 +22,7 @@ import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { loadAnnotationsFromStore } from "../services/annotation-service";
 import { buildAnnotatedCrfDocument } from "../services/acrf-renderer";
 import { generatePdfBlob } from "./pdf/pdf-builder";
+import { verifyAnnotatedCrf } from "../validators/acrf-output-validator";
 import * as CryptoJS from "crypto-js";
 
 export class AnnotatedCrfPipeline {
@@ -60,32 +61,48 @@ export class AnnotatedCrfPipeline {
         return doc;
       });
 
-      // Stage 4: Render model build
+      // Stage 4: Output Verification
+      const verification = await this.executeStage("Output Verification", async () => {
+        const result = verifyAnnotatedCrf(stage1.data.studyDesign, stage3.data);
+        if (!result.isValid) {
+          this.addDiagnostic("Output Verification", "error", `Verification failed: ${result.summary.errorCount} errors found.`);
+        }
+        return result;
+      });
+
+      // Stage 5: Render model build
       await this.executeStage("Render Model Build", async () => {
         // This stage prepares any additional data needed specifically for rendering
         // For now, it just returns the document
         return stage3.data;
       });
 
-      // Stage 5: Export artifact generation handoff
-      const stage5 = await this.executeStage("Export Artifact Generation", async () => {
-        const blob = await generatePdfBlob(
-          stage1.data.studyDesign,
-          stage1.data.validationIssues,
-          undefined,
-          undefined,
-          stage3.data
-        );
-        return blob;
-      });
+      // Stage 6: Export artifact generation handoff
+      let blob: Blob | undefined = undefined;
+      if (verification.data.isValid) {
+        const stage6 = await this.executeStage("Export Artifact Generation", async () => {
+          const result = await generatePdfBlob(
+            stage1.data.studyDesign,
+            stage1.data.validationIssues,
+            undefined,
+            undefined,
+            stage3.data
+          );
+          return result;
+        });
+        blob = stage6.data;
+      } else {
+        this.addDiagnostic("Export Artifact Generation", "warning", "Export skipped due to verification errors.");
+      }
 
-      // Stage 6: Verification manifest generation
+      // Stage 7: Verification manifest generation
       const manifest = this.generateManifest(stage1.data.studyDesign);
 
       return {
         document: stage3.data,
         manifest: manifest,
-        blob: stage5.data,
+        verificationResult: verification.data,
+        blob: blob,
       };
     } catch (error) {
       this.addDiagnostic("Pipeline", "error", `Pipeline failed: ${error instanceof Error ? error.message : String(error)}`);
