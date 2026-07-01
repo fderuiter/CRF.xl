@@ -20,6 +20,7 @@ import {
 } from "../types/annotated-crf";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { loadAnnotationsFromStore } from "../services/annotation-service";
+import { loadComments } from "../services/review-service";
 import { buildAnnotatedCrfDocument, renderToHtml } from "../services/acrf-renderer";
 import { generatePdfBlobFromHtml } from "../services/pdf-export-adapter";
 import { verifyAnnotatedCrf } from "../validators/acrf-output-validator";
@@ -54,10 +55,12 @@ export class AnnotatedCrfPipeline {
 
       // Stage 3: Normalized document structure build
       const stage3 = await this.executeStage("Document Structure Build", async () => {
+        const reviewerComments = await loadComments();
         const doc = buildAnnotatedCrfDocument(
           stage1.data.studyDesign,
           stage1.data.validationIssues,
-          stage2.data
+          stage2.data,
+          reviewerComments
         );
         return doc;
       });

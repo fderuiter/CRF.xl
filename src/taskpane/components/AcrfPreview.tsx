@@ -12,13 +12,14 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { ArrowDownloadRegular, ArrowClockwiseRegular, CheckmarkCircleRegular, EyeRegular } from "@fluentui/react-icons";
-import { StudyDesign, AcrfVerificationResult } from "../core/types";
+import { ArrowDownloadRegular, ArrowClockwiseRegular, CheckmarkCircleRegular, EyeRegular, CommentRegular } from "@fluentui/react-icons";
+import { StudyDesign, AcrfVerificationResult, ReviewerComment } from "../core/types";
 import { navigateToSource } from "../core";
 import { renderToHtml } from "../core/services/acrf-renderer";
 import { exportToPdf } from "../core/services/pdf-export-adapter";
 import { AnnotatedCrfPipeline } from "../core/generators/annotated-crf-pipeline";
 import { ValidationLog } from "./ValidationLog";
+import { ReviewMode } from "./ReviewMode";
 
 const useStyles = makeStyles({
   root: {
@@ -78,9 +79,25 @@ interface AcrfPreviewProps {
   validationIssues?: any[];
   acknowledgedWarnings?: Set<string>;
   onAcknowledge?: (key: string) => void;
+  reviewComments?: ReviewerComment[];
+  onAddReviewComment?: (text: string, entityId: string) => Promise<void>;
+  onResolveReviewComment?: (id: string) => Promise<void>;
+  onReopenReviewComment?: (id: string) => Promise<void>;
+  onDeleteReviewComment?: (id: string) => Promise<void>;
+  onRefreshPreview?: () => Promise<void>;
 }
 
-export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, acknowledgedWarnings, onAcknowledge }) => {
+export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
+  study,
+  acknowledgedWarnings,
+  onAcknowledge,
+  reviewComments = [],
+  onAddReviewComment,
+  onResolveReviewComment,
+  onReopenReviewComment,
+  onDeleteReviewComment,
+  onRefreshPreview,
+}) => {
   const styles = useStyles();
   const [html, setHtml] = React.useState<string>("");
   const [isExporting, setIsExporting] = React.useState(false);
@@ -88,6 +105,8 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, acknowledgedWar
   const [error, setError] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<AcrfVerificationResult | null>(null);
   const [pdfBlob, setPdfBlob] = React.useState<Blob | null>(null);
+  const [selectedEntityId, setSelectedEntityId] = React.useState<string | null>(null);
+  const [showReviewPane, setShowReviewPane] = React.useState(false);
 
   const runVerification = React.useCallback(async () => {
     setIsVerifying(true);
@@ -163,6 +182,13 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, acknowledgedWar
         >
           Re-verify
         </Button>
+        <Button
+          icon={<CommentRegular />}
+          appearance={showReviewPane ? "primary" : "outline"}
+          onClick={() => setShowReviewPane(!showReviewPane)}
+        >
+          Review Mode
+        </Button>
       </div>
 
       <div className={styles.contentLayout}>
@@ -190,8 +216,60 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({ study, acknowledgedWar
             srcDoc={html}
             className={styles.previewFrame}
             sandbox="allow-same-origin"
+            onLoad={(e) => {
+               // Add click listeners to items in the iframe to select them for commenting
+               const iframe = e.currentTarget;
+               if (iframe.contentDocument) {
+                  iframe.contentDocument.addEventListener('click', (ev) => {
+                     const target = ev.target as HTMLElement;
+                     const itemRow = target.closest('.item-row');
+                     if (itemRow) {
+                        // Extract OID from the first annotation box or similar
+                        // In a real implementation, we'd add data-oid to the HTML
+                        const labelText = itemRow.querySelector('.item-label')?.textContent;
+                        if (labelText) {
+                           // For now, use the label as a proxy for OID if not found
+                           // Better: find a way to pass OID from renderer to HTML
+                           const sdtmBox = itemRow.querySelector('.annotation-box');
+                           const match = sdtmBox?.textContent?.match(/\[(.*?)\]/);
+                           if (match) {
+                              setSelectedEntityId(match[1]);
+                              setShowReviewPane(true);
+                           }
+                        }
+                     }
+                  });
+               }
+            }}
           />
         </div>
+
+        {showReviewPane && (
+           <ReviewMode
+              comments={reviewComments}
+              selectedEntityId={selectedEntityId}
+              onAddComment={async (text, id) => {
+                 await onAddReviewComment?.(text, id);
+                 await runVerification();
+                 onRefreshPreview?.();
+              }}
+              onResolveComment={async (id) => {
+                 await onResolveReviewComment?.(id);
+                 await runVerification();
+                 onRefreshPreview?.();
+              }}
+              onReopenComment={async (id) => {
+                 await onReopenReviewComment?.(id);
+                 await runVerification();
+                 onRefreshPreview?.();
+              }}
+              onDeleteComment={async (id) => {
+                 await onDeleteReviewComment?.(id);
+                 await runVerification();
+                 onRefreshPreview?.();
+              }}
+           />
+        )}
 
         <div className={styles.sidebar}>
           <Body1 style={{ fontWeight: tokens.fontWeightSemibold }}>Verification Results</Body1>

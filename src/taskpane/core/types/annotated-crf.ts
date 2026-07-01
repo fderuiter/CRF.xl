@@ -3,6 +3,7 @@
  */
 import { TranslatedText } from "./common";
 import { DataType } from "./enums";
+import { ReviewerComment } from "./reviewer";
 
 /**
  * Represents the type of annotation in an aCRF.
@@ -73,6 +74,8 @@ export interface AnnotatedCrfDocument {
   forms: AcrfForm[];
   /** Optional summary of validation issues to include in the header/appendix. */
   validationIssues?: any[];
+  /** Reviewer comments captured during review mode. */
+  reviewerComments?: ReviewerComment[];
 }
 
 /**

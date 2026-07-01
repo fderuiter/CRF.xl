@@ -20,3 +20,4 @@ export * from "./linguistics";
 export * from "./terminology-search";
 export * from "./annotation";
 export * from "./annotated-crf";
+export * from "./reviewer";

@@ -19,6 +19,7 @@ import {
 } from "@fluentui/react-icons";
 import { StudyDesign, ValidationIssue } from "../../core";
 import { AcrfPreview } from "../AcrfPreview";
+import { useReviewSession } from "../../hooks/useReviewSession";
 
 const useStyles = makeStyles({
   root: {
@@ -131,6 +132,16 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
   const styles = useStyles();
   const [acknowledgedWarnings, setAcknowledgedWarnings] = React.useState<Set<string>>(new Set());
 
+  // Review Mode state
+  const {
+    comments,
+    addComment,
+    resolveComment,
+    reopenComment,
+    deleteComment,
+    refreshComments
+  } = useReviewSession("Clinical Reviewer");
+
   // In a real app, these would come from the aCRF pipeline verification results.
   // For the workflow UI, we'll use the passed in issues as a proxy.
   const criticalErrors = issues.filter(i => i.level === "Error");
@@ -217,6 +228,14 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
             validationIssues={issues}
             acknowledgedWarnings={acknowledgedWarnings}
             onAcknowledge={handleAcknowledge}
+            reviewComments={comments}
+            onAddReviewComment={async (text, entityId) => {
+               await addComment(text, entityId);
+            }}
+            onResolveReviewComment={resolveComment}
+            onReopenReviewComment={reopenComment}
+            onDeleteReviewComment={deleteComment}
+            onRefreshPreview={refreshComments}
           />
         </div>
       </div>
