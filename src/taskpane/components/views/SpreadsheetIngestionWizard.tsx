@@ -359,7 +359,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
 }) => {
   const styles = useStyles();
   const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
-  const cancelRequestedRef = React.useRef(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Derived helpers
   const stageIndex = STAGE_ORDER.indexOf(state.stage);
@@ -499,7 +499,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   // -------------------------------------------------------------------------
   const handleCommit = async () => {
     if (!state.preview || !state.confirmedStructure || !state.scanResult) return;
-    cancelRequestedRef.current = false;
+    abortControllerRef.current = new AbortController();
     patch({
       isProcessing: true,
       error: null,
@@ -523,7 +523,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         // Provide an opportunity to cancel and yield to UI thread
         await new Promise((resolve) => setTimeout(resolve, 10));
 
-        if (cancelRequestedRef.current) break;
+        if (abortControllerRef.current?.signal.aborted) break;
 
         const currentChunkSize = Math.min(pageSize, totalRows - i);
 
@@ -597,7 +597,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       }
 
       // Check if completely cancelled
-      if (cancelRequestedRef.current) {
+      if (abortControllerRef.current?.signal.aborted) {
         patch({
           isProcessing: false,
           syncProgress: null,
@@ -1018,7 +1018,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             <Button
               appearance="primary"
               onClick={() => {
-                cancelRequestedRef.current = true;
+                abortControllerRef.current?.abort();
                 setState((current) => {
                   if (current.syncProgress) {
                     return {

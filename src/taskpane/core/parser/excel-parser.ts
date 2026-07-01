@@ -56,7 +56,7 @@ async function fetchRawDataFromExcel(
 
     for (const sheet of sheets.items) {
       // Check cancellation during setup
-      if (options.cancellationToken?.isCancelled()) {
+      if (options.signal?.aborted) {
         throw new Error("Parsing cancelled during Excel extraction");
       }
       const range = sheet.getUsedRangeOrNullObject();
@@ -89,7 +89,7 @@ async function fetchRawDataFromExcel(
       const sheetData: any[][] = [];
 
       for (let i = 0; i < rows; i += PAGE_SIZE) {
-        if (options.cancellationToken?.isCancelled()) {
+        if (options.signal?.aborted) {
           throw new Error("Parsing cancelled during Excel extraction");
         }
 
@@ -143,6 +143,24 @@ function runInWorker(
     // @ts-ignore: import.meta.url is supported by Webpack 5 but not by Jest/ts-jest with current config
     const worker = new Worker(new URL("../worker/engine.worker.ts", import.meta.url));
 
+    const onAbort = () => {
+      worker.postMessage({ type: "CANCEL_PARSING" });
+    };
+
+    if (options.signal) {
+      options.signal.addEventListener("abort", onAbort);
+      if (options.signal.aborted) {
+        onAbort();
+      }
+    }
+
+    const cleanup = () => {
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onAbort);
+      }
+      worker.terminate();
+    };
+
     // Handle incoming messages
     worker.onmessage = (event: MessageEvent) => {
       const { type, payload } = event.data;
@@ -151,28 +169,24 @@ function runInWorker(
         if (options.onProgress) {
           options.onProgress(payload);
         }
-        // Proxy cancellation state to the worker
-        if (options.cancellationToken?.isCancelled()) {
-          worker.postMessage({ type: "CANCEL_PARSING" });
-        }
       } else if (type === "SUCCESS") {
-        worker.terminate();
+        cleanup();
         resolve(payload);
       } else if (type === "ERROR") {
-        worker.terminate();
+        cleanup();
         if (payload && typeof payload === "object" && "category" in payload) {
           reject(DiagnosticError.fromJSON(payload));
         } else {
           reject(new Error(String(payload)));
         }
       } else if (type === "CANCELLED") {
-        worker.terminate();
+        cleanup();
         reject(new Error("Parsing cancelled"));
       }
     };
 
     worker.onerror = (error) => {
-      worker.terminate();
+      cleanup();
       reject(error);
     };
 

@@ -23,7 +23,7 @@ class BackgroundValidationEngine {
   };
   private subscribers: Set<Subscriber> = new Set();
   private validationTimeout: number | null = null;
-  private currentCancellationToken: { cancel: () => void } | null = null;
+  private currentAbortController: AbortController | null = null;
   private latestSheetFilter: string | undefined = undefined;
 
   public subscribe(callback: Subscriber) {
@@ -68,16 +68,13 @@ class BackgroundValidationEngine {
   }
 
   private async runValidation(sheetFilter?: string) {
-    if (this.currentCancellationToken) {
-      this.currentCancellationToken.cancel();
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
     }
 
-    let cancelled = false;
-    this.currentCancellationToken = {
-      cancel: () => {
-        cancelled = true;
-      },
-    };
+    const abortController = new AbortController();
+    this.currentAbortController = abortController;
+    const signal = abortController.signal;
 
     this.state = {
       ...this.state,
@@ -90,11 +87,9 @@ class BackgroundValidationEngine {
       const result = await parseExcelToStudyDesign({
         chunkSize: 250,
         timeoutMs: 45000,
-        cancellationToken: {
-          isCancelled: () => cancelled,
-        },
+        signal,
         onProgress: (progress) => {
-          if (cancelled) return;
+          if (signal.aborted) return;
           this.state = {
             ...this.state,
             status: `Analyzing: ${progress.message} (${progress.completed}/${progress.total})`,
@@ -103,7 +98,7 @@ class BackgroundValidationEngine {
         },
       });
 
-      if (cancelled) return;
+      if (signal.aborted) return;
 
       const freshStudy = result.studyDesign;
       let validationIssues = result.validationIssues;
@@ -122,7 +117,7 @@ class BackgroundValidationEngine {
       };
       this.notify();
     } catch (e) {
-      if (cancelled) return;
+      if (signal.aborted) return;
       this.state = {
         ...this.state,
         isProcessing: false,
