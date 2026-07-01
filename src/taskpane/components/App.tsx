@@ -92,6 +92,7 @@ import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal, AuditJustification } from "./AuditOrchestratorModal";
 import { OnboardingTour } from "./OnboardingTour";
+import { AcrfPreview } from "./AcrfPreview";
 
 const useAppStyles = makeStyles({
   root: {
@@ -488,6 +489,10 @@ export const App: React.FC<{ title?: string }> = () => {
   // Startup Check: Does the Matrix architecture exist yet?
   useEffect(() => {
     const checkInit = async () => {
+      if (typeof Excel === "undefined") {
+        setIsInitialized(false);
+        return;
+      }
       const result = await runWithOfficeErrorHandling(
         async () => {
           await Excel.run(async (context) => {
@@ -1023,6 +1028,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <Tab value="design">Design</Tab>
           <Tab value="compliance">Compliance</Tab>
           <Tab value="integrity" id="tour-integrity">Integrity Hub</Tab>
+          <Tab value="acrf">aCRF Preview</Tab>
         </TabList>
 
         {versionUpdate && (
@@ -1078,6 +1084,9 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
+        {activeTab === "acrf" && study && (
+          <AcrfPreview study={study} validationIssues={issues} />
+        )}
         {activeTab === "integrity" && (
           <IntegrityHubView
             issues={issues}
