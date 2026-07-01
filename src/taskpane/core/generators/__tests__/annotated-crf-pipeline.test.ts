@@ -1,18 +1,25 @@
 /**
  * @issue #184
  */
-import { AnnotatedCrfPipeline } from "../annotated-crf-pipeline";
+import { TextEncoder, TextDecoder } from "util";
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder as any;
+
 import * as excelParser from "../../parser/excel-parser";
 import * as annotationService from "../../services/annotation-service";
 import * as pdfBuilder from "../pdf/pdf-builder";
 
-// Mock dependencies
-jest.mock("../../parser/excel-parser");
+// Mock dependencies BEFORE importing the pipeline
+jest.mock("../../parser/excel-parser", () => ({
+  parseExcelToStudyDesign: jest.fn(),
+}));
 jest.mock("../../services/annotation-service");
 jest.mock("../pdf/pdf-builder");
 jest.mock("../../../components/views/study-diff-view-utils", () => ({
   buildStudyDiffList: jest.fn(() => []),
 }));
+
+import { AnnotatedCrfPipeline } from "../annotated-crf-pipeline";
 
 describe("AnnotatedCrfPipeline", () => {
   const mockStudyDesign = {
