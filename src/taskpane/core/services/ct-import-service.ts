@@ -50,16 +50,7 @@ export interface CtImportPlan {
 const CODELISTS_HEADER = SHEET_HEADERS[SHEET_NAMES.CODELISTS];
 
 function groupByCodelistId(rows: CrfCodelistsRow[]): Map<string, CrfCodelistsRow[]> {
-  const map = new Map<string, CrfCodelistsRow[]>();
-  rows.forEach((row) => {
-    const bucket = map.get(row.codelistId);
-    if (bucket) {
-      bucket.push(row);
-    } else {
-      map.set(row.codelistId, [row]);
-    }
-  });
-  return map;
+  return Map.groupBy(rows, (row) => row.codelistId);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

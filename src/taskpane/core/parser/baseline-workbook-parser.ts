@@ -44,24 +44,21 @@ export async function parseWorkbookSheetValuesToStudyDesign(
 
   const codelistRows = await provider.getSheetValues("_Codelists");
   if (codelistRows) {
-    for (const row of codelistRows.slice(1)) {
-      const [id, name, code, decode] = row;
-      if (!id) continue;
-      const strId = String(id).trim();
-      if (!study.codelists[strId]) {
-        study.codelists[strId] = {
-          codelistId: strId,
-          codelistName: String(name),
-          dataType: DataType.TEXT,
-          items: [],
-        };
-      }
-      study.codelists[strId].items.push({
+    const validRows = codelistRows.slice(1).filter((row) => row[0]);
+    const grouped = Map.groupBy(validRows, (row) => String(row[0]).trim());
+
+    for (const [strId, rows] of grouped.entries()) {
+      study.codelists[strId] = {
         codelistId: strId,
-        codedValue: String(code),
-        decodedText: { [study.metadata.defaultLanguage]: String(decode) },
-        orderNumber: study.codelists[strId].items.length + 1,
-      });
+        codelistName: String(rows[0][1]),
+        dataType: DataType.TEXT,
+        items: rows.map((row, index) => ({
+          codelistId: strId,
+          codedValue: String(row[2]),
+          decodedText: { [study.metadata.defaultLanguage]: String(row[3]) },
+          orderNumber: index + 1,
+        })),
+      };
     }
   }
 

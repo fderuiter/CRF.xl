@@ -157,20 +157,25 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   const formMatches = findXmlElements(activeMetaDataVersion.innerXml, "FormDef");
   const mappedForms: Array<{ orderNumber: number; formOid: string }> = [];
 
-  for (let index = 0; index < formMatches.length; index += 1) {
-    const formMatch = formMatches[index];
-    const formOid = nonEmpty(formMatch.attributes.OID);
+  const groupedForms = Map.groupBy(formMatches, (m) => nonEmpty(m.attributes.OID));
+
+  for (const [formOid, matches] of groupedForms.entries()) {
     if (!formOid) {
-      diagnostics.push({
-        severity: "error",
-        category: "Semantic",
-        message: "Encountered FormDef without an OID; the form cannot be mapped into _Forms.",
-        location: "_Forms",
+      matches.forEach(() => {
+        diagnostics.push({
+          severity: "error",
+          category: "Semantic",
+          message: "Encountered FormDef without an OID; the form cannot be mapped into _Forms.",
+          location: "_Forms",
+        });
       });
       continue;
     }
 
-    const orderNumber = formOrder[formOid] || index + 1;
+    const formMatch = matches[matches.length - 1];
+    const originalIndex = formMatches.indexOf(formMatch);
+    const orderNumber = formOrder[formOid] || originalIndex + 1;
+
     study.forms[formOid] = {
       formOid,
       formName:
@@ -200,19 +205,23 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
     });
 
   const codeListMatches = findXmlElements(activeMetaDataVersion.innerXml, "CodeList");
-  for (let index = 0; index < codeListMatches.length; index += 1) {
-    const codeListMatch = codeListMatches[index];
-    const codelistId = nonEmpty(codeListMatch.attributes.OID);
+  const groupedCodelists = Map.groupBy(codeListMatches, (m) => nonEmpty(m.attributes.OID));
+
+  for (const [codelistId, matches] of groupedCodelists.entries()) {
     if (!codelistId) {
-      diagnostics.push({
-        severity: "error",
-        category: "Semantic",
-        message:
-          "Encountered CodeList without an OID; the codelist cannot be mapped into _Codelists.",
-        location: "_Codelists",
+      matches.forEach(() => {
+        diagnostics.push({
+          severity: "error",
+          category: "Semantic",
+          message:
+            "Encountered CodeList without an OID; the codelist cannot be mapped into _Codelists.",
+          location: "_Codelists",
+        });
       });
       continue;
     }
+
+    const codeListMatch = matches[matches.length - 1];
 
     const codelist: Codelist = {
       codelistId,
@@ -230,8 +239,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
       .concat(enumeratedItems)
       .sort((left, right) => left.index - right.index);
 
-    for (let itemIndex = 0; itemIndex < allItems.length; itemIndex += 1) {
-      const itemMatch = allItems[itemIndex];
+    codelist.items = allItems.map((itemMatch, itemIndex) => {
       const codedValue = nonEmpty(itemMatch.attributes.CodedValue);
       if (!codedValue) {
         diagnostics.push({
@@ -240,7 +248,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
           message: `Codelist '${codelistId}' contains an item without CodedValue.`,
           location: "_Codelists",
         });
-        continue;
+        return null;
       }
 
       const decode =
@@ -256,15 +264,15 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
         });
       }
 
-      codelist.items.push({
+      return {
         codelistId,
         codedValue,
         decodedText: {
           [study.metadata.defaultLanguage]: decode,
         },
-        orderNumber: codelist.items.length + 1,
-      });
-    }
+        orderNumber: itemIndex + 1,
+      };
+    }).filter((i) => i !== null) as Codelist["items"];
 
     study.codelists[codelistId] = codelist;
   }

@@ -58,39 +58,36 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
       decodeIdx = 3;
     }
 
-    const groups: Record<string, CodelistGroup> = {};
+    const validRows = vals.slice(1).filter((row: any) => row[idIdx]);
+    const groupedMap = Map.groupBy(validRows, (row: any) => String(row[idIdx]).trim());
 
-    // Skip header row (index 0)
-    for (let i = 1; i < vals.length; i++) {
-      const row = vals[i];
-      const id = row[idIdx];
-      if (!id) continue;
-
-      const strId = String(id).trim();
-      if (!groups[strId]) {
-        groups[strId] = { id: strId, name: String(row[nameIdx] || ""), items: [] };
-      }
-
-      const decodedText: Record<string, string> = {};
-      // Base decode (if any)
-      if (decodeIdx !== -1 && row[decodeIdx]) {
-        decodedText["en-US"] = String(row[decodeIdx]); // Assuming en-US as default if not specified
-      }
-
-      // Dynamic locales
-      localeMap.forEach((idx, locale) => {
-        if (row[idx]) {
-          decodedText[locale] = String(row[idx]);
+    return Array.from(groupedMap.entries()).map(([strId, rows]) => {
+      const items = rows.map((row: any) => {
+        const decodedText: Record<string, string> = {};
+        // Base decode (if any)
+        if (decodeIdx !== -1 && row[decodeIdx]) {
+          decodedText["en-US"] = String(row[decodeIdx]); // Assuming en-US as default if not specified
         }
+
+        // Dynamic locales
+        localeMap.forEach((idx, locale) => {
+          if (row[idx]) {
+            decodedText[locale] = String(row[idx]);
+          }
+        });
+
+        return {
+          codedValue: String(row[codeIdx] || ""),
+          decodedText,
+        };
       });
 
-      groups[strId].items.push({
-        codedValue: String(row[codeIdx] || ""),
-        decodedText,
-      });
-    }
-
-    return Object.values(groups);
+      return {
+        id: strId,
+        name: String(rows[0][nameIdx] || ""),
+        items,
+      };
+    });
   });
 }
 

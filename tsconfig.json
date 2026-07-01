@@ -15,10 +15,10 @@
     "outDir": "dist",
     "removeComments": false,
     "sourceMap": true,
-    "target": "es5",
+    "target": "ES2024",
     "lib": [
-      "es7",
-      "dom"
+      "ES2024",
+      "DOM"
     ],
     "pretty": true,
     "typeRoots": [
