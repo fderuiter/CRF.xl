@@ -688,21 +688,15 @@ export function validateMappings(
   }
 
   // --- Ambiguous: multiple mappings pointing to the same source column ---
-  const sourceColumnUsage = new Map<number, TargetField[]>();
-  for (const mapping of mappings) {
-    if (!mapping.sourceColumn) continue;
-    const idx = mapping.sourceColumn.columnIndex;
-    const existing = sourceColumnUsage.get(idx) ?? [];
-    existing.push(mapping.targetField);
-    sourceColumnUsage.set(idx, existing);
-  }
-  sourceColumnUsage.forEach((fields, colIdx) => {
-    if (fields.length > 1) {
-      const fieldLabels = fields
-        .map((f) => TARGET_FIELDS.find((d) => d.field === f)?.label ?? f)
+  const mappedWithSource = mappings.filter((m) => m.sourceColumn);
+  const sourceColumnUsage = Map.groupBy(mappedWithSource, (m) => m.sourceColumn!.columnIndex);
+  
+  sourceColumnUsage.forEach((mappingsGroup, colIdx) => {
+    if (mappingsGroup.length > 1) {
+      const fieldLabels = mappingsGroup
+        .map((f) => TARGET_FIELDS.find((d) => d.field === f.targetField)?.label ?? f.targetField)
         .join(", ");
-      const col = mappings.find((m) => m.sourceColumn?.columnIndex === colIdx)?.sourceColumn
-        ?.columnName;
+      const col = mappingsGroup[0].sourceColumn?.columnName;
       diagnostics.push({
         severity: "warning",
         category: "ambiguous",
