@@ -113,9 +113,34 @@ export interface AnnotatedCrfPipelineManifest {
 /**
  * The final result of the Annotated CRF generation pipeline.
  */
+/**
+ * A single verification issue for an aCRF.
+ */
+export interface AcrfVerificationIssue {
+  severity: "error" | "warning";
+  category: string;
+  message: string;
+  entityId?: string;
+  location?: string;
+}
+
+/**
+ * Result of the aCRF verification process.
+ */
+export interface AcrfVerificationResult {
+  isValid: boolean;
+  issues: AcrfVerificationIssue[];
+  summary: {
+    errorCount: number;
+    warningCount: number;
+    totalChecks: number;
+  };
+}
+
 export interface AnnotatedCrfPipelineResult {
   document: AnnotatedCrfDocument;
   manifest: AnnotatedCrfPipelineManifest;
+  verificationResult?: AcrfVerificationResult;
   blob?: Blob;
 }
 

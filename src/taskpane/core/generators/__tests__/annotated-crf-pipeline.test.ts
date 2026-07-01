@@ -84,10 +84,11 @@ describe("AnnotatedCrfPipeline", () => {
     const result = await pipeline.execute();
 
     expect(result.document.protocolId).toBe("PROT-001");
-    expect(result.manifest.stages).toHaveLength(5); // Stages 1-5 are executed, 6 is manifest generation itself
+    expect(result.manifest.stages).toHaveLength(6); // Stages 1-6 are executed, 7 is manifest generation itself
     expect(result.manifest.stages).toContain("Source Model Snapshot");
     expect(result.manifest.stages).toContain("Annotation Resolution");
     expect(result.manifest.stages).toContain("Document Structure Build");
+    expect(result.manifest.stages).toContain("Output Verification");
     expect(result.manifest.stages).toContain("Render Model Build");
     expect(result.manifest.stages).toContain("Export Artifact Generation");
 
