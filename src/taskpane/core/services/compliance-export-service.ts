@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-import JSZip from "jszip";
+import { ZipWriter } from "../utils/zip-writer";
 import * as CryptoJS from "crypto-js";
 import { StudyDesign } from "../types/hierarchy";
 import { ExportOptions } from "../types/linguistics";
@@ -40,7 +40,7 @@ export class ComplianceExportService {
       exportOptions?: ExportOptions;
     }
   ): Promise<Blob> {
-    const zip = new JSZip();
+    const zip = new ZipWriter();
 
     // 1. Generate DOCX
     const docxBlob = await generateDocxBlob(currentStudy, options?.exportOptions);
@@ -54,7 +54,7 @@ export class ComplianceExportService {
     const docxHash = CryptoJS.SHA256(docxWord).toString(CryptoJS.enc.Hex);
 
     const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
-    zip.file(`${protocolId}_Annotated_CRF.docx`, docxBlob);
+    await zip.addFile(`${protocolId}_Annotated_CRF.docx`, new Uint8Array(docxArrayBuffer as ArrayBuffer));
 
     // 2. Generate Audit Summary
     let auditSummary: StudyDiffReport;
@@ -79,7 +79,7 @@ export class ComplianceExportService {
     });
     const pdfWord = CryptoJS.lib.WordArray.create(pdfArrayBuffer as any);
     const pdfHash = CryptoJS.SHA256(pdfWord).toString(CryptoJS.enc.Hex);
-    zip.file(`${protocolId}_Annotated_CRF.pdf`, pdfBlob);
+    await zip.addFile(`${protocolId}_Annotated_CRF.pdf`, new Uint8Array(pdfArrayBuffer as ArrayBuffer));
 
     // 3. Generate ODM XML
     const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, {
@@ -87,10 +87,11 @@ export class ComplianceExportService {
       exportOptions: options?.exportOptions,
     });
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
-
-    zip.file(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, odmXml);
+    
+    const encoder = new TextEncoder();
+    await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, encoder.encode(odmXml));
     if (diagnostics) {
-      zip.file(`${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`, diagnostics);
+      await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`, encoder.encode(diagnostics));
     }
 
     // 4. Create Verification Manifest
@@ -110,10 +111,10 @@ export class ComplianceExportService {
     };
 
     const manifestJson = JSON.stringify(manifest, null, 2);
-    zip.file("verification-manifest.json", manifestJson);
+    await zip.addFile("verification-manifest.json", encoder.encode(manifestJson));
 
     // 5. Package as ZIP
-    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const zipBlob = zip.generate();
     return zipBlob;
   }
 }

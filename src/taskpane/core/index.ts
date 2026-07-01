@@ -17,7 +17,6 @@ export { Diagnostic, DiagnosticError, DiagnosticSeverity } from "./services/diag
 export { CodelistGroup, CodelistItem, fetchDictionaries, saveDictionary } from "./services/dictionary-service";
 export { OdmImportPackage, importOdmXml } from "./services/odm-import-service";
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";
-export { ComplianceExportService } from "./services/compliance-export-service";
 export { LinguisticService } from "./services/linguistics-service";
 export { TerminologySearchService } from "./services/terminology-search-service";
 export { ValidationIssue, validateStudyDesign } from "./parser/validator";
