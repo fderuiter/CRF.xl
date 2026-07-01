@@ -10,15 +10,17 @@ import {
   AcrfItem,
   AcrfAnnotation,
   AcrfAnnotationType,
+  Annotation,
 } from "../types";
 import { formatDate } from "../utils/locale-utils";
 
 /**
- * Builds an AnnotatedCrfDocument from a StudyDesign.
+ * Builds an AnnotatedCrfDocument from a StudyDesign and optional annotations.
  */
 export function buildAnnotatedCrfDocument(
   study: StudyDesign,
-  validationIssues: any[] = []
+  validationIssues: any[] = [],
+  storedAnnotations: Annotation[] = []
 ): AnnotatedCrfDocument {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const forms: AcrfForm[] = [];
@@ -86,6 +88,20 @@ export function buildAnnotatedCrfDocument(
               label: issue.level,
               content: issue.message,
               color: issue.level === "Error" ? "#c62828" : "#fbc02d",
+            });
+          });
+
+          // 5. Stored Annotations (from AnnotationService)
+          const itemStoredAnnotations = storedAnnotations.filter(
+            (a) => a.anchor.logicalId === item.itemOid || a.anchor.address.includes(item.itemOid)
+          );
+          itemStoredAnnotations.forEach((anno) => {
+            const content = typeof anno.content === "string" ? anno.content : anno.content.value;
+            annotations.push({
+              type: anno.type as unknown as AcrfAnnotationType,
+              label: anno.type,
+              content: content || "",
+              color: "#4a4a4a", // Default color for custom annotations
             });
           });
 

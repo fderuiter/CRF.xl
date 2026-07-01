@@ -1,5 +1,5 @@
 /**
- * @issue #78
+ * @issue #78, #184
  */
 import { TranslatedText } from "./common";
 import { DataType } from "./enums";
@@ -73,4 +73,57 @@ export interface AnnotatedCrfDocument {
   forms: AcrfForm[];
   /** Optional summary of validation issues to include in the header/appendix. */
   validationIssues?: any[];
+}
+
+/**
+ * Diagnostic record for a single pipeline stage.
+ */
+export interface PipelineDiagnostic {
+  stage: string;
+  severity: "info" | "warning" | "error";
+  message: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Encapsulates the output of a specific pipeline stage.
+ */
+export interface PipelineStageResult<T> {
+  stage: string;
+  data: T;
+  diagnostics: PipelineDiagnostic[];
+  durationMs: number;
+}
+
+/**
+ * Final manifest produced by the generation pipeline.
+ */
+export interface AnnotatedCrfPipelineManifest {
+  pipelineVersion: string;
+  generatedAt: string;
+  protocolId: string;
+  studyVersion: string;
+  stages: string[];
+  totalDurationMs: number;
+  diagnostics: PipelineDiagnostic[];
+  artifactHashes: Record<string, string>;
+}
+
+/**
+ * The final result of the Annotated CRF generation pipeline.
+ */
+export interface AnnotatedCrfPipelineResult {
+  document: AnnotatedCrfDocument;
+  manifest: AnnotatedCrfPipelineManifest;
+  blob?: Blob;
+}
+
+/**
+ * Interface for the export handoff stage.
+ */
+export interface AcrfExportHandoff {
+  document: AnnotatedCrfDocument;
+  format: "pdf" | "html";
+  options?: any;
 }
