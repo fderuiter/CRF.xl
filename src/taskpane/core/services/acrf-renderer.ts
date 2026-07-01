@@ -38,11 +38,14 @@ export function buildAnnotatedCrfDocument(
           // 1. SDTM Annotation
           if (item.sdtmMapping) {
             const domain = item.sdtmMapping.domain || "N/A";
-            const variable = item.sdtmMapping.variable || "N/A";
+            const sasName = item.sdtmMapping.sasFieldName || item.itemOid;
+            const variable = item.sdtmMapping.variable || sasName || "N/A";
+            const nciCode = item.sdtmMapping.nciVariableCode || item.codelistId || "N/A";
+            
             annotations.push({
               type: AcrfAnnotationType.SDTM,
               label: "SDTM",
-              content: `${domain}.${variable}`,
+              content: `[${item.itemOid}]<br/>Domain: ${domain} | Var: ${variable} | NCI: ${nciCode}`,
               commentOid: item.sdtmMapping.commentOid,
               color: "#d32f2f", // Red for SDTM
             });
@@ -166,18 +169,31 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
     .item-affordance { border-bottom: 1px solid #999; height: 20px; width: 200px; margin-top: 5px; }
     .item-instructions { font-size: 12px; font-style: italic; color: #777; margin-top: 4px; }
 
-    .annotations-container { width: 250px; }
+    .annotations-container { width: 250px; text-align: right; float: right; margin-left: 20px; }
     .annotation-box {
       border: 1px solid;
       border-radius: 3px;
       padding: 4px 8px;
       margin-bottom: 4px;
-      font-size: 11px;
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
       font-weight: bold;
-      background-color: rgba(255,255,255,0.9);
-      position: relative;
+      color: white;
+      text-align: left;
+      display: inline-block;
+      min-width: 150px;
     }
-    .annotation-label { font-size: 9px; text-transform: uppercase; margin-bottom: 2px; }
+    .annotation-label { font-size: 8pt; text-transform: uppercase; margin-bottom: 2px; }
+
+    .comb-container {
+      border-collapse: collapse;
+      margin-top: 5px;
+    }
+    .comb-cell {
+      border: 1px solid #333;
+      width: 15px;
+      height: 20px;
+    }
 
     @media print {
       body { padding: 0; }
@@ -193,11 +209,16 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
       for (const item of group.items) {
         let annotationsHtml = "";
         for (const anno of item.annotations) {
+          let bgColor = "#1F77B4"; // Blue default
+          if (anno.type === AcrfAnnotationType.ADAM) bgColor = "#2CA02C"; // Green
+          else if (anno.type === AcrfAnnotationType.RULE) bgColor = "#FF7F0E"; // Orange
+          else if (anno.type === AcrfAnnotationType.VALIDATION) bgColor = anno.color || "#d32f2f"; // Red
+
           annotationsHtml += `
-            <div class="annotation-box" style="border-color: ${anno.color}; color: ${anno.color};">
+            <div class="annotation-box" style="background-color: ${bgColor}; border-color: ${bgColor};">
               <div class="annotation-label">${anno.label}</div>
               <div class="annotation-content">${anno.content}</div>
-            </div>
+            </div><br/>
           `;
         }
 
@@ -206,16 +227,32 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
           ? `<div class="item-instructions">${item.instructions["en-US"] || Object.values(item.instructions)[0]}</div>`
           : "";
 
+        let affordanceHtml = `<div class="item-affordance"></div>`;
+        if (item.dataType === "Integer" || item.dataType === "Float") {
+          affordanceHtml = `
+            <table class="comb-container">
+              <tr>
+                <td class="comb-cell"></td>
+                <td class="comb-cell"></td>
+                <td class="comb-cell"></td>
+                <td class="comb-cell"></td>
+                <td class="comb-cell"></td>
+              </tr>
+            </table>
+          `;
+        }
+
         itemsHtml += `
           <div class="item-row">
             <div class="item-content">
               <div class="item-label">${label}</div>
-              <div class="item-affordance"></div>
+              ${affordanceHtml}
               ${instructions}
             </div>
             <div class="annotations-container">
               ${annotationsHtml}
             </div>
+            <div style="clear:both;"></div>
           </div>
         `;
       }

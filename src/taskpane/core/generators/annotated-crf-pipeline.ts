@@ -20,10 +20,11 @@ import {
 } from "../types/annotated-crf";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { loadAnnotationsFromStore } from "../services/annotation-service";
-import { buildAnnotatedCrfDocument } from "../services/acrf-renderer";
-import { generatePdfBlob } from "./pdf/pdf-builder";
+import { buildAnnotatedCrfDocument, renderToHtml } from "../services/acrf-renderer";
+import { generatePdfBlobFromHtml } from "../services/pdf-export-adapter";
 import { verifyAnnotatedCrf } from "../validators/acrf-output-validator";
 import * as CryptoJS from "crypto-js";
+import HTMLtoDOCX from "html-to-docx";
 
 export class AnnotatedCrfPipeline {
   private diagnostics: PipelineDiagnostic[] = [];
@@ -78,19 +79,25 @@ export class AnnotatedCrfPipeline {
       });
 
       // Stage 6: Export artifact generation handoff
-      let blob: Blob | undefined = undefined;
+      let pdfBlob: Blob | undefined = undefined;
+      let docxBlob: Blob | undefined = undefined;
+      
       if (verification.data.isValid) {
         const stage6 = await this.executeStage("Export Artifact Generation", async () => {
-          const result = await generatePdfBlob(
-            stage1.data.studyDesign,
-            stage1.data.validationIssues,
-            undefined,
-            undefined,
-            stage3.data
-          );
-          return result;
+          const htmlContent = renderToHtml(stage3.data);
+          
+          const generatedPdf = await generatePdfBlobFromHtml(htmlContent);
+          
+          const generatedDocx = await HTMLtoDOCX(htmlContent, null, {
+            table: { row: { cantSplit: true } },
+            footer: true,
+            pageNumber: true,
+          });
+          
+          return { pdf: generatedPdf, docx: generatedDocx };
         });
-        blob = stage6.data;
+        pdfBlob = stage6.data.pdf;
+        docxBlob = stage6.data.docx as Blob;
       } else {
         this.addDiagnostic("Export Artifact Generation", "warning", "Export skipped due to verification errors.");
       }
@@ -102,7 +109,9 @@ export class AnnotatedCrfPipeline {
         document: stage3.data,
         manifest: manifest,
         verificationResult: verification.data,
-        blob: blob,
+        blob: pdfBlob, // Keep legacy field for backwards compatibility
+        pdfBlob: pdfBlob,
+        docxBlob: docxBlob,
       };
     } catch (error) {
       this.addDiagnostic("Pipeline", "error", `Pipeline failed: ${error instanceof Error ? error.message : String(error)}`);

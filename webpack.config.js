@@ -31,6 +31,18 @@ module.exports = async (env, options) => {
     },
     resolve: {
       extensions: [".ts", ".tsx", ".html", ".js"],
+      fallback: {
+        "crypto": require.resolve("crypto-browserify"),
+        "stream": require.resolve("stream-browserify"),
+        "http": require.resolve("stream-http"),
+        "https": require.resolve("https-browserify"),
+        "zlib": require.resolve("browserify-zlib"),
+        "url": require.resolve("url/"),
+        "util": require.resolve("util/"),
+        "assert": require.resolve("assert/"),
+        "buffer": require.resolve("buffer/"),
+        "fs": false
+      }
     },
     module: {
       rules: [
@@ -109,6 +121,8 @@ module.exports = async (env, options) => {
       }),
       new webpack.ProvidePlugin({
         Promise: ["es6-promise", "Promise"],
+        Buffer: ["buffer", "Buffer"],
+        process: "process/browser.js",
       }),
     ],
     devServer: {
