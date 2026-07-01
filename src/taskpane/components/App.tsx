@@ -37,7 +37,6 @@ import {
 import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue } from "../core";
 import { complianceGovernanceService } from "../core";
-import { ComplianceExportService } from "../core";
 import { VaultService } from "../core";
 import { backgroundValidationEngine } from "../core";
 import { LinguisticService } from "../core";
@@ -816,6 +815,7 @@ export const App: React.FC<{ title?: string }> = () => {
     setAppIsProcessing(true);
     try {
       const manifest = loadImportManifest();
+      const { ComplianceExportService } = await import("../core/services/compliance-export-service");
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
         baselineStudy,
@@ -833,8 +833,18 @@ export const App: React.FC<{ title?: string }> = () => {
       a.download = `${currentStudy.metadata.protocolId}_ComplianceExport_v${currentStudy.metadata.version}.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      if (err.message === "COMPRESSION_NOT_SUPPORTED") {
+        setUiError({
+          severity: "error",
+          category: "COMPRESSION_NOT_SUPPORTED",
+          message: "Native compression is not supported by your browser.",
+          recoveryAction: "Please use a modern browser (Chrome, Edge, or Safari) to export compliance artifacts.",
+          allowRetry: false,
+        });
+      } else {
+        console.error(err);
+      }
     } finally {
       setAppIsProcessing(false);
     }
