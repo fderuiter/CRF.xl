@@ -127,7 +127,7 @@ const useStyles = makeStyles({
   },
 });
 
-export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
+export const ValidationLog = ({ issues, isProcessing, onNavigate, renderActions }: any) => {
   const styles = useStyles();
 
   if (isProcessing)
@@ -181,7 +181,8 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate }: any) => {
           >
             <Body1 className={styles.issueMessage}>{issue.message}</Body1>
             <Body1 className={styles.issueLocation}>{issue.location}</Body1>
-            {issue.rowIndex !== undefined && (
+            {renderActions && renderActions(issue)}
+            {(issue.rowIndex !== undefined || issue.location) && (
               <Button
                 className={styles.navigateButton}
                 appearance="subtle"
