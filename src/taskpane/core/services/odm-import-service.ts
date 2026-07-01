@@ -11,6 +11,7 @@ import {
   WorkbookProjection,
 } from "./migration-pipeline";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
+import { groupBy } from "../utils/collection-utils";
 
 /**
  * Normalised severity for ODM import diagnostics.
@@ -157,7 +158,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   const formMatches = findXmlElements(activeMetaDataVersion.innerXml, "FormDef");
   const mappedForms: Array<{ orderNumber: number; formOid: string }> = [];
 
-  const groupedForms = Map.groupBy(formMatches, (m) => nonEmpty(m.attributes.OID));
+  const groupedForms = groupBy(formMatches, (m) => nonEmpty(m.attributes.OID));
 
   for (const [formOid, matches] of groupedForms.entries()) {
     if (!formOid) {
@@ -205,7 +206,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
     });
 
   const codeListMatches = findXmlElements(activeMetaDataVersion.innerXml, "CodeList");
-  const groupedCodelists = Map.groupBy(codeListMatches, (m) => nonEmpty(m.attributes.OID));
+  const groupedCodelists = groupBy(codeListMatches, (m) => nonEmpty(m.attributes.OID));
 
   for (const [codelistId, matches] of groupedCodelists.entries()) {
     if (!codelistId) {

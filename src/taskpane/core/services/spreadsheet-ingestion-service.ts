@@ -19,6 +19,7 @@
  */
 
 import { ImportDiagnostic, ImportProvenance, WorkbookProjection } from "./migration-pipeline";
+import { groupBy } from "../utils/collection-utils";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -689,7 +690,7 @@ export function validateMappings(
 
   // --- Ambiguous: multiple mappings pointing to the same source column ---
   const mappedWithSource = mappings.filter((m) => m.sourceColumn);
-  const sourceColumnUsage = Map.groupBy(mappedWithSource, (m) => m.sourceColumn!.columnIndex);
+  const sourceColumnUsage = groupBy(mappedWithSource, (m) => m.sourceColumn!.columnIndex);
   
   sourceColumnUsage.forEach((mappingsGroup, colIdx) => {
     if (mappingsGroup.length > 1) {

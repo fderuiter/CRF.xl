@@ -2,6 +2,7 @@
  * @issue #130, #85
  */
 import { CrfItem, DataType, EventType, StudyDesign, StudyEvent, isCrfDisplayBlock } from "../types";
+import { groupBy } from "../utils/collection-utils";
 import { mapRowToFormElement } from "./form-element-utils";
 import { migrateStudyDesign } from "./migration";
 import { parseReferencedVariables } from "./metadata-utils";
@@ -45,7 +46,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
   const codelistRows = await provider.getSheetValues("_Codelists");
   if (codelistRows) {
     const validRows = codelistRows.slice(1).filter((row) => row[0]);
-    const grouped = Map.groupBy(validRows, (row) => String(row[0]).trim());
+    const grouped = groupBy(validRows, (row) => String(row[0]).trim());
 
     for (const [strId, rows] of grouped.entries()) {
       study.codelists[strId] = {
