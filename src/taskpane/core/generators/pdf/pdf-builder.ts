@@ -3,6 +3,7 @@
  * @issue #279
  */
 import { StudyDesign, isCrfItem } from "../../types/hierarchy";
+import { AnnotatedCrfDocument } from "../../types/annotated-crf";
 import { ExportOptions, ExportMode } from "../../types/linguistics";
 import { DataType } from "../../types/enums";
 import { LinguisticService } from "../../services/linguistics-service";
@@ -21,7 +22,8 @@ export async function generatePdfBlob(
   study: StudyDesign,
   validationIssues: any[] = [],
   auditSummary?: StudyDiffReport,
-  exportOptions?: ExportOptions
+  exportOptions?: ExportOptions,
+  annotatedCrfDoc?: AnnotatedCrfDocument
 ): Promise<Blob> {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const timestamp = new Date().toISOString();
@@ -119,7 +121,18 @@ export async function generatePdfBlob(
           let sdtmDomain = item.sdtmMapping?.domain || "N/A";
           let sdtmVar = item.sdtmMapping?.variable || sasName || "N/A";
           let nciCode = item.sdtmMapping?.nciVariableCode || item.codelistId || "N/A";
-          const metadataText = `[${item.itemOid}]\nDomain: ${sdtmDomain} | Var: ${sdtmVar} | NCI: ${nciCode}`;
+
+          let metadataText = `[${item.itemOid}]\nDomain: ${sdtmDomain} | Var: ${sdtmVar} | NCI: ${nciCode}`;
+
+          if (annotatedCrfDoc) {
+            const docForm = annotatedCrfDoc.forms.find(f => f.formOid === formOid);
+            const docGroup = docForm?.itemGroups.find(g => g.groupOid === group.groupOid);
+            const docItem = docGroup?.items.find(i => i.itemOid === item.itemOid);
+            if (docItem && docItem.annotations.length > 0) {
+              metadataText = `[${item.itemOid}]\n` + docItem.annotations.map(a => `${a.label}: ${a.content}`).join("\n");
+            }
+          }
+
           const commentText = item.comment ? `\n${item.comment}` : "";
 
           const labelText = getTranslation(
