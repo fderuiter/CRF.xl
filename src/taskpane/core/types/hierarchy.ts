@@ -8,7 +8,7 @@
  * The core building blocks of the trial (Items -> Groups -> Forms -> Events).
  */
 
-import { TranslatedText, RolePermissions, SystemAlias } from "./common";
+import { TranslatedText, RolePermissions } from "./common";
 import {
   DataType,
   DictionaryType,
@@ -57,7 +57,6 @@ export interface CrfItem {
   itemOid: string;
   orderNumber: number;
   effectiveVersion: string;
-  retiredVersion?: string;
 
   name: string;
   label: TranslatedText;
@@ -104,7 +103,6 @@ export interface CrfItem {
   validation: ItemValidation;
   sdtmMapping?: SdtmMapping;
   adamMapping?: AdamMapping;
-  aliases?: SystemAlias[];
   defaultValue?: string;
   editChecks?: EditCheck[];
 
@@ -124,7 +122,6 @@ export interface CrfItem {
 
   showIf?: string;
   enableIf?: string;
-  skipLogic?: string;
 
   customProperties?: Record<string, any>;
 }
@@ -165,7 +162,6 @@ export interface ItemGroup {
 
   showIf?: string;
   orderNumber: number;
-  aliases?: SystemAlias[];
   items: CrfFormElement[];
 
   customProperties?: Record<string, any>;
@@ -178,7 +174,6 @@ export interface CrfForm {
   formType?: FormType;
   orderNumber: number;
   effectiveVersion: string;
-  retiredVersion?: string;
 
   signatureMeaning?: SignatureMeaning;
   sdvTier?: SdvTier;
@@ -191,7 +186,6 @@ export interface CrfForm {
   headerText?: TranslatedText;
   footerText?: TranslatedText;
 
-  aliases?: SystemAlias[];
   itemGroups: ItemGroup[];
 
   customProperties?: Record<string, any>;
@@ -225,7 +219,6 @@ export interface StudyEvent {
   showIf?: string;
   systemTriggers?: SystemTrigger[];
 
-  aliases?: SystemAlias[];
   forms: EventFormRef[];
 
   customProperties?: Record<string, any>;

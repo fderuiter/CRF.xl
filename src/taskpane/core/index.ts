@@ -1,7 +1,7 @@
 /**
  * @issue #276
  */
-export { AdamDatasetClass, AdamDatasetMetadata, CodelistDiffEntry, DataType, DatasetPurpose, EventType, ExportMode, ExportOptions, FormDiffEntry, ItemDiffEntry, RuleDiffEntry, RuleType, SdtmDatasetClass, SdtmDatasetMetadata, StudyDesign, StudyDiffReport, SubmissionMetadata, isCrfItem } from "./types";
+export { AdamDatasetClass, AdamDatasetMetadata, CodelistDiffEntry, DataType, DatasetPurpose, EventType, ExportMode, ExportOptions, FormDiffEntry, ItemDiffEntry, RuleDiffEntry, RuleType, SdtmDatasetClass, SdtmDatasetMetadata, StudyDesign, StudyDiffReport, SubmissionMetadata, isCrfItem, ValidationIssue, AuditJustification } from "./types";
 export { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "./services/baseline-workbook-service";
 export { RECOVERY_APP_VERSION, RecoverySnapshot, WorkbookFingerprint, createRecoverySnapshot, dismissRecoverySnapshot, hasWorkbookChanged, persistRecoverySnapshot, readRecoverySnapshot, summarizeStudyDesign } from "./services/recovery-storage";
 export { TerminologySearchResult } from "./types/terminology-search";
@@ -19,7 +19,7 @@ export { OdmImportPackage, importOdmXml } from "./services/odm-import-service";
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";
 export { LinguisticService } from "./services/linguistics-service";
 export { TerminologySearchService } from "./services/terminology-search-service";
-export { ValidationIssue, validateStudyDesign } from "./parser/validator";
+export { validateStudyDesign } from "./parser/validator";
 export { VaultService } from "./services/vault-service";
 export { backgroundValidationEngine } from "./services/validation-engine";
 export { SelectionContext, bindingService } from "./services/binding-service";

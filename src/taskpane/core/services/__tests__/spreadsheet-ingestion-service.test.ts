@@ -162,7 +162,7 @@ describe("detectColumnMappings", () => {
     expect(mappings.find((m) => m.targetField === "cl_decode")?.confidence).toBe("high");
   });
 
-  it("matches common legacy aliases at medium confidence", () => {
+  it("matches common legacy synonyms at medium confidence", () => {
     const columns = [makeColumn(0, "Response List")];
     const mappings = detectColumnMappings(columns, "form_item");
     const clMapping = mappings.find((m) => m.targetField === "codelist_id");

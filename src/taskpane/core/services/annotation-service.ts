@@ -3,10 +3,9 @@
  */
 /* eslint-disable no-undef */
 /* global Excel */
-import { ValidationIssue } from "../parser/validator";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
-import { Annotation, AnnotationType, AnnotationTargetType, TranslatedText } from "../types";
+import { Annotation, AnnotationType, AnnotationTargetType, TranslatedText, ValidationIssue } from "../types";
 import {
   validateAnnotationTarget,
   detectConflicts,

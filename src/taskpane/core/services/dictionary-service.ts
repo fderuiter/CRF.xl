@@ -3,11 +3,9 @@
  * @issue #46, #93, #41
  */
 import { LinguisticService } from "./linguistics-service";
+import { CodelistItem as CoreCodelistItem } from "../types/clinical";
 
-export interface CodelistItem {
-  codedValue: string;
-  decodedText: Record<string, string>;
-}
+export type CodelistItem = Pick<CoreCodelistItem, "codedValue" | "decodedText">;
 
 export interface CodelistGroup {
   id: string;
@@ -31,7 +29,7 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
     const vals = range.values;
     if (!vals || vals.length <= 1) return [];
 
-    const headers = vals[0].map((h: any) => String(h || "").trim());
+    const headers = vals[0].map((h: unknown) => String(h || "").trim());
     const localeMap = new Map<string, number>();
     let idIdx = -1,
       nameIdx = -1,
@@ -132,7 +130,7 @@ export async function saveDictionary(
     const rangeColumnCount = range.columnCount;
     const rangeValues = range.values;
 
-    const headers = rangeValues[0].map((h: any) => String(h || "").trim());
+    const headers = rangeValues[0].map((h: unknown) => String(h || "").trim());
     const localeMap = new Map<string, number>();
     let idIdx = -1,
       nameIdx = -1,
@@ -201,7 +199,7 @@ export async function saveDictionary(
     // Build 2D array for rows
     const rowCount = items.length;
     const finalColCount = maxColIdx + 1;
-    const itemRows: any[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
+    const itemRows: (string | number | boolean)[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
 
     items.forEach((item, idx) => {
       itemRows[idx][idIdx] = id.toUpperCase();

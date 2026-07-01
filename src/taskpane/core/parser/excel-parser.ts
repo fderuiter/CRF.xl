@@ -16,7 +16,7 @@ export async function parseExcelToStudyDesign(
   options: ParseExcelToStudyDesignOptions = {}
 ): Promise<{
   studyDesign: StudyDesign;
-  validationIssues: import("../parser/validator").ValidationIssue[];
+  validationIssues: import("../types").ValidationIssue[];
 }> {
   const rawData = await fetchRawDataFromExcel(options);
 
@@ -136,7 +136,7 @@ function runInWorker(
   options: ParseExcelToStudyDesignOptions
 ): Promise<{
   studyDesign: StudyDesign;
-  validationIssues: import("../parser/validator").ValidationIssue[];
+  validationIssues: import("../types").ValidationIssue[];
 }> {
   return new Promise((resolve, reject) => {
     // Webpack 5 standard worker creation

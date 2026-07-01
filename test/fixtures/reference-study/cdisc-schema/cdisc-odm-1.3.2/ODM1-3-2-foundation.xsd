@@ -284,7 +284,7 @@
 			<xs:enumeration value="incompleteDate"/>
 			<xs:enumeration value="incompleteTime"/>
 			<!-- original ODM datatypes (pre-1.3) -->
-			<!-- aliases added for 1.3 -->
+			<!-- synonyms added for 1.3 -->
 			<!-- binary datatypes for 1.3 -->
 			<!-- extended datetime datatypes -->
 		</xs:restriction>

@@ -16,13 +16,7 @@ import {
   tokens,
   Badge,
 } from "@fluentui/react-components";
-import { StudyDiffReport } from "../core";
-
-export interface AuditJustification {
-  reason: string;
-  userId: string;
-  timestamp: string;
-}
+import { StudyDiffReport, AuditJustification } from "../core";
 
 interface AuditOrchestratorModalProps {
   isOpen: boolean;
