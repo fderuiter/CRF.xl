@@ -85,6 +85,15 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: "2px",
+    cursor: "pointer",
+    ":focus": {
+      outline: `2px solid ${tokens.colorBrandStroke1}`,
+      outlineOffset: "2px",
+    },
+    ":focus-visible": {
+      outline: `2px solid ${tokens.colorBrandStroke1}`,
+      outlineOffset: "2px",
+    },
   },
   warningIssueCard: {
     backgroundColor: tokens.colorStatusWarningBackground1,
@@ -130,6 +139,40 @@ const useStyles = makeStyles({
 export const ValidationLog = ({ issues, isProcessing, onNavigate, renderActions }: any) => {
   const styles = useStyles();
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const isCard = target.getAttribute("data-is-issue-card") === "true";
+
+    if (!isCard) return;
+
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const index = parseInt(target.getAttribute("data-issue-index") || "0", 10);
+      let nextIndex = e.key === "ArrowDown" ? index + 1 : index - 1;
+
+      if (nextIndex < 0) {
+        nextIndex = 0;
+      } else if (nextIndex >= issues.length) {
+        nextIndex = issues.length - 1;
+      }
+
+      const nextCard = target.parentElement?.querySelector(`[data-issue-index="${nextIndex}"]`) as HTMLElement;
+      if (nextCard) {
+        nextCard.focus();
+        if (typeof nextCard.scrollIntoView === "function") {
+          nextCard.scrollIntoView({ block: "nearest" });
+        }
+      }
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      const index = parseInt(target.getAttribute("data-issue-index") || "0", 10);
+      const issue = issues[index];
+      if (issue && (issue.rowIndex !== undefined || issue.location)) {
+        onNavigate({ ...issue, location: issue.sheetName });
+      }
+    }
+  };
+
   if (isProcessing)
     return (
       <div className={styles.skeletonRoot}>
@@ -169,10 +212,13 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate, renderActions 
           {issues.length} Issues
         </Badge>
       </div>
-      <div className={styles.logBody}>
+      <div className={styles.logBody} onKeyDown={handleKeyDown}>
         {issues.map((issue: any, idx: number) => (
           <div
             key={idx}
+            data-is-issue-card="true"
+            data-issue-index={idx}
+            tabIndex={0}
             className={
               issue.level === "Warning"
                 ? `${styles.issueCard} ${styles.warningIssueCard}`
