@@ -84,12 +84,16 @@ For new decisions, copy the template at the bottom of this file.
 
 ## ADR-006: localStorage recovery snapshots (metadata-only, 7-day expiry)
 
-**Decision:** Store a recovery snapshot in browser localStorage on each successful parse. Snapshots contain: validation summary, parsed study summary (counts only), UI state, and snapshot timestamp. Raw workbook cell contents and credentials are explicitly excluded. Snapshots expire after 7 days.
+**Decision:** Store a recovery snapshot in browser localStorage on each successful parse. Authorized fields strictly include: `appVersion`, `savedAt`, `validationSummary`, `studySummary`, `uiState`, `issues`, `workbookFingerprint`, and `justifications`. Raw workbook cell contents and credentials are explicitly excluded. Snapshots expire after 7 days.
 
 **Rationale:**
 - Excel for the Web taskpanes can be refreshed or closed unexpectedly; a recovery snapshot prevents complete loss of UI context.
 - Storing only metadata (not raw data) avoids any GxP data custody concern.
 - 7-day expiry prevents unbounded localStorage growth.
+
+**Data Custody Analysis:**
+- `workbookFingerprint`: Only tracks structural metadata (e.g., `sheetCount` and `sheetNames`) to detect schema changes without exposing clinical data.
+- `justifications`: Captures accountability metadata (`reason`, `userId`, `timestamp`) necessary for compliance auditing without preserving any raw clinical cell data.
 
 **Status:** Active
 **Recorded:** 2025
