@@ -11,6 +11,7 @@ import {
   AcrfAnnotation,
   AcrfAnnotationType,
   Annotation,
+  ReviewerComment,
 } from "../types";
 import { formatDate } from "../utils/locale-utils";
 
@@ -20,7 +21,8 @@ import { formatDate } from "../utils/locale-utils";
 export function buildAnnotatedCrfDocument(
   study: StudyDesign,
   validationIssues: any[] = [],
-  storedAnnotations: Annotation[] = []
+  storedAnnotations: Annotation[] = [],
+  reviewerComments: ReviewerComment[] = []
 ): AnnotatedCrfDocument {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const forms: AcrfForm[] = [];
@@ -108,6 +110,19 @@ export function buildAnnotatedCrfDocument(
             });
           });
 
+          // 6. Reviewer Comments
+          const itemReviewComments = reviewerComments.filter(
+            (c) => c.targetEntityId === item.itemOid
+          );
+          itemReviewComments.forEach((comment) => {
+            annotations.push({
+              type: AcrfAnnotationType.COMMENT,
+              label: "Review",
+              content: `${comment.author}: ${comment.text} (${comment.status})`,
+              color: comment.status === "resolved" ? "#4caf50" : "#2196f3",
+            });
+          });
+
           items.push({
             itemOid: item.itemOid,
             name: item.name,
@@ -144,6 +159,7 @@ export function buildAnnotatedCrfDocument(
     generatedAt: new Date().toISOString(),
     forms,
     validationIssues,
+    reviewerComments,
   };
 }
 
@@ -213,6 +229,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
           if (anno.type === AcrfAnnotationType.ADAM) bgColor = "#2CA02C"; // Green
           else if (anno.type === AcrfAnnotationType.RULE) bgColor = "#FF7F0E"; // Orange
           else if (anno.type === AcrfAnnotationType.VALIDATION) bgColor = anno.color || "#d32f2f"; // Red
+          else if (anno.label === "Review") bgColor = anno.color || "#2196f3"; // Review Blue/Green
 
           annotationsHtml += `
             <div class="annotation-box" style="background-color: ${bgColor}; border-color: ${bgColor};">

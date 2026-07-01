@@ -4,6 +4,7 @@
  */
 import { LinguisticService } from "./linguistics-service";
 import { CodelistItem as CoreCodelistItem } from "../types/clinical";
+import { groupBy } from "../utils/collection-utils";
 
 export type CodelistItem = Pick<CoreCodelistItem, "codedValue" | "decodedText">;
 
@@ -59,7 +60,7 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
     }
 
     const validRows = vals.slice(1).filter((row: any) => row[idIdx]);
-    const groupedMap = Map.groupBy(validRows, (row: any) => String(row[idIdx]).trim());
+    const groupedMap = groupBy(validRows, (row: any) => String(row[idIdx]).trim());
 
     return Array.from(groupedMap.entries()).map(([strId, rows]) => {
       const items = rows.map((row: any) => {

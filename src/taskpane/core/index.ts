@@ -31,3 +31,4 @@ export { CdiscCtMappingFailure, mapCdiscApiResponseToCrfCodelists } from "./serv
 export { getPredictedStudyDesign, speculativeSyncManager } from "./services/speculative-sync-service";
 export { formatNumber, parseNumber, formatDate, parseDate, formatCurrency } from "./utils/locale-utils";
 export { onboardingService, OnboardingState } from "./services/onboarding-service";
+export { loadComments, saveComment, updateCommentStatus, deleteComment } from "./services/review-service";
