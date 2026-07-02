@@ -19,11 +19,16 @@ import {
   EyeRegular,
   CommentRegular,
 } from "@fluentui/react-icons";
-import { StudyDesign, AcrfVerificationResult, ReviewerComment } from "../core/types";
+import {
+  StudyDesign,
+  AcrfVerificationResult,
+  ReviewerComment,
+  AnnotatedCrfPipelineResult,
+} from "../core/types";
 import { navigateToSource } from "../core";
 import { renderToHtml } from "../core/services/acrf-renderer";
-import { exportToPdf } from "../core/services/pdf-export-adapter";
 import { AnnotatedCrfPipeline } from "../core/generators/annotated-crf-pipeline";
+import { ReviewerPackageService } from "../core/services/reviewer-package-service";
 import { ValidationLog } from "./ValidationLog";
 import { ReviewMode } from "./ReviewMode";
 
@@ -91,6 +96,7 @@ interface AcrfPreviewProps {
   onReopenReviewComment?: (id: string) => Promise<void>;
   onDeleteReviewComment?: (id: string) => Promise<void>;
   onRefreshPreview?: () => Promise<void>;
+  onPipelineVerification?: (result: AcrfVerificationResult) => void;
 }
 
 export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
@@ -103,6 +109,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
   onReopenReviewComment,
   onDeleteReviewComment,
   onRefreshPreview,
+  onPipelineVerification,
 }) => {
   const styles = useStyles();
   const [html, setHtml] = React.useState<string>("");
@@ -110,7 +117,9 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<AcrfVerificationResult | null>(null);
-  const [pdfBlob, setPdfBlob] = React.useState<Blob | null>(null);
+  const [pipelineResult, setPipelineResult] = React.useState<AnnotatedCrfPipelineResult | null>(
+    null
+  );
   const [selectedEntityId, setSelectedEntityId] = React.useState<string | null>(null);
   const [showReviewPane, setShowReviewPane] = React.useState(false);
 
@@ -121,11 +130,12 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
       const pipeline = new AnnotatedCrfPipeline();
       const result = await pipeline.execute();
 
+      setPipelineResult(result);
       const renderedHtml = renderToHtml(result.document);
       setHtml(renderedHtml);
       setVerification(result.verificationResult || null);
-      if (result.blob) {
-        setPdfBlob(result.blob);
+      if (result.verificationResult) {
+        onPipelineVerification?.(result.verificationResult);
       }
     } catch (e: any) {
       setError(`Failed to run aCRF pipeline: ${e.message}`);
@@ -139,22 +149,19 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
   }, [runVerification]);
 
   const handleExport = async () => {
+    if (!pipelineResult) return;
     setIsExporting(true);
     setError(null);
     try {
-      const filename = `${study.metadata.protocolId}_AnnotatedCRF_v${study.metadata.version}.pdf`;
+      const zipBlob = await ReviewerPackageService.createReviewerPackage(pipelineResult);
+      const filename = `${study.metadata.protocolId}_ReviewerPackage_v${study.metadata.version}.zip`;
 
-      if (pdfBlob) {
-        const url = window.URL.createObjectURL(pdfBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      } else {
-        // Fallback to HTML-based export if blob not available
-        await exportToPdf(html, filename);
-      }
+      const url = window.URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
     } catch (e: any) {
       setError(`Export failed: ${e.message}`);
     } finally {
@@ -174,12 +181,24 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
     <div className={styles.root}>
       <div className={styles.toolbar}>
         <Button
+          id="tour-export-reviewer-package"
           icon={<ArrowDownloadRegular />}
           appearance="primary"
           onClick={handleExport}
-          disabled={isExporting || isVerifying || !!error || verification?.isValid === false}
+          disabled={
+            isExporting ||
+            isVerifying ||
+            !!error ||
+            (verification?.issues.some((i) => i.severity === "error") ?? false) ||
+            (verification?.issues.some(
+              (i) =>
+                i.severity === "warning" &&
+                !acknowledgedWarnings?.has(i.message + (i.location || i.category))
+            ) ??
+              false)
+          }
         >
-          {isExporting ? "Exporting..." : "Export to PDF"}
+          {isExporting ? "Exporting..." : "Export Reviewer Package"}
         </Button>
         <Button
           icon={<ArrowClockwiseRegular />}

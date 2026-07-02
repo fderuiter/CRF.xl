@@ -1043,12 +1043,18 @@ export const App: React.FC<{ title?: string }> = () => {
           onTabSelect={(_e, data) => setActiveTab(data.value as string)}
           style={{ marginBottom: "12px" }}
         >
-          <Tab value="design">Design</Tab>
-          <Tab value="compliance">Compliance</Tab>
+          <Tab value="design" id="tab-design">
+            Design
+          </Tab>
+          <Tab value="compliance" id="tab-compliance">
+            Compliance
+          </Tab>
           <Tab value="integrity" id="tour-integrity">
             Integrity Hub
           </Tab>
-          <Tab value="review">Review</Tab>
+          <Tab value="review" id="tab-review">
+            Review
+          </Tab>
         </TabList>
 
         {versionUpdate && (

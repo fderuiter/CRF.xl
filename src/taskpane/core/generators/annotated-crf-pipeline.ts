@@ -17,6 +17,8 @@ import {
   AnnotatedCrfPipelineManifest,
   PipelineDiagnostic,
   PipelineStageResult,
+  AcrfVerificationResult,
+  AnnotatedCrfDocument,
 } from "../types/annotated-crf";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { loadAnnotationsFromStore } from "../services/annotation-service";
@@ -116,6 +118,10 @@ export class AnnotatedCrfPipeline {
       // Stage 7: Verification manifest generation
       const manifest = this.generateManifest(stage1.data.studyDesign);
 
+      // Final: Generate Human Readable Reports
+      const humanReadableReport = this.generateHumanReadableReport(verification.data);
+      const metadataSummary = this.generateMetadataSummary(stage3.data);
+
       return {
         document: stage3.data,
         manifest: manifest,
@@ -123,6 +129,8 @@ export class AnnotatedCrfPipeline {
         blob: pdfBlob, // Keep legacy field for backwards compatibility
         pdfBlob: pdfBlob,
         docxBlob: docxBlob,
+        humanReadableReport,
+        metadataSummary,
       };
     } catch (error) {
       this.addDiagnostic(
@@ -190,5 +198,66 @@ export class AnnotatedCrfPipeline {
         "acrf-pdf": artifactHash,
       },
     };
+  }
+
+  private generateHumanReadableReport(result: AcrfVerificationResult): string {
+    let report = "Annotated CRF Verification Report\n";
+    report += "=================================\n\n";
+    report += `Status: ${result.isValid ? "PASS" : "FAIL"}\n`;
+    report += `Generated At: ${new Date().toISOString()}\n\n`;
+    report += "Summary:\n";
+    report += ` - Errors: ${result.summary.errorCount}\n`;
+    report += ` - Warnings: ${result.summary.warningCount}\n`;
+    report += ` - Total Checks: ${result.summary.totalChecks}\n\n`;
+
+    if (result.issues.length > 0) {
+      report += "Findings:\n";
+      result.issues.forEach((issue, idx) => {
+        report += `${idx + 1}. [${issue.severity.toUpperCase()}] [${issue.category}] ${issue.message}\n`;
+        if (issue.entityId) report += `    Entity: ${issue.entityId}\n`;
+        if (issue.location) report += `    Location: ${issue.location}\n`;
+      });
+    } else {
+      report += "No issues found.\n";
+    }
+
+    return report;
+  }
+
+  private generateMetadataSummary(doc: AnnotatedCrfDocument): string {
+    let summary = "aCRF Metadata Summary\n";
+    summary += "=====================\n\n";
+    summary += `Protocol ID: ${doc.protocolId}\n`;
+    summary += `Study Name: ${doc.studyName}\n`;
+    summary += `Version: ${doc.version}\n`;
+    summary += `Sponsor: ${doc.sponsor || "N/A"}\n\n`;
+
+    summary += "Structure:\n";
+    summary += ` - Total Forms: ${doc.forms.length}\n`;
+
+    let totalGroups = 0;
+    let totalItems = 0;
+    let totalAnnotations = 0;
+
+    doc.forms.forEach((f) => {
+      totalGroups += f.itemGroups.length;
+      f.itemGroups.forEach((g) => {
+        totalItems += g.items.length;
+        g.items.forEach((i) => {
+          totalAnnotations += i.annotations.length;
+        });
+      });
+    });
+
+    summary += ` - Total Item Groups: ${totalGroups}\n`;
+    summary += ` - Total Items: ${totalItems}\n`;
+    summary += ` - Total Annotations: ${totalAnnotations}\n\n`;
+
+    summary += "Forms Detail:\n";
+    doc.forms.forEach((f) => {
+      summary += ` - ${f.formName} (${f.formOid}): ${f.itemGroups.length} groups, ${f.itemGroups.reduce((acc, g) => acc + g.items.length, 0)} items\n`;
+    });
+
+    return summary;
   }
 }
