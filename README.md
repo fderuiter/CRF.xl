@@ -42,7 +42,7 @@ The application is divided into two primary layers:
     * `cdisc-api-service.ts` — CDISC Library API client
     * `dictionary-service.ts` — codelist and terminology write operations
 
-See `docs/architecture/module-map.md` for the complete module inventory and `docs/architecture/adr-index.md` for key architectural decisions.
+See [`docs/architecture/module-map.md`](./docs/architecture/module-map.md) for the complete module inventory and [`docs/architecture/adr-index.md`](./docs/architecture/adr-index.md) for key architectural decisions.
 
 ## 🛠️ Tech Stack
 * **Framework:** React 18
