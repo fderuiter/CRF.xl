@@ -415,7 +415,37 @@ export const App: React.FC<{ title?: string }> = () => {
     return () => unsubscribeError();
   }, []);
 
-  const dismissUiError = () => setUiError(null);
+  const errorContainerRef = useRef<HTMLDivElement>(null);
+  const retryButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (uiError) {
+      if (!previousFocusRef.current && document.activeElement && document.activeElement !== document.body) {
+        previousFocusRef.current = document.activeElement as HTMLElement;
+      }
+      setTimeout(() => {
+        if (retryButtonRef.current) {
+          retryButtonRef.current.focus();
+        } else if (errorContainerRef.current) {
+          errorContainerRef.current.focus();
+        }
+      }, 0);
+    } else {
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+  }, [uiError]);
+
+  const dismissUiError = () => {
+    if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+    setUiError(null);
+  };
 
   const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
     const diagnostic = createOfficeDiagnostic(error);
@@ -1166,35 +1196,54 @@ export const App: React.FC<{ title?: string }> = () => {
           </MessageBar>
         )}
 
-        {uiError && (
-          <MessageBar
-            intent={
-              uiError.severity === "warning"
-                ? "warning"
-                : uiError.severity === "info"
-                  ? "info"
-                  : "error"
-            }
-          >
-            <MessageBarBody>
-              <strong>{uiError.message}</strong> {uiError.recoveryAction}
-              {uiError.retryAction && (
+        <div
+          ref={errorContainerRef}
+          aria-live="polite"
+          tabIndex={-1}
+          style={{ display: uiError ? "block" : "none", outline: "none" }}
+        >
+          {uiError && (
+            <MessageBar
+              intent={
+                uiError.severity === "warning"
+                  ? "warning"
+                  : uiError.severity === "info"
+                    ? "info"
+                    : "error"
+              }
+            >
+              <MessageBarBody>
+                <strong>{uiError.message}</strong> {uiError.recoveryAction}
+                {uiError.retryAction && (
+                  <span>
+                    {" "}
+                    <Button
+                      ref={retryButtonRef}
+                      size="small"
+                      appearance="secondary"
+                      onClick={() => {
+                        if (previousFocusRef.current) {
+                          previousFocusRef.current.focus();
+                        }
+                        if (uiError.retryAction) {
+                          uiError.retryAction();
+                        }
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </span>
+                )}
                 <span>
                   {" "}
-                  <Button size="small" appearance="secondary" onClick={uiError.retryAction}>
-                    Retry
+                  <Button size="small" appearance="subtle" onClick={dismissUiError}>
+                    Dismiss
                   </Button>
                 </span>
-              )}
-              <span>
-                {" "}
-                <Button size="small" appearance="subtle" onClick={dismissUiError}>
-                  Dismiss
-                </Button>
-              </span>
-            </MessageBarBody>
-          </MessageBar>
-        )}
+              </MessageBarBody>
+            </MessageBar>
+          )}
+        </div>
 
         {isInitialized && (
           <ValidationLog
