@@ -96,7 +96,7 @@ export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext 
                       i.adamMapping = {};
                     }
                     if (i.origin && typeof i.origin === "string") {
-                      i.origin = normalizeDataOrigin(i.origin as any);
+                      i.origin = normalizeDataOrigin(i.origin);
                     }
                   }
                 });

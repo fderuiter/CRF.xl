@@ -431,7 +431,7 @@ export async function validateRules(
           level: diag.level,
           ruleId: rule.ruleId,
           message: `Rule '${rule.ruleId}' expression issue: ${diag.message}`,
-          type: diag.type as any,
+          type: diag.type,
           rowIndex: rule._sourceRowIndex,
         });
       });

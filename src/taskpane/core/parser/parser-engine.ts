@@ -22,7 +22,7 @@ interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
 }
 
 export async function parseRawDataToStudyDesign(
-  rawData: Record<string, any[][]>,
+  rawData: Record<string, unknown[][]>,
   options: ParseExcelToStudyDesignOptions = {}
 ): Promise<StudyDesign> {
   const runtime = createParseRuntime(options);
@@ -264,8 +264,8 @@ export async function parseRawDataToStudyDesign(
         await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
           runtime.throwIfStopped("items");
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
-          if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+          if (isCrfDisplayBlock(element) || (element as CrfItem).itemOid) {
+            targetGroup.items.push(element as CrfItem);
           }
         });
       }
@@ -313,7 +313,7 @@ export async function parseRawDataToStudyDesign(
         eventType: EventType.SCHEDULED,
         forms: [],
         rowIndex: 0,
-      } as any;
+      } as unknown as CrfEvent;
 
       for (let row = 1; row < schedSheetVals.length; row++) {
         const formOid = normalizeOid(schedSheetVals[row][0]);

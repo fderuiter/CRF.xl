@@ -1200,7 +1200,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <ValidationLog
             issues={issues}
             isProcessing={isProcessing}
-            onNavigate={(i) => {
+            onNavigate={(i: ValidationIssue) => {
               const sheet = i.location?.includes("Events") ? "_Schedule" : i.sheetName;
               if (i.rowIndex !== undefined && sheet) navigateToSource(sheet, i.rowIndex);
             }}
@@ -1247,11 +1247,11 @@ export const App: React.FC<{ title?: string }> = () => {
                     style={{ width: "100%" }}
                   >
                     {study?.metadata.supportedLanguages?.map((lang) => (
-                      <Option key={lang} value={lang}>
+                      <Option key={lang} value={lang} text={lang}>
                         {lang}
                       </Option>
                     )) || (
-                      <Option value={study?.metadata.defaultLanguage}>
+                      <Option value={study?.metadata.defaultLanguage} text={study?.metadata.defaultLanguage || ""}>
                         {study?.metadata.defaultLanguage}
                       </Option>
                     )}

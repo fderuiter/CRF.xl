@@ -32,10 +32,10 @@ export async function getPredictedStudyDesign(
   projection: WorkbookProjection
 ): Promise<StudyDesign> {
   return await parseWorkbookSheetValuesToStudyDesign({
-    async getSheetValues(sheetName: string) {
-      if (sheetName === "_Study") return projection.studyRows;
-      if (sheetName === "_Forms") return projection.formsRows;
-      if (sheetName === "_Codelists") return projection.codelistRows;
+    async getSheetValues(sheetName: string): Promise<unknown[][] | null> {
+      if (sheetName === "_Study") return projection.studyRows ?? null;
+      if (sheetName === "_Forms") return projection.formsRows ?? null;
+      if (sheetName === "_Codelists") return projection.codelistRows ?? null;
       return null;
     },
   });
@@ -95,9 +95,9 @@ class SpeculativeSyncManager {
     if (this.state === "syncing") return;
 
     const chunks: SyncChunk[] = [
-      ...this.buildChunks("_Study", projection.studyRows),
-      ...this.buildChunks("_Forms", projection.formsRows),
-      ...this.buildChunks("_Codelists", projection.codelistRows),
+      ...this.buildChunks("_Study", projection.studyRows || []),
+      ...this.buildChunks("_Forms", projection.formsRows || []),
+      ...this.buildChunks("_Codelists", projection.codelistRows || []),
     ];
 
     let snapshotFingerprints: Record<string, string> = {};
