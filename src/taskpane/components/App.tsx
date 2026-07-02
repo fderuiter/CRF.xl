@@ -201,9 +201,12 @@ function toSafeHttpUrl(url: string | undefined): string | null {
   }
 }
 
+import { useAnnouncer } from "../hooks/useAnnouncer";
+
 export const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
+  const { announcement, announce } = useAnnouncer();
 
   useEffect(() => {
     const onboarding = onboardingService.getState();
@@ -490,6 +493,7 @@ export const App: React.FC<{ title?: string }> = () => {
       } else if (state === "conflict") {
         setIsBackgroundSyncing(false);
         setSyncConflict(details);
+        announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
       } else if (state === "idle") {
         setIsBackgroundSyncing(false);
         if (details?.study) {
@@ -1370,6 +1374,25 @@ export const App: React.FC<{ title?: string }> = () => {
             </DialogBody>
           </DialogSurface>
         </Dialog>
+
+        {/* Global ARIA live region for screen readers */}
+        <div
+          aria-live={announcement ? announcement.priority : "polite"}
+          aria-atomic="true"
+          style={{
+            position: "absolute",
+            width: "1px",
+            height: "1px",
+            padding: 0,
+            margin: "-1px",
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            border: 0,
+          }}
+        >
+          {announcement ? announcement.message : ""}
+        </div>
       </main>
     </div>
   );

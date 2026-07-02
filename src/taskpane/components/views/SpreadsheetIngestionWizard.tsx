@@ -27,9 +27,9 @@ import {
   IngestionPreview,
   SheetScanResult,
   TARGET_FIELDS,
-
   TargetSheet,
 } from "../../core";
+import { announcer } from "../../core/services/announcer";
 import { UniversalWizard, WizardStepDef } from "../ui/UniversalStepper";
 
 interface WizardState {
@@ -407,6 +407,9 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         });
 
         rowsWritten += currentChunkSize;
+        const percent = Math.round((rowsWritten / totalRows) * 100);
+        announcer.announce(`Importing data: ${percent}%`);
+        
         setState((current) => {
           if (current.syncProgress) {
             return { ...current, syncProgress: { ...current.syncProgress, processed: rowsWritten } };
@@ -416,6 +419,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       }
 
       if (abortControllerRef.current?.signal.aborted) {
+        announcer.announce("Import Cancelled", "polite");
         patch({
           syncProgress: null,
           importResult: {
@@ -430,6 +434,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       }
 
       const warnings = (state.preview.diagnostics || []).filter((d) => d.severity === "warning").length;
+      announcer.announce("Import Complete", "polite");
       patch({
         importResult: {
           success: true,
