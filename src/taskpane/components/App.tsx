@@ -39,6 +39,7 @@ import { ValidationIssue } from "../core";
 import { complianceGovernanceService } from "../core";
 import { VaultService } from "../core";
 import { backgroundValidationEngine } from "../core";
+import { unifiedIssueService } from "../core";
 import { LinguisticService } from "../core";
 
 import { diffStudyDesigns } from "../core";
@@ -57,7 +58,7 @@ import {
   summarizeStudyDesign,
   formatDate,
 } from "../core";
-import { createOfficeDiagnostic, Diagnostic } from "../core";
+import { createOfficeDiagnostic } from "../core";
 import { checkForVersionUpdate, dismissVersionNotification, VersionUpdateMetadata } from "../core";
 import { loadImportManifest, onboardingService } from "../core";
 
@@ -221,9 +222,10 @@ export const App: React.FC<{ title?: string }> = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   // 2. Application State
-  const [validationState, setValidationState] = useState(backgroundValidationEngine.getState());
-  const study = validationState.study;
-  const issues = validationState.issues;
+  const [appState, setAppState] = useState(unifiedIssueService.getState());
+  const study = appState.study;
+  const issues = appState.issues;
+  const clinicalIssues = React.useMemo(() => issues.filter(i => i.type === "clinical").map(i => i.originalClinicalIssue!), [issues]);
 
   const [appIsProcessing, setAppIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState("Ready");
@@ -234,8 +236,8 @@ export const App: React.FC<{ title?: string }> = () => {
   });
   const [annotationProgress, setAnnotationProgress] = useState<string | null>(null);
 
-  const isProcessing = validationState.isProcessing || appIsProcessing;
-  const status = validationState.isProcessing ? validationState.status : appStatus;
+  const isProcessing = appState.isProcessing || appIsProcessing;
+  const status = appState.isProcessing ? appState.status : appStatus;
   const displayStatus = annotationProgress || status;
 
   const lastVisualsRef = useRef<{ study: any; activeSheet: string | null } | null>(null);
@@ -269,7 +271,7 @@ export const App: React.FC<{ title?: string }> = () => {
   }, [activeSheet, isInitialized]);
 
   useEffect(() => {
-    return backgroundValidationEngine.subscribe(setValidationState);
+    return unifiedIssueService.subscribe(setAppState);
   }, []);
 
   useEffect(() => {
@@ -307,7 +309,7 @@ export const App: React.FC<{ title?: string }> = () => {
           },
         });
 
-        applyValidationVisuals(sheetsToClear, issues, runtime)
+        applyValidationVisuals(sheetsToClear, clinicalIssues, runtime)
           .catch(console.error)
           .finally(() => setAnnotationProgress(null));
       }
@@ -322,7 +324,7 @@ export const App: React.FC<{ title?: string }> = () => {
         .syncValidationResults(
           study.metadata.protocolId || "UNKNOWN",
           study.metadata.version || "1.0",
-          issues,
+          clinicalIssues,
           CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex)
         )
         .catch(console.error);
@@ -347,7 +349,7 @@ export const App: React.FC<{ title?: string }> = () => {
                 };
                 // Add if not already present
                 if (
-                  !issues.some((i) => i.location === issue.location && i.message === issue.message)
+                  !clinicalIssues.some((i) => i.location === issue.location && i.message === issue.message)
                 ) {
                   backgroundValidationEngine.updateState((prev) => ({
                     issues: [...prev.issues, issue],
@@ -355,7 +357,7 @@ export const App: React.FC<{ title?: string }> = () => {
                   }));
                 }
               } else {
-                if (issues.some((i) => i.location === "Host Environment")) {
+                if (clinicalIssues.some((i) => i.location === "Host Environment")) {
                   backgroundValidationEngine.updateState((prev) => {
                     const filtered = prev.issues.filter((i) => i.location !== "Host Environment");
                     return {
@@ -394,9 +396,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
   const [showAuditModal, setShowAuditModal] = useState(false);
-  const [uiError, setUiError] = useState<
-    (Diagnostic & { retryAction?: () => Promise<void> }) | null
-  >(null);
+  
   const [activeTab, setActiveTab] = useState("design");
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [signOffTimestamp, setSignOffTimestamp] = useState<string | null>(null);
@@ -409,51 +409,13 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [study, issues]);
 
-  useEffect(() => {
-    const unsubscribeError = bindingService.subscribeError((diagnostic) => {
-      setUiError({
-        ...diagnostic.toJSON(),
-      });
-    });
-    return () => unsubscribeError();
-  }, []);
+  
 
-  const errorContainerRef = useRef<HTMLDivElement>(null);
-  const retryButtonRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (uiError) {
-      if (!previousFocusRef.current && document.activeElement && document.activeElement !== document.body) {
-        previousFocusRef.current = document.activeElement as HTMLElement;
-      }
-      setTimeout(() => {
-        if (retryButtonRef.current) {
-          retryButtonRef.current.focus();
-        } else if (errorContainerRef.current) {
-          errorContainerRef.current.focus();
-        }
-      }, 0);
-    } else {
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-        previousFocusRef.current = null;
-      }
-    }
-  }, [uiError]);
-
-  const dismissUiError = () => {
-    if (previousFocusRef.current) {
-      previousFocusRef.current.focus();
-      previousFocusRef.current = null;
-    }
-    setUiError(null);
-  };
-
+  
   const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
     const diagnostic = createOfficeDiagnostic(error);
     console.error(`[${diagnostic.category}]`, error);
-    setUiError({
+    unifiedIssueService.addSystemIssue({
       ...diagnostic.toJSON(),
       retryAction: diagnostic.allowRetry ? retryAction : undefined,
     });
@@ -463,7 +425,7 @@ export const App: React.FC<{ title?: string }> = () => {
     operation: () => Promise<T>,
     retryAction?: () => Promise<void>
   ): Promise<T | null> => {
-    dismissUiError();
+    unifiedIssueService.clearSystemIssues();
     try {
       return await operation();
     } catch (error) {
@@ -501,7 +463,7 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       } else if (state === "error") {
         setIsBackgroundSyncing(false);
-        setUiError({
+        unifiedIssueService.addSystemIssue({
           severity: "error",
           category: "SYNC_ERROR",
           message: "Background sync failed.",
@@ -589,7 +551,7 @@ export const App: React.FC<{ title?: string }> = () => {
     const saveCheckpoint = () => {
       const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
       const snapshot = createRecoverySnapshot({
-        issues,
+        issues: clinicalIssues,
         studySummary,
         openForm,
         currentFilter: currentFilter ?? undefined,
@@ -790,7 +752,7 @@ export const App: React.FC<{ title?: string }> = () => {
     }
 
     if (!envStatus || !envStatus.isCompliant) {
-      setUiError({
+      unifiedIssueService.addSystemIssue({
         severity: "error",
         category: "ENV_NONCOMPLIANT",
         message: "Environment is not compliant.",
@@ -804,7 +766,7 @@ export const App: React.FC<{ title?: string }> = () => {
 
     const s = study;
     if (isProcessing) {
-      setUiError({
+      unifiedIssueService.addSystemIssue({
         severity: "error",
         category: "ANALYSIS_IN_PROGRESS",
         message: "Analysis is currently running in the background.",
@@ -813,7 +775,7 @@ export const App: React.FC<{ title?: string }> = () => {
       });
       return;
     }
-    if (!s || issues.some((i) => i.level === "Error")) return;
+    if (!s || issues.some((i) => i.severity === "error")) return;
 
     // Initialize export options with study metadata
     setExportOptions({
@@ -853,7 +815,7 @@ export const App: React.FC<{ title?: string }> = () => {
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
         baselineStudy,
-        issues,
+        clinicalIssues,
         {
           signedOffAt: signOffTimestamp,
           source_provenance: manifest?.provenance,
@@ -869,7 +831,7 @@ export const App: React.FC<{ title?: string }> = () => {
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       if (err.message === "COMPRESSION_NOT_SUPPORTED") {
-        setUiError({
+        unifiedIssueService.addSystemIssue({
           severity: "error",
           category: "COMPRESSION_NOT_SUPPORTED",
           message: "Native compression is not supported by your browser.",
@@ -995,7 +957,7 @@ export const App: React.FC<{ title?: string }> = () => {
         <MatrixView
           onComplianceExport={handleComplianceExport}
           isProcessing={isProcessing}
-          hasErrors={issues.some((i) => i.level === "Error") || hasMissingJustifications}
+          hasErrors={issues.some((i) => i.severity === "error") || hasMissingJustifications}
           isLoaded={!!studySummary}
           study={study}
           baselineStudy={baselineStudy}
@@ -1143,7 +1105,7 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
-        {activeTab === "review" && study && <ReviewView study={study} issues={issues} />}
+        {activeTab === "review" && study && <ReviewView study={study} issues={clinicalIssues} />}
         {activeTab === "integrity" && (
           <IntegrityHubView
             issues={issues}
@@ -1200,54 +1162,7 @@ export const App: React.FC<{ title?: string }> = () => {
           </MessageBar>
         )}
 
-        <div
-          ref={errorContainerRef}
-          aria-live="polite"
-          tabIndex={-1}
-          style={{ display: uiError ? "block" : "none", outline: "none" }}
-        >
-          {uiError && (
-            <MessageBar
-              intent={
-                uiError.severity === "warning"
-                  ? "warning"
-                  : uiError.severity === "info"
-                    ? "info"
-                    : "error"
-              }
-            >
-              <MessageBarBody>
-                <strong>{uiError.message}</strong> {uiError.recoveryAction}
-                {uiError.retryAction && (
-                  <span>
-                    {" "}
-                    <Button
-                      ref={retryButtonRef}
-                      size="small"
-                      appearance="secondary"
-                      onClick={() => {
-                        if (previousFocusRef.current) {
-                          previousFocusRef.current.focus();
-                        }
-                        if (uiError.retryAction) {
-                          uiError.retryAction();
-                        }
-                      }}
-                    >
-                      Retry
-                    </Button>
-                  </span>
-                )}
-                <span>
-                  {" "}
-                  <Button size="small" appearance="subtle" onClick={dismissUiError}>
-                    Dismiss
-                  </Button>
-                </span>
-              </MessageBarBody>
-            </MessageBar>
-          )}
-        </div>
+        
 
         {isInitialized && (
           <ValidationLog
