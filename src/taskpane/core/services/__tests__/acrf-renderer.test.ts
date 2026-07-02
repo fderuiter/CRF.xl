@@ -5,21 +5,23 @@ import { buildAnnotatedCrfDocument, renderToHtml } from "../acrf-renderer";
 import { exportToPdf } from "../pdf-export-adapter";
 import { StudyDesign, DataType } from "../../types";
 
-// Mock html2pdf.js
-jest.mock("html2pdf.js", () => {
-  const mockSet = jest.fn().mockReturnThis();
-  const mockFrom = jest.fn().mockReturnThis();
-  const mockSave = jest.fn().mockResolvedValue(undefined);
-  const mockOutputPdf = jest.fn().mockResolvedValue(new Blob());
+jest.mock("html-to-pdfmake", () => {
+  return jest.fn().mockReturnValue([{ text: "Mocked HTML" }]);
+});
 
-  const mockHtml2Pdf = jest.fn(() => ({
-    set: mockSet,
-    from: mockFrom,
-    save: mockSave,
-    outputPdf: mockOutputPdf,
-  }));
+jest.mock("pdfmake/build/pdfmake", () => {
+  return {
+    createPdf: jest.fn(() => ({
+      download: jest.fn(),
+      getBlob: jest.fn((cb) => cb(new Blob())),
+    })),
+  };
+});
 
-  return mockHtml2Pdf;
+jest.mock("pdfmake/build/vfs_fonts", () => {
+  return {
+    pdfMake: { vfs: {} },
+  };
 });
 
 describe("aCRF Rendering Pipeline", () => {
@@ -128,11 +130,11 @@ describe("aCRF Rendering Pipeline", () => {
     expect(html).toContain('id="form-FORM_01"');
   });
 
-  test("exportToPdf calls html2pdf with expected parameters", async () => {
+  test("exportToPdf calls pdfmake with expected parameters", async () => {
     const html = "<html><body>Test</body></html>";
     await exportToPdf(html, "test.pdf");
 
-    const html2pdf = require("html2pdf.js");
-    expect(html2pdf).toHaveBeenCalled();
+    const pdfMake = require("pdfmake/build/pdfmake");
+    expect(pdfMake.createPdf).toHaveBeenCalled();
   });
 });

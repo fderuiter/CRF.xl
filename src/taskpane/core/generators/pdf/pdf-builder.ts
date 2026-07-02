@@ -12,6 +12,7 @@ import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
 import { generatePdfBlobFromHtml } from "../../services/pdf-export-adapter";
+import { Theme } from "../../../theme";
 
 export async function generatePdfBlob(
   study: StudyDesign,
@@ -96,7 +97,7 @@ export async function generatePdfBlob(
   html += `<div style="page-break-after: always; clear: both;"></div>`;
 
   for (const [formOid, form] of Object.entries(study.forms)) {
-    html += `<h2 style="font-size: 12px; font-weight: bold; background-color: #eeeeee; margin: 0 0 20px 0; padding: 5px;">Protocol ID: ${escapeHtml(protocolId)} | Form: ${escapeHtml(formOid)} (${escapeHtml(form.formName)}) | Subject: ____ | Visit: ____</h2>`;
+    html += `<h2 style="font-size: 12px; font-weight: bold; background-color: ${Theme.colors.background}; margin: 0 0 20px 0; padding: 5px;">Protocol ID: ${escapeHtml(protocolId)} | Form: ${escapeHtml(formOid)} (${escapeHtml(form.formName)}) | Subject: ____ | Visit: ____</h2>`;
 
     form.itemGroups.forEach((group) => {
       let groupHtml = `<div style="margin-bottom: 10px;">`;
@@ -111,11 +112,11 @@ export async function generatePdfBlob(
             affordanceText = "|--------------------------------------------------|";
           }
 
-          let bubbleColor = "#1F77B4";
+          let bubbleColor = Theme.colors.primary;
           if (item.codelistId) {
-            bubbleColor = "#2CA02C";
+            bubbleColor = Theme.colors.success;
           } else if (item.showIf || item.enableIf) {
-            bubbleColor = "#FF7F0E";
+            bubbleColor = Theme.colors.warning;
           }
 
           const sasName = item.sdtmMapping?.sasFieldName || item.itemOid;
