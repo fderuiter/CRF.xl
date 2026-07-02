@@ -102,8 +102,8 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         for (let rowIndex = 0; rowIndex < crfRows.slice(1).length; rowIndex += 1) {
           const row = crfRows[rowIndex + 1];
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
-          if (isCrfDisplayBlock(element as any) || (element as CrfItem).itemOid) {
-            targetGroup.items.push(element as any);
+          if (isCrfDisplayBlock(element) || (element as CrfItem).itemOid) {
+            targetGroup.items.push(element as CrfItem);
           }
         }
       }
@@ -128,7 +128,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         eventType: EventType.SCHEDULED,
         forms: [],
         rowIndex: 0,
-      } as any;
+      } as unknown as StudyEvent;
       for (let row = 1; row < scheduleRows.length; row += 1) {
         const formOid = String(scheduleRows[row][0]).trim();
         const marker = String(scheduleRows[row][col]).trim().toUpperCase();

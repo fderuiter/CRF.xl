@@ -23,16 +23,16 @@ export const CRF_VARIABLE_TYPE_OPTIONS = [
 ] as const;
 
 function isDisplayBlockType(value: unknown): value is CrfDisplayBlock["displayType"] {
-  return DISPLAY_BLOCK_TYPES.includes(
+  return (DISPLAY_BLOCK_TYPES as readonly string[]).includes(
     String(value ?? "")
       .trim()
-      .toLowerCase() as any
+      .toLowerCase()
   );
 }
 
 export function mapRowToFormElement(
   headers: string[],
-  row: any[],
+  row: unknown[],
   formOid: string,
   excelRowIndex: number
 ): Partial<CrfFormElement> {
@@ -55,7 +55,7 @@ export function mapRowToFormElement(
 
 function mapRowToDisplayBlock(
   headers: string[],
-  row: any[],
+  row: unknown[],
   displayType: CrfDisplayBlock["displayType"],
   excelRowIndex: number
 ): Partial<CrfDisplayBlock> {
@@ -87,18 +87,35 @@ function mapRowToDisplayBlock(
 
 function mapRowToItem(
   headers: string[],
-  row: any[],
+  row: unknown[],
   formOid: string,
   excelRowIndex: number
 ): Partial<CrfItem> {
-  const item: any = {
+  const item = {
     nodeType: "item",
     formOid,
-    label: {},
-    validation: { required: false },
-    sdtmMapping: {},
-    adamMapping: {},
+    label: {} as Record<string, string>,
+    validation: { required: false } as Record<string, boolean>,
+    sdtmMapping: {} as Record<string, string>,
+    adamMapping: {} as Record<string, string>,
     rowIndex: excelRowIndex,
+  } as Record<string, unknown> & {
+    itemOid?: string;
+    name?: string;
+    label: Record<string, string>;
+    dataType?: string;
+    length?: number;
+    significantDigits?: number;
+    validation: Record<string, boolean>;
+    requireChangeReason?: boolean;
+    instructions?: Record<string, string>;
+    showIf?: string;
+    codelistId?: string;
+    origin?: string;
+    methodOid?: string;
+    sdtmMapping: Record<string, string>;
+    adamMapping: Record<string, string>;
+    comment?: string;
   };
 
   headers.forEach((header, index) => {
@@ -122,7 +139,7 @@ function mapRowToItem(
         item.label[match.locale] = String(value);
       }
     }
-    if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase() as any;
+    if (normalizedHeader === "variable type") item.dataType = String(value).toLowerCase();
     if (normalizedHeader === "length") item.length = parseNumericMetadata(value);
     if (normalizedHeader === "significant digits" || normalizedHeader === "precision")
       item.significantDigits = parseNumericMetadata(value);
@@ -164,7 +181,7 @@ function mapRowToItem(
     if (normalizedHeader === "sdtmsasdatasetname" || normalizedHeader === "sdtm sas dataset name")
       item.sdtmMapping.sasDatasetName = String(value).trim();
     if (normalizedHeader === "sdtmcore" || normalizedHeader === "sdtm core")
-      item.sdtmMapping.core = String(value).trim() as any;
+      item.sdtmMapping.core = String(value).trim();
     if (normalizedHeader === "sdtmrole" || normalizedHeader === "sdtm role")
       item.sdtmMapping.role = String(value).trim();
 
@@ -186,12 +203,12 @@ function mapRowToItem(
     if (normalizedHeader === "comment") item.comment = String(value).trim();
   });
 
-  return item;
+  return item as unknown as Partial<CrfItem>;
 }
 
 function parseNumericMetadata(value: unknown): number | undefined {
   if (value === undefined || value === null || value === "") {
     return undefined;
   }
-  return parseNumber(value as any);
+  return parseNumber(value as string | number);
 }

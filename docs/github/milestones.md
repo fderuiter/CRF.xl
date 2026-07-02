@@ -11,7 +11,7 @@ Use these milestones for active work:
 3. `M3 — Metadata Diff & Comparison`
 4. `M4 — Authoring UX & Internationalization`
 5. `M5 — Reviewer Export & aCRF`
-6. `M6 — Enterprise Hardening & Deployment`
+6. `M6 — Enterprise Hardening & Deployment` ([Release Signoff Checklist](../deployment/release-signoff-checklist.md))
 7. `M7 — Audit & Governance`
 
 ## Assignment rules

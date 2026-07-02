@@ -65,7 +65,7 @@ export async function validateStudyDesign(
         if (!isCrfItem(item)) {
           return;
         }
-        const row = (item as any).rowIndex;
+        const row = (item as unknown as Record<string, unknown>).rowIndex as number;
         const sheet = form.formOid;
 
         // Check Missing Variables
@@ -118,8 +118,8 @@ export async function validateStudyDesign(
         const hasLength = item.length !== undefined && item.length !== null;
         const hasSignificantDigits =
           item.significantDigits !== undefined && item.significantDigits !== null;
-        const length = parseNumber(item.length as any);
-        const significantDigits = parseNumber(item.significantDigits as any);
+        const length = parseNumber(item.length as string | number);
+        const significantDigits = parseNumber(item.significantDigits as string | number);
 
         if (hasLength && (length === undefined || !Number.isInteger(length) || length <= 0)) {
           issues.push({
@@ -333,7 +333,7 @@ export function validateCrossFormDependencies(
             item,
             formOid: form.formOid,
             groupOid: group.groupOid,
-            rowIndex: (item as any).rowIndex,
+            rowIndex: (item as unknown as Record<string, unknown>).rowIndex as number,
           });
         }
       });
@@ -444,10 +444,10 @@ export function validateCrossFormDependencies(
     let ast;
     try {
       ast = parseRuleExpression(expression);
-    } catch (err: any) {
+    } catch (err: unknown) {
       issues.push({
         level: "Error",
-        message: `Parse Error in ${dependencyType} expression: ${err.message}`,
+        message: `Parse Error in ${dependencyType} expression: ${err instanceof Error ? err.message : String(err)}`,
         location: `${sourceFormOid} > Row ${sourceRowIndex ?? "unknown"}`,
         rowIndex: sourceRowIndex,
         sheetName: sourceFormOid,
@@ -613,7 +613,7 @@ export function validateCrossFormDependencies(
             form.formOid,
             item.itemOid,
             "Item",
-            (item as any).rowIndex,
+            (item as unknown as Record<string, unknown>).rowIndex as number,
             item.showIf,
             "ShowIf"
           );
@@ -763,7 +763,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           if (!isCrfItem(item)) {
             return;
           }
-          const row = (item as any).rowIndex;
+          const row = (item as unknown as Record<string, unknown>).rowIndex as number;
           const sheet = form.formOid;
 
           // 1. Validate SDTM Variable Mapping

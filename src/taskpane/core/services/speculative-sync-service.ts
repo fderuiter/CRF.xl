@@ -33,9 +33,9 @@ export async function getPredictedStudyDesign(
 ): Promise<StudyDesign> {
   return await parseWorkbookSheetValuesToStudyDesign({
     async getSheetValues(sheetName: string): Promise<unknown[][] | null> {
-      if (sheetName === "_Study") return projection.studyRows || null;
-      if (sheetName === "_Forms") return projection.formsRows || null;
-      if (sheetName === "_Codelists") return projection.codelistRows || null;
+      if (sheetName === "_Study") return projection.studyRows ?? null;
+      if (sheetName === "_Forms") return projection.formsRows ?? null;
+      if (sheetName === "_Codelists") return projection.codelistRows ?? null;
       return null;
     },
   });

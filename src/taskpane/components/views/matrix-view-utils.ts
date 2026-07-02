@@ -61,7 +61,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
               return {
                 itemOid,
                 itemLabel,
-                dataType,
+                dataType: dataType as string,
                 required: !!item.validation?.required,
                 searchText: normalizeMatrixSearch(`${itemOid} ${itemLabel} ${dataType}`),
               };
@@ -77,7 +77,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
             itemCount: items.length,
             requiredCount: items.filter((item) => item.required).length,
             optionalCount: items.filter((item) => !item.required).length,
-            dataTypes: Array.from(new Set(items.map((item) => item.dataType))).sort((left, right) =>
+            dataTypes: Array.from(new Set(items.map((item) => item.dataType as string))).sort((left, right) =>
               left.localeCompare(right)
             ),
             previewItems: items

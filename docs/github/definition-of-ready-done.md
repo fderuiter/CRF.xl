@@ -45,6 +45,7 @@ An issue is **Done** and may be closed when it meets all acceptance criteria and
 ### General Criteria (Required for all types)
 - [ ] All acceptance criteria in the issue body are checked off
 - [ ] PR is reviewed, CI is green, and merged to `main`
+- [ ] If modifying core subsystems: adherence to the [Subsystem Quality Matrix](../qa-testing/subsystem-quality-matrix.md) verified
 - [ ] If a new module was added: `docs/architecture/module-map.md` updated
 - [ ] If the module map changed or implementation status updated: `docs/github/codebase-alignment.md` updated
 - [ ] README or other docs updated if public behavior or architecture changed
@@ -68,3 +69,8 @@ An issue is **Done** and may be closed when it meets all acceptance criteria and
 - [ ] Target file exists at the correct path and is fully populated
 - [ ] Document is linked from the README or a parent governance/architecture file
 - [ ] Content is verified for accuracy and technical alignment
+
+### area:excel-integration
+- [ ] Implementation satisfies all NFRs defined in `docs/qa-testing/excel-runtime-nfr.md`
+- [ ] Degraded-mode behavior (e.g., cell-edit mode, standalone browser) is verified
+- [ ] Office.js error handling matches the project's normalization strategy

@@ -2,54 +2,52 @@
  * @issue #28
  */
 import { StudyDesign } from "../types/hierarchy";
-import { studyDesignSchema } from "../types/schemas";
+import { ImportManifest, WorkbookProjection } from "../types/migration";
 import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
-import { ZodError } from "zod";
+import { StudyDesignSchema } from "./schemas";
 
-type LegacyItem = Record<string, unknown> & {
-  nodeType?: string;
-  sdtmMapping?: Record<string, unknown>;
-  adamMapping?: Record<string, unknown>;
-  origin?: string;
-};
-
-type LegacyGroup = Record<string, unknown> & {
-  items?: LegacyItem[];
-};
-
-type LegacyForm = Record<string, unknown> & {
-  itemGroups?: LegacyGroup[];
-};
-
-interface LegacyStudy extends Record<string, unknown> {
-  submissionMetadata?: {
-    sdtmDatasets?: unknown[];
-    adamDatasets?: unknown[];
-    sdtmDerivations?: unknown[];
-    adamDerivations?: unknown[];
-    sdtmVariableMetadata?: unknown[];
-    adamVariableMetadata?: unknown[];
-    comments?: unknown[];
-    standards?: unknown[];
-  };
-  forms?: Record<string, LegacyForm>;
-  methods?: Record<string, { referencedVariables?: unknown }>;
+export interface MigrationContext {
+  isDryRun?: boolean;
+  manifest?: ImportManifest;
+  projection?: WorkbookProjection;
 }
 
-/**
- * Migrates a parsed study design object to ensure all new submission metadata
- * fields exist, providing smooth backward compatibility for legacy parsed data.
- */
-export function migrateStudyDesign(study: unknown): StudyDesign {
-  if (!study) {
-    return study as StudyDesign;
+export class MigrationError extends Error {
+  public manifest: ImportManifest;
+  constructor(message: string, manifest: ImportManifest) {
+    super(message);
+    this.name = "MigrationError";
+    this.manifest = manifest;
+  }
+}
+
+export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext = {}): StudyDesign {
+  const manifest: ImportManifest = {
+    id: Date.now().toString(),
+    timestamp: new Date().toISOString(),
+    status: "failure",
+    source: "legacy-migration",
+    metadata: {},
+    errors: [],
+    warnings: [],
+    summary: { formsProcessed: 0, itemsProcessed: 0 },
+  };
+  context.manifest = manifest;
+
+  if (!rawStudy || typeof rawStudy !== "object") {
+    manifest.errors?.push("Invalid study input");
+    throw new MigrationError("Invalid study input", manifest);
   }
 
-  const s = study as LegacyStudy;
+  // Deep clone to ensure immutability
+  const clone = JSON.parse(JSON.stringify(rawStudy)) as Record<string, unknown>;
 
-  // Ensure submissionMetadata and its sub-arrays are fully initialized
-  if (!s.submissionMetadata) {
-    s.submissionMetadata = {
+  let formsProcessed = 0;
+  let itemsProcessed = 0;
+
+  // Ensure submissionMetadata
+  if (!clone.submissionMetadata || typeof clone.submissionMetadata !== "object") {
+    clone.submissionMetadata = {
       sdtmDatasets: [],
       adamDatasets: [],
       sdtmDerivations: [],
@@ -60,63 +58,92 @@ export function migrateStudyDesign(study: unknown): StudyDesign {
       standards: [],
     };
   } else {
-    s.submissionMetadata.sdtmDatasets = s.submissionMetadata.sdtmDatasets || [];
-    s.submissionMetadata.adamDatasets = s.submissionMetadata.adamDatasets || [];
-    s.submissionMetadata.sdtmDerivations = s.submissionMetadata.sdtmDerivations || [];
-    s.submissionMetadata.adamDerivations = s.submissionMetadata.adamDerivations || [];
-    s.submissionMetadata.sdtmVariableMetadata =
-      s.submissionMetadata.sdtmVariableMetadata || [];
-    s.submissionMetadata.adamVariableMetadata =
-      s.submissionMetadata.adamVariableMetadata || [];
-    s.submissionMetadata.comments = s.submissionMetadata.comments || [];
-    s.submissionMetadata.standards = s.submissionMetadata.standards || [];
+    const sm = clone.submissionMetadata as Record<string, unknown>;
+    sm.sdtmDatasets = sm.sdtmDatasets || [];
+    sm.adamDatasets = sm.adamDatasets || [];
+    sm.sdtmDerivations = sm.sdtmDerivations || [];
+    sm.adamDerivations = sm.adamDerivations || [];
+    sm.sdtmVariableMetadata = sm.sdtmVariableMetadata || [];
+    sm.adamVariableMetadata = sm.adamVariableMetadata || [];
+    sm.comments = sm.comments || [];
+    sm.standards = sm.standards || [];
   }
 
-  // Ensure sdtmMapping and adamMapping exist on all items
-  if (s.forms) {
-    Object.values(s.forms).forEach((form: LegacyForm) => {
-      if (form && form.itemGroups) {
-        form.itemGroups.forEach((group: LegacyGroup) => {
-          if (group && group.items) {
-            group.items.forEach((item: LegacyItem) => {
-              if (item.nodeType === "display") {
-                return;
+  if (clone.forms && typeof clone.forms === "object") {
+    Object.values(clone.forms).forEach((form: unknown) => {
+      if (form && typeof form === "object") {
+        formsProcessed++;
+        const f = form as Record<string, unknown>;
+        if (Array.isArray(f.itemGroups)) {
+          f.itemGroups.forEach((group: unknown) => {
+            if (group && typeof group === "object") {
+              const g = group as Record<string, unknown>;
+              if (Array.isArray(g.items)) {
+                g.items.forEach((item: unknown) => {
+                  if (item && typeof item === "object") {
+                    itemsProcessed++;
+                    const i = item as Record<string, unknown>;
+                    if (i.nodeType === "display") {
+                      return;
+                    }
+                    if (!i.nodeType) {
+                      i.nodeType = "item";
+                    }
+                    if (!i.sdtmMapping || typeof i.sdtmMapping !== "object") {
+                      i.sdtmMapping = {};
+                    }
+                    if (!i.adamMapping || typeof i.adamMapping !== "object") {
+                      i.adamMapping = {};
+                    }
+                    if (i.origin && typeof i.origin === "string") {
+                      i.origin = normalizeDataOrigin(i.origin);
+                    }
+                  }
+                });
               }
-              if (!item.nodeType) {
-                item.nodeType = "item";
-              }
-              if (!item.sdtmMapping) {
-                item.sdtmMapping = {};
-              }
-              if (!item.adamMapping) {
-                item.adamMapping = {};
-              }
-              item.origin = normalizeDataOrigin(item.origin);
-            });
-          }
-        });
+            }
+          });
+        }
       }
     });
   }
 
-  if (s.methods) {
-    Object.values(s.methods).forEach((method) => {
-      if (typeof method.referencedVariables === "string") {
-        method.referencedVariables = parseReferencedVariables(method.referencedVariables);
+  if (clone.methods && typeof clone.methods === "object") {
+    Object.values(clone.methods).forEach((method: unknown) => {
+      if (method && typeof method === "object") {
+        const m = method as Record<string, unknown>;
+        if (typeof m.referencedVariables === "string") {
+          m.referencedVariables = parseReferencedVariables(m.referencedVariables);
+        }
       }
     });
   }
 
-  try {
-    return studyDesignSchema.parse(s) as StudyDesign;
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const issues = error.issues.map((e: unknown) => {
-        const issue = e as { path: string[], message: string };
-        return `${issue.path.join('.')}: ${issue.message}`;
-      }).join(', ');
-      throw new Error(`Schema validation failed: ${issues}`);
-    }
-    throw error;
+  manifest.summary.formsProcessed = formsProcessed;
+  manifest.summary.itemsProcessed = itemsProcessed;
+
+  if (context.isDryRun) {
+    context.projection = {
+      changes: [],
+      summary: {
+        inserted: formsProcessed + itemsProcessed,
+        updated: 0,
+        deleted: 0,
+        unchanged: 0,
+      },
+    };
   }
+
+  // Zod validation step
+  const parsed = StudyDesignSchema.safeParse(clone);
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join(", ");
+    if (manifest.errors) manifest.errors.push(issues);
+    throw new MigrationError(`Schema validation failed: ${issues}`, manifest);
+  }
+
+  manifest.status = "success";
+  return parsed.data as StudyDesign;
 }

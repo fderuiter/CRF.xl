@@ -27,11 +27,13 @@ A dependency comment is also posted on #138 at time of issue creation or triage.
 ### Advanced logic epic (#53)
 
 ```
-#137 _Rules Parser & AST Generator       ← no blockers (foundation; start here)
-  └─► #138 DAG Topological Sort          ← (Resolved)
-  └─► #54  Cross-Form Logic Validation   ← blocked by #137 and #138
-  └─► #55  Derived Variables & Calculations ← blocked by #137 and #138 (structural)
-  └─► #139 ODM ConditionDef/MethodDef    ← blocked by #137, #138 (and export contract decisions)
+#88  Rule Expression Model Spike        ← no blockers (Resolved)
+  └─► #137 _Rules Parser & AST Generator ← no blockers (foundation; start here)
+        ├─► #138 DAG Topological Sort    ← (Resolved)
+        │     ├─► #54  Cross-Form Logic Validation   ← blocked by #137 and #138
+        │     ├─► #55  Derived Variables & Calcs     ← blocked by #137 and #138
+        │     └─► #139 ODM ConditionDef/MethodDef    ← blocked by #137, #138, and #66
+        └─► #84 Annotation Paintbrush    ← depends on stable logic model
 ```
 
 **Implication:** #137 is the absolute foundation of the cluster. However, structural dependencies dictate that:
@@ -56,11 +58,49 @@ A dependency comment is also posted on #138 at time of issue creation or triage.
 ### Standards import cluster (under #44)
 
 ```
-#93   CDISC API Mapping Layer               ← no blockers (scaffolding exists; start here)
-  └─► #46   Controlled Terminology Import   ← blocked by #93
+#45   Standards Fetcher Service             ← no blockers (Resolved)
+#93   CDISC API Mapping Layer               ← no blockers (Resolved)
+  └─► #46   Controlled Terminology Import   ← blocked by #93 and #45 (Resolved)
 ```
 
 **Implication:** The mapping layer (#93) defines the transform contract between `cdisc-api-service.ts` and `dictionary-service.ts`. Controlled terminology import UI (#46) cannot be completed until that contract is stable.
+
+---
+
+### Reviewer Export & aCRF cluster (#56)
+
+```
+#90   aCRF PDF Rendering Spike              ← no blockers (Resolved)
+  └─► #78   aCRF PDF Rendering Engine       ← blocked by #90 (Resolved)
+        └─► #57   PDF aCRF & Review Mode    ← blocked by #78 (Resolved)
+              └─► #58 Onboarding Tour       ← depends on stable Review UI (Resolved)
+```
+
+**Implication:** Rendering foundations (#78) must exist before the interactive Review Mode (#57) can be validated. The onboarding tour (#58) is the final layer.
+
+---
+
+### Enterprise Distribution cluster (#68)
+
+```
+#68   Enterprise Dist & Security            ← no blockers (Resolved)
+  ├─► #135  Finalize Deployment URLs        ← blocked by external provisioning
+  ├─► #75   Audit Trail & Change Control    ← blocked by #68 M365 RBAC baseline
+  └─► #70   Version Update Service          ← blocked by #68
+```
+
+---
+
+### Dictionary & Authoring cluster (#39)
+
+```
+#40   Locale-Aware Parsing                  ← no blockers (Resolved)
+#86   Linguistic Engine                     ← no blockers (Resolved)
+#93   CDISC API Mapping Layer               ← no blockers (Resolved)
+  └─► #83   Intelligent Dictionary Sidecar  ← blocked by #40, #86, #93
+```
+
+**Implication:** The Intelligent Dictionary Sidecar is a composite feature requiring both linguistic foundations and standards mapping to be present.
 
 ---
 

@@ -30,10 +30,10 @@ export const crfDisplayBlockSchema = z.object({
 export const crfItemSchema = z.object({
   nodeType: z.literal("item").optional(),
   formOid: z.string(),
-  groupOid: z.string(),
+  groupOid: z.string().optional(),
   itemOid: z.string(),
-  orderNumber: z.number(),
-  effectiveVersion: z.string(),
+  orderNumber: z.number().optional(),
+  effectiveVersion: z.string().optional(),
   name: z.string(),
   label: translatedTextSchema,
   shortName: z.string().optional(),
@@ -41,7 +41,7 @@ export const crfItemSchema = z.object({
   rightText: translatedTextSchema.optional(),
   exportTextChecked: z.string().optional(),
   exportTextUnchecked: z.string().optional(),
-  dataType: z.nativeEnum(DataType),
+  dataType: z.union([z.string(), z.nativeEnum(DataType)]).optional(),
   length: z.number().optional(),
   significantDigits: z.number().optional(),
   measurementUnit: z.string().optional(),
@@ -90,10 +90,10 @@ export const crfItemSchema = z.object({
   customProperties: z.record(z.string(), z.any()).optional(),
 });
 
-export const crfFormElementSchema = z.union([crfItemSchema, crfDisplayBlockSchema]);
+export const crfFormElementSchema = crfItemSchema;
 
 export const itemGroupSchema = z.object({
-  groupOid: z.string(),
+  groupOid: z.string().optional(),
   name: z.string(),
   label: translatedTextSchema.optional(),
   tabLabel: translatedTextSchema.optional(),
@@ -103,7 +103,7 @@ export const itemGroupSchema = z.object({
   maxRows: z.number().optional(),
   assetConfig: z.any().optional(),
   showIf: z.string().optional(),
-  orderNumber: z.number(),
+  orderNumber: z.number().optional(),
   items: z.array(crfFormElementSchema),
   customProperties: z.record(z.string(), z.any()).optional(),
 });
@@ -113,8 +113,8 @@ export const crfFormSchema = z.object({
   formName: z.string(),
   repeating: z.boolean(),
   formType: z.nativeEnum(FormType).optional(),
-  orderNumber: z.number(),
-  effectiveVersion: z.string(),
+  orderNumber: z.number().optional(),
+  effectiveVersion: z.string().optional(),
   signatureMeaning: z.nativeEnum(SignatureMeaning).optional(),
   sdvTier: z.nativeEnum(SdvTier).optional(),
   permissions: rolePermissionsSchema.optional(),
@@ -129,7 +129,7 @@ export const crfFormSchema = z.object({
 
 export const eventFormRefSchema = z.object({
   formOid: z.string(),
-  orderNumber: z.number(),
+  orderNumber: z.number().optional(),
   mandatory: z.boolean(),
   showIf: z.string().optional(),
   availableFromTime: z.string().optional(),
@@ -142,7 +142,7 @@ export const studyEventSchema = z.object({
   eventName: z.string(),
   eventType: z.nativeEnum(EventType),
   epoch: z.string().optional(),
-  orderNumber: z.number(),
+  orderNumber: z.number().optional(),
   targetDay: z.number().optional(),
   windowStart: z.number().optional(),
   windowEnd: z.number().optional(),

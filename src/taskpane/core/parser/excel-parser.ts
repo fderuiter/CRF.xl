@@ -34,7 +34,7 @@ export async function parseExcelToStudyDesign(
 
 async function fetchRawDataFromExcel(
   options: ParseExcelToStudyDesignOptions
-): Promise<Record<string, any[][]>> {
+): Promise<Record<string, unknown[][]>> {
   if (options.onProgress) {
     options.onProgress({
       phase: "metadata",
@@ -51,7 +51,7 @@ async function fetchRawDataFromExcel(
     sheets.load("items/name");
     await context.sync();
 
-    const rawData: Record<string, any[][]> = {};
+    const rawData: Record<string, unknown[][]> = {};
     const rangesInfo: { name: string; sheet: Excel.Worksheet; range: Excel.Range }[] = [];
 
     for (const sheet of sheets.items) {
@@ -86,7 +86,7 @@ async function fetchRawDataFromExcel(
       const startR = info.range.rowIndex;
       const startC = info.range.columnIndex;
 
-      const sheetData: any[][] = [];
+      const sheetData: unknown[][] = [];
 
       for (let i = 0; i < rows; i += PAGE_SIZE) {
         if (options.signal?.aborted) {
@@ -132,7 +132,7 @@ async function fetchRawDataFromExcel(
 }
 
 function runInWorker(
-  rawData: Record<string, any[][]>,
+  rawData: Record<string, unknown[][]>,
   options: ParseExcelToStudyDesignOptions
 ): Promise<{
   studyDesign: StudyDesign;
