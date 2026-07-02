@@ -20,6 +20,8 @@ import {
   Tooltip,
 } from "@fluentui/react-components";
 import { AccessibleWrapper } from "../ui/DesignSystem";
+import { UniversalWizard } from "../ui/UniversalStepper";
+
 import {
   AddRegular,
   ArrowLeftRegular,
@@ -40,7 +42,7 @@ import {
   executeCtImport,
   readExistingCodelistRows,
   ConflictResolution,
-  ImportConflictItem,
+
   ImportSummary,
   CtImportPlan,
   Diagnostic,
@@ -1585,314 +1587,143 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         {/* ── Import CDISC CT view ────────────────────────────────────────────── */}
         {view === "import" && (
           <div className={styles.importForm}>
-            <Button
-              appearance="subtle"
-              size="small"
-              icon={<ArrowLeftRegular />}
-              onClick={() => {
+            <UniversalWizard
+              onCancel={() => {
                 setImportPlan(null);
                 setImportSummary(null);
                 setImportError(null);
                 setView("browse");
               }}
-              aria-label="Back to browse library"
-            >
-              Back to Browse
-            </Button>
-
-            {/* ── Step 1: Browse CDISC Packages ───────────────────────────────────────── */}
-            {!importPlan && !importSummary && (
-              <div className={styles.formCard}>
-                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                  Import Controlled Terminology
-                </Text>
-                <Text
-                  block
-                  style={{
-                    color: tokens.colorNeutralForeground3,
-                    fontSize: tokens.fontSizeBase100,
-                  }}
-                >
-                  Search and browse CDISC Controlled Terminology packages to import into your
-                  workbook.
-                </Text>
-
-                <Input
-                  className={styles.searchInput}
-                  placeholder="Search packages by ID or name..."
-                  value={importPackageSearch}
-                  onChange={(_, d) => setImportPackageSearch(d.value)}
-                  aria-label="Search CDISC packages"
-                />
-
-                {importPackagesLoading ? (
-                  <div className={styles.loadingState}>
-                    <Spinner size="small" label="Loading packages from CDISC Library..." />
-                  </div>
-                ) : (
-                  <div
-                    className={styles.gridCard}
-                    style={{ maxHeight: "300px", overflowY: "auto" }}
-                  >
-                    {importPackages
-                      .filter(
-                        (pkg) =>
-                          (pkg.title || pkg.packageOid)
-                            .toLowerCase()
-                            .includes(importPackageSearch.toLowerCase()) ||
-                          pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
-                      )
-                      .map((pkg) => (
-                        <AccessibleWrapper
-                          key={pkg.packageOid}
-                          style={{
-                            padding: "8px",
-                            cursor: "pointer",
-                            borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-                            backgroundColor:
-                              selectedPackage?.packageOid === pkg.packageOid
-                                ? tokens.colorNeutralBackground1Selected
-                                : "transparent",
-                          }}
-                          onClick={() => setSelectedPackage(pkg)}
-                          ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
-                        >
-                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                            {pkg.title || pkg.packageOid}
-                          </Text>
-                          <Text
-                            block
-                            style={{
-                              fontSize: tokens.fontSizeBase100,
-                              color: tokens.colorNeutralForeground3,
-                            }}
-                          >
-                            OID: {pkg.packageOid}{" "}
-                            {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
-                          </Text>
-                        </AccessibleWrapper>
-                      ))}
-                    {importPackages.length > 0 &&
-                      importPackages.filter(
-                        (pkg) =>
-                          (pkg.title || pkg.packageOid)
-                            .toLowerCase()
-                            .includes(importPackageSearch.toLowerCase()) ||
-                          pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase())
-                      ).length === 0 && (
-                        <Text
-                          block
-                          style={{ padding: "8px", color: tokens.colorNeutralForeground3 }}
-                        >
-                          No packages match your search.
-                        </Text>
-                      )}
-                  </div>
-                )}
-
-                {importParseError && (
-                  <MessageBar intent="error">
-                    <MessageBarBody>{importParseError}</MessageBarBody>
-                  </MessageBar>
-                )}
-
-                <Button
-                  appearance="primary"
-                  className={styles.saveButton}
-                  onClick={handlePlanImport}
-                  disabled={!selectedPackage || importProgress !== null}
-                >
-                  Preview &amp; Plan Import
-                </Button>
-              </div>
-            )}
-
-            {/* ── Step 2: Progress during planning ──────────────────────────── */}
-            {importProgress && (
-              <div className={styles.progressCard}>
-                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                  {importProgress.stage}
-                </Text>
-                <ProgressBar
-                  value={
-                    importProgress.total > 0
-                      ? importProgress.completed / importProgress.total
-                      : undefined
-                  }
-                />
-                <Text
-                  style={{
-                    fontSize: tokens.fontSizeBase100,
-                    color: tokens.colorNeutralForeground3,
-                  }}
-                >
-                  {importProgress.total > 0
-                    ? `${importProgress.completed} / ${importProgress.total}`
-                    : "Processing…"}
-                </Text>
-              </div>
-            )}
-
-            {/* ── Step 3: Conflict resolution ───────────────────────────────── */}
-            {importPlan && !importProgress && !importSummary && (
-              <>
-                {/* Auto-action summary */}
-                <div className={styles.formCard}>
-                  <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                    Import Plan
-                  </Text>
-                  <div className={styles.summaryRow}>
-                    <Text>New codelists to insert</Text>
-                    <Text className={styles.summaryCount}>{importPlan.autoInsertIds.size}</Text>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <Text>Codelists with newer version (auto-overwrite)</Text>
-                    <Text className={styles.summaryCount}>{importPlan.autoOverwriteIds.size}</Text>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <Text>Identical codelists (auto-skip)</Text>
-                    <Text className={styles.summaryCount}>{importPlan.skipIdenticalIds.size}</Text>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <Text>Conflicts requiring resolution</Text>
-                    <Text className={styles.summaryCount}>{importPlan.conflictIds.size}</Text>
-                  </div>
-                </div>
-
-                {/* Conflict resolution UI */}
-                {importPlan.conflicts.length > 0 && (
-                  <div className={styles.conflictCard}>
-                    <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                      Resolve Conflicts
-                    </Text>
-                    <Text
-                      block
-                      style={{
-                        color: tokens.colorNeutralForeground3,
-                        fontSize: tokens.fontSizeBase100,
-                      }}
-                    >
-                      Each codelist below has a conflict with existing data. Choose how to handle
-                      it.
-                    </Text>
-                    {importPlan.conflicts.map((conflict: ImportConflictItem) => (
-                      <div key={conflict.codelistId} className={styles.conflictItem}>
-                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                          {conflict.codelistId}
-                          {conflict.codelistName && conflict.codelistName !== conflict.codelistId
-                            ? ` — ${conflict.codelistName}`
-                            : ""}
-                        </Text>
-                        <Text
-                          block
-                          style={{
-                            fontSize: tokens.fontSizeBase100,
-                            color: tokens.colorNeutralForeground3,
-                          }}
-                        >
-                          Existing: {conflict.existingTermCount} term(s) · Incoming:{" "}
-                          {conflict.incomingTermCount} term(s)
-                        </Text>
-                        <Text
-                          block
-                          style={{
-                            fontSize: tokens.fontSizeBase100,
-                            color: tokens.colorNeutralForeground3,
-                          }}
-                        >
-                          {conflict.message}
-                        </Text>
-                        <div className={styles.conflictActions}>
-                          {(["skip", "overwrite", "append"] as ConflictResolution[]).map(
-                            (resolution) => (
-                              <Button
-                                key={resolution}
-                                size="small"
-                                appearance={
-                                  conflictResolutions[conflict.codelistId] === resolution
-                                    ? "primary"
-                                    : "outline"
-                                }
-                                onClick={() =>
-                                  handleConflictResolution(conflict.codelistId, resolution)
-                                }
-                              >
-                                {resolution.charAt(0).toUpperCase() + resolution.slice(1)}
-                              </Button>
-                            )
-                          )}
+              steps={[
+                {
+                  id: "browse",
+                  label: "Select Package",
+                  canNext: !!selectedPackage,
+                  nextLabel: "Preview & Plan Import",
+                  onNext: async () => {
+                    await handlePlanImport();
+                    if (!importPlan && importParseError) {
+                      throw new Error(importParseError);
+                    }
+                  },
+                  content: (
+                    <div className={styles.formCard}>
+                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                        Import Controlled Terminology
+                      </Text>
+                      <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
+                        Search and browse CDISC Controlled Terminology packages to import into your workbook.
+                      </Text>
+                      <Input
+                        className={styles.searchInput}
+                        placeholder="Search packages by ID or name..."
+                        value={importPackageSearch}
+                        onChange={(_, d) => setImportPackageSearch(d.value)}
+                        aria-label="Search CDISC packages"
+                      />
+                      {importPackagesLoading ? (
+                        <div className={styles.loadingState}>
+                          <Spinner size="small" label="Loading packages from CDISC Library..." />
                         </div>
+                      ) : (
+                        <div className={styles.gridCard} style={{ maxHeight: "300px", overflowY: "auto" }}>
+                          {importPackages
+                            .filter((pkg) => (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) || pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase()))
+                            .map((pkg) => (
+                              <AccessibleWrapper
+                                key={pkg.packageOid}
+                                style={{ padding: "8px", cursor: "pointer", borderBottom: `1px solid ${tokens.colorNeutralStroke1}`, backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent" }}
+                                onClick={() => setSelectedPackage(pkg)}
+                                ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
+                              >
+                                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{pkg.title || pkg.packageOid}</Text>
+                                <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
+                                  OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
+                                </Text>
+                              </AccessibleWrapper>
+                            ))}
+                        </div>
+                      )}
+                      {importParseError && (
+                        <MessageBar intent="error"><MessageBarBody>{importParseError}</MessageBarBody></MessageBar>
+                      )}
+                    </div>
+                  )
+                },
+                {
+                  id: "conflicts",
+                  label: "Review Plan",
+                  nextLabel: "Execute Import ✓",
+                  onNext: async () => {
+                     await handleExecuteImport();
+                  },
+                  content: importPlan ? (
+                    <>
+                      <div className={styles.formCard}>
+                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>Import Plan</Text>
+                        <div className={styles.summaryRow}><Text>New codelists to insert</Text><Text className={styles.summaryCount}>{importPlan.autoInsertIds.size}</Text></div>
+                        <div className={styles.summaryRow}><Text>Codelists with newer version (auto-overwrite)</Text><Text className={styles.summaryCount}>{importPlan.autoOverwriteIds.size}</Text></div>
+                        <div className={styles.summaryRow}><Text>Identical codelists (auto-skip)</Text><Text className={styles.summaryCount}>{importPlan.skipIdenticalIds.size}</Text></div>
+                        <div className={styles.summaryRow}><Text>Conflicts requiring resolution</Text><Text className={styles.summaryCount}>{importPlan.conflictIds.size}</Text></div>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {importError && (
-                  <MessageBar intent="error">
-                    <MessageBarBody>{importError}</MessageBarBody>
-                  </MessageBar>
-                )}
-
-                <Button
-                  appearance="primary"
-                  className={styles.saveButton}
-                  onClick={handleExecuteImport}
-                >
-                  Execute Import
-                </Button>
-              </>
-            )}
-
-            {/* ── Step 4: Summary ───────────────────────────────────────────── */}
-            {importSummary && !importProgress && (
-              <div className={styles.summaryCard}>
-                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
-                  {importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}
-                </Text>
-
-                <div className={styles.summaryRow}>
-                  <Text>Added</Text>
-                  <Text className={styles.summaryCount}>{importSummary.added}</Text>
-                </div>
-                <div className={styles.summaryRow}>
-                  <Text>Updated</Text>
-                  <Text className={styles.summaryCount}>{importSummary.updated}</Text>
-                </div>
-                <div className={styles.summaryRow}>
-                  <Text>Skipped</Text>
-                  <Text className={styles.summaryCount}>{importSummary.skipped}</Text>
-                </div>
-                {importSummary.failed > 0 && (
-                  <div className={styles.summaryRow}>
-                    <Text>Failed</Text>
-                    <Text className={styles.summaryCount}>{importSummary.failed}</Text>
-                  </div>
-                )}
-
-                {importSummary.errors.map((err, i) => (
-                  <MessageBar key={i} intent="error">
-                    <MessageBarBody>{err}</MessageBarBody>
-                  </MessageBar>
-                ))}
-                {importSummary.warnings.map((w, i) => (
-                  <MessageBar key={i} intent="warning">
-                    <MessageBarBody>{w}</MessageBarBody>
-                  </MessageBar>
-                ))}
-
-                <Button
-                  appearance="secondary"
-                  className={styles.saveButton}
-                  onClick={() => {
+                      {importPlan.conflicts.length > 0 && (
+                        <div className={styles.conflictCard}>
+                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>Resolve Conflicts</Text>
+                          {importPlan.conflicts.map((conflict) => (
+                            <div key={conflict.codelistId} className={styles.conflictItem}>
+                              <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{conflict.codelistId}</Text>
+                              <div className={styles.conflictActions}>
+                                <Button appearance={conflictResolutions[conflict.codelistId] === "skip" ? "primary" : "outline"} onClick={() => handleConflictResolution(conflict.codelistId, "skip")}>Skip</Button>
+                                <Button appearance={conflictResolutions[conflict.codelistId] === "overwrite" ? "primary" : "outline"} onClick={() => handleConflictResolution(conflict.codelistId, "overwrite")}>Overwrite</Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {importError && <MessageBar intent="error"><MessageBarBody>{importError}</MessageBarBody></MessageBar>}
+                      {importProgress && (
+                        <div className={styles.progressCard} style={{ marginTop: "16px" }}>
+                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importProgress.stage}</Text>
+                          <ProgressBar value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined} />
+                          <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>{importProgress.total > 0 ? `${importProgress.completed} / ${importProgress.total}` : "Processing…"}</Text>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    importProgress ? (
+                      <div className={styles.progressCard} style={{ marginTop: "16px" }}>
+                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importProgress.stage}</Text>
+                        <ProgressBar value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined} />
+                        <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>{importProgress.total > 0 ? `${importProgress.completed} / ${importProgress.total}` : "Processing…"}</Text>
+                      </div>
+                    ) : null
+                  )
+                },
+                {
+                  id: "summary",
+                  label: "Summary",
+                  hideNext: true,
+                  hideCancel: true,
+                  backLabel: "Done",
+                  onBack: () => {
                     setImportPlan(null);
                     setImportSummary(null);
                     setView("browse");
-                  }}
-                >
-                  Done
-                </Button>
-              </div>
-            )}
+                  },
+                  content: importSummary ? (
+                    <div className={styles.summaryCard}>
+                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}</Text>
+                      <div className={styles.summaryRow}><Text>Added</Text><Text className={styles.summaryCount}>{importSummary.added}</Text></div>
+                      <div className={styles.summaryRow}><Text>Updated</Text><Text className={styles.summaryCount}>{importSummary.updated}</Text></div>
+                      <div className={styles.summaryRow}><Text>Skipped</Text><Text className={styles.summaryCount}>{importSummary.skipped}</Text></div>
+                      {importSummary.failed > 0 && <div className={styles.summaryRow}><Text>Failed</Text><Text className={styles.summaryCount}>{importSummary.failed}</Text></div>}
+                      {importSummary.errors.map((err, i) => <MessageBar key={i} intent="error"><MessageBarBody>{err}</MessageBarBody></MessageBar>)}
+                      {importSummary.warnings.map((w, i) => <MessageBar key={i} intent="warning"><MessageBarBody>{w}</MessageBarBody></MessageBar>)}
+                    </div>
+                  ) : null
+                }
+              ]}
+            />
           </div>
         )}
       </div>
