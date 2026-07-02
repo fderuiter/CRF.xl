@@ -49,7 +49,7 @@ describe("Review Mode Rendering", () => {
     const doc = buildAnnotatedCrfDocument(mockStudy, [], [], mockComments);
     const item = doc.forms[0].itemGroups[0].items[0];
 
-    const reviewAnno = item.annotations.find(a => a.label === "Review");
+    const reviewAnno = item.annotations.find((a) => a.label === "Review");
     expect(reviewAnno).toBeDefined();
     expect(reviewAnno?.content).toContain("Dr. Reviewer");
     expect(reviewAnno?.content).toContain("Please check the age range validation.");
@@ -76,7 +76,7 @@ describe("Review Mode Rendering", () => {
 
     const doc = buildAnnotatedCrfDocument(mockStudy, [], [], resolvedComments);
     const item = doc.forms[0].itemGroups[0].items[0];
-    const reviewAnno = item.annotations.find(a => a.label === "Review");
+    const reviewAnno = item.annotations.find((a) => a.label === "Review");
 
     expect(reviewAnno?.color).toBe("#4caf50"); // Success Green
   });

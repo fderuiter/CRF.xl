@@ -5,12 +5,18 @@
 /* global Excel */
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
-import { Annotation, AnnotationType, AnnotationTargetType, TranslatedText, ValidationIssue } from "../types";
+import {
+  Annotation,
+  AnnotationType,
+  AnnotationTargetType,
+  TranslatedText,
+  ValidationIssue,
+} from "../types";
 import {
   validateAnnotationTarget,
   detectConflicts,
   getRepairPolicy,
-  RepairConfidence
+  RepairConfidence,
 } from "../validators/annotation-validator";
 
 const ANNOTATION_XML_NAMESPACE = "http://schemas.crf-xl.com/annotations";
@@ -19,9 +25,10 @@ const ANNOTATION_XML_NAMESPACE = "http://schemas.crf-xl.com/annotations";
  * Serializes an annotation to XML string.
  */
 function serializeAnnotation(annotation: Annotation): string {
-  const content = typeof annotation.content === "string"
-    ? annotation.content
-    : JSON.stringify(annotation.content);
+  const content =
+    typeof annotation.content === "string"
+      ? annotation.content
+      : JSON.stringify(annotation.content);
 
   return `<Annotation>
     <Id>${annotation.id}</Id>
@@ -317,12 +324,17 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
           const policy = getRepairPolicy({
             category: "Orphaned",
             message: `Auto-healing orphaned annotation for ${orphan.anchor.logicalId}`,
-            confidence: RepairConfidence.High
+            confidence: RepairConfidence.High,
           });
 
           if (policy.action === "AutoHeal") {
             console.log(`[AnnotationService] ${policy.description}`);
-            await applyAnnotationInternal(context, newLocation.sheetName, newLocation.address, orphan);
+            await applyAnnotationInternal(
+              context,
+              newLocation.sheetName,
+              newLocation.address,
+              orphan
+            );
           }
         }
       }
@@ -395,7 +407,13 @@ export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<v
 
     for (const annotation of annotations) {
       try {
-        await applyAnnotationInternal(context, annotation.anchor.sheetName, annotation.anchor.address, annotation, existingAnnotations);
+        await applyAnnotationInternal(
+          context,
+          annotation.anchor.sheetName,
+          annotation.anchor.address,
+          annotation,
+          existingAnnotations
+        );
       } catch (e) {
         console.warn(`[AnnotationService] Failed to bulk apply annotation ${annotation.id}`, e);
       }
@@ -415,7 +433,7 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
 
   await Excel.run(async (context) => {
     const allStored = await loadAnnotationsFromStore(context);
-    const toDelete = allStored.filter(a => ids.includes(a.id));
+    const toDelete = allStored.filter((a) => ids.includes(a.id));
 
     // Group by sheet for efficient comment deletion
     const bySheet: Record<string, Annotation[]> = {};
@@ -474,7 +492,7 @@ async function applyAnnotationInternal(
   }
 
   // 2. Conflict Detection
-  const existingAnnotations = existingAnnotationsCache || await loadAnnotationsFromStore(context);
+  const existingAnnotations = existingAnnotationsCache || (await loadAnnotationsFromStore(context));
   const conflicts = detectConflicts(existingAnnotations, annotation);
   for (const conflict of conflicts) {
     const policy = getRepairPolicy(conflict);
@@ -661,7 +679,9 @@ export async function applyValidationVisuals(
  * Resolves a physical range from a logical OID.
  * Searches across the study's forms to find the OID.
  */
-export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetName: string; address: string } | null> {
+export async function resolvePhysicalRange(
+  logicalId: string
+): Promise<{ sheetName: string; address: string } | null> {
   let result: { sheetName: string; address: string } | null = null;
   if (typeof Excel === "undefined") return null;
   await Excel.run(async (context) => {
@@ -674,7 +694,15 @@ export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetNa
       if (sheet.name.startsWith("_")) continue;
 
       const usedRange = sheet.getUsedRangeOrNullObject();
-      usedRange.load(["values", "address", "rowCount", "columnCount", "isNullObject", "columnIndex", "rowIndex"]);
+      usedRange.load([
+        "values",
+        "address",
+        "rowCount",
+        "columnCount",
+        "isNullObject",
+        "columnIndex",
+        "rowIndex",
+      ]);
       await context.sync();
 
       if (usedRange.isNullObject) continue;
@@ -683,14 +711,20 @@ export async function resolvePhysicalRange(logicalId: string): Promise<{ sheetNa
       // Search for logicalId in the sheet's used range
       // Clinical OIDs are typically in the first column (Variable Name)
       for (let r = 0; r < values.length; r++) {
-        for (let c = 0; c < Math.min(values[r].length, 5); c++) { // Search first 5 columns for OID
+        for (let c = 0; c < Math.min(values[r].length, 5); c++) {
+          // Search first 5 columns for OID
           if (String(values[r][c]).trim() === logicalId) {
-            const targetCell = sheet.getRangeByIndexes(usedRange.rowIndex + r, usedRange.columnIndex + c, 1, 1);
+            const targetCell = sheet.getRangeByIndexes(
+              usedRange.rowIndex + r,
+              usedRange.columnIndex + c,
+              1,
+              1
+            );
             targetCell.load("address");
             await context.sync();
             result = {
               sheetName: sheet.name,
-              address: targetCell.address
+              address: targetCell.address,
             };
             return;
           }
@@ -762,7 +796,9 @@ export async function syncAnnotationsAfterMutation(): Promise<void> {
 
             const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
             if (currentLogicalId && currentLogicalId !== logicalId) {
-              console.warn(`[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`);
+              console.warn(
+                `[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`
+              );
               // Logic to handle orphan/drift could be added here
             }
           }
@@ -795,7 +831,9 @@ export async function handleAnnotationCopyPaste(
     const sourceRange = resolveRange(sourceAddress);
     const targetRange = resolveRange(targetAddress);
 
-    const sourceComments = (sourceRange as any).getComments ? (sourceRange as any).getComments() : (context.workbook.worksheets.getActiveWorksheet().comments as any).getComments(sourceRange);
+    const sourceComments = (sourceRange as any).getComments
+      ? (sourceRange as any).getComments()
+      : (context.workbook.worksheets.getActiveWorksheet().comments as any).getComments(sourceRange);
     sourceComments.load("items/content");
     await context.sync();
 
@@ -830,7 +868,9 @@ export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<
         const currentId = await resolveLogicalId(sheetName, location.address);
         const metaMatch = comment.content.match(/^\[.*?:(.*?)\].*/);
         if (metaMatch && currentId !== metaMatch[1]) {
-          console.warn(`[AnnotationService] Annotation for ${metaMatch[1]} drifted to ${currentId} after sort at ${location.address}`);
+          console.warn(
+            `[AnnotationService] Annotation for ${metaMatch[1]} drifted to ${currentId} after sort at ${location.address}`
+          );
         }
       }
     }
@@ -848,17 +888,23 @@ export async function handlePartialRangeMovement(
   await Excel.run(async (context) => {
     console.log(`[AnnotationService] Partial move to ${movedAddress}`);
     const movedRange = movedAddress.includes("!")
-      ? context.workbook.worksheets.getItem(movedAddress.split("!")[0]).getRange(movedAddress.split("!")[1])
+      ? context.workbook.worksheets
+          .getItem(movedAddress.split("!")[0])
+          .getRange(movedAddress.split("!")[1])
       : context.workbook.worksheets.getActiveWorksheet().getRange(movedAddress);
 
     // Check if the original address had an annotation that should have moved entirely
-    const comments = (movedRange as any).getComments ? (movedRange as any).getComments() : (movedRange.worksheet.comments as any).getComments(movedRange);
+    const comments = (movedRange as any).getComments
+      ? (movedRange as any).getComments()
+      : (movedRange.worksheet.comments as any).getComments(movedRange);
     comments.load("items/content");
     await context.sync();
 
     if (comments.items.length > 0) {
       // If it moved but was part of a larger range, flag it
-      console.log(`[AnnotationService] Moved range ${movedAddress} contains annotations. Checking for splits...`);
+      console.log(
+        `[AnnotationService] Moved range ${movedAddress} contains annotations. Checking for splits...`
+      );
     }
   });
 }
@@ -871,7 +917,7 @@ export async function detectAnnotationConflicts(sheetName: string): Promise<Vali
   if (typeof Excel === "undefined") return issues;
   await Excel.run(async (context) => {
     const allStored = await loadAnnotationsFromStore(context);
-    const relevant = allStored.filter(a => a.anchor.sheetName === sheetName);
+    const relevant = allStored.filter((a) => a.anchor.sheetName === sheetName);
 
     for (let i = 0; i < relevant.length; i++) {
       for (let j = i + 1; j < relevant.length; j++) {
@@ -881,7 +927,7 @@ export async function detectAnnotationConflicts(sheetName: string): Promise<Vali
             level: conflict.confidence === RepairConfidence.Low ? "Error" : "Warning",
             message: conflict.message,
             sheetName: sheetName,
-            location: conflict.location
+            location: conflict.location,
           });
         }
       }

@@ -8,7 +8,7 @@ export const SHEET_NAMES = {
   CODELISTS: "_Codelists",
   METHODS: "_Methods",
   RULES: "_Rules",
-  JUSTIFICATIONS: "_Justifications"
+  JUSTIFICATIONS: "_Justifications",
 } as const;
 
 export const SHEET_HEADERS: Record<string, string[]> = {
@@ -16,9 +16,24 @@ export const SHEET_HEADERS: Record<string, string[]> = {
   [SHEET_NAMES.FORMS]: ["Form OID", "Form Name", "Repeating", "Page Layout"],
   [SHEET_NAMES.SCHEDULE]: ["Form OID", "Visit 1 (Day 0)", "Visit 2 (Day 14)", "Visit 3 (Day 28)"],
   [SHEET_NAMES.CODELISTS]: ["Codelist ID", "Codelist Name", "Coded Value", "Decode"],
-  [SHEET_NAMES.METHODS]: ["Method OID", "Name", "Type", "Description", "Expression", "Referenced Variables"],
-  [SHEET_NAMES.RULES]: ["Rule ID", "Rule Name", "Type", "Target", "Expression", "Error Message", "Description"],
-  [SHEET_NAMES.JUSTIFICATIONS]: ["ItemKey", "Reason", "UserId", "Timestamp"]
+  [SHEET_NAMES.METHODS]: [
+    "Method OID",
+    "Name",
+    "Type",
+    "Description",
+    "Expression",
+    "Referenced Variables",
+  ],
+  [SHEET_NAMES.RULES]: [
+    "Rule ID",
+    "Rule Name",
+    "Type",
+    "Target",
+    "Expression",
+    "Error Message",
+    "Description",
+  ],
+  [SHEET_NAMES.JUSTIFICATIONS]: ["ItemKey", "Reason", "UserId", "Timestamp"],
 };
 
 export const SYSTEM_SHEETS = [
@@ -28,7 +43,7 @@ export const SYSTEM_SHEETS = [
   SHEET_NAMES.CODELISTS,
   SHEET_NAMES.METHODS,
   SHEET_NAMES.RULES,
-  SHEET_NAMES.JUSTIFICATIONS
+  SHEET_NAMES.JUSTIFICATIONS,
 ];
 
 export function getDefaultData(sheetName: string, locale: string): any[][] {

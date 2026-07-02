@@ -43,7 +43,7 @@ export function buildAnnotatedCrfDocument(
             const sasName = item.sdtmMapping.sasFieldName || item.itemOid;
             const variable = item.sdtmMapping.variable || sasName || "N/A";
             const nciCode = item.sdtmMapping.nciVariableCode || item.codelistId || "N/A";
-            
+
             annotations.push({
               type: AcrfAnnotationType.SDTM,
               label: "SDTM",
@@ -226,9 +226,12 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
         let annotationsHtml = "";
         for (const anno of item.annotations) {
           let bgColor = "#1F77B4"; // Blue default
-          if (anno.type === AcrfAnnotationType.ADAM) bgColor = "#2CA02C"; // Green
-          else if (anno.type === AcrfAnnotationType.RULE) bgColor = "#FF7F0E"; // Orange
-          else if (anno.type === AcrfAnnotationType.VALIDATION) bgColor = anno.color || "#d32f2f"; // Red
+          if (anno.type === AcrfAnnotationType.ADAM)
+            bgColor = "#2CA02C"; // Green
+          else if (anno.type === AcrfAnnotationType.RULE)
+            bgColor = "#FF7F0E"; // Orange
+          else if (anno.type === AcrfAnnotationType.VALIDATION)
+            bgColor = anno.color || "#d32f2f"; // Red
           else if (anno.label === "Review") bgColor = anno.color || "#2196f3"; // Review Blue/Green
 
           annotationsHtml += `

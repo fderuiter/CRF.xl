@@ -2,7 +2,12 @@
  * @issue #84
  */
 import { AnnotationType, AnnotationTargetType, Annotation } from "../../types";
-import { applyAnnotation, editAnnotation, removeAnnotation, detectAnnotationConflicts } from "../annotation-service";
+import {
+  applyAnnotation,
+  editAnnotation,
+  removeAnnotation,
+  detectAnnotationConflicts,
+} from "../annotation-service";
 
 /* global jest, describe, it, expect */
 
@@ -17,16 +22,16 @@ describe("Annotation Interaction Semantics", () => {
       getRange: jest.fn().mockReturnValue({
         getComments: jest.fn().mockReturnValue({
           load: jest.fn(),
-          items: []
-        })
+          items: [],
+        }),
       }),
       comments: {
         add: mockAdd,
         getComments: jest.fn().mockReturnValue({
           load: jest.fn(),
-          items: []
-        })
-      }
+          items: [],
+        }),
+      },
     };
 
     mockContext = {
@@ -34,52 +39,53 @@ describe("Annotation Interaction Semantics", () => {
         customXmlParts: {
           getByNamespace: jest.fn().mockReturnValue({
             load: jest.fn(),
-            items: []
+            items: [],
           }),
           add: jest.fn().mockReturnValue({
             setXml: jest.fn(),
-            load: jest.fn()
-          })
+            load: jest.fn(),
+          }),
         },
         worksheets: {
-          getItem: jest.fn().mockReturnValue(mockSheet)
-        }
+          getItem: jest.fn().mockReturnValue(mockSheet),
+        },
       },
-      sync: jest.fn()
+      sync: jest.fn(),
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
+      run: (callback: any) => callback(mockContext),
     };
 
     (global as any).DOMParser = class {
       parseFromString(xml: string) {
         const annotationNodes: any[] = [];
         if (xml.includes("<Annotation>")) {
-            const matches = xml.match(/<Annotation>[\s\S]*?<\/Annotation>/g) || [];
-            matches.forEach(m => {
-                annotationNodes.push({
-                    getElementsByTagName: (tag: string) => {
-                        const tagMatch = m.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`));
-                        const val = tagMatch ? tagMatch[1] : "";
-                        if (tag === "Content" && m.includes("<![CDATA[")) {
-                             const cdataMatch = m.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-                             return [{ textContent: cdataMatch ? cdataMatch[1] : val }];
-                        }
-                        return [{ textContent: val }];
-                    }
-                });
+          const matches = xml.match(/<Annotation>[\s\S]*?<\/Annotation>/g) || [];
+          matches.forEach((m) => {
+            annotationNodes.push({
+              getElementsByTagName: (tag: string) => {
+                const tagMatch = m.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`));
+                const val = tagMatch ? tagMatch[1] : "";
+                if (tag === "Content" && m.includes("<![CDATA[")) {
+                  const cdataMatch = m.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
+                  return [{ textContent: cdataMatch ? cdataMatch[1] : val }];
+                }
+                return [{ textContent: val }];
+              },
             });
+          });
         }
 
         return {
           getElementsByTagName: (name: string) => {
-            if (name === "Annotations") return [{ appendChild: jest.fn(), replaceChild: jest.fn(), removeChild: jest.fn() }];
+            if (name === "Annotations")
+              return [{ appendChild: jest.fn(), replaceChild: jest.fn(), removeChild: jest.fn() }];
             if (name === "Annotation") return annotationNodes;
             return [];
           },
           documentElement: {},
-          importNode: (node: any) => node
+          importNode: (node: any) => node,
         };
       }
     };
@@ -92,7 +98,6 @@ describe("Annotation Interaction Semantics", () => {
   });
 
   it("should format annotation content with hybrid metadata", async () => {
-
     const annotation: Annotation = {
       id: "",
       type: AnnotationType.SDTM,
@@ -100,11 +105,11 @@ describe("Annotation Interaction Semantics", () => {
       anchor: {
         address: "A1",
         sheetName: "Sheet1",
-        logicalId: "VSORRES"
+        logicalId: "VSORRES",
       },
       content: "Test annotation",
       timestamp: new Date().toISOString(),
-      version: 1
+      version: 1,
     };
 
     await applyAnnotation("Sheet1", "A1", annotation);
@@ -117,13 +122,13 @@ describe("Annotation Interaction Semantics", () => {
     const mockComment = {
       content: "[SDTM:VSORRES]\nOld content",
       load: jest.fn(),
-      id: "comment-1"
+      id: "comment-1",
     };
     mockSheet.getRange.mockReturnValue({
       getComments: jest.fn().mockReturnValue({
         load: jest.fn(),
-        items: [mockComment]
-      })
+        items: [mockComment],
+      }),
     });
 
     await editAnnotation("Sheet1", "A1", "New content");
@@ -135,13 +140,13 @@ describe("Annotation Interaction Semantics", () => {
     const mockComment = {
       delete: jest.fn(),
       load: jest.fn(),
-      id: "comment-1"
+      id: "comment-1",
     };
     mockSheet.getRange.mockReturnValue({
       getComments: jest.fn().mockReturnValue({
         load: jest.fn(),
-        items: [mockComment]
-      })
+        items: [mockComment],
+      }),
     });
 
     await removeAnnotation("Sheet1", "A1");
@@ -158,42 +163,42 @@ describe("Annotation Interaction Semantics", () => {
           id: "1",
           location: {
             load: jest.fn(),
-            address: "Sheet1!A1"
-          }
+            address: "Sheet1!A1",
+          },
         },
         {
           content: "[ADaM:VAR2]\nContent 2",
           id: "2",
           location: {
             load: jest.fn(),
-            address: "Sheet1!A1"
-          }
-        }
-      ]
+            address: "Sheet1!A1",
+          },
+        },
+      ],
     };
     const mockSheet = {
-      comments: mockComments
+      comments: mockComments,
     };
     const mockContext = {
       workbook: {
         worksheets: {
-          getItem: jest.fn().mockReturnValue(mockSheet)
-        }
+          getItem: jest.fn().mockReturnValue(mockSheet),
+        },
       },
-      sync: jest.fn()
+      sync: jest.fn(),
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
+      run: (callback: any) => callback(mockContext),
     };
 
     (mockContext.workbook as any).customXmlParts = {
-        getByNamespace: jest.fn().mockReturnValue({
-          load: jest.fn(),
-          items: [
-              {
-                  load: jest.fn(),
-                  xml: `<Annotations xmlns="http://schemas.crf-xl.com/annotations">
+      getByNamespace: jest.fn().mockReturnValue({
+        load: jest.fn(),
+        items: [
+          {
+            load: jest.fn(),
+            xml: `<Annotations xmlns="http://schemas.crf-xl.com/annotations">
                         <Annotation>
                             <Id>1</Id>
                             <Type>SDTM</Type>
@@ -222,10 +227,10 @@ describe("Annotation Interaction Semantics", () => {
                             <Version>1</Version>
                             <Metadata>{}</Metadata>
                         </Annotation>
-                  </Annotations>`
-              }
-          ]
-        })
+                  </Annotations>`,
+          },
+        ],
+      }),
     };
 
     const issues = await detectAnnotationConflicts("Sheet1");

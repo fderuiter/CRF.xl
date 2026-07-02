@@ -58,7 +58,7 @@ describe("LinguisticService - Multilingual Export", () => {
       };
       const result = LinguisticService.getExportTranslations(translations, options, "en-US");
       expect(result).toHaveLength(2);
-      const locales = result.map(r => r.locale);
+      const locales = result.map((r) => r.locale);
       expect(locales).toContain("en-US");
       expect(locales).toContain("es-ES");
     });

@@ -44,7 +44,9 @@ export function createParseRuntime(options: ParseRuntimeOptions = {}): ParseRunt
   let combinedSignal: AbortSignal | undefined = options.signal;
   if (timeoutMs > 0) {
     const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    combinedSignal = combinedSignal ? AbortSignal.any([combinedSignal, timeoutSignal]) : timeoutSignal;
+    combinedSignal = combinedSignal
+      ? AbortSignal.any([combinedSignal, timeoutSignal])
+      : timeoutSignal;
   }
 
   const throwIfStopped = (phase: ParsePhase): void => {

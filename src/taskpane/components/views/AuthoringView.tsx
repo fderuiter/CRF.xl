@@ -2,7 +2,15 @@
  * @issue #28
  */
 import * as React from "react";
-import { Body1, Button, Card, Spinner, makeStyles, tokens, Divider } from "@fluentui/react-components";
+import {
+  Body1,
+  Button,
+  Card,
+  Spinner,
+  makeStyles,
+  tokens,
+  Divider,
+} from "@fluentui/react-components";
 import { insertDateBlock, insertAEBlock } from "../../core";
 import { AnnotationPalette } from "../AnnotationPalette";
 
@@ -58,16 +66,12 @@ const useStyles = makeStyles({
   },
 });
 
-export const AuthoringView: React.FC<AuthoringProps> = ({
-  sheetName,
-  isProcessing,
-  onError,
-}) => {
+export const AuthoringView: React.FC<AuthoringProps> = ({ sheetName, isProcessing, onError }) => {
   const styles = useStyles();
-  const [insertingType, setInsertingType] = React.useState<'date' | 'ae' | null>(null);
+  const [insertingType, setInsertingType] = React.useState<"date" | "ae" | null>(null);
 
   const handleInsertDateBlock = async () => {
-    setInsertingType('date');
+    setInsertingType("date");
     try {
       await insertDateBlock();
     } catch (err) {
@@ -78,7 +82,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
   };
 
   const handleInsertAEBlock = async () => {
-    setInsertingType('ae');
+    setInsertingType("ae");
     try {
       await insertAEBlock();
     } catch (err) {
@@ -106,7 +110,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
             className={styles.actionButton}
             onClick={handleInsertDateBlock}
             disabled={isBusy}
-            icon={insertingType === 'date' ? <Spinner size="tiny" /> : <span>📅</span>}
+            icon={insertingType === "date" ? <Spinner size="tiny" /> : <span>📅</span>}
           >
             Insert Date Group
             <span className={styles.tagLabel}>CDISC</span>
@@ -116,7 +120,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({
             className={styles.actionButton}
             onClick={handleInsertAEBlock}
             disabled={isBusy}
-            icon={insertingType === 'ae' ? <Spinner size="tiny" /> : <span>⚠️</span>}
+            icon={insertingType === "ae" ? <Spinner size="tiny" /> : <span>⚠️</span>}
           >
             Insert AE Block
             <span className={styles.tagLabel}>Log</span>

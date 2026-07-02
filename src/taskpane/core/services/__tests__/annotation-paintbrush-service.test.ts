@@ -15,7 +15,7 @@ describe("AnnotationPaintbrushService", () => {
       getRangeByIndexes: jest.fn().mockReturnValue({
         load: jest.fn(),
         values: [["OID1"]],
-        context: { sync: jest.fn() }
+        context: { sync: jest.fn() },
       }),
       getRange: jest.fn().mockReturnValue({
         load: jest.fn(),
@@ -24,17 +24,17 @@ describe("AnnotationPaintbrushService", () => {
         columnIndex: 0,
         context: { sync: jest.fn() },
         getMergedAreasOrNullObject: jest.fn().mockReturnValue({
-            load: jest.fn(),
-            isNullObject: true
-        })
+          load: jest.fn(),
+          isNullObject: true,
+        }),
       }),
       comments: {
         add: jest.fn().mockReturnValue({ load: jest.fn(), id: "comment-new" }),
         getComments: jest.fn().mockReturnValue({
           load: jest.fn(),
-          items: []
-        })
-      }
+          items: [],
+        }),
+      },
     };
 
     mockContext = {
@@ -42,37 +42,38 @@ describe("AnnotationPaintbrushService", () => {
         customXmlParts: {
           getByNamespace: jest.fn().mockReturnValue({
             load: jest.fn(),
-            items: []
+            items: [],
           }),
           add: jest.fn().mockReturnValue({
             setXml: jest.fn(),
-            load: jest.fn()
-          })
+            load: jest.fn(),
+          }),
         },
         worksheets: {
           getItem: jest.fn().mockReturnValue(mockSheet),
           getActiveWorksheet: jest.fn().mockReturnValue(mockSheet),
           load: jest.fn(),
-          items: [mockSheet]
-        }
+          items: [mockSheet],
+        },
       },
-      sync: jest.fn()
+      sync: jest.fn(),
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
+      run: (callback: any) => callback(mockContext),
     };
 
     (global as any).DOMParser = class {
       parseFromString() {
         return {
           getElementsByTagName: (name: string) => {
-              if (name === "Annotations") return [{ appendChild: jest.fn(), replaceChild: jest.fn() }];
-              if (name === "Annotation") return [];
-              return [];
+            if (name === "Annotations")
+              return [{ appendChild: jest.fn(), replaceChild: jest.fn() }];
+            if (name === "Annotation") return [];
+            return [];
           },
           documentElement: {},
-          importNode: (node: any) => node
+          importNode: (node: any) => node,
         };
       }
     };
@@ -126,16 +127,20 @@ describe("AnnotationPaintbrushService", () => {
 
     // Mock a blocked target (e.g. protected range)
     mockSheet.getRange.mockReturnValue({
-        load: jest.fn(),
-        address: "A1",
-        context: { sync: jest.fn() },
-        worksheet: { protection: { protected: true } },
-        format: { protection: { locked: true } },
-        getMergedAreasOrNullObject: jest.fn().mockReturnValue({ isNullObject: true, load: jest.fn() })
+      load: jest.fn(),
+      address: "A1",
+      context: { sync: jest.fn() },
+      worksheet: { protection: { protected: true } },
+      format: { protection: { locked: true } },
+      getMergedAreasOrNullObject: jest
+        .fn()
+        .mockReturnValue({ isNullObject: true, load: jest.fn() }),
     });
 
     await annotationPaintbrushService.toggleTarget("Sheet1", "A1");
 
-    await expect(annotationPaintbrushService.executeBulkApply()).rejects.toThrow("blocked by validation errors");
+    await expect(annotationPaintbrushService.executeBulkApply()).rejects.toThrow(
+      "blocked by validation errors"
+    );
   });
 });

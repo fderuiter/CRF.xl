@@ -16,7 +16,6 @@ export interface CrfCodelistsRow {
   sourcePackageTitle: string;
 }
 
-
 type MappingWarningCode =
   | "unsupported_field"
   | "ambiguous_term_decode"

@@ -112,7 +112,10 @@ export const Badge: React.FC<{
 // ============================================================================
 // 5. ACCESSIBLE WRAPPER
 // ============================================================================
-export interface AccessibleWrapperProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
+export interface AccessibleWrapperProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "onClick"
+> {
   onClick?: (e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => void;
   role?: React.AriaRole;
   ariaLabel?: string;

@@ -240,40 +240,42 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
       .concat(enumeratedItems)
       .sort((left, right) => left.index - right.index);
 
-    codelist.items = allItems.map((itemMatch, itemIndex) => {
-      const codedValue = nonEmpty(itemMatch.attributes.CodedValue);
-      if (!codedValue) {
-        diagnostics.push({
-          severity: "error",
-          category: "Semantic",
-          message: `Codelist '${codelistId}' contains an item without CodedValue.`,
-          location: "_Codelists",
-        });
-        return null;
-      }
+    codelist.items = allItems
+      .map((itemMatch, itemIndex) => {
+        const codedValue = nonEmpty(itemMatch.attributes.CodedValue);
+        if (!codedValue) {
+          diagnostics.push({
+            severity: "error",
+            category: "Semantic",
+            message: `Codelist '${codelistId}' contains an item without CodedValue.`,
+            location: "_Codelists",
+          });
+          return null;
+        }
 
-      const decode =
-        getDecodeText(itemMatch.innerXml) ||
-        getPreferredTranslatedText(itemMatch.innerXml) ||
-        codedValue;
-      if (decode === codedValue && itemMatch.innerXml.indexOf("Decode") === -1) {
-        diagnostics.push({
-          severity: "warning",
-          category: "Semantic",
-          message: `Codelist '${codelistId}' item '${codedValue}' has no Decode text; the coded value will be reused in _Codelists.`,
-          location: "_Codelists",
-        });
-      }
+        const decode =
+          getDecodeText(itemMatch.innerXml) ||
+          getPreferredTranslatedText(itemMatch.innerXml) ||
+          codedValue;
+        if (decode === codedValue && itemMatch.innerXml.indexOf("Decode") === -1) {
+          diagnostics.push({
+            severity: "warning",
+            category: "Semantic",
+            message: `Codelist '${codelistId}' item '${codedValue}' has no Decode text; the coded value will be reused in _Codelists.`,
+            location: "_Codelists",
+          });
+        }
 
-      return {
-        codelistId,
-        codedValue,
-        decodedText: {
-          [study.metadata.defaultLanguage]: decode,
-        },
-        orderNumber: itemIndex + 1,
-      };
-    }).filter((i) => i !== null) as Codelist["items"];
+        return {
+          codelistId,
+          codedValue,
+          decodedText: {
+            [study.metadata.defaultLanguage]: decode,
+          },
+          orderNumber: itemIndex + 1,
+        };
+      })
+      .filter((i) => i !== null) as Codelist["items"];
 
     study.codelists[codelistId] = codelist;
   }

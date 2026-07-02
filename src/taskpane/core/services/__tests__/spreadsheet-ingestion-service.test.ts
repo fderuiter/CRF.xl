@@ -9,7 +9,7 @@ import {
   buildIngestionPreview,
   ColumnCandidate,
   FieldMapping,
-  } from "../spreadsheet-ingestion-service";
+} from "../spreadsheet-ingestion-service";
 
 // ---------------------------------------------------------------------------
 // Helpers

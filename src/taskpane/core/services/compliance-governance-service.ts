@@ -120,11 +120,8 @@ export class ComplianceGovernanceService {
       // We will mock the Graph resolution for the document URL or make a best-effort API call.
 
       // Let's assume we can get the site by hostname and path if it's SharePoint
-      
-      
-      
+
       // Just an example, let's say /sites/SiteName
-      
 
       // We can use the Graph API to search for the site or just do a generic call
       // In a real app we might use shares API: GET /shares/{base64-encoded-url}/driveItem
@@ -339,7 +336,7 @@ export class ComplianceGovernanceService {
 
       const range = sheet.getRangeByIndexes(0, 0, data.length, 4);
       range.values = data;
-      
+
       const headerRange = sheet.getRangeByIndexes(0, 0, 1, 4);
       applyThemeToHeader(headerRange);
       sheet.freezePanes.freezeRows(1);

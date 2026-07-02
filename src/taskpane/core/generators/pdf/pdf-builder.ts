@@ -11,12 +11,7 @@ import * as CryptoJS from "crypto-js";
 import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
-
-if (pdfFonts && (pdfFonts as any).pdfMake) {
-  (pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
-}
+import { generatePdfBlobFromHtml } from "../../services/pdf-export-adapter";
 
 export async function generatePdfBlob(
   study: StudyDesign,
@@ -31,74 +26,80 @@ export async function generatePdfBlob(
   const studyHashInput = JSON.stringify(study);
   const studyHash = CryptoJS.SHA256(studyHashInput).toString(CryptoJS.enc.Hex);
 
-  const content: any[] = [];
-
-  content.push({ text: "Reviewer Export - Annotated CRF", style: "header", headlineLevel: 1 });
-  content.push({ text: `Protocol ID: ${protocolId}`, margin: [0, 2, 0, 2] });
-  content.push({
-    text: `Study Version: ${study.metadata.version || "UNKNOWN"}`,
-    margin: [0, 2, 0, 2],
-  });
-  content.push({ text: `Exported At: ${formatDate(timestamp)}`, margin: [0, 2, 0, 2] });
-  content.push({ text: `Study Cryptographic Hash: ${studyHash}`, margin: [0, 2, 0, 10] });
-
-  content.push({ text: "Validation Outcomes Summary", style: "subheader", headlineLevel: 2 });
-  if (validationIssues.length > 0) {
-    content.push({
-      ul: validationIssues.map((v) => `${v.level}: ${v.message}`),
+  const escapeHtml = (unsafe: string): string => {
+    return (unsafe || "").toString().replace(/[&<"']/g, function (m) {
+      switch (m) {
+        case "&":
+          return "&amp;";
+        case "<":
+          return "&lt;";
+        case '"':
+          return "&quot;";
+        case "'":
+          return "&#039;";
+        default:
+          return m;
+      }
     });
+  };
+
+  let html = `<div style="font-family: sans-serif; font-size: 10px;">`;
+
+  // Header
+  html += `<h1 style="font-size: 24px; font-weight: bold; margin: 0 0 20px 0;">Reviewer Export - Annotated CRF</h1>`;
+  html += `<div style="margin: 2px 0;">Protocol ID: ${escapeHtml(protocolId)}</div>`;
+  html += `<div style="margin: 2px 0;">Study Version: ${escapeHtml(study.metadata.version || "UNKNOWN")}</div>`;
+  html += `<div style="margin: 2px 0;">Exported At: ${escapeHtml(formatDate(timestamp))}</div>`;
+  html += `<div style="margin: 2px 0 10px 0;">Study Cryptographic Hash: ${escapeHtml(studyHash)}</div>`;
+
+  // Validation
+  html += `<h2 style="font-size: 18px; font-weight: bold; margin: 15px 0 10px 0;">Validation Outcomes Summary</h2>`;
+  if (validationIssues.length > 0) {
+    html += `<ul>${validationIssues.map((v) => `<li>${escapeHtml(v.level)}: ${escapeHtml(v.message)}</li>`).join("")}</ul>`;
   } else {
-    content.push({ ul: ["No validation issues"] });
+    html += `<ul><li>No validation issues</li></ul>`;
   }
 
-  content.push({
-    text: "Audit Summary (Changes)",
-    style: "subheader",
-    headlineLevel: 2,
-    margin: [0, 15, 0, 5],
-  });
+  // Audit Summary
+  html += `<h2 style="font-size: 18px; font-weight: bold; margin: 15px 0 5px 0;">Audit Summary (Changes)</h2>`;
   if (auditSummary) {
     const diffEntries = buildStudyDiffList(auditSummary);
     if (diffEntries.length > 0) {
-      const tableBody: any[] = [
-        [
-          { text: "Entity", style: "tableHeader" },
-          { text: "Type", style: "tableHeader" },
-          { text: "Change Class", style: "tableHeader" },
-          { text: "Changed Fields", style: "tableHeader" },
-        ],
-      ];
+      html += `<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+          <tr style="background-color: #f5f5f5; font-weight: bold;">
+            <th style="border-bottom: 1px solid #ccc; padding: 4px; text-align: left;">Entity</th>
+            <th style="border-bottom: 1px solid #ccc; padding: 4px; text-align: left;">Type</th>
+            <th style="border-bottom: 1px solid #ccc; padding: 4px; text-align: left;">Change Class</th>
+            <th style="border-bottom: 1px solid #ccc; padding: 4px; text-align: left;">Changed Fields</th>
+          </tr>
+        </thead>
+        <tbody>`;
       diffEntries.forEach((e) => {
-        tableBody.push([
-          { text: `${e.title}\n${e.subtitle}` },
-          { text: e.group },
-          { text: e.changeClass.replace(/_/g, " ") },
-          {
-            text: e.changedFields && e.changedFields.length > 0 ? e.changedFields.join(", ") : "-",
-          },
-        ]);
+        const changedFieldsText =
+          e.changedFields && e.changedFields.length > 0 ? e.changedFields.join(", ") : "-";
+        html += `<tr>
+          <td style="border-bottom: 1px solid #eee; padding: 4px;">${escapeHtml(e.title)}<br/>${escapeHtml(e.subtitle)}</td>
+          <td style="border-bottom: 1px solid #eee; padding: 4px;">${escapeHtml(e.group)}</td>
+          <td style="border-bottom: 1px solid #eee; padding: 4px;">${escapeHtml(e.changeClass.replace(/_/g, " "))}</td>
+          <td style="border-bottom: 1px solid #eee; padding: 4px;">${escapeHtml(changedFieldsText)}</td>
+        </tr>`;
       });
-      content.push({
-        table: { headerRows: 1, widths: ["*", "auto", "auto", "*"], body: tableBody },
-        layout: "lightHorizontalLines",
-      });
+      html += `</tbody></table>`;
     } else {
-      content.push({ text: "No changes detected." });
+      html += `<div>No changes detected.</div>`;
     }
   } else {
-    content.push({ text: "No changes detected." });
+    html += `<div>No changes detected.</div>`;
   }
 
-  content.push({ text: "", pageBreak: "after" });
+  html += `<div style="page-break-after: always; clear: both;"></div>`;
 
   for (const [formOid, form] of Object.entries(study.forms)) {
-    content.push({
-      text: `Protocol ID: ${protocolId} | Form: ${formOid} (${form.formName}) | Subject: ____ | Visit: ____`,
-      style: "clinicalHeader",
-      headlineLevel: 2,
-    });
+    html += `<h2 style="font-size: 12px; font-weight: bold; background-color: #eeeeee; margin: 0 0 20px 0; padding: 5px;">Protocol ID: ${escapeHtml(protocolId)} | Form: ${escapeHtml(formOid)} (${escapeHtml(form.formName)}) | Subject: ____ | Visit: ____</h2>`;
 
     form.itemGroups.forEach((group) => {
+      let groupHtml = `<div style="margin-bottom: 10px;">`;
       group.items.forEach((item) => {
         if (isCrfItem(item)) {
           let affordanceText = "[ ]";
@@ -125,96 +126,41 @@ export async function generatePdfBlob(
           let metadataText = `[${item.itemOid}]\nDomain: ${sdtmDomain} | Var: ${sdtmVar} | NCI: ${nciCode}`;
 
           if (annotatedCrfDoc) {
-            const docForm = annotatedCrfDoc.forms.find(f => f.formOid === formOid);
-            const docGroup = docForm?.itemGroups.find(g => g.groupOid === group.groupOid);
-            const docItem = docGroup?.items.find(i => i.itemOid === item.itemOid);
+            const docForm = annotatedCrfDoc.forms.find((f) => f.formOid === formOid);
+            const docGroup = docForm?.itemGroups.find((g) => g.groupOid === group.groupOid);
+            const docItem = docGroup?.items.find((i) => i.itemOid === item.itemOid);
             if (docItem && docItem.annotations.length > 0) {
-              metadataText = `[${item.itemOid}]\n` + docItem.annotations.map(a => `${a.label}: ${a.content}`).join("\n");
+              metadataText =
+                `[${item.itemOid}]\n` +
+                docItem.annotations.map((a) => `${a.label}: ${a.content}`).join("\n");
             }
           }
 
           const commentText = item.comment ? `\n${item.comment}` : "";
-
           const labelText = getTranslation(
             item.label,
             study.metadata.defaultLanguage,
             exportOptions
           );
 
-          content.push({
-            columns: [
-              { text: labelText, width: 150 },
-              { text: affordanceText, width: 150 },
-              {
-                text: metadataText + commentText,
-                width: "*",
-                fillColor: bubbleColor,
-                color: "white",
-                fontSize: 8,
-                margin: [4, 4, 4, 4],
-              },
-            ],
-            margin: [0, 5, 0, 5],
-            columnGap: 10,
-          });
+          groupHtml += `
+          <div style="display: flex; margin: 5px 0; gap: 10px; break-inside: avoid;">
+            <div style="width: 150px;">${escapeHtml(labelText)}</div>
+            <div style="width: 150px; font-family: monospace;">${escapeHtml(affordanceText)}</div>
+            <div style="flex: 1; background-color: ${bubbleColor}; color: white; font-size: 8px; padding: 4px; white-space: pre-wrap;">${escapeHtml(metadataText + commentText)}</div>
+          </div>`;
         }
       });
-      content.push({ text: "", margin: [0, 10, 0, 0] });
+      groupHtml += `</div>`;
+      html += groupHtml;
     });
 
-    content.push({ text: "", pageBreak: "after" });
+    html += `<div style="page-break-after: always; clear: both;"></div>`;
   }
 
-  // Remove trailing page break if present
-  if (content[content.length - 1].pageBreak === "after") {
-    delete content[content.length - 1].pageBreak;
-  }
+  html += `</div>`;
 
-  const docDefinition: any = {
-    info: {
-      title: `${protocolId} - Annotated CRF`,
-      author: study.metadata.sponsor || "CRF.xl System",
-      creator: "CRF.xl Engine",
-    },
-    displayTitle: true,
-    tagged: true,
-    subset: "PDF/UA",
-    language: study.metadata.defaultLanguage || "en-US",
-    content: content,
-    styles: {
-      header: { fontSize: 24, bold: true, margin: [0, 0, 0, 20] },
-      subheader: { fontSize: 18, bold: true, margin: [0, 15, 0, 10] },
-      clinicalHeader: {
-        fontSize: 12,
-        bold: true,
-        fillColor: "#eeeeee",
-        margin: [0, 0, 0, 20],
-        padding: 5, // this won't work in pdfmake directly on text, but whatever, the background will fill
-      },
-      tableHeader: { bold: true, fillColor: "#f5f5f5" },
-    },
-    defaultStyle: {
-      fontSize: 10,
-    },
-    footer: function (currentPage: number, pageCount: number) {
-      return {
-        text: `Protocol: ${protocolId} | Version: ${study.metadata.version || "UNKNOWN"} | Generated: ${formatDate(timestamp)} | Page ${currentPage} of ${pageCount}`,
-        alignment: "center",
-        fontSize: 8,
-        color: "#666666",
-        margin: [0, 10, 0, 0],
-      };
-    },
-  };
-
-  return new Promise((resolve, reject) => {
-    try {
-      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-      pdfDocGenerator.getBlob().then(resolve).catch(reject);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  return generatePdfBlobFromHtml(html);
 }
 
 /**

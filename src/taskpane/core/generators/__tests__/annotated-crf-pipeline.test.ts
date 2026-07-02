@@ -35,7 +35,7 @@ describe("AnnotatedCrfPipeline", () => {
     },
     events: [],
     forms: {
-      "FORM1": {
+      FORM1: {
         formOid: "FORM1",
         formName: "Form 1",
         itemGroups: [
@@ -49,11 +49,11 @@ describe("AnnotatedCrfPipeline", () => {
                 label: { "en-US": "Label 1" },
                 dataType: "text",
                 validation: { required: true },
-              }
-            ]
-          }
-        ]
-      }
+              },
+            ],
+          },
+        ],
+      },
     },
     codelists: {},
   };
@@ -70,7 +70,7 @@ describe("AnnotatedCrfPipeline", () => {
       content: "DM.SUBJID",
       timestamp: "2023-01-01T00:00:00Z",
       version: 1,
-    }
+    },
   ];
 
   beforeEach(() => {
@@ -80,8 +80,14 @@ describe("AnnotatedCrfPipeline", () => {
       validationIssues: [],
     });
     (annotationService.loadAnnotationsFromStore as jest.Mock).mockResolvedValue(mockAnnotations);
-    (pdfAdapter.generatePdfBlobFromHtml as jest.Mock).mockResolvedValue(new Blob(["mock pdf content"], { type: "application/pdf" }));
-    (HTMLtoDOCX as jest.Mock).mockResolvedValue(new Blob(["mock docx content"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
+    (pdfAdapter.generatePdfBlobFromHtml as jest.Mock).mockResolvedValue(
+      new Blob(["mock pdf content"], { type: "application/pdf" })
+    );
+    (HTMLtoDOCX as jest.Mock).mockResolvedValue(
+      new Blob(["mock docx content"], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      })
+    );
   });
 
   it("should execute all 6 stages correctly", async () => {
@@ -102,7 +108,11 @@ describe("AnnotatedCrfPipeline", () => {
     expect(pdfAdapter.generatePdfBlobFromHtml).toHaveBeenCalled();
     expect(HTMLtoDOCX).toHaveBeenCalled();
 
-    expect(result.manifest.diagnostics.some(d => d.message.includes("Completed stage: Export Artifact Generation"))).toBe(true);
+    expect(
+      result.manifest.diagnostics.some((d) =>
+        d.message.includes("Completed stage: Export Artifact Generation")
+      )
+    ).toBe(true);
   });
 
   it("should include annotations in the document structure", async () => {
@@ -111,7 +121,7 @@ describe("AnnotatedCrfPipeline", () => {
 
     const item = result.document.forms[0].itemGroups[0].items[0];
     expect(item.itemOid).toBe("ITEM1");
-    expect(item.annotations.some(a => a.content === "DM.SUBJID")).toBe(true);
+    expect(item.annotations.some((a) => a.content === "DM.SUBJID")).toBe(true);
   });
 
   it("should handle pipeline failures gracefully", async () => {

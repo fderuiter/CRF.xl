@@ -57,7 +57,7 @@ export async function initializeWorkbook(): Promise<void> {
       SHEET_NAMES.SCHEDULE,
       SHEET_NAMES.CODELISTS,
       SHEET_NAMES.METHODS,
-      SHEET_NAMES.RULES
+      SHEET_NAMES.RULES,
     ];
 
     for (const sheetName of controlSheetsToInitialize) {

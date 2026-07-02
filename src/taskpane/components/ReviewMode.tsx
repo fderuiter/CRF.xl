@@ -125,7 +125,9 @@ export const ReviewMode: React.FC<ReviewModeProps> = ({
 
       {selectedEntityId && (
         <div className={styles.newCommentArea}>
-          <Caption1>Adding comment for: <strong>{selectedEntityId}</strong></Caption1>
+          <Caption1>
+            Adding comment for: <strong>{selectedEntityId}</strong>
+          </Caption1>
           <Textarea
             placeholder="Type a review comment..."
             value={newCommentText}
@@ -150,9 +152,9 @@ export const ReviewMode: React.FC<ReviewModeProps> = ({
           <CommentRegular fontSize={40} />
           <Body1>No comments {selectedEntityId ? "for this item" : "yet"}.</Body1>
           {selectedEntityId ? (
-             <Caption1>Use the box above to pin a new comment.</Caption1>
+            <Caption1>Use the box above to pin a new comment.</Caption1>
           ) : (
-             <Caption1>Select an item in the preview to add a comment.</Caption1>
+            <Caption1>Select an item in the preview to add a comment.</Caption1>
           )}
         </div>
       ) : (
@@ -183,7 +185,9 @@ export const ReviewMode: React.FC<ReviewModeProps> = ({
             />
             <Body1 className={styles.commentText}>{comment.text}</Body1>
             {comment.targetEntityId !== selectedEntityId && (
-                <Caption1 italic style={{ marginTop: "4px" }}>Target: {comment.targetEntityId}</Caption1>
+              <Caption1 italic style={{ marginTop: "4px" }}>
+                Target: {comment.targetEntityId}
+              </Caption1>
             )}
             <CardFooter className={styles.footer}>
               {comment.status === "open" ? (

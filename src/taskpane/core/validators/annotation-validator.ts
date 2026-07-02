@@ -5,9 +5,9 @@
 import { Annotation } from "../types";
 
 export enum RepairConfidence {
-  High = "High",     // Auto-heal
+  High = "High", // Auto-heal
   Medium = "Medium", // Warn + User Action
-  Low = "Low",       // Block / Ambiguous
+  Low = "Low", // Block / Ambiguous
 }
 
 export type AnnotationValidationCategory =
@@ -37,7 +37,9 @@ export interface RepairPolicy {
  * Validates if an annotation can be applied to the target range.
  * Checks for merged cells and protection.
  */
-export async function validateAnnotationTarget(range: Excel.Range): Promise<AnnotationValidationIssue[]> {
+export async function validateAnnotationTarget(
+  range: Excel.Range
+): Promise<AnnotationValidationIssue[]> {
   const issues: AnnotationValidationIssue[] = [];
 
   if (typeof range.load === "function") {
@@ -65,12 +67,12 @@ export async function validateAnnotationTarget(range: Excel.Range): Promise<Anno
   }
 
   if (mergedAreas && !mergedAreas.isNullObject && mergedAreas.address !== range.address) {
-      issues.push({
-          category: "MergedCell",
-          message: `The range ${range.address} is part of a merged cell. Annotations on merged cells may behave unexpectedly.`,
-          confidence: RepairConfidence.Medium,
-          location: range.address,
-      });
+    issues.push({
+      category: "MergedCell",
+      message: `The range ${range.address} is part of a merged cell. Annotations on merged cells may behave unexpectedly.`,
+      confidence: RepairConfidence.Medium,
+      location: range.address,
+    });
   }
 
   return issues;
@@ -79,11 +81,17 @@ export async function validateAnnotationTarget(range: Excel.Range): Promise<Anno
 /**
  * Detects conflicts between a new candidate annotation and existing ones.
  */
-export function detectConflicts(existing: Annotation[], candidate: Annotation): AnnotationValidationIssue[] {
+export function detectConflicts(
+  existing: Annotation[],
+  candidate: Annotation
+): AnnotationValidationIssue[] {
   const issues: AnnotationValidationIssue[] = [];
 
   for (const anno of existing) {
-    if (anno.anchor.address === candidate.anchor.address && anno.anchor.sheetName === candidate.anchor.sheetName) {
+    if (
+      anno.anchor.address === candidate.anchor.address &&
+      anno.anchor.sheetName === candidate.anchor.sheetName
+    ) {
       if (anno.type !== candidate.type) {
         issues.push({
           category: "Conflict",
@@ -94,7 +102,7 @@ export function detectConflicts(existing: Annotation[], candidate: Annotation): 
         });
       } else if (anno.id !== candidate.id) {
         // Same type, different ID - likely a duplicate if not explicitly updating
-         issues.push({
+        issues.push({
           category: "Conflict",
           message: `Duplicate ${anno.type} annotation at ${candidate.anchor.address}.`,
           confidence: RepairConfidence.Medium,
@@ -119,6 +127,9 @@ export function getRepairPolicy(issue: AnnotationValidationIssue): RepairPolicy 
       return { action: "Warn", description: "Issue detected. User intervention recommended." };
     case RepairConfidence.Low:
     default:
-      return { action: "Block", description: "Operation blocked due to ambiguity or permission issues." };
+      return {
+        action: "Block",
+        description: "Operation blocked due to ambiguity or permission issues.",
+      };
   }
 }

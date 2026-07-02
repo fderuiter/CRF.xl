@@ -44,7 +44,10 @@ export function parseNumber(value: string | number | null | undefined): number |
 /**
  * Formats a date according to the current locale.
  */
-export function formatDate(value: Date | string | number, options?: Intl.DateTimeFormatOptions): string {
+export function formatDate(
+  value: Date | string | number,
+  options?: Intl.DateTimeFormatOptions
+): string {
   const { currentLocale } = getLocaleConfig();
   const date = value instanceof Date ? value : new Date(value);
   if (isNaN(date.getTime())) return String(value);
@@ -78,36 +81,50 @@ export function parseDate(value: string): { date: Date | null; warnings: string[
 
     if (!isNaN(p1) && !isNaN(p2) && !isNaN(p3)) {
       // Handle YYYY at start or end
-      let year = -1, month = -1, day = -1;
+      let year = -1,
+        month = -1,
+        day = -1;
       let format = "";
 
-      if (p1 > 1000) { // YYYY-MM-DD
-        year = p1; month = p2; day = p3;
+      if (p1 > 1000) {
+        // YYYY-MM-DD
+        year = p1;
+        month = p2;
+        day = p3;
         format = "YYYY-MM-DD";
-      } else if (p3 > 1000) { // XX-XX-YYYY
+      } else if (p3 > 1000) {
+        // XX-XX-YYYY
         year = p3;
 
         // Determine if MDY or DMY based on locale
         const isUS = currentLocale.startsWith("en-US");
 
         if (isUS) {
-          month = p1; day = p2;
+          month = p1;
+          day = p2;
           format = "MM-DD-YYYY";
         } else {
-          day = p1; month = p2;
+          day = p1;
+          month = p2;
           format = "DD-MM-YYYY";
         }
 
         // Check for ambiguity if both could be months
         if (p1 <= 12 && p2 <= 12 && p1 !== p2) {
-          warnings.push(`Date "${value}" is ambiguous in locale ${currentLocale}. Interpreted as ${format}.`);
+          warnings.push(
+            `Date "${value}" is ambiguous in locale ${currentLocale}. Interpreted as ${format}.`
+          );
         }
       }
 
       if (year !== -1) {
         const date = new Date(year, month - 1, day);
         // Validate date (e.g. avoid Feb 31)
-        if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+        if (
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day
+        ) {
           return { date, warnings };
         }
       }

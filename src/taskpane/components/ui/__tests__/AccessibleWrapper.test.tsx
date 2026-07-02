@@ -17,7 +17,7 @@ describe("AccessibleWrapper", () => {
   it("calls onClick when Enter is pressed", () => {
     const handleClick = jest.fn();
     render(<AccessibleWrapper onClick={handleClick}>Submit</AccessibleWrapper>);
-    
+
     const element = screen.getByText("Submit");
     fireEvent.keyDown(element, { key: "Enter", code: "Enter" });
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -26,7 +26,7 @@ describe("AccessibleWrapper", () => {
   it("calls onClick when Space is pressed", () => {
     const handleClick = jest.fn();
     render(<AccessibleWrapper onClick={handleClick}>Submit</AccessibleWrapper>);
-    
+
     const element = screen.getByText("Submit");
     fireEvent.keyDown(element, { key: " ", code: "Space" });
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -34,7 +34,7 @@ describe("AccessibleWrapper", () => {
 
   it("applies aria-disabled and tabIndex -1 when disabled", () => {
     render(<AccessibleWrapper disabled>Disabled</AccessibleWrapper>);
-    
+
     const element = screen.getByText("Disabled");
     expect(element).toHaveAttribute("aria-disabled", "true");
     expect(element).toHaveAttribute("tabIndex", "-1");
@@ -42,8 +42,12 @@ describe("AccessibleWrapper", () => {
 
   it("does not trigger onClick if disabled", () => {
     const handleClick = jest.fn();
-    render(<AccessibleWrapper onClick={handleClick} disabled>Submit</AccessibleWrapper>);
-    
+    render(
+      <AccessibleWrapper onClick={handleClick} disabled>
+        Submit
+      </AccessibleWrapper>
+    );
+
     const element = screen.getByText("Submit");
     fireEvent.click(element);
     fireEvent.keyDown(element, { key: "Enter" });

@@ -3,7 +3,11 @@
  */
 /* global Excel */
 import { AnnotationType, AnnotationTargetType, Annotation } from "../types";
-import { validateAnnotationTarget, getRepairPolicy, AnnotationValidationIssue } from "../validators/annotation-validator";
+import {
+  validateAnnotationTarget,
+  getRepairPolicy,
+  AnnotationValidationIssue,
+} from "../validators/annotation-validator";
 
 export interface PaintbrushTarget {
   address: string;
@@ -44,7 +48,7 @@ class AnnotationPaintbrushService {
       ...this.state,
       pendingTargets: [...this.state.pendingTargets],
       validationIssues: { ...this.state.validationIssues },
-      history: [...this.state.history.map(h => [...h])],
+      history: [...this.state.history.map((h) => [...h])],
     };
   }
 
@@ -111,14 +115,15 @@ class AnnotationPaintbrushService {
         await context.sync();
 
         const allStored = await loadAnnotationsFromStore(context);
-        const annotation = allStored.find(a => a.id === comment.id);
+        const annotation = allStored.find((a) => a.id === comment.id);
 
         if (annotation) {
           this.state.sourceAnnotation = annotation;
           this.state.activeType = annotation.type;
-          this.state.activeContent = typeof annotation.content === "string"
-            ? annotation.content
-            : annotation.content.value || "";
+          this.state.activeContent =
+            typeof annotation.content === "string"
+              ? annotation.content
+              : annotation.content.value || "";
           this.notify();
         }
       }
@@ -173,8 +178,8 @@ class AnnotationPaintbrushService {
     if (this.state.pendingTargets.length === 0) return;
 
     // Check for blocking issues
-    const blocked = Object.values(this.state.validationIssues).some(issues =>
-      issues.some(issue => getRepairPolicy(issue).action === "Block")
+    const blocked = Object.values(this.state.validationIssues).some((issues) =>
+      issues.some((issue) => getRepairPolicy(issue).action === "Block")
     );
 
     if (blocked) {
@@ -205,7 +210,7 @@ class AnnotationPaintbrushService {
     await bulkApplyAnnotations(annotationsToApply);
 
     // Reset state after success
-    this.state.history.push(annotationsToApply.map(a => a.id).filter(id => !!id));
+    this.state.history.push(annotationsToApply.map((a) => a.id).filter((id) => !!id));
     this.clearTargets();
     this.notify();
   }
@@ -241,7 +246,9 @@ class AnnotationPaintbrushService {
         for (const issue of issues) {
           const policy = getRepairPolicy(issue);
           if (policy.action === "Block") {
-            console.error(`[AnnotationPaintbrush] Application blocked at ${address}: ${issue.message}`);
+            console.error(
+              `[AnnotationPaintbrush] Application blocked at ${address}: ${issue.message}`
+            );
             isBlocked = true;
             break;
           }

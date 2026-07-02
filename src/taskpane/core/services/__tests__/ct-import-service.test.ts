@@ -4,11 +4,7 @@
 /* eslint-disable no-undef */
 import { readFileSync } from "fs";
 import { join } from "path";
-import {
-  buildCtImportPlan,
-  executeCtImport,
-  ConflictResolution,
-} from "../ct-import-service";
+import { buildCtImportPlan, executeCtImport, ConflictResolution } from "../ct-import-service";
 import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "../cdisc-ct-mapping-service";
 
 // ──────────────────────────────────────────────────────────────────────────────

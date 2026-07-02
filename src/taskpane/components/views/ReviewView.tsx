@@ -12,11 +12,7 @@ import {
   Subtitle1,
   Card,
 } from "@fluentui/react-components";
-import {
-  CheckmarkCircleRegular,
-  WarningRegular,
-  ChevronRightRegular,
-} from "@fluentui/react-icons";
+import { CheckmarkCircleRegular, WarningRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { StudyDesign, ValidationIssue } from "../../core";
 import { AcrfPreview } from "../AcrfPreview";
 import { useReviewSession } from "../../hooks/useReviewSession";
@@ -120,7 +116,7 @@ const useStyles = makeStyles({
     justifyContent: "flex-start",
     textAlign: "left",
     width: "100%",
-  }
+  },
 });
 
 interface ReviewViewProps {
@@ -133,28 +129,27 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
   const [acknowledgedWarnings, setAcknowledgedWarnings] = React.useState<Set<string>>(new Set());
 
   // Review Mode state
-  const {
-    comments,
-    addComment,
-    resolveComment,
-    reopenComment,
-    deleteComment,
-    refreshComments
-  } = useReviewSession("Clinical Reviewer");
+  const { comments, addComment, resolveComment, reopenComment, deleteComment, refreshComments } =
+    useReviewSession("Clinical Reviewer");
 
   // In a real app, these would come from the aCRF pipeline verification results.
   // For the workflow UI, we'll use the passed in issues as a proxy.
-  const criticalErrors = issues.filter(i => i.level === "Error");
-  const warnings = issues.filter(i => i.level === "Warning");
-  const unacknowledgedWarnings = warnings.filter(w => !acknowledgedWarnings.has(w.message + w.location));
+  const criticalErrors = issues.filter((i) => i.level === "Error");
+  const warnings = issues.filter((i) => i.level === "Warning");
+  const unacknowledgedWarnings = warnings.filter(
+    (w) => !acknowledgedWarnings.has(w.message + w.location)
+  );
 
   const isReady = criticalErrors.length === 0 && unacknowledgedWarnings.length === 0;
 
-  const stages: { label: string, status: "complete" | "active" | "pending" }[] = [
+  const stages: { label: string; status: "complete" | "active" | "pending" }[] = [
     { label: "Enter", status: "complete" as const },
     { label: "Inspect", status: (issues.length > 0 ? "active" : "complete") as any },
     { label: "Navigate", status: "active" as const },
-    { label: "Fix/Ack", status: (unacknowledgedWarnings.length > 0 ? "active" : "complete") as any },
+    {
+      label: "Fix/Ack",
+      status: (unacknowledgedWarnings.length > 0 ? "active" : "complete") as any,
+    },
     { label: "Re-run", status: "active" as const },
     { label: "Ready", status: (isReady ? "complete" : "pending") as any },
   ];
@@ -172,10 +167,20 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
   return (
     <div className={styles.root} id="tour-review-mode">
       <Card className={styles.workflowHeader}>
-        <div className={isReady ? `${styles.statusBanner} ${styles.ready}` : `${styles.statusBanner} ${styles.notReady}`}>
+        <div
+          className={
+            isReady
+              ? `${styles.statusBanner} ${styles.ready}`
+              : `${styles.statusBanner} ${styles.notReady}`
+          }
+        >
           {isReady ? <CheckmarkCircleRegular /> : <WarningRegular />}
           <Subtitle1>{isReady ? "Export Ready" : "Review in Progress"}</Subtitle1>
-          <Badge appearance="tint" color={isReady ? "success" : "warning"} style={{ marginLeft: "auto" }}>
+          <Badge
+            appearance="tint"
+            color={isReady ? "success" : "warning"}
+            style={{ marginLeft: "auto" }}
+          >
             {criticalErrors.length} Errors | {unacknowledgedWarnings.length} Pending Warnings
           </Badge>
         </div>
@@ -184,12 +189,18 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
           {stages.map((stage, idx) => (
             <React.Fragment key={idx}>
               <div className={styles.stage}>
-                <div className={`${styles.stageCircle} ${stage.status === 'active' ? styles.stageActive : ''} ${stage.status === 'complete' ? styles.stageComplete : ''}`}>
-                  {stage.status === 'complete' ? <CheckmarkCircleRegular /> : idx + 1}
+                <div
+                  className={`${styles.stageCircle} ${stage.status === "active" ? styles.stageActive : ""} ${stage.status === "complete" ? styles.stageComplete : ""}`}
+                >
+                  {stage.status === "complete" ? <CheckmarkCircleRegular /> : idx + 1}
                 </div>
                 <Text className={styles.stageLabel}>{stage.label}</Text>
               </div>
-              {idx < stages.length - 1 && <ChevronRightRegular style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }} />}
+              {idx < stages.length - 1 && (
+                <ChevronRightRegular
+                  style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }}
+                />
+              )}
             </React.Fragment>
           ))}
         </div>
@@ -197,17 +208,26 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
 
       <div className={styles.content}>
         <div className={styles.sidebar}>
-          <Text weight="semibold" size={200} style={{ marginBottom: "8px", color: tokens.colorNeutralForeground3, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <Text
+            weight="semibold"
+            size={200}
+            style={{
+              marginBottom: "8px",
+              color: tokens.colorNeutralForeground3,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
             Form Navigation
           </Text>
-          {Object.keys(study.forms).map(formOid => (
+          {Object.keys(study.forms).map((formOid) => (
             <Button
               key={formOid}
               appearance="subtle"
               size="small"
               className={styles.formNavItem}
               onClick={() => {
-                const iframe = document.querySelector('iframe');
+                const iframe = document.querySelector("iframe");
                 if (iframe?.contentWindow) {
                   // We'll implement anchor support in acrf-renderer.ts
                   iframe.contentWindow.location.hash = `#form-${formOid}`;
@@ -218,7 +238,9 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
             </Button>
           ))}
           {Object.keys(study.forms).length === 0 && (
-             <Body1 style={{ fontStyle: "italic", color: tokens.colorNeutralForeground4 }}>No forms available</Body1>
+            <Body1 style={{ fontStyle: "italic", color: tokens.colorNeutralForeground4 }}>
+              No forms available
+            </Body1>
           )}
         </div>
 
@@ -230,7 +252,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
             onAcknowledge={handleAcknowledge}
             reviewComments={comments}
             onAddReviewComment={async (text, entityId) => {
-               await addComment(text, entityId);
+              await addComment(text, entityId);
             }}
             onResolveReviewComment={resolveComment}
             onReopenReviewComment={reopenComment}
