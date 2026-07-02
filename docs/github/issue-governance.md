@@ -526,7 +526,7 @@ See `docs/github/milestones.md` for the canonical milestone set (M1–M7), assig
 
 ## 21. Dependency management
 
-See `docs/github/dependency-management.md` for the encoding convention, canonical dependency chains, and review cadence.
+See [Dependency Management Guide](./dependency-management.md) for the encoding convention, canonical dependency chains, and review cadence.
 
 ---
 

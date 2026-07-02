@@ -25,6 +25,7 @@ Understand platform capabilities, roadmap alignment, milestones, and issue track
 * Review the [Strategic Delivery Dashboard (#28)](https://github.com/fderuiter/CRF.xl/issues/28) master issue.
 * Review the [Roadmap Operations](./github/roadmap-operations.md) for milestone sequencing.
 * Review the [Definition of Ready & Definition of Done](./github/definition-of-ready-done.md) quality gates.
+* Consult the [Dependency Management Guide](./github/dependency-management.md).
 * Explore the [Milestone Policy](./github/milestones.md) (M1–M7).
 * Consult the [Backlog to Codebase Alignment](./github/codebase-alignment.md) mapping.
 
