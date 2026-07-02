@@ -568,7 +568,7 @@ export function parseRuleExpression(expression: string): ASTNode {
  * Parses workbook rows from the `_Rules` sheet into RuleDefinition[] structures.
  */
 export function parseRulesSheetRows(
-  rows: any[][],
+  rows: unknown[][],
   _studyVersion: string
 ): { rules: RuleDefinition[]; errors: ParseError[] } {
   void _studyVersion;
