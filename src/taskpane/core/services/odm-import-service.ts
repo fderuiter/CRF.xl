@@ -3,7 +3,7 @@
  */
 import ExcelJS from "exceljs";
 import { validateStudyDesign } from "../parser/validator";
-import { Codelist, DataType, StudyDesign } from "../types";
+import { Codelist, StudyDesign } from "../types";
 import {
   ImportDiagnostic,
   ImportProvenance,
@@ -12,6 +12,8 @@ import {
 } from "./migration-pipeline";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { groupBy } from "../utils/collection-utils";
+import { LinguisticService } from "./linguistics-service";
+import { normalizeDataType, normalizeOid } from "../parser/metadata-utils";
 
 /**
  * Normalised severity for ODM import diagnostics.
@@ -327,7 +329,7 @@ export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProje
             codelist.codelistId,
             codelist.codelistName,
             item.codedValue,
-            readTranslatedText(item.decodedText, study.metadata.defaultLanguage),
+            LinguisticService.resolveTranslation(item.decodedText as any, study.metadata.defaultLanguage, study.metadata.defaultLanguage).content,
           ]);
         });
     });
@@ -595,42 +597,10 @@ function inferMetaDataVersion(attributes: Record<string, string>): string {
 
   const oid = nonEmpty(attributes.OID);
   if (oid) {
-    return oid.replace(/^MV\./i, "").trim();
+    return normalizeOid(oid);
   }
 
   return "1.0";
-}
-
-function normalizeDataType(value: string | undefined): DataType {
-  const normalized = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  switch (normalized) {
-    case "integer":
-    case "int":
-    case "numeric":
-      return DataType.INTEGER;
-    case "float":
-    case "decimal":
-    case "double":
-      return DataType.FLOAT;
-    case "date":
-      return DataType.DATE;
-    case "time":
-      return DataType.TIME;
-    case "datetime":
-      return DataType.DATETIME;
-    case "boolean":
-    case "bool":
-      return DataType.BOOLEAN;
-    case "codelist":
-    case "lookup":
-    case "choices":
-      return DataType.CODELIST;
-    default:
-      return DataType.TEXT;
-  }
 }
 
 function normalizeOdmBoolean(value: string | undefined): boolean {
@@ -675,25 +645,6 @@ function extractInnerText(xml: string): string {
       .replace(/\s+/g, " ")
       .trim()
   );
-}
-
-function readTranslatedText(
-  translatedText: Record<string, unknown>,
-  preferredLanguage: string
-): string {
-  const preferred = translatedText[preferredLanguage];
-  if (typeof preferred === "string" && preferred.trim()) {
-    return preferred;
-  }
-
-  const values = Object.values(translatedText);
-  for (let index = 0; index < values.length; index += 1) {
-    if (typeof values[index] === "string" && String(values[index]).trim()) {
-      return String(values[index]);
-    }
-  }
-
-  return "";
 }
 
 function decodeXml(value: string): string {
