@@ -1,3 +1,6 @@
+/**
+ * @issue #336
+ */
 import { backgroundValidationEngine } from "./validation-engine";
 import { bindingService } from "./binding-service";
 import { ValidationIssue } from "../types";
