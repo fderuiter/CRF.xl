@@ -12,7 +12,8 @@ import {
   Subtitle1,
   Card,
 } from "@fluentui/react-components";
-import { CheckmarkCircleRegular, WarningRegular, ChevronRightRegular } from "@fluentui/react-icons";
+import { CheckmarkCircleRegular, WarningRegular } from "@fluentui/react-icons";
+import { UniversalStepper } from "../ui/UniversalStepper";
 import {
   StudyDesign,
   ValidationIssue,
@@ -35,44 +36,6 @@ const useStyles = makeStyles({
     borderRadius: tokens.borderRadiusXLarge,
     boxShadow: tokens.shadow4,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
-  stagesContainer: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "12px",
-    gap: "4px",
-  },
-  stage: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "4px",
-    flex: 1,
-    textAlign: "center",
-  },
-  stageCircle: {
-    width: "24px",
-    height: "24px",
-    borderRadius: "50%",
-    border: `2px solid ${tokens.colorNeutralStroke1}`,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px",
-    fontWeight: tokens.fontWeightBold,
-  },
-  stageActive: {
-    borderColor: tokens.colorBrandStroke1,
-    color: tokens.colorBrandForeground1,
-  } as any,
-  stageComplete: {
-    backgroundColor: tokens.colorStatusSuccessBackground1,
-    borderColor: tokens.colorStatusSuccessBorder1,
-    color: tokens.colorStatusSuccessForeground1,
-  } as any,
-  stageLabel: {
-    fontSize: tokens.fontSizeBase100,
   },
   statusBanner: {
     display: "flex",
@@ -204,25 +167,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
           </Badge>
         </div>
 
-        <div className={styles.stagesContainer}>
-          {stages.map((stage, idx) => (
-            <React.Fragment key={idx}>
-              <div className={styles.stage}>
-                <div
-                  className={`${styles.stageCircle} ${stage.status === "active" ? styles.stageActive : ""} ${stage.status === "complete" ? styles.stageComplete : ""}`}
-                >
-                  {stage.status === "complete" ? <CheckmarkCircleRegular /> : idx + 1}
-                </div>
-                <Text className={styles.stageLabel}>{stage.label}</Text>
-              </div>
-              {idx < stages.length - 1 && (
-                <ChevronRightRegular
-                  style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+        <UniversalStepper steps={stages} />
       </Card>
 
       <div className={styles.content}>
