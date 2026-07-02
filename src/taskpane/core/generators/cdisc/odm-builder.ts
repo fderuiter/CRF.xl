@@ -16,6 +16,7 @@ import {
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
 import { LinguisticService } from "../../services/linguistics-service";
+import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 
 /**
  * Error thrown when rules pre-serialization validation fails.
@@ -65,7 +66,7 @@ export function serializeAST(node: ASTNode): string {
       return `(${serializeAST(node.test)} ? ${serializeAST(node.consequent)} : ${serializeAST(node.alternate)})`;
     case "GroupedExpression":
       return `(${serializeAST(node.expression)})`;
-    case "CallExpression":
+    case "CallExpression": {
       const callee = node.callee.toUpperCase();
       if (callee === "IF" && node.arguments.length === 3) {
         return `(${serializeAST(node.arguments[0])} ? ${serializeAST(node.arguments[1])} : ${serializeAST(node.arguments[2])})`;
@@ -77,6 +78,7 @@ export function serializeAST(node: ASTNode): string {
         return `!(${serializeAST(node.arguments[0])})`;
       }
       return `${node.callee}(${node.arguments.map(serializeAST).join(", ")})`;
+    }
     default:
       return "";
   }
@@ -98,44 +100,33 @@ export async function generateOdmXml(
   let finalDiagnostics: string | undefined = undefined;
 
   // Gather synthetic rules from inline showIf and methods
+  const iterator = new ClinicalIterator({ sortStrategy: SortStrategy.NATURAL });
   const syntheticRules: RuleDefinition[] = [];
-  Object.values(study.forms)
-    .sort((a, b) => a.formOid.localeCompare(b.formOid))
-    .forEach((form) => {
-      [...form.itemGroups]
-        .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
-        .forEach((group) => {
-          [...group.items]
-            .sort((a, b) => (a.itemOid || "").localeCompare(b.itemOid || ""))
-            .forEach((item) => {
-              if (!isCrfItem(item)) return;
-              if (item.showIf) {
-                const hasCentralRule = study.rules?.some(
-                  (r) =>
-                    r.ruleType === RuleType.SHOW_IF &&
-                    r.target &&
-                    targetMatchesItem(r.target, item.itemOid)
-                );
-                if (!hasCentralRule) {
-                  const ruleId = `COND.${item.itemOid}`;
-                  const syntheticRule: RuleDefinition = {
-                    ruleId,
-                    ruleType: RuleType.SHOW_IF,
-                    target: item.itemOid,
-                    expression: item.showIf,
-                    _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
-                  };
-                  try {
-                    syntheticRule.ast = parseRuleExpression(item.showIf);
-                  } catch (e) {
-                    syntheticRule.parseError = e instanceof Error ? e.message : String(e);
-                  }
-                  syntheticRules.push(syntheticRule);
-                }
-              }
-            });
-        });
-    });
+  for (const { item } of iterator.walkForms(study)) {
+    if (!isCrfItem(item)) continue;
+    if (item.showIf) {
+      const hasCentralRule = study.rules?.some(
+        (r) =>
+          r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+      );
+      if (!hasCentralRule) {
+        const ruleId = `COND.${item.itemOid}`;
+        const syntheticRule: RuleDefinition = {
+          ruleId,
+          ruleType: RuleType.SHOW_IF,
+          target: item.itemOid,
+          expression: item.showIf,
+          _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
+        };
+        try {
+          syntheticRule.ast = parseRuleExpression(item.showIf);
+        } catch (e) {
+          syntheticRule.parseError = e instanceof Error ? e.message : String(e);
+        }
+        syntheticRules.push(syntheticRule);
+      }
+    }
+  }
 
   if (study.methods) {
     Object.values(study.methods).forEach((method) => {
@@ -200,24 +191,14 @@ export async function generateOdmXml(
 
     // Check if targets exist in study design for SHOW_IF and DERIVATION rules
     const studyItemOids = new Set<string>();
-    Object.values(study.forms)
-      .sort((a, b) => a.formOid.localeCompare(b.formOid))
-      .forEach((form) => {
-        [...form.itemGroups]
-          .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
-          .forEach((group) => {
-            [...group.items]
-              .sort((a, b) => (a.itemOid || "").localeCompare(b.itemOid || ""))
-              .forEach((item) => {
-                if (!isCrfItem(item)) {
-                  return;
-                }
-                if (item.itemOid) {
-                  studyItemOids.add(item.itemOid.toLowerCase());
-                }
-              });
-          });
-      });
+    for (const { item } of iterator.walkForms(study)) {
+      if (!isCrfItem(item)) {
+        continue;
+      }
+      if (item.itemOid) {
+        studyItemOids.add(item.itemOid.toLowerCase());
+      }
+    }
 
     allRules.forEach((rule) => {
       if (rule.target) {
@@ -281,55 +262,45 @@ export async function generateOdmXml(
   // 1. Protocol / Event References
   xml += `
       <Protocol>`;
-  [...study.events]
-    .sort((a, b) => a.eventOid.localeCompare(b.eventOid))
-    .forEach((event) => {
-      xml += `
+  for (const event of iterator.events(study)) {
+    xml += `
         <StudyEventRef StudyEventOID="${escapeXml(event.eventOid)}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
-    });
+  }
   xml += `
       </Protocol>`;
 
   // 2. Study Event Definitions (Visits)
-  [...study.events]
-    .sort((a, b) => a.eventOid.localeCompare(b.eventOid))
-    .forEach((event) => {
-      xml += `
+  for (const event of iterator.events(study)) {
+    xml += `
       <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
-      [...event.forms]
-        .sort((a, b) => a.formOid.localeCompare(b.formOid))
-        .forEach((fRef) => {
-          xml += `
-        <FormRef FormOID="${escapeXml(fRef.formOid)}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? "Yes" : "No"}"/>`;
-        });
+    for (const { formRef } of iterator.eventForms(study, event)) {
       xml += `
+        <FormRef FormOID="${escapeXml(formRef.formOid)}" OrderNumber="${formRef.orderNumber}" Mandatory="${formRef.mandatory ? "Yes" : "No"}"/>`;
+    }
+    xml += `
       </StudyEventDef>`;
-    });
+  }
 
   // 3. Form Definitions (Pages)
-  Object.values(study.forms)
-    .sort((a, b) => a.formOid.localeCompare(b.formOid))
-    .forEach((form) => {
-      xml += `
+  for (const form of iterator.forms(study)) {
+    xml += `
       <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
-      [...form.itemGroups]
-        .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
-        .forEach((group) => {
-          xml += `
-        <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
-        });
+    for (const group of iterator.itemGroups(form)) {
       xml += `
+        <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
+    }
+    xml += `
       </FormDef>`;
-    });
+  }
 
   // 4. ItemGroup Definitions (Sections/Grids)
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
+  for (const form of iterator.forms(study)) {
+    for (const group of iterator.itemGroups(form)) {
       xml += `
       <ItemGroupDef OID="${escapeXml(group.groupOid)}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
-      group.items.forEach((item) => {
+      for (const item of iterator.items(group)) {
         if (!isCrfItem(item)) {
-          return;
+          continue;
         }
         // Find matching centralized SHOW_IF rule
         const showIfRule = allRules.find(
@@ -372,42 +343,36 @@ export async function generateOdmXml(
 
         xml += `
         <ItemRef ItemOID="${escapeXml(item.itemOid)}" OrderNumber="${item.orderNumber}" Mandatory="${item.validation.required ? "Yes" : "No"}"${conditionAttr}${methodAttr}/>`;
-      });
+      }
       xml += `
       </ItemGroupDef>`;
-    });
-  });
+    }
+  }
 
   // 5. Item Definitions (Questions)
   // Use a Set to ensure ItemDefs are unique (Shared across forms/groups)
   const processedItems = new Set<string>();
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (!isCrfItem(item)) {
-          return;
-        }
-        if (processedItems.has(item.itemOid)) return;
-        processedItems.add(item.itemOid);
+  for (const { item } of iterator.walkForms(study)) {
+    if (!isCrfItem(item)) {
+      continue;
+    }
+    if (processedItems.has(item.itemOid)) continue;
+    processedItems.add(item.itemOid);
 
-        // Find matching derivation rule for legacy fallback
-        const derivationRule = study.rules?.find(
-          (r) =>
-            r.ruleType === RuleType.DERIVATION &&
-            r.target &&
-            targetMatchesItem(r.target, item.itemOid)
-        );
+    // Find matching derivation rule for legacy fallback
+    const derivationRule = study.rules?.find(
+      (r) =>
+        r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+    );
 
-        xml += renderItemDef(
-          item,
-          derivationRule?.ruleId,
-          options.exportOptions,
-          study.metadata.defaultLanguage,
-          serializationWarnings
-        );
-      });
-    });
-  });
+    xml += renderItemDef(
+      item,
+      derivationRule?.ruleId,
+      options.exportOptions,
+      study.metadata.defaultLanguage,
+      serializationWarnings
+    );
+  }
 
   // 6. CodeLists (Dictionaries)
   Object.values(study.codelists)
@@ -484,40 +449,36 @@ export async function generateOdmXml(
 
   // 7b. Inline showIf conditions (now handled in allRules)
   // We keep this to handle items that may have missed synthetic rules generation (fallback)
-  Object.values(study.forms).forEach((form) => {
-    form.itemGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (!isCrfItem(item)) {
-          return;
-        }
-        if (!item.showIf) return;
+  for (const { item } of iterator.walkForms(study)) {
+    if (!isCrfItem(item)) {
+      continue;
+    }
+    if (!item.showIf) continue;
 
-        const conditionOid = `COND.${item.itemOid}`;
-        if (processedConditions.has(conditionOid)) return;
+    const conditionOid = `COND.${item.itemOid}`;
+    if (processedConditions.has(conditionOid)) continue;
 
-        const hasCentralRule = allRules.some(
-          (r) =>
-            r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
-        );
-        if (hasCentralRule) return;
+    const hasCentralRule = allRules.some(
+      (r) =>
+        r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+    );
+    if (hasCentralRule) continue;
 
-        processedConditions.add(conditionOid);
+    processedConditions.add(conditionOid);
 
-        let formalExpressionString = item.showIf;
-        try {
-          const ast = parseRuleExpression(item.showIf);
-          formalExpressionString = serializeAST(ast);
-        } catch {
-          // ignore
-        }
+    let formalExpressionString = item.showIf;
+    try {
+      const ast = parseRuleExpression(item.showIf);
+      formalExpressionString = serializeAST(ast);
+    } catch {
+      // ignore
+    }
 
-        xml += `
+    xml += `
       <ConditionDef OID="${escapeXml(conditionOid)}" Name="Show condition for ${escapeXml(item.name)}">
         <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>
       </ConditionDef>`;
-      });
-    });
-  });
+  }
 
   // 8. Method Definitions (both rules and registry)
   const processedMethods = new Set<string>();
@@ -812,6 +773,7 @@ function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
 
   // 1. Strip prohibited control characters in U+0000-U+001F (excluding allowed XML 1.0 whitespace)
+  // eslint-disable-next-line no-control-regex
   const stripped = unsafe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 
   // 2. Escape the 5 standard XML entities

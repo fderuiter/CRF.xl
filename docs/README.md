@@ -9,6 +9,7 @@ Welcome to the CRF.xl Clinical Design Engine documentation tree. This directory 
 ### 💻 For Engineering
 Learn about the architecture, module boundaries, technical decisions, and active quality gates:
 * Read the [Module Map](./architecture/module-map.md) for a complete code module inventory.
+* Consult [Dependency Management](./github/dependency-management.md) for third-party library rules.
 * Explore the [Architecture Decision Records (ADRs)](./architecture/adr-index.md) to understand key architectural decisions.
 * See the [QA & Testing Strategy Index](./qa-testing/README.md) for the active quality gates.
 * View the subsystem specifications for implementation contracts:
@@ -22,13 +23,18 @@ Learn about the architecture, module boundaries, technical decisions, and active
 Understand platform capabilities, roadmap alignment, milestones, and issue tracking rules:
 * Read the [Product Scope](./specification/product-scope.md) to understand current capability boundaries.
 * Review the [Strategic Delivery Dashboard (#28)](https://github.com/fderuiter/CRF.xl/issues/28) master issue.
+* Review the [Roadmap Operations](./github/roadmap-operations.md) for milestone sequencing.
 * Review the [Definition of Ready & Definition of Done](./github/definition-of-ready-done.md) quality gates.
+* Consult the [Dependency Management Guide](./github/dependency-management.md).
 * Explore the [Milestone Policy](./github/milestones.md) (M1–M7).
 * Consult the [Backlog to Codebase Alignment](./github/codebase-alignment.md) mapping.
 
 ### 🔒 For Compliance & Quality
-Verify regulatory controls, security postures, and electronic record evidence:
+Verify regulatory controls, security postures, and quality gates:
 * Check the [21 CFR Part 11 Compliance Mapping](./compliance/21-cfr-part-11-excel-versioning.md) for electronic signatures and Excel versioning.
+* Review the [Definition of Ready & Definition of Done](./github/definition-of-ready-done.md) quality gates.
+* Consult [Dependency Management](./github/dependency-management.md) for third-party library rules and security audits.
+* Review [Roadmap Operations](./github/roadmap-operations.md) for milestone sequencing and release strategy.
 * See `SECURITY.md` in the root folder for CIS control mapping and data security.
 * Audit the [Clinical Validation Rules Dictionary](./specification/clinical-validation-rules-dictionary.md).
 

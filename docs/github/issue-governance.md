@@ -159,7 +159,7 @@ A stream answers: **which delivery lane owns this work?** If an issue crosses ar
 
 | Label | Indicates |
 |-------|-----------|
-| `risk:excel-runtime` | Issue involves Office.js behavior that has known runtime risk |
+| `risk:excel-runtime` | Issue involves Office.js behavior that has known runtime risk. See [Office.js Runtime Risk Register](../architecture/office-runtime-risk-register.md) |
 | `risk:clinical-validation` | Issue affects clinical data validation logic |
 | `risk:compliance` | Issue touches GxP or regulatory compliance surface |
 | `risk:data-loss` | Issue involves operations that could cause data loss |
@@ -194,6 +194,8 @@ It should contain:
 - governance references
 
 It should **not** contain implementation-level acceptance criteria or code/task-level sub-issues.
+
+See `docs/github/roadmap-operations.md` for the maintenance protocol and body template for #28.
 
 ### Allowed direct children of #28
 - open epics
@@ -524,7 +526,7 @@ See `docs/github/milestones.md` for the canonical milestone set (M1–M7), assig
 
 ## 21. Dependency management
 
-See `docs/github/dependency-management.md` for the encoding convention, canonical dependency chains, and review cadence.
+See [Dependency Management Guide](./dependency-management.md) for the encoding convention, canonical dependency chains, and review cadence.
 
 ---
 

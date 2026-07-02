@@ -165,8 +165,8 @@ async function main() {
 
   for (const issue of sortedIssues) {
     const items = issueToFiles.get(issue);
-    const presentFiles = items.filter((i) => typeof i === "string");
-    const absentFiles = items.filter((i) => typeof i !== "string");
+    const presentFiles = items.filter((i) => typeof i === "string").sort();
+    const absentFiles = items.filter((i) => typeof i !== "string").sort((a, b) => a.module.localeCompare(b.module));
 
     let status = "Present";
     if (presentFiles.length === 0 && absentFiles.length > 0) status = "Absent";

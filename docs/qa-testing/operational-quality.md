@@ -28,7 +28,22 @@ Data Corruption: Verify the system handles rows with junk data or infinite recur
 - [ ] Unsupported host/platform: open in unsupported Excel host/version; confirm supported-version guidance.
 - [ ] Network/API failure: disable network and run a network-dependent flow; confirm connectivity guidance prompt.
 
-## 3. Security & Privacy
+---
+
+## 3. Q2 Non-Functional Criteria
+
+These criteria govern the platform stability and performance targets for the Q2 release cycle, specifically addressing host environment risks.
+
+| Criteria | Target | Verification Method |
+| :--- | :--- | :--- |
+| **Runtime Resilience** | Zero unhandled `context.sync()` crashes. | Manual checklist + Office error normalization. |
+| **Parsing Scale** | 2000+ items parsed without host timeout. | `mega-study` benchmark. |
+| **Visual Feedback** | Annotation painting completes in < 2s for 100 items. | Performance profiling in Authoring view. |
+| **State Integrity** | 100% session recovery after unexpected taskpane closure. | `recovery-storage` unit tests. |
+
+For a detailed breakdown of host-related risks and mitigations, see the [Office.js Runtime Risk Register](../architecture/office-runtime-risk-register.md).
+
+## 4. Security & Privacy
 
 PHI Protection: Verify that items marked isPHI: true trigger a warning if they are about to be exported to a non-blinded file format.
 
