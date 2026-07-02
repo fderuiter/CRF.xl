@@ -18,7 +18,7 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 **Upstream:** Office.js Excel API, `core/types/`
 **Downstream:** `validator.ts`, `App.tsx`, generators
-**Owning issues:** #53, #118, #137 (planned extension)
+**Owning issues:** #53, #118, #137
 
 ---
 
@@ -43,8 +43,6 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 **Public interface:**
 
-- `collectIdentifiers(node: ASTNode): string[]`
-- `matchesRef(identifier: string, ref: string): boolean`
 - `validateRules(rules: RuleDefinition[], study?: StudyDesign): RuleValidationResult`
 
 **Upstream:** `rules-parser.ts`, `expression-validator.ts`, `core/types/`
@@ -76,7 +74,6 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 **Public interface:**
 
 - `parseWorkbookSheetValuesToStudyDesign(provider: WorkbookSheetValuesProvider, options?: ParseWorkbookSheetValuesOptions): Promise<StudyDesign>`
-- `WorkbookSheetValuesProvider` — interface abstracting raw sheet value access
 
 **Upstream:** `core/types/`, `parser/form-element-utils.ts`, `parser/migration.ts`, `parser/metadata-utils.ts`, `parser/rules-parser.ts`
 **Downstream:** `services/baseline-workbook-service.ts`
@@ -114,21 +111,35 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ## Generator modules (`src/taskpane/core/generators/`)
 
-### `generators/cdisc/odm-builder.ts`
+### `annotated-crf-pipeline.ts`
 
-**Purpose:** Generates CDISC ODM XML from a validated `StudyDesign`. Includes basic `ConditionDef` support for item visibility. Generalized `ConditionDef`/`MethodDef` serialization for rules/methods is partial (see #139).
+**Purpose:** Orchestrates the multi-stage generation of an Annotated CRF. Handles model snapshots, annotation resolution, verification, and artifact production (PDF/DOCX).
+
+**Public interface:**
+
+- `AnnotatedCrfPipeline.execute(): Promise<AnnotatedCrfPipelineResult>`
+
+**Upstream:** `excel-parser.ts`, `annotation-service.ts`, `review-service.ts`, `acrf-renderer.ts`, `acrf-output-validator.ts`
+**Downstream:** `AcrfPreview.tsx`, `ReviewerPackageService`
+**Owning issues:** #184
+
+---
+
+### `cdisc/odm-builder.ts`
+
+**Purpose:** Generates CDISC ODM XML from a validated `StudyDesign`. Supports serialization for `ConditionDef` and `MethodDef` based on rule ASTs.
 
 **Public interface:**
 
 - `generateOdmXml(design: StudyDesign): string`
 
 **Upstream:** `core/types/clinical.ts`, `core/types/hierarchy.ts`
-**Downstream:** `App.tsx` (download trigger)
-**Owning issues:** #44, #139 (planned extension)
+**Downstream:** `App.tsx` (download trigger), `ComplianceExportService`
+**Owning issues:** #44, #139
 
 ---
 
-### `generators/docx/docx-builder.ts`
+### `docx/docx-builder.ts`
 
 **Purpose:** Generates pixel-perfect Word documents from a validated `StudyDesign` using the `docx` library.
 
@@ -142,35 +153,64 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
-## Service modules (`src/taskpane/core/services/`)
+### `pdf/pdf-builder.ts`
 
-### `diff-engine.ts`
-
-**Purpose:** Pure, side-effect-free engine that semantically compares two `StudyDesign` objects and produces a deterministic `StudyDiffReport`. Compares Forms, Items, Codelists, Rules, and top-level metadata fields. Detects added, removed, modified, and moved/renamed entities. No side effects on the active workbook or session.
+**Purpose:** Generates PDF versions of the Annotated CRF, including study diffs and clinical annotations.
 
 **Public interface:**
 
-- `diffStudyDesigns(baseline: StudyDesign, current: StudyDesign): StudyDiffReport`
+- `generatePdfBlob(study: StudyDesign, ...): Promise<Blob>`
 
-**Upstream:** `core/types/diff.ts`, `core/types/hierarchy.ts`, `core/types/clinical.ts`, `core/types/rules-ast.ts`
-**Downstream:** `App.tsx` (computes diff report from baseline + current study), `components/views/StudyDiffView.tsx` (visualization consumer)
-**Owning issues:** #129, #85
+**Upstream:** `pdf-export-adapter.ts`, `LinguisticService`
+**Downstream:** `ComplianceExportService`, `AnnotatedCrfPipeline`
+**Owning issues:** #279, #90
 
 ---
 
-### `baseline-workbook-service.ts`
+## Service modules (`src/taskpane/core/services/`)
 
-**Purpose:** Parses a user-selected `.xlsx` workbook file into an in-memory baseline `StudyDesign` without mutating the active workbook or session. Validates that the selected file is a compatible CRF.xl workbook and surfaces user-friendly errors via `BaselineWorkbookParseError`.
+### `binding-service.ts`
+
+**Purpose:** Centralized mechanism for workbook synchronization. Manages Office.js `onSelectionChanged` and `onActivated` listeners and normalizes selection data.
 
 **Public interface:**
 
-- `parseBaselineWorkbookFile(file: BaselineWorkbookFileLike): Promise<StudyDesign>`
-- `parseBaselineWorkbookBuffer(buffer: ArrayBuffer, sourceName?: string): Promise<StudyDesign>`
-- `BaselineWorkbookParseError` — error class with `.userMessage` for taskpane display
+- `bindingService.subscribe(listener: SelectionChangeListener): () => void`
+- `bindingService.performInternalOperation(operation: (context: Excel.RequestContext) => Promise<T>): Promise<T>`
 
-**Upstream:** `exceljs`, `parser/baseline-workbook-parser.ts`
-**Downstream:** `App.tsx` (wires file-input change handler), `components/views/RegistryView.tsx` (file selector button)
-**Owning issues:** #130, #85
+**Upstream:** Office.js Excel API
+**Downstream:** `DictionarySidecar.tsx`, `AnnotationPalette.tsx`
+**Owning issues:** #165
+
+---
+
+### `annotation-service.ts`
+
+**Purpose:** Manages clinical annotations using Excel `CustomXmlParts` for persistence and native comments for visual feedback. Supports logic for sheet mutations and Logical ID synchronization.
+
+**Public interface:**
+
+- `saveAnnotationsToStoreBatch(annotations: Annotation[]): Promise<void>`
+- `refreshAnnotationHighlights(context: Excel.RequestContext): Promise<void>`
+
+**Upstream:** Office.js Excel API, `core/types/annotation.ts`
+**Downstream:** `AnnotationPaintbrushService`, `AnnotatedCrfPipeline`
+**Owning issues:** #84
+
+---
+
+### `annotation-paintbrush-service.ts`
+
+**Purpose:** Manages the bulk-apply workflow for annotations. Handles pending target accumulation, validation preview, and multi-step undo.
+
+**Public interface:**
+
+- `annotationPaintbrushService.executeBulkApply(): Promise<void>`
+- `annotationPaintbrushService.undoLastOperation(): Promise<void>`
+
+**Upstream:** `annotation-service.ts`, `annotation-validator.ts`
+**Downstream:** `AnnotationPalette.tsx`
+**Owning issues:** #84
 
 ---
 
@@ -186,142 +226,130 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ---
 
-### `annotation-service.ts`
+### `diff-engine.ts`
 
-**Purpose:** Paints and clears Excel cell annotations (fill, borders, comments) to provide visual feedback for validation state and authoring context.
+**Purpose:** Pure engine that semantically compares two `StudyDesign` objects to produce a `StudyDiffReport`.
 
 **Public interface:**
 
-- `paintAnnotations(context: Excel.RequestContext, issues: ValidationIssue[]): Promise<void>`
-- `clearAnnotations(context: Excel.RequestContext): Promise<void>`
+- `diffStudyDesigns(baseline: StudyDesign, current: StudyDesign): StudyDiffReport`
 
-**Upstream:** Office.js Excel API, `core/types/validation.ts`
-**Downstream:** `App.tsx`, `components/views/AuthoringView.tsx`
-**Owning issues:** #84
-**Risk:** `risk:excel-runtime` — painting performance degrades on large sheets
+**Upstream:** `core/types/diff.ts`
+**Downstream:** `StudyDiffView.tsx`, `ComplianceExportService`
+**Owning issues:** #129, #85
+
+---
+
+### `baseline-workbook-service.ts`
+
+**Purpose:** Orchestrates the ingestion of external baseline workbooks using `exceljs` and `baseline-workbook-parser.ts`.
+
+**Public interface:**
+
+- `parseBaselineWorkbookFile(file: File): Promise<StudyDesign>`
+
+**Upstream:** `baseline-workbook-parser.ts`
+**Downstream:** `RegistryView.tsx`
+**Owning issues:** #130, #85
+
+---
+
+### `review-service.ts`
+
+**Purpose:** Manages clinical reviewer comments using `CustomXmlParts` with namespace `http://schemas.crf-xl.com/review`.
+
+**Public interface:**
+
+- `saveComment(comment: ReviewerComment): Promise<void>`
+- `loadComments(): Promise<ReviewerComment[]>`
+
+**Upstream:** Office.js Excel API, `core/types/reviewer.ts`
+**Downstream:** `ReviewView.tsx`, `AnnotatedCrfPipeline`
+**Owning issues:** #57
+
+---
+
+### `reviewer-package-service.ts`
+
+**Purpose:** Orchestrates the generation of a multi-artifact ZIP archive for reviewers (PDF, manifest, report, summary).
+
+**Public interface:**
+
+- `ReviewerPackageService.createReviewerPackage(result: AnnotatedCrfPipelineResult): Promise<Blob>`
+
+**Upstream:** `zip-writer.ts`, `annotated-crf-pipeline.ts`
+**Downstream:** `AcrfPreview.tsx`
+**Owning issues:** #56
 
 ---
 
 ### `cdisc-api-service.ts`
 
-**Purpose:** CDISC Library API client. Handles OAuth2 client-credentials token acquisition, retry/backoff, rate-limit handling, and timeout enforcement. Exposes typed results (`CdiscApiResult<T>`) for all error scenarios (auth, network, HTTP, rate-limit, invalid-response).
+**Purpose:** CDISC Library API client handling authentication, rate-limiting, and typed responses.
 
-**Public interface (factory):**
+**Public interface:**
 
-- `createCdiscApiService(config?, httpClient?, logger?): CdiscApiService`
-  - `listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>`
-  - `listPackageCodelists(packageOid): Promise<CdiscApiResult<CdiscCtCodelist[]>>`
-  - `listCodelistTerms(codelistOid, packageOid?): Promise<CdiscApiResult<CdiscCtTerm[]>>`
+- `listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>`
 
-**Upstream:** CDISC Library REST API (external)
-**Downstream:** `services/cdisc-ct-mapping-service.ts`
+**Upstream:** CDISC Library API
+**Downstream:** `cdisc-ct-mapping-service.ts`
 **Owning issues:** #44, #45
 
 ---
 
 ### `cdisc-ct-mapping-service.ts`
 
-**Purpose:** Pure transform layer. Normalizes raw CDISC CT API payloads (`CdiscCtMappingInput`) into typed `_Codelists` row objects (`CrfCodelistsRow[]`), emitting structured warnings and errors. Also enforces lifecycle rules (insert / overwrite / skip-identical / prompt-user) on incoming vs. existing rows.
+**Purpose:** Normalizes CDISC CT API payloads into typed `_Codelists` row objects.
 
 **Public interface:**
 
 - `mapCdiscApiResponseToCrfCodelists(input): CdiscCtMappingResult`
-- `applyCodelistLifecycle(existingRows, incomingRows): LifecycleResult`
 
-**Upstream:** `services/cdisc-api-service.ts` (typed fetch outputs)
-**Downstream:** `services/ct-import-service.ts`, `components/views/DictionarySidecar.tsx`
+**Upstream:** `cdisc-api-service.ts`
+**Downstream:** `ct-import-service.ts`
 **Owning issues:** #93
 
 ---
 
-### `migration-pipeline.ts`
-
-**Purpose:** Shared pipeline contract for all CRF.xl ingestion and migration flows. Defines the unified diagnostic, status, projection, provenance, and manifest types consumed by every import tool. Ensures all import flows share a coherent `scan → map → preview → commit → summarize` contract.
-
-**Public interface:**
-
-- `ImportSeverity` — normalised severity type (`"error" | "warning" | "info"`)
-- `ImportDiagnostic` — shared diagnostic record extended by all service-specific diagnostic types
-- `ImportStatus` — pipeline gate status (`"clean" | "warnings" | "conflicts"`)
-- `WorkbookProjection` — dry-run row projection across `_Study`, `_Forms`, `_Codelists`, and form-item sheets
-- `ImportSummary` — gate model (status + diagnostics + canCommit) used by all import UIs
-- `ImportSourceType` — source category (`"odm-xml" | "spreadsheet" | "cdisc-api"`)
-- `ImportProvenance` — GxP provenance record with sourceId, sourceType, sourceVersion, importedAt, importedBy
-- `ImportManifest` — full audit record combining provenance + summary + sheetsWritten + rowsWritten
-- `createImportProvenance(sourceId, sourceType, sourceVersion?, importedBy?): ImportProvenance`
-- `createImportManifest(provenance, summary, sheetsWritten, rowsWritten): ImportManifest`
-- `persistImportManifest(manifest): void` — writes to sessionStorage key `"crf-xl-import-manifest"`
-- `loadImportManifest(): ImportManifest | null` — reads from sessionStorage
-
-**Upstream:** None (shared contract; no imports)
-**Downstream:** `services/odm-import-service.ts`, `services/spreadsheet-ingestion-service.ts`, `components/views/OdmImportWizard.tsx`
-**Owning issues:** #76 (epic), #63, #64, #93
-
----
-
-### `ct-import-service.ts`
-
-**Purpose:** Controlled terminology import service. Ingests mapped CDISC terminology payloads, converts them into workbook-ready codelist updates, emits import diagnostics and summary information using the shared import contracts, and supports gated write-back so terminology changes can be reviewed before commit.
-
-**Public interface:**
-
-- `importControlledTerminology(...): CtImportPackage`
-- `projectCtImportToWorkbook(...): WorkbookProjection`
-- `applyCtImportToWorkbook(workbook: ExcelJS.Workbook, importPackage: CtImportPackage): void`
-
-**Upstream:** `services/cdisc-ct-mapping-service.ts`, `services/import-contracts.ts`, `core/types/`
-**Downstream:** Controlled terminology import UI/workflows, Excel workbook write-back
-**Owning issues:** #76 (epic), controlled terminology import backlog
-
----
-
-### `odm-import-service.ts`
-
-**Purpose:** ODM reverse parser. Parses a CDISC ODM XML string into a normalized `OdmImportPackage` containing a `StudyDesign`, structured diagnostics (extending `ImportDiagnostic`), a dry-run `OdmWorkbookProjection` (satisfying `WorkbookProjection`), a summary, and an optional provenance record. Write-back to an ExcelJS workbook is gated behind the absence of blocking diagnostics.
-
-**Public interface:**
-
-- `importOdmXml(xml: string): OdmImportPackage`
-- `projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProjection`
-- `applyOdmImportToWorkbook(workbook: ExcelJS.Workbook, importPackage: OdmImportPackage): void`
-
-**Upstream:** `services/migration-pipeline.ts`, `parser/validator.ts`, `core/types/`
-**Downstream:** `components/views/OdmImportWizard.tsx`
-**Owning issues:** #63, #76
-
----
-
-### `spreadsheet-ingestion-service.ts`
-
-**Purpose:** Pure-logic service for the Spreadsheet Ingestion Wizard. Defines the target-field catalog, auto-detects column→field mappings from legacy sheet headers, validates completed mappings, and builds a dry-run projection. `IngestionDiagnostic` extends `ImportDiagnostic`; `IngestionPreview.projectedRows` satisfies `WorkbookProjection` from the shared pipeline contract.
-
-**Public interface:**
-
-- `buildSheetScanResult(sheetName, rows, sampleSize?): SheetScanResult`
-- `detectColumnMappings(columns, targetSheet): FieldMapping[]`
-- `validateMappings(mappings, targetSheet): IngestionDiagnostic[]`
-- `buildIngestionPreview(scanResult, mappings): IngestionPreview`
-- `TARGET_FIELDS: TargetFieldDescriptor[]`
-
-**Upstream:** `services/migration-pipeline.ts`
-**Downstream:** `components/views/SpreadsheetIngestionWizard.tsx`
-**Owning issues:** #64, #76
-
----
-
-
-
 ### `dictionary-service.ts`
 
-**Purpose:** Codelist and dictionary write-back to Excel. Manages `_Codelists` sheet operations and codelist sync from sidecar selections.
+**Purpose:** Manages codelist and dictionary write-back to the `_Codelists` sheet.
 
 **Public interface:**
 
-- `writeCodelistToSheet(context: Excel.RequestContext, codelist: CdiscCodelist): Promise<void>`
+- `saveDictionary(context: Excel.RequestContext, codelist: CdiscCodelist): Promise<void>`
 
-**Upstream:** Office.js Excel API, `core/types/clinical.ts`
-**Downstream:** `components/views/DictionarySidecar.tsx`
-**Owning issues:** #46, #93
+**Upstream:** Office.js Excel API
+**Downstream:** `DictionarySidecar.tsx`
+**Owning issues:** #46, #93, #41
+
+---
+
+### `linguistics-service.ts`
+
+**Purpose:** Locale-aware linguistic engine providing normalization and fallback logic for multilingual metadata.
+
+**Public interface:**
+
+- `LinguisticService.getExportTranslations(text: TranslatedText, options: ExportOptions): string`
+
+**Upstream:** `core/types/linguistics.ts`
+**Downstream:** `pdf-builder.ts`, `odm-builder.ts`, `docx-builder.ts`
+**Owning issues:** #39, #40
+
+---
+
+### `compliance-export-service.ts`
+
+**Purpose:** Orchestrates compliance-grade exports, including digital signatures and ODM diagnostics.
+
+**Public interface:**
+
+- `ComplianceExportService.exportCompliancePackage(study: StudyDesign, ...): Promise<Blob>`
+
+**Upstream:** `odm-builder.ts`, `pdf-builder.ts`, `docx-builder.ts`, `zip-writer.ts`
+**Downstream:** `ComplianceGovernanceView.tsx`
+**Owning issues:** #28
 
 ---
 
@@ -357,62 +385,135 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 
 ### `office-error-handling.ts`
 
-**Purpose:** Normalizes Office.js API errors into typed application errors with contextual messages and recovery suggestions.
+**Purpose:** Normalizes Office.js errors into application-level diagnostics with recovery suggestions.
 
 **Public interface:**
 
 - `handleOfficeError(error: unknown): AppError`
 
-**Upstream:** Office.js error surfaces
-**Downstream:** All modules that call Office.js APIs
+**Upstream:** Office.js API
+**Downstream:** All Excel-interacting services
 **Owning issues:** #68
+
+---
+
+## Registry and Factory modules (`src/taskpane/core/registry/`, `src/taskpane/core/factory/`)
+
+### `sheet-metadata-registry.ts`
+
+**Purpose:** Centralized definition of system sheet names, header structures, and default data templates.
+
+**Public interface:** `SHEET_NAMES`, `SHEET_HEADERS`, `getDefaultData()`
+
+**Owning issues:** #292
+
+---
+
+### `sheet-factory.ts`
+
+**Purpose:** Utility for workbook sheet creation and formatting.
+
+**Public interface:** `applyThemeToHeader(headerRange: Excel.Range): void`
+
+**Owning issues:** #292
+
+---
+
+## Validator modules (`src/taskpane/core/validators/`)
+
+### `acrf-output-validator.ts`
+
+**Purpose:** Verifies that the generated Annotated CRF document faithfully reflects the source study design.
+
+**Public interface:** `verifyAnnotatedCrf(study: StudyDesign, doc: AnnotatedCrfDocument): AcrfVerificationResult`
+
+**Owning issues:** #184
+
+---
+
+### `annotation-validator.ts`
+
+**Purpose:** Enforces correctness for clinical annotations, including conflict detection and repair policy mapping.
+
+**Public interface:** `validateAnnotationTarget(range: Excel.Range): Promise<AnnotationValidationIssue[]>`
+
+**Owning issues:** #84
+
+---
+
+## Utility modules (`src/taskpane/core/utils/`)
+
+### `zip-writer.ts`
+
+**Purpose:** Pure TypeScript implementation for generating ZIP archives without external native dependencies.
+
+**Public interface:** `ZipWriter.addFile(name, data)`, `ZipWriter.generate()`
+
+**Owning issues:** #28
+
+---
+
+### `locale-utils.ts`
+
+**Purpose:** Localized number and date parsing/formatting utilities.
+
+**Public interface:** `formatNumber`, `parseNumber`, `formatDate`, `parseDate`
+
+**Owning issues:** #39
 
 ---
 
 ## Type modules (`src/taskpane/core/types/`)
 
 ### `clinical.ts`
-
-Core CRF metadata types: `StudyDesign`, `CrfForm`, `CrfItem`, `CrfCodelist`, `SdtmMapping`, visit structures.
+Core CRF metadata types: `StudyDesign`, `CrfForm`, `CrfItem`, `CrfCodelist`.
 
 ### `hierarchy.ts`
+Hierarchical structure types: OID registry, parent-child metadata.
 
-Hierarchical structure types: form/item/codelist relationships, OID registry, parent-child metadata.
+### `annotated-crf.ts`
+Types for the aCRF pipeline: `AnnotatedCrfDocument`, `PipelineDiagnostic`, `AcrfVerificationResult`.
 
-### `validation.ts`
-
-Validation types: `ValidationIssue`, `ValidationLevel`, `ValidationResult`, `ParseResult`.
+### `annotation.ts`
+Clinical annotation interfaces (SDTM, ADAM, Origin) and target types.
 
 ### `rules-ast.ts`
+AST node types for the rules logic grammar.
 
-AST node types (Literal, Identifier, Unary, Binary, Conditional, Call, and Grouped Expression), location tracking interfaces (`SourcePosition`, `SourceLocation`), `RuleDefinition` structures, and the custom `ParseError` diagnostic class.
+### `diff.ts`
+Diff payload contracts: `StudyDiffReport`, `FormDiffEntry`.
+
+### `validation.ts`
+Validation types: `ValidationIssue`, `ValidationLevel`, `ValidationResult`, `ParseResult`.
 
 ### `ui.ts`
-
 UI state types: navigation context, filter state, view mode, sidecar state.
 
 ### `enums.ts`
-
 Enumerated values: data types, validation levels, form types, status values.
 
 ### `common.ts`
-
 Shared utility types: localized strings, OID references, generic result wrappers.
-
-### `diff.ts`
-
-Diff payload contracts: `StudyDiffReport`, `FormDiffEntry`, `ItemDiffEntry`, `CodelistDiffEntry`, `RuleDiffEntry`, `StudyMetadataDiff`, and the `DiffOperation` union type. Produced by `diff-engine.ts` and consumed by `StudyDiffView.tsx`.
 
 ---
 
 ## Legacy flat-file modules
 
-These files at `src/taskpane/core/` root predate the modular architecture and are superseded by the modules above. They are retained for backward compatibility during the modular migration.
+These files at `src/taskpane/core/` root are superseded by modular implementations.
 
-| File                | Superseded by                                                                  |
-| ------------------- | ------------------------------------------------------------------------------ |
-| `core/parser.ts`    | `core/parser/excel-parser.ts`                                                  |
+| File | Superseded by |
+| --- | --- |
+| `core/parser.ts` | `core/parser/excel-parser.ts` |
 | `core/generator.ts` | `core/generators/docx/docx-builder.ts`, `core/generators/cdisc/odm-builder.ts` |
+
+---
+
+## Expected-but-absent modules
+
+| Expected module | Purpose | Blocking Issue | Planned Location |
+| --- | --- | --- | --- |
+| `services/rules-runtime.ts` | Real-time evaluation of CRF rules in the sidecar. | #137 | `src/taskpane/core/services/` |
+| `parser/vlm-parser.ts` | Parsing Value Level Metadata sheets. | #92 | `src/taskpane/core/parser/` |
 
 ---
 
