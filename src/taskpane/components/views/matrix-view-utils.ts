@@ -77,8 +77,8 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
             itemCount: items.length,
             requiredCount: items.filter((item) => item.required).length,
             optionalCount: items.filter((item) => !item.required).length,
-            dataTypes: Array.from(new Set(items.map((item) => item.dataType as string))).sort((left, right) =>
-              left.localeCompare(right)
+            dataTypes: Array.from(new Set(items.map((item) => item.dataType as string))).sort(
+              (left, right) => left.localeCompare(right)
             ),
             previewItems: items
               .slice(0, PREVIEW_LIMIT)

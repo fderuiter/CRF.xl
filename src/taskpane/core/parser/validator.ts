@@ -89,7 +89,11 @@ export async function validateStudyDesign(
               rowIndex: row,
               sheetName: sheet,
             });
-          } else if (!Object.keys(study.codelists).some((k) => k.toLowerCase() === item.codelistId?.toLowerCase())) {
+          } else if (
+            !Object.keys(study.codelists).some(
+              (k) => k.toLowerCase() === item.codelistId?.toLowerCase()
+            )
+          ) {
             issues.push({
               level: "Error",
               message: `Missing Codelist definition for '${item.codelistId}'.`,
@@ -133,7 +137,9 @@ export async function validateStudyDesign(
 
         if (
           hasSignificantDigits &&
-          (significantDigits === undefined || !Number.isInteger(significantDigits) || significantDigits < 0)
+          (significantDigits === undefined ||
+            !Number.isInteger(significantDigits) ||
+            significantDigits < 0)
         ) {
           issues.push({
             level: "Error",
@@ -381,7 +387,9 @@ export function validateCrossFormDependencies(
     if (segments.length > 1) {
       const varName = segments[segments.length - 1].toLowerCase();
       const possibleFormOid = segments[0];
-      const matchedFormKey = Object.keys(study.forms).find(k => k.toLowerCase() === possibleFormOid.toLowerCase());
+      const matchedFormKey = Object.keys(study.forms).find(
+        (k) => k.toLowerCase() === possibleFormOid.toLowerCase()
+      );
       const form = matchedFormKey ? study.forms[matchedFormKey] : undefined;
       if (form) {
         const itemRes = variableMap.get(varName);
@@ -463,9 +471,11 @@ export function validateCrossFormDependencies(
 
       if (!resolved) {
         const segments = ident.split(".");
-        const matchedFormKey = segments.length > 1 ? Object.keys(study.forms).find(k => k.toLowerCase() === segments[0].toLowerCase()) : undefined;
-        const isCrossFormSuspect =
-          segments.length > 1 && matchedFormKey !== undefined;
+        const matchedFormKey =
+          segments.length > 1
+            ? Object.keys(study.forms).find((k) => k.toLowerCase() === segments[0].toLowerCase())
+            : undefined;
+        const isCrossFormSuspect = segments.length > 1 && matchedFormKey !== undefined;
 
         const isLocal = !ident.includes(".");
         const isExport = options?.isExport === true;
