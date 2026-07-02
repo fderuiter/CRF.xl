@@ -402,52 +402,57 @@ export const MatrixView: React.FC<MatrixProps> = ({
     return study?.crossFormDependencies?.find((d: any) => d.id === selectedDepId) || null;
   }, [study?.crossFormDependencies, selectedDepId]);
 
-  const columns = React.useMemo(() => [
-    createTableColumn<any>({
-      columnId: 'sourceForm',
-      compare: (a, b) => (a.sourceFormOid || '').localeCompare(b.sourceFormOid || ''),
-      renderHeaderCell: () => 'Source Form',
-      renderCell: (item) => <Text weight="semibold">{item.sourceFormOid || 'Unknown'}</Text>,
-    }),
-    createTableColumn<any>({
-      columnId: 'source',
-      renderHeaderCell: () => 'Source',
-      renderCell: (item) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div className={styles.depItemTitle}>{item.sourceOid}</div>
-          <div className={styles.badgeRow}>
-            <Badge appearance="tint" color="brand">{item.dependencyType}</Badge>
-            {item.status !== "Valid" && (
-              <Badge appearance="filled" color={item.severity === "Error" ? "danger" : "warning"}>
-                {item.status}
+  const columns = React.useMemo(
+    () => [
+      createTableColumn<any>({
+        columnId: "sourceForm",
+        compare: (a, b) => (a.sourceFormOid || "").localeCompare(b.sourceFormOid || ""),
+        renderHeaderCell: () => "Source Form",
+        renderCell: (item) => <Text weight="semibold">{item.sourceFormOid || "Unknown"}</Text>,
+      }),
+      createTableColumn<any>({
+        columnId: "source",
+        renderHeaderCell: () => "Source",
+        renderCell: (item) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div className={styles.depItemTitle}>{item.sourceOid}</div>
+            <div className={styles.badgeRow}>
+              <Badge appearance="tint" color="brand">
+                {item.dependencyType}
               </Badge>
-            )}
+              {item.status !== "Valid" && (
+                <Badge appearance="filled" color={item.severity === "Error" ? "danger" : "warning"}>
+                  {item.status}
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
-      )
-    }),
-    createTableColumn<any>({
-      columnId: 'target',
-      renderHeaderCell: () => 'Target',
-      renderCell: (item) => (
-        <div className={styles.depItemRelation}>
-          <span>{item.sourceType}</span>
-          <ArrowRightRegular style={{ fontSize: "12px" }} />
-          <span>
-            {item.targetFormOid !== "Unknown" ? `${item.targetFormOid}.${item.targetOid}` : item.targetOid}
-          </span>
-          <span style={{ fontSize: "11px", opacity: 0.7 }}>({item.targetType})</span>
-        </div>
-      )
-    }),
-    createTableColumn<any>({
-      columnId: 'expression',
-      renderHeaderCell: () => 'Expression',
-      renderCell: (item) => (
-        <div className={styles.depItemExpression}>{item.expression}</div>
-      )
-    })
-  ], [styles]);
+        ),
+      }),
+      createTableColumn<any>({
+        columnId: "target",
+        renderHeaderCell: () => "Target",
+        renderCell: (item) => (
+          <div className={styles.depItemRelation}>
+            <span>{item.sourceType}</span>
+            <ArrowRightRegular style={{ fontSize: "12px" }} />
+            <span>
+              {item.targetFormOid !== "Unknown"
+                ? `${item.targetFormOid}.${item.targetOid}`
+                : item.targetOid}
+            </span>
+            <span style={{ fontSize: "11px", opacity: 0.7 }}>({item.targetType})</span>
+          </div>
+        ),
+      }),
+      createTableColumn<any>({
+        columnId: "expression",
+        renderHeaderCell: () => "Expression",
+        renderCell: (item) => <div className={styles.depItemExpression}>{item.expression}</div>,
+      }),
+    ],
+    [styles]
+  );
 
   return (
     <div className={styles.container} id="tour-matrix">
@@ -456,8 +461,13 @@ export const MatrixView: React.FC<MatrixProps> = ({
           <div className={styles.iconBox}>📅</div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <Body1 className={styles.cardTitle}>Visit Matrix</Body1>
-            <Tooltip content="The schedule of events (SoE) mapping forms to visits/timepoints." relationship="label">
-              <InfoRegular style={{ fontSize: "14px", cursor: "help", color: tokens.colorNeutralForeground3 }} />
+            <Tooltip
+              content="The schedule of events (SoE) mapping forms to visits/timepoints."
+              relationship="label"
+            >
+              <InfoRegular
+                style={{ fontSize: "14px", cursor: "help", color: tokens.colorNeutralForeground3 }}
+              />
             </Tooltip>
           </div>
           <div>
@@ -689,9 +699,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
                       key={rowId}
                       className={`${severityClass} ${isSelected ? styles.depItemActive : ""}`}
                     >
-                      {({ renderCell }) => (
-                        <DataGridCell>{renderCell(item)}</DataGridCell>
-                      )}
+                      {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
                     </DataGridRow>
                   );
                 }}
@@ -745,7 +753,8 @@ export const MatrixView: React.FC<MatrixProps> = ({
                         onNavigate(selectedDep.sourceFormOid, selectedDep.sourceRowIndex);
                       }}
                     >
-                      Go to Source ({selectedDep.sourceFormOid} row {selectedDep.sourceRowIndex + 1})
+                      Go to Source ({selectedDep.sourceFormOid} row {selectedDep.sourceRowIndex + 1}
+                      )
                     </Button>
                   )}
 
@@ -761,7 +770,8 @@ export const MatrixView: React.FC<MatrixProps> = ({
                           onNavigate(selectedDep.targetFormOid, selectedDep.targetRowIndex);
                         }}
                       >
-                        Go to Target ({selectedDep.targetFormOid} row {selectedDep.targetRowIndex + 1})
+                        Go to Target ({selectedDep.targetFormOid} row{" "}
+                        {selectedDep.targetRowIndex + 1})
                       </Button>
                     )}
                 </div>

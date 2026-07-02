@@ -1,7 +1,7 @@
 /**
  * Shared diagnostic framework for error handling, design-time validation, and data ingestion.
  * Resolves fragmented error models by providing a single interface for all diagnostic messaging.
- * 
+ *
  * @issue #76
  */
 

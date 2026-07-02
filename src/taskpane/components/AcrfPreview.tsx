@@ -12,7 +12,13 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { ArrowDownloadRegular, ArrowClockwiseRegular, CheckmarkCircleRegular, EyeRegular, CommentRegular } from "@fluentui/react-icons";
+import {
+  ArrowDownloadRegular,
+  ArrowClockwiseRegular,
+  CheckmarkCircleRegular,
+  EyeRegular,
+  CommentRegular,
+} from "@fluentui/react-icons";
 import { StudyDesign, AcrfVerificationResult, ReviewerComment } from "../core/types";
 import { navigateToSource } from "../core";
 import { renderToHtml } from "../core/services/acrf-renderer";
@@ -217,75 +223,77 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
             className={styles.previewFrame}
             sandbox="allow-same-origin"
             onLoad={(e) => {
-               // Add click listeners to items in the iframe to select them for commenting
-               const iframe = e.currentTarget;
-               if (iframe.contentDocument) {
-                  iframe.contentDocument.addEventListener('click', (ev) => {
-                     const target = ev.target as HTMLElement;
-                     const itemRow = target.closest('.item-row');
-                     if (itemRow) {
-                        // Extract OID from the first annotation box or similar
-                        // In a real implementation, we'd add data-oid to the HTML
-                        const labelText = itemRow.querySelector('.item-label')?.textContent;
-                        if (labelText) {
-                           // For now, use the label as a proxy for OID if not found
-                           // Better: find a way to pass OID from renderer to HTML
-                           const sdtmBox = itemRow.querySelector('.annotation-box');
-                           const match = sdtmBox?.textContent?.match(/\[(.*?)\]/);
-                           if (match) {
-                              setSelectedEntityId(match[1]);
-                              setShowReviewPane(true);
-                           }
-                        }
-                     }
-                  });
-               }
+              // Add click listeners to items in the iframe to select them for commenting
+              const iframe = e.currentTarget;
+              if (iframe.contentDocument) {
+                iframe.contentDocument.addEventListener("click", (ev) => {
+                  const target = ev.target as HTMLElement;
+                  const itemRow = target.closest(".item-row");
+                  if (itemRow) {
+                    // Extract OID from the first annotation box or similar
+                    // In a real implementation, we'd add data-oid to the HTML
+                    const labelText = itemRow.querySelector(".item-label")?.textContent;
+                    if (labelText) {
+                      // For now, use the label as a proxy for OID if not found
+                      // Better: find a way to pass OID from renderer to HTML
+                      const sdtmBox = itemRow.querySelector(".annotation-box");
+                      const match = sdtmBox?.textContent?.match(/\[(.*?)\]/);
+                      if (match) {
+                        setSelectedEntityId(match[1]);
+                        setShowReviewPane(true);
+                      }
+                    }
+                  }
+                });
+              }
             }}
           />
         </div>
 
         {showReviewPane && (
-           <ReviewMode
-              comments={reviewComments}
-              selectedEntityId={selectedEntityId}
-              onAddComment={async (text, id) => {
-                 await onAddReviewComment?.(text, id);
-                 await runVerification();
-                 onRefreshPreview?.();
-              }}
-              onResolveComment={async (id) => {
-                 await onResolveReviewComment?.(id);
-                 await runVerification();
-                 onRefreshPreview?.();
-              }}
-              onReopenComment={async (id) => {
-                 await onReopenReviewComment?.(id);
-                 await runVerification();
-                 onRefreshPreview?.();
-              }}
-              onDeleteComment={async (id) => {
-                 await onDeleteReviewComment?.(id);
-                 await runVerification();
-                 onRefreshPreview?.();
-              }}
-           />
+          <ReviewMode
+            comments={reviewComments}
+            selectedEntityId={selectedEntityId}
+            onAddComment={async (text, id) => {
+              await onAddReviewComment?.(text, id);
+              await runVerification();
+              onRefreshPreview?.();
+            }}
+            onResolveComment={async (id) => {
+              await onResolveReviewComment?.(id);
+              await runVerification();
+              onRefreshPreview?.();
+            }}
+            onReopenComment={async (id) => {
+              await onReopenReviewComment?.(id);
+              await runVerification();
+              onRefreshPreview?.();
+            }}
+            onDeleteComment={async (id) => {
+              await onDeleteReviewComment?.(id);
+              await runVerification();
+              onRefreshPreview?.();
+            }}
+          />
         )}
 
         <div className={styles.sidebar}>
           <Body1 style={{ fontWeight: tokens.fontWeightSemibold }}>Verification Results</Body1>
           <ValidationLog
-            issues={verification?.issues.map((i) => ({
-              level: i.severity === "error" ? "Error" : "Warning",
-              message: i.message,
-              location: i.location || i.category,
-              category: i.category,
-              entityId: i.entityId,
-              isAcknowledged: acknowledgedWarnings?.has(i.message + (i.location || i.category))
-            })) || []}
+            issues={
+              verification?.issues.map((i) => ({
+                level: i.severity === "error" ? "Error" : "Warning",
+                message: i.message,
+                location: i.location || i.category,
+                category: i.category,
+                entityId: i.entityId,
+                isAcknowledged: acknowledgedWarnings?.has(i.message + (i.location || i.category)),
+              })) || []
+            }
             isProcessing={isVerifying}
             onNavigate={(issue: any) => {
               if (issue.location && study.forms[issue.location]) {
-                const iframe = document.querySelector('iframe');
+                const iframe = document.querySelector("iframe");
                 if (iframe?.contentWindow) {
                   iframe.contentWindow.location.hash = `#form-${issue.location}`;
                 }
@@ -305,11 +313,11 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
                   </Button>
                 )}
                 {issue.location && (
-                   <Button
+                  <Button
                     size="small"
                     icon={<EyeRegular />}
                     onClick={() => {
-                      const iframe = document.querySelector('iframe');
+                      const iframe = document.querySelector("iframe");
                       if (iframe?.contentWindow) {
                         iframe.contentWindow.location.hash = `#form-${issue.location}`;
                       }

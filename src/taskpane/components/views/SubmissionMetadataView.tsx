@@ -176,13 +176,17 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
   const unlockSelected = () => {
     if (scope === "SDTM" && selectedSdtm) {
       setSdtmDrafts((current) =>
-        current.map((draft) => (draft.id === selectedSdtm.id ? { ...draft, readOnly: false } : draft))
+        current.map((draft) =>
+          draft.id === selectedSdtm.id ? { ...draft, readOnly: false } : draft
+        )
       );
       return;
     }
     if (scope === "ADaM" && selectedAdam) {
       setAdamDrafts((current) =>
-        current.map((draft) => (draft.id === selectedAdam.id ? { ...draft, readOnly: false } : draft))
+        current.map((draft) =>
+          draft.id === selectedAdam.id ? { ...draft, readOnly: false } : draft
+        )
       );
     }
   };
@@ -225,12 +229,17 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
         keyVariables: parseKeyVariables((draft.metadata.keyVariables || []).join(",")),
       })),
     });
-    setSaveMessage("Draft saved locally. Incomplete metadata is allowed until export/release validation.");
+    setSaveMessage(
+      "Draft saved locally. Incomplete metadata is allowed until export/release validation."
+    );
   };
 
   const hasSelection = scope === "SDTM" ? !!selectedSdtm : !!selectedAdam;
   const selectionReadOnly = scope === "SDTM" ? selectedSdtm?.readOnly : selectedAdam?.readOnly;
-  const selectionImported = scope === "SDTM" ? selectedSdtm?.provenance === "Imported" : selectedAdam?.provenance === "Imported";
+  const selectionImported =
+    scope === "SDTM"
+      ? selectedSdtm?.provenance === "Imported"
+      : selectedAdam?.provenance === "Imported";
 
   return (
     <Card className={styles.card}>
@@ -248,8 +257,8 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
 
       <MessageBar intent="info">
         <MessageBarBody>
-          Edits are staged in local UI state. Use <strong>Save Draft</strong> to persist this session
-          draft in app memory. Inline validation is advisory and does not block draft saves.
+          Edits are staged in local UI state. Use <strong>Save Draft</strong> to persist this
+          session draft in app memory. Inline validation is advisory and does not block draft saves.
         </MessageBarBody>
       </MessageBar>
 
@@ -275,8 +284,10 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
           {(scope === "SDTM" ? sdtmDrafts : adamDrafts).map((draft) => {
             const title =
               scope === "SDTM"
-                ? (draft as DatasetDraft<SdtmDatasetMetadata>).metadata.domain || "Unnamed SDTM Dataset"
-                : (draft as DatasetDraft<AdamDatasetMetadata>).metadata.dataset || "Unnamed ADaM Dataset";
+                ? (draft as DatasetDraft<SdtmDatasetMetadata>).metadata.domain ||
+                  "Unnamed SDTM Dataset"
+                : (draft as DatasetDraft<AdamDatasetMetadata>).metadata.dataset ||
+                  "Unnamed ADaM Dataset";
             const selected =
               scope === "SDTM" ? draft.id === selectedSdtmId : draft.id === selectedAdamId;
             return (
@@ -299,7 +310,10 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
                   {title}
                 </Text>
                 <div className={styles.rowMeta}>
-                  <Badge appearance="tint" color={draft.provenance === "Imported" ? "informative" : "brand"}>
+                  <Badge
+                    appearance="tint"
+                    color={draft.provenance === "Imported" ? "informative" : "brand"}
+                  >
                     {draft.provenance}
                   </Badge>
                   {draft.readOnly && <Badge appearance="outline">Read-only</Badge>}
@@ -340,7 +354,10 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
                   children: (
                     <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                       SDTM Domain
-                      <Tooltip content="The two-character domain code (e.g., AE, DM, LB) as defined by CDISC SDTM." relationship="label">
+                      <Tooltip
+                        content="The two-character domain code (e.g., AE, DM, LB) as defined by CDISC SDTM."
+                        relationship="label"
+                      >
                         <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
                       </Tooltip>
                     </div>
@@ -350,7 +367,9 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               >
                 <Input
                   value={selectedSdtm.metadata.domain}
-                  onChange={(_, data) => updateSdtm((metadata) => ({ ...metadata, domain: data.value }))}
+                  onChange={(_, data) =>
+                    updateSdtm((metadata) => ({ ...metadata, domain: data.value }))
+                  }
                 />
               </Field>
               <Field label="Class">
@@ -374,10 +393,16 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field label="Label" validationMessage={fieldErrors.label} className={styles.full}>
                 <Input
                   value={selectedSdtm.metadata.label}
-                  onChange={(_, data) => updateSdtm((metadata) => ({ ...metadata, label: data.value }))}
+                  onChange={(_, data) =>
+                    updateSdtm((metadata) => ({ ...metadata, label: data.value }))
+                  }
                 />
               </Field>
-              <Field label="Structure" validationMessage={fieldErrors.structure} className={styles.full}>
+              <Field
+                label="Structure"
+                validationMessage={fieldErrors.structure}
+                className={styles.full}
+              >
                 <Input
                   value={selectedSdtm.metadata.structure}
                   onChange={(_, data) =>
@@ -390,7 +415,10 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
                   children: (
                     <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                       Key Variables (comma separated)
-                      <Tooltip content="Variables that uniquely identify a record in the dataset (e.g., USUBJID, AESEQ)." relationship="label">
+                      <Tooltip
+                        content="Variables that uniquely identify a record in the dataset (e.g., USUBJID, AESEQ)."
+                        relationship="label"
+                      >
                         <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
                       </Tooltip>
                     </div>
@@ -424,7 +452,9 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field label="ADaM Dataset" validationMessage={fieldErrors.dataset}>
                 <Input
                   value={selectedAdam.metadata.dataset}
-                  onChange={(_, data) => updateAdam((metadata) => ({ ...metadata, dataset: data.value }))}
+                  onChange={(_, data) =>
+                    updateAdam((metadata) => ({ ...metadata, dataset: data.value }))
+                  }
                 />
               </Field>
               <Field label="Class">
@@ -448,10 +478,16 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field label="Label" validationMessage={fieldErrors.label} className={styles.full}>
                 <Input
                   value={selectedAdam.metadata.label}
-                  onChange={(_, data) => updateAdam((metadata) => ({ ...metadata, label: data.value }))}
+                  onChange={(_, data) =>
+                    updateAdam((metadata) => ({ ...metadata, label: data.value }))
+                  }
                 />
               </Field>
-              <Field label="Structure" validationMessage={fieldErrors.structure} className={styles.full}>
+              <Field
+                label="Structure"
+                validationMessage={fieldErrors.structure}
+                className={styles.full}
+              >
                 <Input
                   value={selectedAdam.metadata.structure}
                   onChange={(_, data) =>
@@ -462,7 +498,9 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field label="Purpose">
                 <Dropdown
                   value={selectedAdam.metadata.purpose || "Purpose"}
-                  selectedOptions={selectedAdam.metadata.purpose ? [selectedAdam.metadata.purpose] : []}
+                  selectedOptions={
+                    selectedAdam.metadata.purpose ? [selectedAdam.metadata.purpose] : []
+                  }
                   onOptionSelect={(_, data) =>
                     updateAdam((metadata) => ({
                       ...metadata,

@@ -42,21 +42,9 @@ import { backgroundValidationEngine } from "../core";
 import { LinguisticService } from "../core";
 
 import { diffStudyDesigns } from "../core";
-import {
-  initializeWorkbook,
-  navigateToSource,
-  syncRegistry,
-} from "../core";
-import {
-  StudyDesign,
-  SubmissionMetadata,
-  ExportMode,
-  ExportOptions,
-} from "../core";
-import {
-  BaselineWorkbookParseError,
-  parseBaselineWorkbookFile,
-} from "../core";
+import { initializeWorkbook, navigateToSource, syncRegistry } from "../core";
+import { StudyDesign, SubmissionMetadata, ExportMode, ExportOptions } from "../core";
+import { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "../core";
 import {
   RecoverySnapshot,
   RECOVERY_APP_VERSION,
@@ -69,15 +57,8 @@ import {
   summarizeStudyDesign,
   formatDate,
 } from "../core";
-import {
-  createOfficeDiagnostic,
-  Diagnostic,
-} from "../core";
-import {
-  checkForVersionUpdate,
-  dismissVersionNotification,
-  VersionUpdateMetadata,
-} from "../core";
+import { createOfficeDiagnostic, Diagnostic } from "../core";
+import { checkForVersionUpdate, dismissVersionNotification, VersionUpdateMetadata } from "../core";
 import { loadImportManifest, onboardingService } from "../core";
 
 // Telemetry & Views
@@ -254,7 +235,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const status = validationState.isProcessing ? validationState.status : appStatus;
   const displayStatus = annotationProgress || status;
 
-  const lastVisualsRef = useRef<{ study: any, activeSheet: string | null } | null>(null);
+  const lastVisualsRef = useRef<{ study: any; activeSheet: string | null } | null>(null);
 
   useEffect(() => {
     if (isInitialized) {
@@ -268,7 +249,8 @@ export const App: React.FC<{ title?: string }> = () => {
       if (paintbrush.isEnabled && activeSheet && !activeSheet.startsWith("_")) {
         const context = bindingService.getCurrentContext();
         if (context && context.isValid) {
-          annotationPaintbrushService.toggleTarget(context.sheetName, context.address)
+          annotationPaintbrushService
+            .toggleTarget(context.sheetName, context.address)
             .then(() => refreshAnnotationHighlights(context.sheetName))
             .catch(console.error);
         }
@@ -291,7 +273,11 @@ export const App: React.FC<{ title?: string }> = () => {
     if (study && study.metadata.defaultLanguage) {
       const normalizedDefault = LinguisticService.normalizeLocale(study.metadata.defaultLanguage);
       // Reset language if current selection is null or not supported in the current study
-      if (!selectedLanguage || (study.metadata.supportedLanguages && !study.metadata.supportedLanguages.includes(selectedLanguage))) {
+      if (
+        !selectedLanguage ||
+        (study.metadata.supportedLanguages &&
+          !study.metadata.supportedLanguages.includes(selectedLanguage))
+      ) {
         setSelectedLanguage(normalizedDefault);
       }
     }
@@ -306,17 +292,18 @@ export const App: React.FC<{ title?: string }> = () => {
         lastVisualsRef.current.activeSheet !== activeSheet
       ) {
         lastVisualsRef.current = { study, activeSheet };
-        const sheetsToClear = activeSheet && !activeSheet.startsWith("_") 
-          ? [activeSheet] 
-          : ["_Schedule", ...Object.keys(study.forms)];
-        
+        const sheetsToClear =
+          activeSheet && !activeSheet.startsWith("_")
+            ? [activeSheet]
+            : ["_Schedule", ...Object.keys(study.forms)];
+
         const runtime = createParseRuntime({
           onProgress: (update) => {
             const percent = Math.round((update.completed / update.total) * 100);
             setAnnotationProgress(`Annotations: ${update.message} (${percent}%)`);
-          }
+          },
         });
-        
+
         applyValidationVisuals(sheetsToClear, issues, runtime)
           .catch(console.error)
           .finally(() => setAnnotationProgress(null));
@@ -328,12 +315,14 @@ export const App: React.FC<{ title?: string }> = () => {
 
       // 3. Vault Sync
       const vaultService = new VaultService();
-      vaultService.syncValidationResults(
-        study.metadata.protocolId || "UNKNOWN",
-        study.metadata.version || "1.0",
-        issues,
-        CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex)
-      ).catch(console.error);
+      vaultService
+        .syncValidationResults(
+          study.metadata.protocolId || "UNKNOWN",
+          study.metadata.version || "1.0",
+          issues,
+          CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex)
+        )
+        .catch(console.error);
 
       // 4. Environment Compliance
       if (!complianceGovernanceService.isAuthenticated) {
@@ -342,34 +331,39 @@ export const App: React.FC<{ title?: string }> = () => {
       Office.context.document.getFilePropertiesAsync((result) => {
         if (result.status === Office.AsyncResultStatus.Succeeded) {
           const documentUrl = result.value.url || "local://document";
-          complianceGovernanceService.getEnvironmentStatus(documentUrl).then(envStatus => {
-            if (!envStatus.isCompliant) {
-              const issue: ValidationIssue = {
-                level: "Error",
-                message: envStatus.isCloudHosted
-                  ? "SharePoint location is not configured for GxP version history."
-                  : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
-                location: "Host Environment",
-              };
-              // Add if not already present
-              if (!issues.some(i => i.location === issue.location && i.message === issue.message)) {
-                backgroundValidationEngine.updateState((prev) => ({
-                  issues: [...prev.issues, issue],
-                  status: "Issues detected"
-                }));
+          complianceGovernanceService
+            .getEnvironmentStatus(documentUrl)
+            .then((envStatus) => {
+              if (!envStatus.isCompliant) {
+                const issue: ValidationIssue = {
+                  level: "Error",
+                  message: envStatus.isCloudHosted
+                    ? "SharePoint location is not configured for GxP version history."
+                    : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
+                  location: "Host Environment",
+                };
+                // Add if not already present
+                if (
+                  !issues.some((i) => i.location === issue.location && i.message === issue.message)
+                ) {
+                  backgroundValidationEngine.updateState((prev) => ({
+                    issues: [...prev.issues, issue],
+                    status: "Issues detected",
+                  }));
+                }
+              } else {
+                if (issues.some((i) => i.location === "Host Environment")) {
+                  backgroundValidationEngine.updateState((prev) => {
+                    const filtered = prev.issues.filter((i) => i.location !== "Host Environment");
+                    return {
+                      issues: filtered,
+                      status: filtered.length === 0 ? "Ready" : "Issues detected",
+                    };
+                  });
+                }
               }
-            } else {
-              if (issues.some(i => i.location === "Host Environment")) {
-                backgroundValidationEngine.updateState((prev) => {
-                  const filtered = prev.issues.filter(i => i.location !== "Host Environment");
-                  return {
-                    issues: filtered,
-                    status: filtered.length === 0 ? "Ready" : "Issues detected"
-                  };
-                });
-              }
-            }
-          }).catch(console.error);
+            })
+            .catch(console.error);
         }
       });
     }
@@ -387,9 +381,7 @@ export const App: React.FC<{ title?: string }> = () => {
     visitCount: number;
   } | null>(null);
   const [currentFilter, setCurrentFilter] = useState<string | null>(null);
-  const [workbookFingerprint] = useState<WorkbookFingerprint | undefined>(
-    undefined
-  );
+  const [workbookFingerprint] = useState<WorkbookFingerprint | undefined>(undefined);
   const [recoverySnapshot, setRecoverySnapshot] = useState<{
     snapshot: RecoverySnapshot;
     workbookChanged: boolean;
@@ -584,15 +576,15 @@ export const App: React.FC<{ title?: string }> = () => {
 
   const handleRestoreSnapshot = () => {
     if (!recoverySnapshot) return;
-    backgroundValidationEngine.updateState(() => ({ issues: recoverySnapshot.snapshot.issues as ValidationIssue[] }));
+    backgroundValidationEngine.updateState(() => ({
+      issues: recoverySnapshot.snapshot.issues as ValidationIssue[],
+    }));
     setStudySummary(recoverySnapshot.snapshot.studySummary);
     setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
     if (recoverySnapshot.snapshot.justifications) {
       handleSaveJustifications(recoverySnapshot.snapshot.justifications);
     }
-    setAppStatus(
-      `Recovered snapshot from ${formatDate(recoverySnapshot.snapshot.savedAt)}`
-    );
+    setAppStatus(`Recovered snapshot from ${formatDate(recoverySnapshot.snapshot.savedAt)}`);
     setRecoverySnapshot(null);
   };
 
@@ -697,7 +689,7 @@ export const App: React.FC<{ title?: string }> = () => {
     setJustifications(newJustifs);
     try {
       await complianceGovernanceService.saveJustificationsToWorkbook(newJustifs);
-      
+
       Office.context.document.getFilePropertiesAsync((result) => {
         let documentUrl = "local://document";
         if (result.status === Office.AsyncResultStatus.Succeeded && result.value.url) {
@@ -707,11 +699,14 @@ export const App: React.FC<{ title?: string }> = () => {
         if (complianceGovernanceService.isAuthenticated) {
           complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
         } else {
-           complianceGovernanceService.initialize().then(() => {
+          complianceGovernanceService
+            .initialize()
+            .then(() => {
               if (complianceGovernanceService.isAuthenticated) {
-                 complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
+                complianceGovernanceService.syncSharePointMetadata(documentUrl, newJustifs);
               }
-           }).catch(() => {});
+            })
+            .catch(() => {});
         }
       });
     } catch (e) {
@@ -721,11 +716,14 @@ export const App: React.FC<{ title?: string }> = () => {
 
   useEffect(() => {
     if (isInitialized) {
-      complianceGovernanceService.loadJustificationsFromWorkbook().then(loaded => {
-        if (Object.keys(loaded).length > 0) {
-          setJustifications(prev => ({ ...prev, ...loaded }));
-        }
-      }).catch(console.warn);
+      complianceGovernanceService
+        .loadJustificationsFromWorkbook()
+        .then((loaded) => {
+          if (Object.keys(loaded).length > 0) {
+            setJustifications((prev) => ({ ...prev, ...loaded }));
+          }
+        })
+        .catch(console.warn);
     }
   }, [isInitialized]);
 
@@ -816,7 +814,8 @@ export const App: React.FC<{ title?: string }> = () => {
     setAppIsProcessing(true);
     try {
       const manifest = loadImportManifest();
-      const { ComplianceExportService } = await import("../core/services/compliance-export-service");
+      const { ComplianceExportService } =
+        await import("../core/services/compliance-export-service");
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
         baselineStudy,
@@ -840,7 +839,8 @@ export const App: React.FC<{ title?: string }> = () => {
           severity: "error",
           category: "COMPRESSION_NOT_SUPPORTED",
           message: "Native compression is not supported by your browser.",
-          recoveryAction: "Please use a modern browser (Chrome, Edge, or Safari) to export compliance artifacts.",
+          recoveryAction:
+            "Please use a modern browser (Chrome, Edge, or Safari) to export compliance artifacts.",
           allowRetry: false,
         });
       } else {
@@ -858,7 +858,7 @@ export const App: React.FC<{ title?: string }> = () => {
             ...prev.study,
             submissionMetadata,
           }
-        : prev.study
+        : prev.study,
     }));
     setAppStatus("Submission metadata draft saved in session");
   };
@@ -992,7 +992,9 @@ export const App: React.FC<{ title?: string }> = () => {
         <div className={styles.headerLeft}>
           <div className={styles.logoBox}>C</div>
           <div className={styles.titleBlock}>
-            <span className={styles.appTitle}>CRF.xl{activeTab === "review" ? " | Review" : ""}</span>
+            <span className={styles.appTitle}>
+              CRF.xl{activeTab === "review" ? " | Review" : ""}
+            </span>
             {isInitialized && activeTab !== "review" && (
               <span className={styles.sheetLabel}>{activeSheet || "Loading..."}</span>
             )}
@@ -1000,22 +1002,24 @@ export const App: React.FC<{ title?: string }> = () => {
               <span className={styles.sheetLabel}>Review Mode</span>
             )}
           </div>
-          {isInitialized && study?.metadata?.supportedLanguages && study.metadata.supportedLanguages.length > 1 && (
-            <div style={{ marginLeft: "16px" }}>
-              <Dropdown
-                size="small"
-                value={selectedLanguage || study.metadata.defaultLanguage}
-                onOptionSelect={(_e, data) => setSelectedLanguage(data.optionValue!)}
-                aria-label="Language selection"
-              >
-                {study.metadata.supportedLanguages.map((lang) => (
-                  <Option key={lang} value={lang}>
-                    {lang}
-                  </Option>
-                ))}
-              </Dropdown>
-            </div>
-          )}
+          {isInitialized &&
+            study?.metadata?.supportedLanguages &&
+            study.metadata.supportedLanguages.length > 1 && (
+              <div style={{ marginLeft: "16px" }}>
+                <Dropdown
+                  size="small"
+                  value={selectedLanguage || study.metadata.defaultLanguage}
+                  onOptionSelect={(_e, data) => setSelectedLanguage(data.optionValue!)}
+                  aria-label="Language selection"
+                >
+                  {study.metadata.supportedLanguages.map((lang) => (
+                    <Option key={lang} value={lang}>
+                      {lang}
+                    </Option>
+                  ))}
+                </Dropdown>
+              </div>
+            )}
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <Badge appearance="tint" color="informative">
@@ -1041,7 +1045,9 @@ export const App: React.FC<{ title?: string }> = () => {
         >
           <Tab value="design">Design</Tab>
           <Tab value="compliance">Compliance</Tab>
-          <Tab value="integrity" id="tour-integrity">Integrity Hub</Tab>
+          <Tab value="integrity" id="tour-integrity">
+            Integrity Hub
+          </Tab>
           <Tab value="review">Review</Tab>
         </TabList>
 
@@ -1069,8 +1075,7 @@ export const App: React.FC<{ title?: string }> = () => {
         {recoverySnapshot && (
           <MessageBar intent={recoverySnapshot.workbookChanged ? "warning" : "info"}>
             <MessageBarBody>
-              Recovery snapshot detected from{" "}
-              {formatDate(recoverySnapshot.snapshot.savedAt)}.
+              Recovery snapshot detected from {formatDate(recoverySnapshot.snapshot.savedAt)}.
               {recoverySnapshot.workbookChanged &&
                 " Workbook structure has changed since this snapshot; review restored results carefully."}
               <div className={styles.recoveryActions}>
@@ -1098,9 +1103,7 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
         {!isCodelistActive && activeTab === "design" && renderContextualView()}
         {activeTab === "compliance" && <ComplianceGovernanceView />}
-        {activeTab === "review" && study && (
-          <ReviewView study={study} issues={issues} />
-        )}
+        {activeTab === "review" && study && <ReviewView study={study} issues={issues} />}
         {activeTab === "integrity" && (
           <IntegrityHubView
             issues={issues}
@@ -1158,7 +1161,15 @@ export const App: React.FC<{ title?: string }> = () => {
         )}
 
         {uiError && (
-          <MessageBar intent={uiError.severity === "warning" ? "warning" : uiError.severity === "info" ? "info" : "error"}>
+          <MessageBar
+            intent={
+              uiError.severity === "warning"
+                ? "warning"
+                : uiError.severity === "info"
+                  ? "info"
+                  : "error"
+            }
+          >
             <MessageBarBody>
               <strong>{uiError.message}</strong> {uiError.recoveryAction}
               {uiError.retryAction && (
@@ -1190,7 +1201,10 @@ export const App: React.FC<{ title?: string }> = () => {
           />
         )}
 
-        <Dialog open={showExportOptions} onOpenChange={(_, data) => setShowExportOptions(data.open)}>
+        <Dialog
+          open={showExportOptions}
+          onOpenChange={(_, data) => setShowExportOptions(data.open)}
+        >
           <DialogSurface>
             <DialogBody>
               <DialogTitle>Export Configuration</DialogTitle>
@@ -1202,7 +1216,10 @@ export const App: React.FC<{ title?: string }> = () => {
                   <Dropdown
                     value={exportOptions.mode}
                     onOptionSelect={(_e, data) =>
-                      setExportOptions((prev) => ({ ...prev, mode: data.optionValue as ExportMode }))
+                      setExportOptions((prev) => ({
+                        ...prev,
+                        mode: data.optionValue as ExportMode,
+                      }))
                     }
                     style={{ width: "100%" }}
                   >
@@ -1243,7 +1260,10 @@ export const App: React.FC<{ title?: string }> = () => {
                     <Dropdown
                       value={exportOptions.secondaryLocale}
                       onOptionSelect={(_e, data) =>
-                        setExportOptions((prev) => ({ ...prev, secondaryLocale: data.optionValue! }))
+                        setExportOptions((prev) => ({
+                          ...prev,
+                          secondaryLocale: data.optionValue!,
+                        }))
                       }
                       style={{ width: "100%" }}
                     >
@@ -1283,7 +1303,8 @@ export const App: React.FC<{ title?: string }> = () => {
               <DialogContent>
                 <p>There are {orphanedCount} unresolved annotations or comments in the workbook.</p>
                 <p>
-                  You must resolve or remove all orphaned annotations before completing the compliance export to ensure data integrity.
+                  You must resolve or remove all orphaned annotations before completing the
+                  compliance export to ensure data integrity.
                 </p>
               </DialogContent>
               <DialogActions>

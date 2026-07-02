@@ -13,7 +13,7 @@ describe("AcrfOutputValidator", () => {
       defaultLanguage: "en-US",
     },
     forms: {
-      "FORM1": {
+      FORM1: {
         formOid: "FORM1",
         formName: "Form 1",
         itemGroups: [
@@ -27,11 +27,11 @@ describe("AcrfOutputValidator", () => {
                 label: { "en-US": "Label 1" },
                 dataType: "text" as any,
                 sdtmMapping: { domain: "DM", variable: "SUBJID" },
-              }
-            ]
-          }
-        ]
-      }
+              },
+            ],
+          },
+        ],
+      },
     },
   } as any;
 
@@ -52,15 +52,13 @@ describe("AcrfOutputValidator", () => {
               {
                 itemOid: "ITEM1",
                 name: "Item 1",
-                annotations: [
-                  { type: "SDTM" as any, label: "SDTM", content: "DM.SUBJID" }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                annotations: [{ type: "SDTM" as any, label: "SDTM", content: "DM.SUBJID" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   } as any;
 
   it("should validate a correct document", () => {
@@ -73,24 +71,26 @@ describe("AcrfOutputValidator", () => {
     const badDoc = { ...mockDoc, protocolId: "UNKNOWN" };
     const result = verifyAnnotatedCrf(mockStudy, badDoc);
     expect(result.isValid).toBe(false);
-    expect(result.issues.some(i => i.category === "Metadata")).toBe(true);
+    expect(result.issues.some((i) => i.category === "Metadata")).toBe(true);
   });
 
   it("should catch missing forms", () => {
     const badDoc = { ...mockDoc, forms: [] };
     const result = verifyAnnotatedCrf(mockStudy, badDoc);
     expect(result.isValid).toBe(false);
-    expect(result.issues.some(i => i.category === "Structure" && i.message.includes("missing"))).toBe(true);
+    expect(
+      result.issues.some((i) => i.category === "Structure" && i.message.includes("missing"))
+    ).toBe(true);
   });
 
   it("should catch orphan forms", () => {
     const badDoc = {
       ...mockDoc,
-      forms: [...mockDoc.forms, { formOid: "ORPHAN", itemGroups: [] }]
+      forms: [...mockDoc.forms, { formOid: "ORPHAN", itemGroups: [] }],
     } as any;
     const result = verifyAnnotatedCrf(mockStudy, badDoc);
     expect(result.isValid).toBe(false);
-    expect(result.issues.some(i => i.message.includes("Orphan"))).toBe(true);
+    expect(result.issues.some((i) => i.message.includes("Orphan"))).toBe(true);
   });
 
   it("should catch SDTM content mismatch", () => {
@@ -98,6 +98,6 @@ describe("AcrfOutputValidator", () => {
     badDoc.forms[0].itemGroups[0].items[0].annotations[0].content = "WRONG.CONTENT";
     const result = verifyAnnotatedCrf(mockStudy, badDoc);
     expect(result.isValid).toBe(false);
-    expect(result.issues.some(i => i.category === "Consistency")).toBe(true);
+    expect(result.issues.some((i) => i.category === "Consistency")).toBe(true);
   });
 });

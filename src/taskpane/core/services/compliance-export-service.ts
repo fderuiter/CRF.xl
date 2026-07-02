@@ -54,7 +54,10 @@ export class ComplianceExportService {
     const docxHash = CryptoJS.SHA256(docxWord).toString(CryptoJS.enc.Hex);
 
     const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
-    await zip.addFile(`${protocolId}_Annotated_CRF.docx`, new Uint8Array(docxArrayBuffer as ArrayBuffer));
+    await zip.addFile(
+      `${protocolId}_Annotated_CRF.docx`,
+      new Uint8Array(docxArrayBuffer as ArrayBuffer)
+    );
 
     // 2. Generate Audit Summary
     let auditSummary: StudyDiffReport;
@@ -79,7 +82,10 @@ export class ComplianceExportService {
     });
     const pdfWord = CryptoJS.lib.WordArray.create(pdfArrayBuffer as any);
     const pdfHash = CryptoJS.SHA256(pdfWord).toString(CryptoJS.enc.Hex);
-    await zip.addFile(`${protocolId}_Annotated_CRF.pdf`, new Uint8Array(pdfArrayBuffer as ArrayBuffer));
+    await zip.addFile(
+      `${protocolId}_Annotated_CRF.pdf`,
+      new Uint8Array(pdfArrayBuffer as ArrayBuffer)
+    );
 
     // 3. Generate ODM XML
     const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, {
@@ -87,11 +93,14 @@ export class ComplianceExportService {
       exportOptions: options?.exportOptions,
     });
     const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
-    
+
     const encoder = new TextEncoder();
     await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, encoder.encode(odmXml));
     if (diagnostics) {
-      await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`, encoder.encode(diagnostics));
+      await zip.addFile(
+        `${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`,
+        encoder.encode(diagnostics)
+      );
     }
 
     // 4. Create Verification Manifest

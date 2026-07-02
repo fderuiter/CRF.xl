@@ -15,9 +15,9 @@
     "outDir": "dist",
     "removeComments": false,
     "sourceMap": true,
-    "target": "ES2024",
+    "target": "ES2022",
     "lib": [
-      "ES2024",
+      "ES2022",
       "DOM"
     ],
     "pretty": true,

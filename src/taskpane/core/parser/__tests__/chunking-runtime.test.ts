@@ -42,7 +42,7 @@ describe("chunking runtime", () => {
     const timedOutRuntime = createParseRuntime({
       timeoutMs: 1,
     });
-    await new Promise(resolve => setTimeout(resolve, 5));
+    await new Promise((resolve) => setTimeout(resolve, 5));
     expect(() => timedOutRuntime.throwIfStopped("items")).toThrow(
       "Parsing timed out during items after 1ms"
     );

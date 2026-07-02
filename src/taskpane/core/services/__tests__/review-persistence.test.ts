@@ -2,11 +2,7 @@
  * @issue #57
  */
 import { ReviewerComment } from "../../types/reviewer";
-import {
-  saveComment,
-  loadComments,
-  deleteComment,
-} from "../review-service";
+import { saveComment, loadComments, deleteComment } from "../review-service";
 
 /* global jest, describe, it, expect, beforeEach */
 
@@ -18,23 +14,23 @@ describe("Review Service Persistence", () => {
     mockCustomXmlParts = {
       getByNamespace: jest.fn().mockReturnValue({
         load: jest.fn(),
-        items: []
+        items: [],
       }),
       add: jest.fn().mockReturnValue({
         setXml: jest.fn(),
-        load: jest.fn()
-      })
+        load: jest.fn(),
+      }),
     };
 
     mockContext = {
       workbook: {
         customXmlParts: mockCustomXmlParts,
       },
-      sync: jest.fn()
+      sync: jest.fn(),
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext)
+      run: (callback: any) => callback(mockContext),
     };
 
     // DOMParser/XMLSerializer mocks
@@ -42,13 +38,14 @@ describe("Review Service Persistence", () => {
       parseFromString(_xml: string) {
         return {
           getElementsByTagName: (name: string) => {
-            if (name === "ReviewerComments") return [{ appendChild: jest.fn(), replaceChild: jest.fn(), removeChild: jest.fn() }];
+            if (name === "ReviewerComments")
+              return [{ appendChild: jest.fn(), replaceChild: jest.fn(), removeChild: jest.fn() }];
             if (name === "ReviewerComment") return [];
             if (name === "Id") return [];
             return [];
           },
           documentElement: {},
-          importNode: (node: any) => node
+          importNode: (node: any) => node,
         };
       }
     };
@@ -72,15 +69,18 @@ describe("Review Service Persistence", () => {
 
     await saveComment(comment);
 
-    expect(mockCustomXmlParts.getByNamespace).toHaveBeenCalledWith("http://schemas.crf-xl.com/review");
+    expect(mockCustomXmlParts.getByNamespace).toHaveBeenCalledWith(
+      "http://schemas.crf-xl.com/review"
+    );
   });
 
   it("should load comments from store", async () => {
     mockCustomXmlParts.getByNamespace.mockReturnValue({
       load: jest.fn(),
-      items: [{
-        load: jest.fn(),
-        xml: `<ReviewerComments xmlns="http://schemas.crf-xl.com/review">
+      items: [
+        {
+          load: jest.fn(),
+          xml: `<ReviewerComments xmlns="http://schemas.crf-xl.com/review">
                 <ReviewerComment>
                   <Id>id-1</Id>
                   <Author>User</Author>
@@ -89,29 +89,33 @@ describe("Review Service Persistence", () => {
                   <Status>open</Status>
                   <TargetEntityId>VAR1</TargetEntityId>
                 </ReviewerComment>
-              </ReviewerComments>`
-      }]
+              </ReviewerComments>`,
+        },
+      ],
     });
 
     (global as any).DOMParser = class {
       parseFromString() {
         return {
           getElementsByTagName: (name: string) => {
-            if (name === "ReviewerComment") return [{
-              getElementsByTagName: (subName: string) => {
-                const values: any = {
-                  Id: "id-1",
-                  Author: "User",
-                  Text: "Text",
-                  Timestamp: "2026-01-01",
-                  Status: "open",
-                  TargetEntityId: "VAR1"
-                };
-                return [{ textContent: values[subName] }];
-              }
-            }];
+            if (name === "ReviewerComment")
+              return [
+                {
+                  getElementsByTagName: (subName: string) => {
+                    const values: any = {
+                      Id: "id-1",
+                      Author: "User",
+                      Text: "Text",
+                      Timestamp: "2026-01-01",
+                      Status: "open",
+                      TargetEntityId: "VAR1",
+                    };
+                    return [{ textContent: values[subName] }];
+                  },
+                },
+              ];
             return [];
-          }
+          },
         };
       }
     };
@@ -123,6 +127,8 @@ describe("Review Service Persistence", () => {
 
   it("should delete from store", async () => {
     await deleteComment("id-1");
-    expect(mockCustomXmlParts.getByNamespace).toHaveBeenCalledWith("http://schemas.crf-xl.com/review");
+    expect(mockCustomXmlParts.getByNamespace).toHaveBeenCalledWith(
+      "http://schemas.crf-xl.com/review"
+    );
   });
 });

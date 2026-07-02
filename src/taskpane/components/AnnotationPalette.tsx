@@ -116,7 +116,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: "4px",
-  }
+  },
 });
 
 export const AnnotationPalette: React.FC = () => {
@@ -164,15 +164,15 @@ export const AnnotationPalette: React.FC = () => {
     annotationPaintbrushService.clearTargets();
   };
 
-  const getValidationIcon = (t: {sheetName: string, address: string}) => {
+  const getValidationIcon = (t: { sheetName: string; address: string }) => {
     const key = `${t.sheetName}!${t.address}`;
     const issues = state.validationIssues[key];
     if (!issues || issues.length === 0) {
       return <CheckmarkCircle16Regular style={{ color: tokens.colorPaletteGreenForeground1 }} />;
     }
 
-    const hasBlock = issues.some(i => getRepairPolicy(i).action === "Block");
-    const message = issues.map(i => i.message).join("\n");
+    const hasBlock = issues.some((i) => getRepairPolicy(i).action === "Block");
+    const message = issues.map((i) => i.message).join("\n");
 
     return (
       <Tooltip content={message} relationship="label">
@@ -200,21 +200,23 @@ export const AnnotationPalette: React.FC = () => {
 
       <div className={styles.field}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <Label htmlFor="anno-type">Annotation Template</Label>
-            <Button
-                size="small"
-                appearance="subtle"
-                icon={<ArrowImport16Regular />}
-                onClick={handlePickSource}
-            >
-                Pick Source
-            </Button>
+          <Label htmlFor="anno-type">Annotation Template</Label>
+          <Button
+            size="small"
+            appearance="subtle"
+            icon={<ArrowImport16Regular />}
+            onClick={handlePickSource}
+          >
+            Pick Source
+          </Button>
         </div>
         <div className={styles.sourceBox}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <Badge size="small" appearance="outline" color="brand">{state.activeType}</Badge>
-                <Body1 italic={!state.activeContent}>{state.activeContent || "Empty content"}</Body1>
-            </div>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Badge size="small" appearance="outline" color="brand">
+              {state.activeType}
+            </Badge>
+            <Body1 italic={!state.activeContent}>{state.activeContent || "Empty content"}</Body1>
+          </div>
         </div>
       </div>
 
@@ -251,59 +253,89 @@ export const AnnotationPalette: React.FC = () => {
         <div className={styles.activeIndicator}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <Badge color="brand" appearance="filled" size="small">Active</Badge>
-                <Body1 style={{ fontWeight: tokens.fontWeightBold }}>Targets ({state.pendingTargets.length})</Body1>
+              <Badge color="brand" appearance="filled" size="small">
+                Active
+              </Badge>
+              <Body1 style={{ fontWeight: tokens.fontWeightBold }}>
+                Targets ({state.pendingTargets.length})
+              </Body1>
             </div>
             {state.pendingTargets.length > 0 && (
-                <Button size="small" appearance="subtle" icon={<Delete16Regular />} onClick={handleClear} />
+              <Button
+                size="small"
+                appearance="subtle"
+                icon={<Delete16Regular />}
+                onClick={handleClear}
+              />
             )}
           </div>
 
           <div className={styles.targetList}>
             {state.pendingTargets.length === 0 ? (
-                <Body1 style={{ padding: "8px", color: tokens.colorNeutralForeground4, textAlign: "center" }}>
-                    Select cells in the workbook to add targets
-                </Body1>
+              <Body1
+                style={{
+                  padding: "8px",
+                  color: tokens.colorNeutralForeground4,
+                  textAlign: "center",
+                }}
+              >
+                Select cells in the workbook to add targets
+              </Body1>
             ) : (
-                state.pendingTargets.map((t, idx) => (
-                    <div key={`${t.sheetName}!${t.address}-${idx}`} className={styles.targetItem}>
-                        <div className={styles.targetAddress}>
-                            {getValidationIcon(t)}
-                            <span className={styles.addressText}>{t.sheetName}!{t.address}</span>
-                        </div>
-                        <Button
-                            size="small"
-                            appearance="subtle"
-                            icon={<DismissCircle16Regular fontSize={12} />}
-                            onClick={() => annotationPaintbrushService.toggleTarget(t.sheetName, t.address)}
-                        />
-                    </div>
-                ))
+              state.pendingTargets.map((t, idx) => (
+                <div key={`${t.sheetName}!${t.address}-${idx}`} className={styles.targetItem}>
+                  <div className={styles.targetAddress}>
+                    {getValidationIcon(t)}
+                    <span className={styles.addressText}>
+                      {t.sheetName}!{t.address}
+                    </span>
+                  </div>
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    icon={<DismissCircle16Regular fontSize={12} />}
+                    onClick={() => annotationPaintbrushService.toggleTarget(t.sheetName, t.address)}
+                  />
+                </div>
+              ))
             )}
           </div>
 
           <div className={styles.actions}>
             <Button
-                appearance="primary"
-                size="small"
-                style={{ flex: 1 }}
-                disabled={state.pendingTargets.length === 0 || Object.values(state.validationIssues).some(issues => issues.some(i => getRepairPolicy(i).action === "Block"))}
-                onClick={handleApply}
+              appearance="primary"
+              size="small"
+              style={{ flex: 1 }}
+              disabled={
+                state.pendingTargets.length === 0 ||
+                Object.values(state.validationIssues).some((issues) =>
+                  issues.some((i) => getRepairPolicy(i).action === "Block")
+                )
+              }
+              onClick={handleApply}
             >
-                Apply to {state.pendingTargets.length} Targets
+              Apply to {state.pendingTargets.length} Targets
             </Button>
             <Tooltip content="Undo last bulk apply" relationship="label">
-                <Button
-                    appearance="outline"
-                    size="small"
-                    icon={<History16Regular />}
-                    disabled={state.history.length === 0}
-                    onClick={handleUndo}
-                />
+              <Button
+                appearance="outline"
+                size="small"
+                icon={<History16Regular />}
+                disabled={state.history.length === 0}
+                onClick={handleUndo}
+              />
             </Tooltip>
           </div>
 
-          <div style={{ display: "flex", gap: "4px", alignItems: "center", color: tokens.colorNeutralForeground4, fontSize: tokens.fontSizeBase100 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              alignItems: "center",
+              color: tokens.colorNeutralForeground4,
+              fontSize: tokens.fontSizeBase100,
+            }}
+          >
             <Info16Regular />
             <span>Select cells in Excel to toggle targets.</span>
           </div>

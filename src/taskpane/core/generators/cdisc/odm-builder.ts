@@ -99,37 +99,43 @@ export async function generateOdmXml(
 
   // Gather synthetic rules from inline showIf and methods
   const syntheticRules: RuleDefinition[] = [];
-  Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
-    [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
-      [...group.items].sort((a,b) => (a.itemOid || "").localeCompare(b.itemOid || "")).forEach((item) => {
-        if (!isCrfItem(item)) return;
-        if (item.showIf) {
-          const hasCentralRule = study.rules?.some(
-            (r) =>
-              r.ruleType === RuleType.SHOW_IF &&
-              r.target &&
-              targetMatchesItem(r.target, item.itemOid)
-          );
-          if (!hasCentralRule) {
-            const ruleId = `COND.${item.itemOid}`;
-            const syntheticRule: RuleDefinition = {
-              ruleId,
-              ruleType: RuleType.SHOW_IF,
-              target: item.itemOid,
-              expression: item.showIf,
-              _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
-            };
-            try {
-              syntheticRule.ast = parseRuleExpression(item.showIf);
-            } catch (e) {
-              syntheticRule.parseError = e instanceof Error ? e.message : String(e);
-            }
-            syntheticRules.push(syntheticRule);
-          }
-        }
-      });
+  Object.values(study.forms)
+    .sort((a, b) => a.formOid.localeCompare(b.formOid))
+    .forEach((form) => {
+      [...form.itemGroups]
+        .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
+        .forEach((group) => {
+          [...group.items]
+            .sort((a, b) => (a.itemOid || "").localeCompare(b.itemOid || ""))
+            .forEach((item) => {
+              if (!isCrfItem(item)) return;
+              if (item.showIf) {
+                const hasCentralRule = study.rules?.some(
+                  (r) =>
+                    r.ruleType === RuleType.SHOW_IF &&
+                    r.target &&
+                    targetMatchesItem(r.target, item.itemOid)
+                );
+                if (!hasCentralRule) {
+                  const ruleId = `COND.${item.itemOid}`;
+                  const syntheticRule: RuleDefinition = {
+                    ruleId,
+                    ruleType: RuleType.SHOW_IF,
+                    target: item.itemOid,
+                    expression: item.showIf,
+                    _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
+                  };
+                  try {
+                    syntheticRule.ast = parseRuleExpression(item.showIf);
+                  } catch (e) {
+                    syntheticRule.parseError = e instanceof Error ? e.message : String(e);
+                  }
+                  syntheticRules.push(syntheticRule);
+                }
+              }
+            });
+        });
     });
-  });
 
   if (study.methods) {
     Object.values(study.methods).forEach((method) => {
@@ -194,18 +200,24 @@ export async function generateOdmXml(
 
     // Check if targets exist in study design for SHOW_IF and DERIVATION rules
     const studyItemOids = new Set<string>();
-    Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
-      [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
-        [...group.items].sort((a,b) => (a.itemOid || "").localeCompare(b.itemOid || "")).forEach((item) => {
-          if (!isCrfItem(item)) {
-            return;
-          }
-          if (item.itemOid) {
-            studyItemOids.add(item.itemOid.toLowerCase());
-          }
-        });
+    Object.values(study.forms)
+      .sort((a, b) => a.formOid.localeCompare(b.formOid))
+      .forEach((form) => {
+        [...form.itemGroups]
+          .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
+          .forEach((group) => {
+            [...group.items]
+              .sort((a, b) => (a.itemOid || "").localeCompare(b.itemOid || ""))
+              .forEach((item) => {
+                if (!isCrfItem(item)) {
+                  return;
+                }
+                if (item.itemOid) {
+                  studyItemOids.add(item.itemOid.toLowerCase());
+                }
+              });
+          });
       });
-    });
 
     allRules.forEach((rule) => {
       if (rule.target) {
@@ -269,36 +281,46 @@ export async function generateOdmXml(
   // 1. Protocol / Event References
   xml += `
       <Protocol>`;
-  [...study.events].sort((a,b) => a.eventOid.localeCompare(b.eventOid)).forEach((event) => {
-    xml += `
+  [...study.events]
+    .sort((a, b) => a.eventOid.localeCompare(b.eventOid))
+    .forEach((event) => {
+      xml += `
         <StudyEventRef StudyEventOID="${escapeXml(event.eventOid)}" OrderNumber="${event.orderNumber}" Mandatory="Yes"/>`;
-  });
+    });
   xml += `
       </Protocol>`;
 
   // 2. Study Event Definitions (Visits)
-  [...study.events].sort((a,b) => a.eventOid.localeCompare(b.eventOid)).forEach((event) => {
-    xml += `
-      <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
-    [...event.forms].sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((fRef) => {
+  [...study.events]
+    .sort((a, b) => a.eventOid.localeCompare(b.eventOid))
+    .forEach((event) => {
       xml += `
+      <StudyEventDef OID="${escapeXml(event.eventOid)}" Name="${escapeXml(event.eventName)}" Type="${escapeXml(event.eventType || "Scheduled")}" Repeating="No">`;
+      [...event.forms]
+        .sort((a, b) => a.formOid.localeCompare(b.formOid))
+        .forEach((fRef) => {
+          xml += `
         <FormRef FormOID="${escapeXml(fRef.formOid)}" OrderNumber="${fRef.orderNumber}" Mandatory="${fRef.mandatory ? "Yes" : "No"}"/>`;
-    });
-    xml += `
+        });
+      xml += `
       </StudyEventDef>`;
-  });
+    });
 
   // 3. Form Definitions (Pages)
-  Object.values(study.forms).sort((a,b) => a.formOid.localeCompare(b.formOid)).forEach((form) => {
-    xml += `
-      <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
-    [...form.itemGroups].sort((a,b) => a.groupOid.localeCompare(b.groupOid)).forEach((group) => {
+  Object.values(study.forms)
+    .sort((a, b) => a.formOid.localeCompare(b.formOid))
+    .forEach((form) => {
       xml += `
+      <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
+      [...form.itemGroups]
+        .sort((a, b) => a.groupOid.localeCompare(b.groupOid))
+        .forEach((group) => {
+          xml += `
         <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
-    });
-    xml += `
+        });
+      xml += `
       </FormDef>`;
-  });
+    });
 
   // 4. ItemGroup Definitions (Sections/Grids)
   Object.values(study.forms).forEach((form) => {
@@ -338,7 +360,9 @@ export async function generateOdmXml(
         // MethodOID on ItemRef
         const derivationRule = allRules.find(
           (r) =>
-            r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+            r.ruleType === RuleType.DERIVATION &&
+            r.target &&
+            targetMatchesItem(r.target, item.itemOid)
         );
         let methodAttr = "";
         const effectiveMethodOid = item.methodOid || derivationRule?.ruleId;
@@ -386,12 +410,16 @@ export async function generateOdmXml(
   });
 
   // 6. CodeLists (Dictionaries)
-  Object.values(study.codelists).sort((a,b) => a.codelistId.localeCompare(b.codelistId)).forEach((cl) => {
-    const odmType = mapDataTypeToOdm(cl.dataType);
-    xml += `
-      <CodeList OID="${escapeXml(cl.codelistId)}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
-    [...cl.items].sort((a,b) => String(a.codedValue).localeCompare(String(b.codedValue))).forEach((clItem) => {
+  Object.values(study.codelists)
+    .sort((a, b) => a.codelistId.localeCompare(b.codelistId))
+    .forEach((cl) => {
+      const odmType = mapDataTypeToOdm(cl.dataType);
       xml += `
+      <CodeList OID="${escapeXml(cl.codelistId)}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
+      [...cl.items]
+        .sort((a, b) => String(a.codedValue).localeCompare(String(b.codedValue)))
+        .forEach((clItem) => {
+          xml += `
         <CodeListItem CodedValue="${escapeXml(clItem.codedValue)}">
           <Decode>${renderTranslatedText(
             clItem.decodedText,
@@ -401,10 +429,10 @@ export async function generateOdmXml(
             `Codelist ${cl.codelistId} Item ${clItem.codedValue}`
           )}</Decode>
         </CodeListItem>`;
-    });
-    xml += `
+        });
+      xml += `
       </CodeList>`;
-  });
+    });
 
   // 7. Condition Definitions (both inline and centralized rules)
   const processedConditions = new Set<string>();
@@ -543,7 +571,9 @@ export async function generateOdmXml(
       if (method.description) {
         descElement = `
         <Description>${renderTranslatedText(
-          typeof method.description === "string" ? { "en-US": method.description } : method.description,
+          typeof method.description === "string"
+            ? { "en-US": method.description }
+            : method.description,
           options.exportOptions,
           study.metadata.defaultLanguage,
           serializationWarnings,
@@ -621,7 +651,7 @@ function renderItemDef(
   if (item.sdtmMapping?.sasFieldName) {
     output += ` SASFieldName="${escapeXml(item.sdtmMapping.sasFieldName)}"`;
   }
-  
+
   const sasLabel = item.sdtmMapping?.sasLabel || item.adamMapping?.sasLabel;
   if (sasLabel) {
     output += ` SASLabel="${escapeXml(sasLabel)}"`;
@@ -635,8 +665,6 @@ function renderItemDef(
   if (effectiveMethodOid) {
     output += ` MethodOID="${escapeXml(effectiveMethodOid)}"`;
   }
-
-
 
   if (item.comment) {
     output += ` Comment="${escapeXml(item.comment)}"`;
@@ -686,7 +714,7 @@ function renderItemDef(
     output += `
         <Alias Context="SDTM" Name="${escapeXml(item.sdtmMapping.domain + "." + item.sdtmMapping.variable)}"/>`;
   }
-  
+
   if (item.sdtmMapping?.sasFieldName) {
     output += `
         <Alias Context="SAS" Name="${escapeXml(item.sdtmMapping.sasFieldName)}"/>`;
@@ -760,7 +788,9 @@ function renderTranslatedText(
 
     translations.forEach((t) => {
       if (t.isFallback && warnings) {
-        warnings.push(`Fallback used for ${context || "content"}: '${t.locale}' was not found, using fallback.`);
+        warnings.push(
+          `Fallback used for ${context || "content"}: '${t.locale}' was not found, using fallback.`
+        );
       }
       output += `<TranslatedText xml:lang="${t.locale}">${escapeXml(t.content)}</TranslatedText>`;
     });

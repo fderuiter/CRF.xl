@@ -32,10 +32,7 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import {
-  importOdmXml,
-  OdmImportPackage,
-} from "../../core";
+import { importOdmXml, OdmImportPackage } from "../../core";
 import { formatNumber } from "../../core/utils/locale-utils";
 import {
   createImportManifest,
@@ -49,12 +46,7 @@ import { speculativeSyncManager, getPredictedStudyDesign } from "../../core";
 // Types
 // ---------------------------------------------------------------------------
 
-type WizardStage =
-  | "scan"
-  | "parse"
-  | "preview"
-  | "confirm"
-  | "summary";
+type WizardStage = "scan" | "parse" | "preview" | "confirm" | "summary";
 
 interface WizardState {
   stage: WizardStage;
@@ -233,8 +225,6 @@ const STAGE_LABELS: Record<WizardStage, string> = {
 
 const STAGE_ORDER: WizardStage[] = ["scan", "parse", "preview", "confirm", "summary"];
 
-
-
 // ---------------------------------------------------------------------------
 // Component props
 // ---------------------------------------------------------------------------
@@ -318,15 +308,15 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
       await speculativeSyncManager.startSync(importPackage.projection, predictedStudy, null);
 
       // Build provenance and manifest.
-      const sourceId =
-        importPackage.study.metadata.protocolId || "unknown-odm-source";
+      const sourceId = importPackage.study.metadata.protocolId || "unknown-odm-source";
       const provenance = createImportProvenance(
         sourceId,
         "odm-xml",
         importPackage.study.metadata.version
       );
       const rowsWritten =
-        (importPackage.projection.studyRows.length - 1) +
+        importPackage.projection.studyRows.length -
+        1 +
         (importPackage.projection.formsRows.length - 1) +
         (importPackage.projection.codelistRows.length - 1);
       const sheetsWritten = ["_Study", "_Forms", "_Codelists"];
@@ -356,11 +346,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
         <div
           key={s}
           className={`${styles.stepDot} ${
-            i < stageIndex
-              ? styles.stepDotDone
-              : i === stageIndex
-              ? styles.stepDotActive
-              : ""
+            i < stageIndex ? styles.stepDotDone : i === stageIndex ? styles.stepDotActive : ""
           }`}
         />
       ))}
@@ -397,9 +383,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
             </tbody>
           </table>
         </div>
-        {overflow > 0 && (
-          <Body1 className={styles.desc}>…and {overflow} more row(s).</Body1>
-        )}
+        {overflow > 0 && <Body1 className={styles.desc}>…and {overflow} more row(s).</Body1>}
       </>
     );
   }
@@ -411,8 +395,8 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
   const renderScan = () => (
     <>
       <Body1 className={styles.desc}>
-        Paste CDISC ODM XML below, or load a file from disk. CRF.xl will parse the supported
-        ODM v1 subset and preview the import before any workbook changes are made.
+        Paste CDISC ODM XML below, or load a file from disk. CRF.xl will parse the supported ODM v1
+        subset and preview the import before any workbook changes are made.
       </Body1>
 
       <textarea
@@ -463,9 +447,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
     </>
   );
 
-  const renderParse = () => (
-    <Spinner size="small" label="Parsing ODM XML…" />
-  );
+  const renderParse = () => <Spinner size="small" label="Parsing ODM XML…" />;
 
   const renderPreview = () => {
     const { importPackage } = state;
@@ -488,7 +470,12 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
             <MessageBar intent="error" style={{ width: "100%" }}>
               <MessageBarBody>
                 <strong>[{d.category}]</strong> {d.message}
-                {d.location && <> — <em>{d.location}</em></>}
+                {d.location && (
+                  <>
+                    {" "}
+                    — <em>{d.location}</em>
+                  </>
+                )}
               </MessageBarBody>
             </MessageBar>
           </div>
@@ -498,7 +485,12 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
             <MessageBar intent="warning" style={{ width: "100%" }}>
               <MessageBarBody>
                 <strong>[{d.category}]</strong> {d.message}
-                {d.location && <> — <em>{d.location}</em></>}
+                {d.location && (
+                  <>
+                    {" "}
+                    — <em>{d.location}</em>
+                  </>
+                )}
               </MessageBarBody>
             </MessageBar>
           </div>
@@ -507,21 +499,15 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
         {/* Study summary */}
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryValue}>
-              {summary.actionsCount.addedForms}
-            </span>
+            <span className={styles.summaryValue}>{summary.actionsCount.addedForms}</span>
             <span className={styles.summaryLabel}>Forms detected</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryValue}>
-              {summary.actionsCount.addedCodelists}
-            </span>
+            <span className={styles.summaryValue}>{summary.actionsCount.addedCodelists}</span>
             <span className={styles.summaryLabel}>Codelists detected</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryValue}>
-              {summary.actionsCount.addedCodelistItems}
-            </span>
+            <span className={styles.summaryValue}>{summary.actionsCount.addedCodelistItems}</span>
             <span className={styles.summaryLabel}>Codelist items</span>
           </div>
           <div className={styles.summaryItem}>
@@ -532,8 +518,8 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
                   summary.status === "conflicts"
                     ? tokens.colorPaletteRedForeground1
                     : summary.status === "warnings"
-                    ? tokens.colorPaletteDarkOrangeForeground1
-                    : tokens.colorPaletteGreenForeground1,
+                      ? tokens.colorPaletteDarkOrangeForeground1
+                      : tokens.colorPaletteGreenForeground1,
               }}
             >
               {summary.status}
@@ -579,15 +565,16 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
     if (!importPackage) return null;
     const { projection } = importPackage;
     const totalRows =
-      (projection.studyRows.length - 1) +
+      projection.studyRows.length -
+      1 +
       (projection.formsRows.length - 1) +
       (projection.codelistRows.length - 1);
 
     return (
       <>
         <Body1 className={styles.desc}>
-          This is a <strong>dry-run preview</strong>. Review the data below and confirm to write
-          it into your workbook. The <strong>_Study</strong>, <strong>_Forms</strong>, and{" "}
+          This is a <strong>dry-run preview</strong>. Review the data below and confirm to write it
+          into your workbook. The <strong>_Study</strong>, <strong>_Forms</strong>, and{" "}
           <strong>_Codelists</strong> sheets will be overwritten.
         </Body1>
 
@@ -615,10 +602,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
         {renderPreviewTable(projection.codelistRows)}
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ stage: "preview" })}
-          >
+          <Button appearance="secondary" onClick={() => patch({ stage: "preview" })}>
             ← Back
           </Button>
           <Button
@@ -660,7 +644,9 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
           </div>
           <div className={styles.summaryItem} style={{ gridColumn: "1 / -1" }}>
             <span className={styles.summaryLabel}>Protocol</span>
-            <span style={{ fontSize: tokens.fontSizeBase300, fontWeight: tokens.fontWeightSemibold }}>
+            <span
+              style={{ fontSize: tokens.fontSizeBase300, fontWeight: tokens.fontWeightSemibold }}
+            >
               {importPackage.study.metadata.protocolId} — {importPackage.study.metadata.studyName}
             </span>
           </div>
@@ -679,15 +665,12 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
 
         <Body1 className={styles.desc}>
           The import is complete and a provenance record has been saved to sessionStorage. Review
-          the system sheets to verify the ingested data, then run a full workbook analysis from
-          the registry.
+          the system sheets to verify the ingested data, then run a full workbook analysis from the
+          registry.
         </Body1>
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ ...INITIAL_STATE })}
-          >
+          <Button appearance="secondary" onClick={() => patch({ ...INITIAL_STATE })}>
             Start New Import
           </Button>
           <Button appearance="primary" onClick={onClose}>
@@ -726,11 +709,7 @@ export const OdmImportWizard: React.FC<OdmImportWizardProps> = ({ onClose }) => 
       <Card className={styles.card}>
         <div className={styles.header}>
           <span className={styles.stageTitle}>🔄 ODM Import Wizard</span>
-          <Badge
-            appearance="tint"
-            color="informative"
-            className={styles.stageBadge}
-          >
+          <Badge appearance="tint" color="informative" className={styles.stageBadge}>
             {STAGE_LABELS[state.stage]}
           </Badge>
         </div>

@@ -184,7 +184,7 @@ export async function updateCommentStatus(
   reviewerName?: string
 ): Promise<void> {
   const comments = await loadComments();
-  const comment = comments.find(c => c.id === id);
+  const comment = comments.find((c) => c.id === id);
   if (comment) {
     comment.status = status;
     if (status === "resolved") {

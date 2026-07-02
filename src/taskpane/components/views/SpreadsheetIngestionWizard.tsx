@@ -309,9 +309,7 @@ const STRUCTURE_ICONS: Record<TargetSheet, string> = {
   codelists: "📖",
 };
 
-function confidenceBadgeColor(
-  c: FieldMapping["confidence"]
-): "success" | "warning" | "danger" {
+function confidenceBadgeColor(c: FieldMapping["confidence"]): "success" | "warning" | "danger" {
   if (c === "high") return "success";
   if (c === "medium") return "warning";
   return "danger";
@@ -453,14 +451,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   // -------------------------------------------------------------------------
   // Stage 4: user overrides a column mapping
   // -------------------------------------------------------------------------
-  const handleMappingChange = (
-    targetField: TargetField,
-    columnIndex: number | null
-  ) => {
+  const handleMappingChange = (targetField: TargetField, columnIndex: number | null) => {
     setState((current) => {
       const col =
         columnIndex !== null
-          ? current.scanResult?.columnCandidates.find((c) => c.columnIndex === columnIndex) ?? null
+          ? (current.scanResult?.columnCandidates.find((c) => c.columnIndex === columnIndex) ??
+            null)
           : null;
       return {
         ...current,
@@ -503,7 +499,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     patch({
       isProcessing: true,
       error: null,
-      syncProgress: { processed: 0, total: state.scanResult.rowCount, cancelRequested: false }
+      syncProgress: { processed: 0, total: state.scanResult.rowCount, cancelRequested: false },
     });
 
     try {
@@ -536,9 +532,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
           await ctx.sync();
 
           const sourceRows = sourceRange.values as string[][];
-          const mappedRows = sourceRows.map((r) =>
-            mapRow(r, mappings, state.confirmedStructure!)
-          );
+          const mappedRows = sourceRows.map((r) => mapRow(r, mappings, state.confirmedStructure!));
 
           if (state.confirmedStructure === "codelists") {
             const clSheet = sheets.getItem("_Codelists");
@@ -566,9 +560,21 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
               formSheet = sheets.add(formSheetName);
               // Add headers if new sheet
               const headers = [
-                "Variable Name", "Label", "Variable Type", "Required", "Length", "Significant Digits",
-                "Minimum", "Maximum", "Show If", "Codelist ID", "Origin", "Method OID", "SDTM Domain",
-                "SDTM Variable", "Comment",
+                "Variable Name",
+                "Label",
+                "Variable Type",
+                "Required",
+                "Length",
+                "Significant Digits",
+                "Minimum",
+                "Maximum",
+                "Show If",
+                "Codelist ID",
+                "Origin",
+                "Method OID",
+                "SDTM Domain",
+                "SDTM Variable",
+                "Comment",
               ];
               formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
             }
@@ -576,7 +582,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             used.load("rowCount");
             await ctx.sync();
             const startRow = used.rowCount > 0 ? used.rowCount : 0;
-            const range = formSheet.getRangeByIndexes(startRow, 0, mappedRows.length, mappedRows[0].length);
+            const range = formSheet.getRangeByIndexes(
+              startRow,
+              0,
+              mappedRows.length,
+              mappedRows[0].length
+            );
             range.values = mappedRows as string[][];
             targetSheetName = formSheetName;
           }
@@ -606,11 +617,10 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             rowsWritten,
             targetSheet: targetSheetName,
             message: `Partial import: ${rowsWritten} row(s) imported before cancellation.`,
-            warnings: (state.preview.diagnostics || []).filter(
-              (d) => d.severity === "warning"
-            ).length,
+            warnings: (state.preview.diagnostics || []).filter((d) => d.severity === "warning")
+              .length,
           },
-          stage: "post-import-summary"
+          stage: "post-import-summary",
         });
         return;
       }
@@ -649,11 +659,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         <div
           key={s}
           className={`${styles.stepDot} ${
-            i < stageIndex
-              ? styles.stepDotDone
-              : i === stageIndex
-              ? styles.stepDotActive
-              : ""
+            i < stageIndex ? styles.stepDotDone : i === stageIndex ? styles.stepDotActive : ""
           }`}
         />
       ))}
@@ -756,10 +762,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         </div>
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ stage: "source-selection" })}
-          >
+          <Button appearance="secondary" onClick={() => patch({ stage: "source-selection" })}>
             ← Back
           </Button>
           <Button
@@ -790,8 +793,8 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     return (
       <>
         <Body1 className={styles.desc}>
-          Map source columns to CRF.xl target fields. Auto-detected suggestions are shown.
-          Override any mapping using the dropdowns. Required fields are marked with *.
+          Map source columns to CRF.xl target fields. Auto-detected suggestions are shown. Override
+          any mapping using the dropdowns. Required fields are marked with *.
         </Body1>
 
         <div className={styles.mappingList}>
@@ -818,15 +821,11 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                 <Field>
                   <Dropdown
                     value={
-                      columnsWithNone.find((c) => c.value === currentValue)?.label ??
-                      "(not mapped)"
+                      columnsWithNone.find((c) => c.value === currentValue)?.label ?? "(not mapped)"
                     }
                     onOptionSelect={(_ev, data) => {
                       const idx = data.optionValue ? parseInt(data.optionValue, 10) : -1;
-                      handleMappingChange(
-                        mapping.targetField,
-                        idx === -1 ? null : idx
-                      );
+                      handleMappingChange(mapping.targetField, idx === -1 ? null : idx);
                     }}
                   >
                     {columnsWithNone.map((c) => (
@@ -863,10 +862,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         )}
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ stage: "structure-detection" })}
-          >
+          <Button appearance="secondary" onClick={() => patch({ stage: "structure-detection" })}>
             ← Back
           </Button>
           <Button appearance="primary" onClick={handleBuildPreview}>
@@ -886,7 +882,9 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       <>
         {errors.length === 0 && warnings.length === 0 && (
           <MessageBar intent="success">
-            <MessageBarBody>No issues found. All required fields are mapped correctly.</MessageBarBody>
+            <MessageBarBody>
+              No issues found. All required fields are mapped correctly.
+            </MessageBarBody>
           </MessageBar>
         )}
         {errors.map((d, i) => (
@@ -909,10 +907,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         ))}
 
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            onClick={() => patch({ stage: "field-mapping" })}
-          >
+          <Button appearance="secondary" onClick={() => patch({ stage: "field-mapping" })}>
             ← Back to Mappings
           </Button>
           <Button
@@ -935,8 +930,8 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       preview.projectedRows.formItemRows.length > 0
         ? preview.projectedRows.formItemRows
         : preview.projectedRows.formsRows.length > 0
-        ? preview.projectedRows.formsRows
-        : preview.projectedRows.codelistRows;
+          ? preview.projectedRows.formsRows
+          : preview.projectedRows.codelistRows;
 
     const headerRow = allRows[0] ?? [];
     const dataRows = allRows.slice(1);
@@ -953,10 +948,10 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             {dataRows.length} row(s) will be appended to{" "}
             <strong>
               {state.confirmedStructure === "form_item"
-                ? state.targetFormSheet ?? state.selectedSheet ?? "the target form sheet"
+                ? (state.targetFormSheet ?? state.selectedSheet ?? "the target form sheet")
                 : state.confirmedStructure === "forms_registry"
-                ? "_Forms"
-                : "_Codelists"}
+                  ? "_Forms"
+                  : "_Codelists"}
             </strong>
             .
           </MessageBarBody>
@@ -1008,10 +1003,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             ← Back
           </Button>
           {!state.isProcessing ? (
-            <Button
-              appearance="primary"
-              onClick={handleCommit}
-            >
+            <Button appearance="primary" onClick={handleCommit}>
               Confirm Import ✓
             </Button>
           ) : (
@@ -1023,7 +1015,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                   if (current.syncProgress) {
                     return {
                       ...current,
-                      syncProgress: { ...current.syncProgress, cancelRequested: true }
+                      syncProgress: { ...current.syncProgress, cancelRequested: true },
                     };
                   }
                   return current;
@@ -1057,13 +1049,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             <span className={styles.summaryLabel}>Warnings</span>
           </div>
           <div className={styles.summaryItem} style={{ gridColumn: "1 / -1" }}>
-            <span
-              className={styles.summaryLabel}
-              style={{ color: tokens.colorNeutralForeground1 }}
-            >
+            <span className={styles.summaryLabel} style={{ color: tokens.colorNeutralForeground1 }}>
               Target sheet
             </span>
-            <span style={{ fontSize: tokens.fontSizeBase300, fontWeight: tokens.fontWeightSemibold }}>
+            <span
+              style={{ fontSize: tokens.fontSizeBase300, fontWeight: tokens.fontWeightSemibold }}
+            >
               {importResult.targetSheet}
             </span>
           </div>
@@ -1077,9 +1068,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         <div className={styles.actions}>
           <Button
             appearance="secondary"
-            onClick={() =>
-              patch({ ...INITIAL_STATE, availableSheets: state.availableSheets })
-            }
+            onClick={() => patch({ ...INITIAL_STATE, availableSheets: state.availableSheets })}
           >
             Start New Ingestion
           </Button>
@@ -1122,14 +1111,8 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     <div className={styles.root}>
       <Card className={styles.card}>
         <div className={styles.header}>
-          <span className={styles.stageTitle}>
-            📥 Ingestion Wizard
-          </span>
-          <Badge
-            appearance="tint"
-            color="informative"
-            className={styles.stageBadge}
-          >
+          <span className={styles.stageTitle}>📥 Ingestion Wizard</span>
+          <Badge appearance="tint" color="informative" className={styles.stageBadge}>
             {STAGE_LABELS[state.stage]}
           </Badge>
         </div>

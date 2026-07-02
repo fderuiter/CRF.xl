@@ -30,27 +30,32 @@ interface TourStep {
 const TOUR_STEPS: TourStep[] = [
   {
     title: "Welcome to CRF.xl",
-    description: "Initialize your clinical study by setting up the Matrix Architecture. Click 'Initialize Canvas' to start.",
+    description:
+      "Initialize your clinical study by setting up the Matrix Architecture. Click 'Initialize Canvas' to start.",
     anchorId: "tour-init-canvas",
   },
   {
     title: "System Registry",
-    description: "Define global protocol metadata and register your forms. Use 'Sync Form Sheets' to generate authoring tabs for each form.",
+    description:
+      "Define global protocol metadata and register your forms. Use 'Sync Form Sheets' to generate authoring tabs for each form.",
     anchorId: "tour-registry",
   },
   {
     title: "Form Authoring",
-    description: "Use context-aware tools and the Annotation Paintbrush to rapidly author CRF fields and clinical annotations.",
+    description:
+      "Use context-aware tools and the Annotation Paintbrush to rapidly author CRF fields and clinical annotations.",
     anchorId: "tour-authoring",
   },
   {
     title: "Visit Matrix",
-    description: "Manage your study schedule, track form/visit assignments, and run compliance exports for CDISC submissions.",
+    description:
+      "Manage your study schedule, track form/visit assignments, and run compliance exports for CDISC submissions.",
     anchorId: "tour-matrix",
   },
   {
     title: "Integrity Hub",
-    description: "Review critical errors, warnings, and study changes. Sign-off on the design when it's reviewer-ready.",
+    description:
+      "Review critical errors, warnings, and study changes. Sign-off on the design when it's reviewer-ready.",
     anchorId: "tour-integrity",
   },
 ];
@@ -104,9 +109,7 @@ export const OnboardingTour: React.FC = () => {
           Step {stepIndex + 1} of {TOUR_STEPS.length}
         </TeachingPopoverHeader>
         <TeachingPopoverTitle>{currentStep.title}</TeachingPopoverTitle>
-        <TeachingPopoverBody>
-          {currentStep.description}
-        </TeachingPopoverBody>
+        <TeachingPopoverBody>{currentStep.description}</TeachingPopoverBody>
         <TeachingPopoverFooter
           primary={
             <Button appearance="primary" onClick={handleNext}>

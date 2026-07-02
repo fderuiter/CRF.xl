@@ -691,7 +691,7 @@ export function validateMappings(
   // --- Ambiguous: multiple mappings pointing to the same source column ---
   const mappedWithSource = mappings.filter((m) => m.sourceColumn);
   const sourceColumnUsage = groupBy(mappedWithSource, (m) => m.sourceColumn!.columnIndex);
-  
+
   sourceColumnUsage.forEach((mappingsGroup, colIdx) => {
     if (mappingsGroup.length > 1) {
       const fieldLabels = mappingsGroup
