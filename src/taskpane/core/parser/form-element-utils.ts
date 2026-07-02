@@ -3,7 +3,7 @@
  */
 import { CrfDisplayBlock, CrfFormElement, CrfItem } from "../types";
 import { LinguisticService } from "../services/linguistics-service";
-import { normalizeDataOrigin } from "./metadata-utils";
+import { normalizeDataOrigin, normalizeOid } from "./metadata-utils";
 import { parseNumber } from "../utils/locale-utils";
 
 const DISPLAY_BLOCK_TYPES = ["heading", "instruction", "separator"] as const;
@@ -107,7 +107,7 @@ function mapRowToItem(
     const normalizedHeader = header.toLowerCase().trim();
 
     if (normalizedHeader === "variable name") {
-      item.itemOid = String(value).trim().toUpperCase();
+      item.itemOid = normalizeOid(value);
       item.name = item.itemOid;
     }
     if (
@@ -146,7 +146,7 @@ function mapRowToItem(
       }
     }
     if (normalizedHeader === "show if") item.showIf = String(value);
-    if (normalizedHeader === "codelist id") item.codelistId = String(value).trim().toUpperCase();
+    if (normalizedHeader === "codelist id") item.codelistId = normalizeOid(value);
     if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value);
     if (normalizedHeader === "methodoid" || normalizedHeader === "method oid")
       item.methodOid = String(value).trim();
