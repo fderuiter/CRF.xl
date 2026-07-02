@@ -10,17 +10,12 @@ import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { diffStudyDesigns } from "./diff-engine";
 import { WorkbookProjection } from "./migration-pipeline";
 import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";
-
-export interface SyncChunk {
-  sheetName: string;
-  data: string[][];
-  startIndex: number;
-  isFirstChunk: boolean;
-}
+import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
+import { createRetryMiddleware } from "../engine/middlewares";
 
 export interface SpeculativeSyncOperation {
   id: string;
-  chunks: SyncChunk[];
+  plans: ExecutionPlan<string[]>[];
   predictedStudy: StudyDesign;
   snapshotFingerprints: Record<string, string>;
   recoverySnapshot: StudyDesign | null; // For rollback
@@ -74,19 +69,6 @@ class SpeculativeSyncManager {
     return CryptoJS.SHA256(JSON.stringify(range.values)).toString();
   }
 
-  public buildChunks(sheetName: string, rows: string[][], chunkSize: number = 500): SyncChunk[] {
-    const chunks: SyncChunk[] = [];
-    for (let i = 0; i < rows.length; i += chunkSize) {
-      chunks.push({
-        sheetName,
-        data: rows.slice(i, i + chunkSize),
-        startIndex: i,
-        isFirstChunk: i === 0,
-      });
-    }
-    return chunks;
-  }
-
   public async startSync(
     projection: WorkbookProjection,
     predictedStudy: StudyDesign,
@@ -94,10 +76,10 @@ class SpeculativeSyncManager {
   ) {
     if (this.state === "syncing") return;
 
-    const chunks: SyncChunk[] = [
-      ...this.buildChunks("_Study", projection.studyRows || []),
-      ...this.buildChunks("_Forms", projection.formsRows || []),
-      ...this.buildChunks("_Codelists", projection.codelistRows || []),
+    const plans: ExecutionPlan<string[]>[] = [
+      { id: "_Study", data: (projection.studyRows as string[][]) || [] },
+      { id: "_Forms", data: (projection.formsRows as string[][]) || [] },
+      { id: "_Codelists", data: (projection.codelistRows as string[][]) || [] },
     ];
 
     let snapshotFingerprints: Record<string, string> = {};
@@ -109,7 +91,7 @@ class SpeculativeSyncManager {
 
     this.currentOp = {
       id: Date.now().toString(),
-      chunks,
+      plans,
       predictedStudy,
       snapshotFingerprints,
       recoverySnapshot: baselineStudy,
@@ -123,87 +105,112 @@ class SpeculativeSyncManager {
 
   private async executeSyncBackground() {
     if (!this.currentOp) return;
-    const { chunks, snapshotFingerprints, predictedStudy, recoverySnapshot } = this.currentOp;
+    const { predictedStudy, recoverySnapshot, plans } = this.currentOp;
 
-    let expectedFingerprints = { ...snapshotFingerprints };
+    const engine = new ChunkingEngine<string[]>({
+      chunkSize: 500
+    });
 
-    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-      if (this.state !== "syncing") break;
-
-      const chunk = chunks[chunkIndex];
-      let success = false;
-      let retries = 0;
-
-      while (!success && retries < 15) {
-        try {
-          await Excel.run(async (ctx) => {
-            const currentFp = await this.getSheetFingerprint(ctx, chunk.sheetName);
-            if (currentFp !== expectedFingerprints[chunk.sheetName]) {
-              throw new Error("FINGERPRINT_MISMATCH");
-            }
-
-            const sheet = ctx.workbook.worksheets.getItemOrNullObject(chunk.sheetName);
-            await ctx.sync();
-            const target = sheet.isNullObject
-              ? ctx.workbook.worksheets.add(chunk.sheetName)
-              : sheet;
-
-            if (chunk.isFirstChunk && !sheet.isNullObject) {
-              target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
-              await ctx.sync();
-            }
-
-            if (chunk.data.length > 0) {
-              const range = target.getRangeByIndexes(
-                chunk.startIndex,
-                0,
-                chunk.data.length,
-                chunk.data[0].length
-              );
-              range.values = chunk.data;
-            }
-            await ctx.sync();
-
-            expectedFingerprints[chunk.sheetName] = await this.getSheetFingerprint(
-              ctx,
-              chunk.sheetName
-            );
-          });
-          success = true;
-        } catch (e: any) {
-          if (e.message === "FINGERPRINT_MISMATCH") {
-            try {
-              const currentStudyResult = await parseExcelToStudyDesign();
-              const currentStudy = currentStudyResult.studyDesign;
-              const diff = diffStudyDesigns(predictedStudy, currentStudy);
-              this.notify("conflict", { diff, recoverySnapshot });
-            } catch (parseErr) {
-              this.notify("conflict", { diff: null, recoverySnapshot });
-            }
-            return;
-          }
-
-          const errClass = classifyOfficeError(e);
-          if (errClass === "excelBusy") {
-            await new Promise((r) => setTimeout(r, 2000));
-            retries++;
-          } else {
-            this.notify("error", { error: e });
-            return;
-          }
-        }
+    // Fingerprint middleware
+    engine.use(async (ctx, _chunk, next) => {
+      const sheetName = ctx.id;
+      if (this.state !== "syncing") {
+        throw new Error("CANCELLED");
       }
+      
+      await Excel.run(async (excelCtx) => {
+        const currentFp = await this.getSheetFingerprint(excelCtx, sheetName);
+        if (currentFp !== this.currentOp!.snapshotFingerprints[sheetName]) {
+          throw new Error("FINGERPRINT_MISMATCH");
+        }
+      });
+      
+      await next();
+      
+      if (this.state !== "syncing") {
+        throw new Error("CANCELLED");
+      }
+      
+      await Excel.run(async (excelCtx) => {
+         this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(excelCtx, sheetName);
+      });
+    });
 
-      if (!success) {
-        this.notify("error", { error: new Error("Failed after retries") });
+    // Retry middleware
+    engine.use(createRetryMiddleware({
+      maxRetries: 15,
+      delayMs: 2000,
+      shouldRetry: (error) => {
+        if (error.message === "FINGERPRINT_MISMATCH" || error.message === "CANCELLED") return false;
+        const errClass = classifyOfficeError(error);
+        return errClass === "excelBusy";
+      }
+    }));
+
+    // Progress listener 1: State management
+    engine.on("progress", (_data: any) => {
+      // For potential UI progress bar binding
+    });
+
+    // Progress listener 2: Telemetry/Diagnostics
+    engine.on("progress", (data: any) => {
+      console.log(`[Telemetry] Speculative Sync Progress: ${data.completed}/${data.total} for plan ${data.planId}`);
+    });
+    
+    let errorCaught = false;
+
+    // Observe error
+    engine.on("error", async (error: any) => {
+      errorCaught = true;
+      if (error.message === "CANCELLED") return;
+      if (error.message === "FINGERPRINT_MISMATCH") {
+        try {
+          const currentStudyResult = await parseExcelToStudyDesign();
+          const currentStudy = currentStudyResult.studyDesign;
+          const diff = diffStudyDesigns(predictedStudy, currentStudy);
+          this.notify("conflict", { diff, recoverySnapshot });
+        } catch (parseErr) {
+          this.notify("conflict", { diff: null, recoverySnapshot });
+        }
         return;
       }
+      this.notify("error", { error });
+    });
 
-      await new Promise((r) => setTimeout(r, 20)); // Yield
+    try {
+      await engine.execute(plans, async (chunk, ctx) => {
+        await Excel.run(async (excelCtx) => {
+          const sheet = excelCtx.workbook.worksheets.getItemOrNullObject(ctx.id);
+          await excelCtx.sync();
+          const target = sheet.isNullObject
+            ? excelCtx.workbook.worksheets.add(ctx.id)
+            : sheet;
+
+          if (ctx.isFirstChunk && !sheet.isNullObject) {
+            target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
+            await excelCtx.sync();
+          }
+
+          if (chunk.length > 0) {
+            const range = target.getRangeByIndexes(
+              ctx.startIndex,
+              0,
+              chunk.length,
+              chunk[0].length
+            );
+            range.values = chunk;
+          }
+          await excelCtx.sync();
+        });
+      });
+
+      if (this.state === "syncing" && !errorCaught) {
+        this.notify("idle");
+        this.currentOp = null;
+      }
+    } catch (e: any) {
+      // Already handled by error listener
     }
-
-    this.notify("idle");
-    this.currentOp = null;
   }
 
   public async rollback() {
