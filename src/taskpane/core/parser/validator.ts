@@ -65,7 +65,7 @@ export async function validateStudyDesign(
         if (!isCrfItem(item)) {
           return;
         }
-        const row = (item as Record<string, unknown>).rowIndex as number;
+        const row = (item as unknown as Record<string, unknown>).rowIndex as number;
         const sheet = form.formOid;
 
         // Check Missing Variables
@@ -333,7 +333,7 @@ export function validateCrossFormDependencies(
             item,
             formOid: form.formOid,
             groupOid: group.groupOid,
-            rowIndex: (item as Record<string, unknown>).rowIndex as number,
+            rowIndex: (item as unknown as Record<string, unknown>).rowIndex as number,
           });
         }
       });
@@ -613,7 +613,7 @@ export function validateCrossFormDependencies(
             form.formOid,
             item.itemOid,
             "Item",
-            (item as Record<string, unknown>).rowIndex as number,
+            (item as unknown as Record<string, unknown>).rowIndex as number,
             item.showIf,
             "ShowIf"
           );
@@ -763,7 +763,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           if (!isCrfItem(item)) {
             return;
           }
-          const row = (item as Record<string, unknown>).rowIndex as number;
+          const row = (item as unknown as Record<string, unknown>).rowIndex as number;
           const sheet = form.formOid;
 
           // 1. Validate SDTM Variable Mapping
