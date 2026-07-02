@@ -1,3 +1,6 @@
+/**
+ * @issue #44, #56
+ */
 import {
   StudyDesign,
   StudyEvent,
