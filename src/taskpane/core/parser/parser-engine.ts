@@ -313,7 +313,7 @@ export async function parseRawDataToStudyDesign(
         eventType: EventType.SCHEDULED,
         forms: [],
         rowIndex: 0,
-      } as unknown as CrfEvent;
+      } as unknown as StudyEvent;
 
       for (let row = 1; row < schedSheetVals.length; row++) {
         const formOid = normalizeOid(schedSheetVals[row][0]);

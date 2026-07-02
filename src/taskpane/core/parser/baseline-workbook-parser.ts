@@ -128,7 +128,7 @@ export async function parseWorkbookSheetValuesToStudyDesign(
         eventType: EventType.SCHEDULED,
         forms: [],
         rowIndex: 0,
-      } as unknown as CrfEvent;
+      } as unknown as StudyEvent;
       for (let row = 1; row < scheduleRows.length; row += 1) {
         const formOid = String(scheduleRows[row][0]).trim();
         const marker = String(scheduleRows[row][col]).trim().toUpperCase();
