@@ -94,6 +94,21 @@ async function main() {
   const validIssues = await fetchAllIssues();
 
   const files = walk(SRC_DIR);
+  const DOCS_DIR = path.join(__dirname, "../docs");
+  const docFiles = [];
+  const walkDocs = (dir) => {
+    const list = fs.readdirSync(dir);
+    list.forEach((file) => {
+      const filePath = path.join(dir, file);
+      const stat = fs.statSync(filePath);
+      if (stat && stat.isDirectory()) {
+        walkDocs(filePath);
+      } else if (filePath.endsWith(".md")) {
+        docFiles.push(filePath);
+      }
+    });
+  };
+  walkDocs(DOCS_DIR);
 
   const issueToFiles = new Map();
   let missingTags = [];
@@ -121,6 +136,24 @@ async function main() {
         invalidIssues.push({ file: relPath, issue: num });
       }
 
+      if (!issueToFiles.has(num)) {
+        issueToFiles.set(num, []);
+      }
+      issueToFiles.get(num).push(relPath);
+    }
+  }
+
+  for (const file of docFiles) {
+    const relPath = path.relative(path.join(__dirname, ".."), file).replace(/\\/g, "/");
+    const content = fs.readFileSync(file, "utf8");
+    const tagMatch = content.match(/@issue\s+([^\n*>-]+)/);
+    if (!tagMatch) continue;
+
+    const issueNumbers = [...tagMatch[1].matchAll(/#(\d+)/g)].map((m) => m[1]);
+    for (const num of issueNumbers) {
+      if (validIssues.size > 0 && !validIssues.has(num)) {
+        invalidIssues.push({ file: relPath, issue: num });
+      }
       if (!issueToFiles.has(num)) {
         issueToFiles.set(num, []);
       }
