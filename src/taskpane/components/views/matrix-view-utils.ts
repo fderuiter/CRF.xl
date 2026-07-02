@@ -30,12 +30,10 @@ export interface MatrixSearchEntry {
   requiredCount: number;
   optionalCount: number;
   dataTypes: DataType[];
-  previewItems: string[];
+  previewSource: MatrixIndexedItem[];
   searchText: string;
   items: MatrixIndexedItem[];
 }
-
-const PREVIEW_LIMIT = 3;
 
 export function normalizeMatrixSearch(value: string): string {
   return value.replace(/\s+/g, " ").trim().toLowerCase();
@@ -80,9 +78,7 @@ export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] 
             dataTypes: Array.from(new Set(items.map((item) => item.dataType as string))).sort(
               (left, right) => left.localeCompare(right)
             ),
-            previewItems: items
-              .slice(0, PREVIEW_LIMIT)
-              .map((item) => `${item.itemOid} — ${item.itemLabel}`),
+            previewSource: items,
             searchText: normalizeMatrixSearch(
               `${form.formOid} ${form.formName} ${event.eventOid} ${event.eventName} ${items
                 .map((item) => `${item.itemOid} ${item.itemLabel}`)
@@ -126,9 +122,7 @@ export function filterMatrixSearchIndex(
 
     results.push({
       ...entry,
-      previewItems: previewSource
-        .slice(0, PREVIEW_LIMIT)
-        .map((item) => `${item.itemOid} — ${item.itemLabel}`),
+      previewSource,
     });
 
     return results;

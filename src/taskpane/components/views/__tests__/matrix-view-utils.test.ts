@@ -157,7 +157,7 @@ describe("matrix-view-utils", () => {
     expect(results).toHaveLength(1);
     expect(results[0].formOid).toBe("FORM_001");
     expect(results[0].eventOid).toBe("VISIT_1");
-    expect(results[0].previewItems[0]).toContain("SUBJID");
+    expect(results[0].previewSource[0].itemOid).toContain("SUBJID");
   });
 
   it("stays responsive for a 500-entry matrix index", () => {
