@@ -121,7 +121,7 @@ export async function validateStudyDesign(
         const length = parseNumber(item.length as any);
         const significantDigits = parseNumber(item.significantDigits as any);
 
-        if (hasLength && (!Number.isInteger(length) || length <= 0)) {
+        if (hasLength && (length === undefined || !Number.isInteger(length) || length <= 0)) {
           issues.push({
             level: "Error",
             message: "Length must be a positive integer.",
@@ -133,7 +133,7 @@ export async function validateStudyDesign(
 
         if (
           hasSignificantDigits &&
-          (!Number.isInteger(significantDigits) || significantDigits < 0)
+          (significantDigits === undefined || !Number.isInteger(significantDigits) || significantDigits < 0)
         ) {
           issues.push({
             level: "Error",
@@ -187,6 +187,8 @@ export async function validateStudyDesign(
         if (
           hasLength &&
           hasSignificantDigits &&
+          length !== undefined &&
+          significantDigits !== undefined &&
           Number.isInteger(length) &&
           length > 0 &&
           Number.isInteger(significantDigits) &&

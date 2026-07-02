@@ -2,20 +2,54 @@
  * @issue #28
  */
 import { StudyDesign } from "../types/hierarchy";
+import { studyDesignSchema } from "../types/schemas";
 import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
+import { ZodError } from "zod";
+
+type LegacyItem = Record<string, unknown> & {
+  nodeType?: string;
+  sdtmMapping?: Record<string, unknown>;
+  adamMapping?: Record<string, unknown>;
+  origin?: string;
+};
+
+type LegacyGroup = Record<string, unknown> & {
+  items?: LegacyItem[];
+};
+
+type LegacyForm = Record<string, unknown> & {
+  itemGroups?: LegacyGroup[];
+};
+
+interface LegacyStudy extends Record<string, unknown> {
+  submissionMetadata?: {
+    sdtmDatasets?: unknown[];
+    adamDatasets?: unknown[];
+    sdtmDerivations?: unknown[];
+    adamDerivations?: unknown[];
+    sdtmVariableMetadata?: unknown[];
+    adamVariableMetadata?: unknown[];
+    comments?: unknown[];
+    standards?: unknown[];
+  };
+  forms?: Record<string, LegacyForm>;
+  methods?: Record<string, { referencedVariables?: unknown }>;
+}
 
 /**
  * Migrates a parsed study design object to ensure all new submission metadata
  * fields exist, providing smooth backward compatibility for legacy parsed data.
  */
-export function migrateStudyDesign(study: any): StudyDesign {
+export function migrateStudyDesign(study: unknown): StudyDesign {
   if (!study) {
-    return study;
+    return study as StudyDesign;
   }
 
+  const s = study as LegacyStudy;
+
   // Ensure submissionMetadata and its sub-arrays are fully initialized
-  if (!study.submissionMetadata) {
-    study.submissionMetadata = {
+  if (!s.submissionMetadata) {
+    s.submissionMetadata = {
       sdtmDatasets: [],
       adamDatasets: [],
       sdtmDerivations: [],
@@ -26,25 +60,25 @@ export function migrateStudyDesign(study: any): StudyDesign {
       standards: [],
     };
   } else {
-    study.submissionMetadata.sdtmDatasets = study.submissionMetadata.sdtmDatasets || [];
-    study.submissionMetadata.adamDatasets = study.submissionMetadata.adamDatasets || [];
-    study.submissionMetadata.sdtmDerivations = study.submissionMetadata.sdtmDerivations || [];
-    study.submissionMetadata.adamDerivations = study.submissionMetadata.adamDerivations || [];
-    study.submissionMetadata.sdtmVariableMetadata =
-      study.submissionMetadata.sdtmVariableMetadata || [];
-    study.submissionMetadata.adamVariableMetadata =
-      study.submissionMetadata.adamVariableMetadata || [];
-    study.submissionMetadata.comments = study.submissionMetadata.comments || [];
-    study.submissionMetadata.standards = study.submissionMetadata.standards || [];
+    s.submissionMetadata.sdtmDatasets = s.submissionMetadata.sdtmDatasets || [];
+    s.submissionMetadata.adamDatasets = s.submissionMetadata.adamDatasets || [];
+    s.submissionMetadata.sdtmDerivations = s.submissionMetadata.sdtmDerivations || [];
+    s.submissionMetadata.adamDerivations = s.submissionMetadata.adamDerivations || [];
+    s.submissionMetadata.sdtmVariableMetadata =
+      s.submissionMetadata.sdtmVariableMetadata || [];
+    s.submissionMetadata.adamVariableMetadata =
+      s.submissionMetadata.adamVariableMetadata || [];
+    s.submissionMetadata.comments = s.submissionMetadata.comments || [];
+    s.submissionMetadata.standards = s.submissionMetadata.standards || [];
   }
 
   // Ensure sdtmMapping and adamMapping exist on all items
-  if (study.forms) {
-    Object.values(study.forms).forEach((form: any) => {
+  if (s.forms) {
+    Object.values(s.forms).forEach((form: LegacyForm) => {
       if (form && form.itemGroups) {
-        form.itemGroups.forEach((group: any) => {
+        form.itemGroups.forEach((group: LegacyGroup) => {
           if (group && group.items) {
-            group.items.forEach((item: any) => {
+            group.items.forEach((item: LegacyItem) => {
               if (item.nodeType === "display") {
                 return;
               }
@@ -65,13 +99,24 @@ export function migrateStudyDesign(study: any): StudyDesign {
     });
   }
 
-  if (study.methods) {
-    Object.values(study.methods).forEach((method: any) => {
+  if (s.methods) {
+    Object.values(s.methods).forEach((method) => {
       if (typeof method.referencedVariables === "string") {
         method.referencedVariables = parseReferencedVariables(method.referencedVariables);
       }
     });
   }
 
-  return study as StudyDesign;
+  try {
+    return studyDesignSchema.parse(s) as StudyDesign;
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const issues = error.issues.map((e: unknown) => {
+        const issue = e as { path: string[], message: string };
+        return `${issue.path.join('.')}: ${issue.message}`;
+      }).join(', ');
+      throw new Error(`Schema validation failed: ${issues}`);
+    }
+    throw error;
+  }
 }

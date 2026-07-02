@@ -136,11 +136,11 @@ class BindingService {
     }
   }
 
-  private handleSheetActivated() {
+  private async handleSheetActivated(): Promise<void> {
     this.debouncedRefresh();
   }
 
-  private handleSelectionChanged() {
+  private async handleSelectionChanged(): Promise<void> {
     if (this.isInternalOperation) return;
     this.debouncedRefresh();
   }
