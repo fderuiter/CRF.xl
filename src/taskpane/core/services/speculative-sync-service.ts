@@ -112,7 +112,7 @@ class SpeculativeSyncManager {
     });
 
     // Fingerprint middleware
-    engine.use(async (ctx, chunk, next) => {
+    engine.use(async (ctx, _chunk, next) => {
       const sheetName = ctx.id;
       if (this.state !== "syncing") {
         throw new Error("CANCELLED");
@@ -148,7 +148,7 @@ class SpeculativeSyncManager {
     }));
 
     // Progress listener 1: State management
-    engine.on("progress", (data: any) => {
+    engine.on("progress", (_data: any) => {
       // For potential UI progress bar binding
     });
 

@@ -10,7 +10,7 @@ export interface RetryPolicy {
 }
 
 export function createRetryMiddleware<T>(policy: RetryPolicy): Middleware<T> {
-  return async (ctx, chunk, next) => {
+  return async (_ctx, _chunk, next) => {
     let retries = 0;
     while (true) {
       try {
