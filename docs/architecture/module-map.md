@@ -198,7 +198,7 @@ Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) 
 **Upstream:** Office.js Excel API, `core/types/validation.ts`
 **Downstream:** `App.tsx`, `components/views/AuthoringView.tsx`
 **Owning issues:** #84
-**Risk:** `risk:excel-runtime` — painting performance degrades on large sheets
+**Risk:** `risk:excel-runtime` — painting performance degrades on large sheets. See [Office.js Runtime Risk Register](./office-runtime-risk-register.md).
 
 ---
 

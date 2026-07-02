@@ -159,7 +159,7 @@ A stream answers: **which delivery lane owns this work?** If an issue crosses ar
 
 | Label | Indicates |
 |-------|-----------|
-| `risk:excel-runtime` | Issue involves Office.js behavior that has known runtime risk |
+| `risk:excel-runtime` | Issue involves Office.js behavior that has known runtime risk. See [Office.js Runtime Risk Register](../architecture/office-runtime-risk-register.md) |
 | `risk:clinical-validation` | Issue affects clinical data validation logic |
 | `risk:compliance` | Issue touches GxP or regulatory compliance surface |
 | `risk:data-loss` | Issue involves operations that could cause data loss |
