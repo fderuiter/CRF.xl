@@ -2,7 +2,9 @@
 
 This document describes every module in `src/taskpane/core/`, its responsibility, primary public interface, upstream/downstream dependencies, and owning issue. Also lists expected-but-absent modules that are planned but not yet implemented.
 
-Related: [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) — backlog-to-code alignment matrix.
+Related:
+- [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) — backlog-to-code alignment matrix.
+- [`docs/architecture/adr-index.md`](./adr-index.md) — architectural decision records index.
 
 ---
 
