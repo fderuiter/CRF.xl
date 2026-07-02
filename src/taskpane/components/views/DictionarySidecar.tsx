@@ -37,6 +37,7 @@ import { LinguisticService } from "../../core";
 import { createCdiscApiService, CdiscCtPackage, CdiscCtTerm, CdiscApiFailure } from "../../core";
 import { getDictionaryPreview } from "./dictionary-sidecar-utils";
 import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "../../core";
+import { announcer } from "../../core/services/announcer";
 import {
   buildCtImportPlan,
   executeCtImport,
@@ -623,10 +624,13 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setImportSummary(summary);
 
       if (summary.errors.length === 0) {
+        announcer.announce("Dictionary Import Complete: Successfully imported terminology.", "polite");
         setLastActionStatus({ type: "imported", message: "CDISC CT Import complete." });
         setTimeout(() => setLastActionStatus(null), 3000);
         // Reload the codelist library after a successful import
         await loadData();
+      } else {
+        announcer.announce(`Dictionary Import Complete with ${summary.errors.length} errors.`, "polite");
       }
     } catch (error) {
       const diagnostic = createOfficeDiagnostic(error);

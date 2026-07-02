@@ -4,6 +4,7 @@
 import { StudyDesign } from "../types/index";
 import { ValidationIssue } from "../types";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
+import { announcer } from "./announcer";
 
 export interface ValidationState {
   isProcessing: boolean;
@@ -116,6 +117,7 @@ class BackgroundValidationEngine {
           : "Specification clean",
       };
       this.notify();
+      announcer.announce("Validation Complete", "polite");
     } catch (e) {
       if (signal.aborted) return;
       this.state = {
