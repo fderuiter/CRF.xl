@@ -1,86 +1,70 @@
 # Definition of Ready and Definition of Done
 
-This document defines the quality gates for CRF.xl issues. An issue is **ready** when it can be picked up without blockers or ambiguity. An issue is **done** when it can be closed without rework.
+This document defines the explicit, checkable quality gates for CRF.xl issues.
 
 ---
 
-## Definition of Ready
+## Definition of Ready (DoR)
 
-An issue is ready to be started when **all** of the following are true:
+An issue is **Ready** when it can be picked up for execution without ambiguity or pending blockers.
 
-### Required for all issue types
-- [ ] Has a clear objective or outcome statement
-- [ ] Has `type:*`, `status:ready`, `priority:*`, `stream:*`, and one or two `area:*` labels
+### General Criteria (Required for all types)
+- [ ] Has all required taxonomy labels: `type:*`, `status:ready`, `priority:*`, `stream:*`, `area:*`
 - [ ] Has exactly one milestone assigned
-- [ ] All upstream blockers are identified (via dependency comments and body references)
-- [ ] No unresolved design questions that would stop implementation mid-work
+- [ ] All blocking dependencies identified (via dependency comments and body references)
+- [ ] No unresolved design questions that would block implementation
 
-### Required for epics
-- [ ] Outcome, In Scope, Out of Scope, Child Issues, Dependencies, and Exit Criteria sections present
-- [ ] At least one decomposed child issue exists
+### type:epic
+- [ ] **Outcome** and **Exit Criteria** sections present
+- [ ] **In Scope** and **Out of Scope** sections defined
+- [ ] At least one decomposed child issue exists and is linked
+- [ ] High-level implementation strategy is documented
 
-### Required for features and tasks
-- [ ] Objective, Scope, Acceptance Criteria, Dependencies, Out of Scope, and Codebase Alignment sections present
+### type:feature
+- [ ] **Objective**, **Scope**, and **Acceptance Criteria** sections present
+- [ ] **Out of Scope** section explicitly defines boundaries
+- [ ] **Codebase Alignment** section names specific files or modules affected
 - [ ] Acceptance criteria are binary-checkable (not vague)
-- [ ] Codebase Alignment section names the specific files or modules affected
 
-### Required for doc issues
-- [ ] Target file path identified
-- [ ] Section headings or outline specified
-- [ ] Any referenced issues or modules named
+### type:task
+- [ ] **Objective** and **Deliverable** clearly stated
+- [ ] **Scope** and **Acceptance Criteria** defined
+- [ ] If technical, **Codebase Alignment** section included
 
----
-
-## Definition of Done
-
-An issue is done and may be closed when **all** of the following are true:
-
-### Required for all issue types
-- [ ] All acceptance criteria are checked off in the issue body
-- [ ] If the issue changed a module's public interface: `docs/architecture/module-map.md` is updated
-- [ ] If a new module was added or an absent module was implemented: module-map.md updated and codebase-alignment.md updated
-- [ ] PR is reviewed, CI is green, and merged to main
-
-### Required for features and tasks
-- [ ] Tests cover all new surface area
-- [ ] If behavior visible to users changed: README updated
-- [ ] If a new file was added to `src/taskpane/core/`: module-map.md has an entry
-
-### Required for epics
-- [ ] All child issues are closed
-- [ ] Exit criteria in the epic body are checked off
-- [ ] Codebase-alignment.md updated to reflect implementation status change
-
-### Required for doc issues
-- [ ] Target file exists at the documented path
-- [ ] File is linked from README or the relevant governance/architecture doc
-- [ ] Referenced issues are still accurate (not stale)
+### type:docs
+- [ ] **Target File** path identified
+- [ ] **Outline** or section headings specified
+- [ ] **Acceptance Criteria** define what constitutes a complete document
 
 ---
 
-## Issue type-specific notes
+## Definition of Done (DoD)
 
-### `type:epic`
-Epics are closed only when all child issues are done and exit criteria are satisfied. Epics are never closed mid-stream because some children shipped — partial completion is tracked via child issue status.
+An issue is **Done** and may be closed when it meets all acceptance criteria and satisfies structural requirements.
 
-### `type:feature`
-Features must have real codebase surface (code, tests) before they are done. Design-only or spec-only work should remain `status:needs-design` or be tracked as a `type:task`.
+### General Criteria (Required for all types)
+- [ ] All acceptance criteria in the issue body are checked off
+- [ ] PR is reviewed, CI is green, and merged to `main`
+- [ ] If a new module was added: `docs/architecture/module-map.md` updated
+- [ ] If the module map changed or implementation status updated: `docs/github/codebase-alignment.md` updated
+- [ ] README or other docs updated if public behavior or architecture changed
 
-### `type:task`
-Tasks may produce: documentation, configuration, scripts, or design artifacts. The output type must be stated in the issue. Done when the stated output exists and is linked.
+### type:epic
+- [ ] All mandatory child issues are closed
+- [ ] Exit criteria in the epic body are fully satisfied
+- [ ] Final architecture/implementation documented in relevant `docs/`
 
-### `type:governance`
-Governance issues are done when the structural change they track (label fix, milestone assignment, sub-issue encoding) is verified in the live repo.
+### type:feature
+- [ ] Implementation matches all acceptance criteria
+- [ ] Tests cover all new surface area (unit/integration/e2e)
+- [ ] Documentation updated to reflect new capability
+- [ ] Codebase alignment verified via `npm run docs:traceability`
 
-### `type:docs`
-Documentation issues are done when the file exists, is accurate, and is linked from at least one other document.
+### type:task
+- [ ] Stated deliverable (script, config, design, etc.) exists and is verified
+- [ ] Documentation updated if the task changed a process or environment
 
----
-
-## Blocked issues
-
-An issue with `status:blocked` does not qualify as ready. Before setting `status:ready`:
-1. Confirm the upstream dependency has shipped
-2. Remove or update the dependency comment
-3. Verify the issue body's Dependencies section is accurate
-4. Then change the label to `status:ready`
+### type:docs
+- [ ] Target file exists at the correct path and is fully populated
+- [ ] Document is linked from the README or a parent governance/architecture file
+- [ ] Content is verified for accuracy and technical alignment
