@@ -37,7 +37,7 @@ describe("OnboardingTour", () => {
     });
 
     render(<OnboardingTour />);
-    expect(screen.queryByText(/Step 1 of 5/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Step 1 of 7/i)).not.toBeInTheDocument();
   });
 
   it("renders the first step when active", () => {
@@ -48,7 +48,7 @@ describe("OnboardingTour", () => {
     });
 
     render(<OnboardingTour />);
-    expect(screen.getByText(/Step 1 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step 1 of 7/i)).toBeInTheDocument();
     expect(screen.getByText(/Welcome to CRF.xl/i)).toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe("OnboardingTour", () => {
   it("calls finish when Finish button is clicked on last step", () => {
     (onboardingService.getState as jest.Mock).mockReturnValue({
       isActive: true,
-      currentStep: 4,
+      currentStep: 6,
       isCompleted: false,
     });
 

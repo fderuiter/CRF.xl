@@ -58,6 +58,18 @@ const TOUR_STEPS: TourStep[] = [
       "Review critical errors, warnings, and study changes. Sign-off on the design when it's reviewer-ready.",
     anchorId: "tour-integrity",
   },
+  {
+    title: "Review Mode",
+    description:
+      "Collaborate with clinical reviewers. Pin comments directly to clinical entities and resolve findings within the aCRF preview.",
+    anchorId: "tour-review-mode",
+  },
+  {
+    title: "Reviewer Package",
+    description:
+      "Generate a complete Reviewer Package including the annotated PDF, verification reports, and metadata summaries for final submission.",
+    anchorId: "tour-export-reviewer-package",
+  },
 ];
 
 export const OnboardingTour: React.FC = () => {

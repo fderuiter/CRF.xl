@@ -13,7 +13,12 @@ import {
   Card,
 } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, WarningRegular, ChevronRightRegular } from "@fluentui/react-icons";
-import { StudyDesign, ValidationIssue } from "../../core";
+import {
+  StudyDesign,
+  ValidationIssue,
+  AcrfVerificationResult,
+  AcrfVerificationIssue,
+} from "../../core";
 import { AcrfPreview } from "../AcrfPreview";
 import { useReviewSession } from "../../hooks/useReviewSession";
 
@@ -127,24 +132,38 @@ interface ReviewViewProps {
 export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
   const styles = useStyles();
   const [acknowledgedWarnings, setAcknowledgedWarnings] = React.useState<Set<string>>(new Set());
+  const [pipelineVerification, setPipelineVerification] =
+    React.useState<AcrfVerificationResult | null>(null);
 
   // Review Mode state
   const { comments, addComment, resolveComment, reopenComment, deleteComment, refreshComments } =
     useReviewSession("Clinical Reviewer");
 
-  // In a real app, these would come from the aCRF pipeline verification results.
-  // For the workflow UI, we'll use the passed in issues as a proxy.
-  const criticalErrors = issues.filter((i) => i.level === "Error");
-  const warnings = issues.filter((i) => i.level === "Warning");
-  const unacknowledgedWarnings = warnings.filter(
-    (w) => !acknowledgedWarnings.has(w.message + w.location)
-  );
+  // Determine readiness based on pipeline verification if available, otherwise fallback to general issues
+  const verificationIssues = pipelineVerification?.issues || [];
+  const criticalErrors = pipelineVerification
+    ? verificationIssues.filter((i) => i.severity === "error")
+    : issues.filter((i) => i.level === "Error");
+
+  const warnings = pipelineVerification
+    ? verificationIssues.filter((i) => i.severity === "warning")
+    : issues.filter((i) => i.level === "Warning");
+
+  const unacknowledgedWarnings = warnings.filter((w) => {
+    const key = pipelineVerification
+      ? w.message + (w.location || (w as AcrfVerificationIssue).category)
+      : (w as ValidationIssue).message + (w as ValidationIssue).location;
+    return !acknowledgedWarnings.has(key);
+  });
 
   const isReady = criticalErrors.length === 0 && unacknowledgedWarnings.length === 0;
 
   const stages: { label: string; status: "complete" | "active" | "pending" }[] = [
     { label: "Enter", status: "complete" as const },
-    { label: "Inspect", status: (issues.length > 0 ? "active" : "complete") as any },
+    {
+      label: "Inspect",
+      status: (verificationIssues.length > 0 ? "active" : "complete") as any,
+    },
     { label: "Navigate", status: "active" as const },
     {
       label: "Fix/Ack",
@@ -258,6 +277,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ study, issues }) => {
             onReopenReviewComment={reopenComment}
             onDeleteReviewComment={deleteComment}
             onRefreshPreview={refreshComments}
+            onPipelineVerification={setPipelineVerification}
           />
         </div>
       </div>

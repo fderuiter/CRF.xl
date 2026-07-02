@@ -154,6 +154,8 @@ export interface AnnotatedCrfPipelineResult {
   blob?: Blob;
   pdfBlob?: Blob;
   docxBlob?: Blob;
+  humanReadableReport?: string;
+  metadataSummary?: string;
 }
 
 /**
