@@ -1,3 +1,4 @@
+/** @issue #331 */
 export type AnnouncementPriority = "polite" | "assertive";
 
 interface Announcement {
@@ -28,7 +29,7 @@ class AnnouncerUtility {
     if (match) {
       const percentage = parseInt(match[1], 10);
       const boundary = Math.floor(percentage / 25) * 25;
-      
+
       if (boundary === this.lastPercentageReported && percentage !== 100 && percentage !== 0) {
         return; // throttle until next 25% boundary
       }
@@ -38,13 +39,13 @@ class AnnouncerUtility {
       // Throttle high-frequency polite updates, except for completion or cancellation events
       const isTerminal = message.includes("Complete") || message.includes("Cancelled");
       if (!isTerminal && priority === "polite" && now - this.lastAnnounceTime < 2000) {
-         return;
+        return;
       }
     }
 
     this.lastMessage = message;
     this.lastAnnounceTime = Date.now();
-    
+
     const announcement = { id: ++this.messageId, message, priority };
     this.subscribers.forEach((sub) => sub(announcement));
   }

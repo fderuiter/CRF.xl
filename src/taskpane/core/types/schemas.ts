@@ -1,5 +1,20 @@
+/** @issue #331 */
 import { z } from "zod";
-import { DataType, DictionaryType, DataOrigin, CollectionMethod, SdvTier, FormType, PaperLayoutFormat, GroupLayout, FormLayout, PageLayout, SignatureMeaning, EventType, SystemTriggerType } from "./enums";
+import {
+  DataType,
+  DictionaryType,
+  DataOrigin,
+  CollectionMethod,
+  SdvTier,
+  FormType,
+  PaperLayoutFormat,
+  GroupLayout,
+  FormLayout,
+  PageLayout,
+  SignatureMeaning,
+  EventType,
+  SystemTriggerType,
+} from "./enums";
 
 export const systemTriggerSchema = z.object({
   triggerType: z.nativeEnum(SystemTriggerType),

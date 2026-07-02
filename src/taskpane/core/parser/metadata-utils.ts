@@ -55,7 +55,6 @@ export function normalizeOid(oid: unknown): string {
   return trimmed.replace(/^([^:]+:|MV\.)/i, "").trim();
 }
 
-
 export function normalizeDataType(value: unknown): DataType {
   const normalized = String(value || "")
     .trim()

@@ -1,3 +1,4 @@
+/** @issue #331 */
 import { z } from "zod";
 
 const TranslatedTextSchema = z.record(z.string(), z.string());

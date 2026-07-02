@@ -282,8 +282,12 @@ describe("Schema Migration Utility", () => {
     };
 
     expect(() => migrateStudyDesign(malformedStudy)).toThrow("Schema validation failed");
-    expect(() => migrateStudyDesign(malformedStudy)).toThrow("metadata.protocolId: Invalid input: expected string, received undefined");
-    expect(() => migrateStudyDesign(malformedStudy)).toThrow("metadata.studyName: Invalid input: expected string, received undefined");
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow(
+      "metadata.protocolId: Invalid input: expected string, received undefined"
+    );
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow(
+      "metadata.studyName: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should reject a study design with malformed events", () => {
@@ -308,6 +312,8 @@ describe("Schema Migration Utility", () => {
     };
 
     expect(() => migrateStudyDesign(malformedStudy)).toThrow("Schema validation failed");
-    expect(() => migrateStudyDesign(malformedStudy)).toThrow("events.0.eventName: Invalid input: expected string, received undefined");
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow(
+      "events.0.eventName: Invalid input: expected string, received undefined"
+    );
   });
 });

@@ -329,7 +329,11 @@ export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProje
             codelist.codelistId,
             codelist.codelistName,
             item.codedValue,
-            LinguisticService.resolveTranslation(item.decodedText as any, study.metadata.defaultLanguage, study.metadata.defaultLanguage).content,
+            LinguisticService.resolveTranslation(
+              item.decodedText as any,
+              study.metadata.defaultLanguage,
+              study.metadata.defaultLanguage
+            ).content,
           ]);
         });
     });
