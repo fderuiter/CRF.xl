@@ -55,9 +55,6 @@ export function normalizeOid(oid: unknown): string {
   return trimmed.replace(/^([^:]+:|MV\.)/i, "").trim();
 }
 
-export function compareOids(oid1: unknown, oid2: unknown): boolean {
-  return normalizeOid(oid1).toLowerCase() === normalizeOid(oid2).toLowerCase();
-}
 
 export function normalizeDataType(value: unknown): DataType {
   const normalized = String(value || "")
