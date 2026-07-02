@@ -132,10 +132,12 @@ const StudyMetadataSchema = z.object({
   customProperties: z.record(z.string(), z.unknown()).optional(),
 });
 
+import { studyEventSchema, crfFormSchema } from "../types/schemas";
+
 export const StudyDesignSchema = z.object({
   metadata: StudyMetadataSchema,
-  events: z.array(z.unknown()), // relaxed for now, or we can make it thorough
-  forms: z.record(z.string(), z.unknown()),
+  events: z.array(studyEventSchema),
+  forms: z.record(z.string(), crfFormSchema),
   codelists: z.record(z.string(), z.unknown()),
   rules: z.array(z.unknown()).optional(),
   methods: z.record(z.string(), z.unknown()).optional(),

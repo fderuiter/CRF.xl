@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-import { StudyDesign, isCrfItem } from "../../core/types";
+import { StudyDesign, isCrfItem, DataType } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";
 
@@ -15,7 +15,7 @@ export interface MatrixSearchFilters {
 interface MatrixIndexedItem {
   itemOid: string;
   itemLabel: string;
-  dataType: string;
+  dataType: DataType;
   required: boolean;
   searchText: string;
 }
@@ -29,7 +29,7 @@ export interface MatrixSearchEntry {
   itemCount: number;
   requiredCount: number;
   optionalCount: number;
-  dataTypes: string[];
+  dataTypes: DataType[];
   previewItems: string[];
   searchText: string;
   items: MatrixIndexedItem[];

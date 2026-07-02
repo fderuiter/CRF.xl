@@ -269,4 +269,45 @@ describe("Schema Migration Utility", () => {
     expect(item.origin).toBe("Pre-Specified");
     expect(migrated.methods?.M_BMI.referencedVariables).toEqual(["WEIGHT", "HEIGHT"]);
   });
+
+  it("should reject a study design missing required metadata fields", () => {
+    const malformedStudy: any = {
+      metadata: {
+        // missing protocolId, studyName, etc.
+        version: "1.0",
+      },
+      events: [],
+      forms: {},
+      codelists: {},
+    };
+
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow("Schema validation failed");
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow("metadata.protocolId: Invalid input: expected string, received undefined");
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow("metadata.studyName: Invalid input: expected string, received undefined");
+  });
+
+  it("should reject a study design with malformed events", () => {
+    const malformedStudy: any = {
+      metadata: {
+        protocolId: "T101",
+        studyName: "Test Study",
+        version: "1.0",
+        defaultLanguage: "en-US",
+      },
+      events: [
+        {
+          eventOid: "E1",
+          // missing eventName
+          eventType: "Scheduled", // Valid event type
+          orderNumber: 1,
+          forms: [],
+        },
+      ],
+      forms: {},
+      codelists: {},
+    };
+
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow("Schema validation failed");
+    expect(() => migrateStudyDesign(malformedStudy)).toThrow("events.0.eventName: Invalid input: expected string, received undefined");
+  });
 });
