@@ -8,6 +8,7 @@ Related: [`docs/architecture/module-map.md`](../architecture/module-map.md) — 
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#334` | Implement Chunking Middleware Engine for unified background processing | Present | [`src/taskpane/core/engine/chunking-engine.ts`](../../src/taskpane/core/engine/chunking-engine.ts)<br>[`src/taskpane/core/engine/middlewares.ts`](../../src/taskpane/core/engine/middlewares.ts) |
 | `#331` | Implement semantic PDF/UA export and E2E accessibility auditing | Present | [`src/taskpane/core/parser/schemas.ts`](../../src/taskpane/core/parser/schemas.ts)<br>[`src/taskpane/core/services/announcer.ts`](../../src/taskpane/core/services/announcer.ts)<br>[`src/taskpane/core/types/schemas.ts`](../../src/taskpane/core/types/schemas.ts)<br>[`src/taskpane/hooks/useAnnouncer.ts`](../../src/taskpane/hooks/useAnnouncer.ts)<br>[`src/taskpane/theme.ts`](../../src/taskpane/theme.ts) |
 | `#313` | Implement Universal Navigation Architecture for multi-step flows | Present | [`src/taskpane/components/ui/UniversalStepper.tsx`](../../src/taskpane/components/ui/UniversalStepper.tsx) |
 | `#292` | Implement Unified Sheet Metadata Registry and Factory | Present | [`src/taskpane/core/factory/sheet-factory.ts`](../../src/taskpane/core/factory/sheet-factory.ts)<br>[`src/taskpane/core/registry/sheet-metadata-registry.ts`](../../src/taskpane/core/registry/sheet-metadata-registry.ts) |

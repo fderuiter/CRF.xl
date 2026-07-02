@@ -1,3 +1,6 @@
+/**
+ * @issue #334
+ */
 import { Middleware } from "./chunking-engine";
 
 export interface RetryPolicy {
