@@ -21,18 +21,18 @@
         <FormRef FormOID="VS" OrderNumber="2" Mandatory="Yes"/>
       </StudyEventDef>
       <StudyEventDef OID="VISIT_2" Name="Baseline" Type="Scheduled" Repeating="No">
-        <FormRef FormOID="AE" OrderNumber="3" Mandatory="Yes"/>
         <FormRef FormOID="DEMO" OrderNumber="1" Mandatory="Yes"/>
         <FormRef FormOID="VS" OrderNumber="2" Mandatory="Yes"/>
+        <FormRef FormOID="AE" OrderNumber="3" Mandatory="Yes"/>
       </StudyEventDef>
-      <FormDef OID="AE" Name="Adverse Events" Repeating="Yes">
-        <ItemGroupRef ItemGroupOID="AE_GRP" OrderNumber="1" Mandatory="Yes"/>
-      </FormDef>
       <FormDef OID="DEMO" Name="Demographics" Repeating="No">
         <ItemGroupRef ItemGroupOID="DEMO_GRP" OrderNumber="1" Mandatory="Yes"/>
       </FormDef>
       <FormDef OID="VS" Name="Vital Signs" Repeating="No">
         <ItemGroupRef ItemGroupOID="VS_GRP" OrderNumber="1" Mandatory="Yes"/>
+      </FormDef>
+      <FormDef OID="AE" Name="Adverse Events" Repeating="Yes">
+        <ItemGroupRef ItemGroupOID="AE_GRP" OrderNumber="1" Mandatory="Yes"/>
       </FormDef>
       <ItemGroupDef OID="DEMO_GRP" Name="Default Group" Repeating="No">
         <ItemRef ItemOID="SUBJID" OrderNumber="1" Mandatory="Yes"/>

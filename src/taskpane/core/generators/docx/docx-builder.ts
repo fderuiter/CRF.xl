@@ -35,6 +35,7 @@ import {
   ExportMode,
 } from "../../types/index";
 import { LinguisticService } from "../../services/linguistics-service";
+import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 
 /**
  * Main entry point for the Paper CRF Generation.
@@ -68,14 +69,12 @@ export async function buildDocxDocument(
   study: StudyDesign,
   exportOptions?: ExportOptions
 ): Promise<Document> {
+  const iterator = new ClinicalIterator({ sortStrategy: SortStrategy.NATURAL });
   const sections = [];
 
   // Traverse the Study Design: Events -> Forms -> Groups -> Items
-  for (const event of study.events) {
-    for (const formRef of event.forms) {
-      const form = study.forms[formRef.formOid];
-      if (!form) continue;
-
+  for (const event of iterator.events(study)) {
+    for (const { form } of iterator.eventForms(study, event)) {
       sections.push({
         properties: {
           page: {
@@ -159,7 +158,8 @@ async function renderFormContent(
 ): Promise<any[]> {
   const children: any[] = [];
 
-  for (const group of form.itemGroups) {
+  const iterator = new ClinicalIterator({ sortStrategy: SortStrategy.NATURAL });
+  for (const group of iterator.itemGroups(form)) {
     // Group Header
     if (group.label) {
       children.push(
@@ -184,7 +184,7 @@ async function renderFormContent(
       }
     } else {
       // Standard vertical layout
-      for (const item of group.items) {
+      for (const item of iterator.items(group)) {
         children.push(
           ...(await renderFormElement(item as CrfItem | CrfDisplayBlock, study, exportOptions))
         );
