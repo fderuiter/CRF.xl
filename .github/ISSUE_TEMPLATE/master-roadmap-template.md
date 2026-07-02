@@ -20,21 +20,19 @@ It tracks:
 - major blockers and delivery risks,
 - governance and backlog-health control work.
 
-It does **not** hold implementation-level acceptance criteria. Feature/task issues belong under epics, not directly here.
-
 ---
 
 ## Milestone Sequence
 
 | Milestone | Focus | Status |
 |-----------|-------|--------|
-| M1 | [fill in] | 🔵 Ready |
-| M2 | [fill in] | 🔵 Ready |
-| M3 | [fill in] | 🔵 Ready |
-| M4 | [fill in] | 🔵 Ready |
-| M5 | [fill in] | 🔵 Ready |
-| M6 | [fill in] | 🟡 In Progress |
-| M7 | [fill in] | 🔵 Ready |
+| M1 — Core Metadata Foundations | schema, validation, rule plumbing | 🔵 Ready |
+| M2 — Standards Import & Reverse Ingestion | standards import, reverse parsing | 🔵 Ready |
+| M3 — Metadata Diff & Comparison | diff engine, baseline ingestion | 🔵 Ready |
+| M4 — Authoring UX & Internationalization | authoring-side UX | 🔵 Ready |
+| M5 — Reviewer Export & aCRF | reviewer workflow and export rendering | 🔵 Ready |
+| M6 — Enterprise Hardening & Deployment | manifests, deployment | 🟡 In Progress |
+| M7 — Audit & Governance | provenance, backlog governance | 🔵 Ready |
 
 Status legend:
 - 🟡 In Progress
