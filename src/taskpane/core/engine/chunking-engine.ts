@@ -1,3 +1,6 @@
+/**
+ * @issue #334
+ */
 export interface ChunkContext {
   id: string; // Identifier for the current dataset (e.g., sheet name or generic ID)
   chunkIndex: number;
