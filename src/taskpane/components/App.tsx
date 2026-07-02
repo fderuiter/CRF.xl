@@ -39,7 +39,7 @@ import { ValidationIssue } from "../core";
 import { complianceGovernanceService } from "../core";
 import { VaultService } from "../core";
 import { backgroundValidationEngine } from "../core";
-import { unifiedIssueService } from "../core";
+import { unifiedIssueService, UnifiedIssue } from "../core";
 import { LinguisticService } from "../core";
 
 import { diffStudyDesigns } from "../core";
@@ -1168,7 +1168,7 @@ export const App: React.FC<{ title?: string }> = () => {
           <ValidationLog
             issues={issues}
             isProcessing={isProcessing}
-            onNavigate={(i: ValidationIssue) => {
+            onNavigate={(i: UnifiedIssue) => {
               const sheet = i.location?.includes("Events") ? "_Schedule" : i.sheetName;
               if (i.rowIndex !== undefined && sheet) navigateToSource(sheet, i.rowIndex);
             }}

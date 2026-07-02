@@ -163,7 +163,7 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate, renderActions 
       <div className={styles.logHeader}>
         <Body1 className={styles.logTitle}>Diagnostic Log</Body1>
         <Badge
-          color={issues.some((issue: any) => issue.level === "Error") ? "danger" : "warning"}
+          color={issues.some((issue: any) => issue.severity === "error") ? "danger" : "warning"}
           appearance="tint"
         >
           {issues.length} Issues
@@ -174,7 +174,7 @@ export const ValidationLog = ({ issues, isProcessing, onNavigate, renderActions 
           <div
             key={idx}
             className={
-              issue.level === "Warning"
+              issue.severity === "warning"
                 ? `${styles.issueCard} ${styles.warningIssueCard}`
                 : styles.issueCard
             }

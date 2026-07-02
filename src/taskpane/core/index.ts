@@ -133,3 +133,4 @@ export {
   updateCommentStatus,
   deleteComment,
 } from "./services/review-service";
+export { unifiedIssueService, UnifiedIssue, UnifiedAppState } from "./services/unified-issue-service";

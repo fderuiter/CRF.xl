@@ -12,7 +12,7 @@ import {
   MessageBarBody,
   Divider,
 } from "@fluentui/react-components";
-import { ValidationIssue } from "../../core";
+import { UnifiedIssue } from "../../core";
 import { StudyDiffReport } from "../../core";
 import { loadImportManifest } from "../../core";
 import { formatDate } from "../../core/utils/locale-utils";
@@ -53,7 +53,7 @@ const useStyles = makeStyles({
 });
 
 export interface IntegrityHubViewProps {
-  issues: ValidationIssue[];
+  issues: UnifiedIssue[];
   diffReport: StudyDiffReport | null;
   onSignOff: () => void;
   onExport: () => void;
@@ -73,8 +73,8 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
   const manifest = loadImportManifest();
   const provenance = manifest?.provenance;
 
-  const criticalIssues = issues.filter((i) => i.level === "Error");
-  const warnings = issues.filter((i) => i.level === "Warning");
+  const criticalIssues = issues.filter((i) => i.severity === "error");
+  const warnings = issues.filter((i) => i.severity === "warning");
 
   const diffCount = diffReport
     ? diffReport.forms.length +
