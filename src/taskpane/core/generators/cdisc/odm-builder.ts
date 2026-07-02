@@ -66,7 +66,7 @@ export function serializeAST(node: ASTNode): string {
       return `(${serializeAST(node.test)} ? ${serializeAST(node.consequent)} : ${serializeAST(node.alternate)})`;
     case "GroupedExpression":
       return `(${serializeAST(node.expression)})`;
-    case "CallExpression":
+    case "CallExpression": {
       const callee = node.callee.toUpperCase();
       if (callee === "IF" && node.arguments.length === 3) {
         return `(${serializeAST(node.arguments[0])} ? ${serializeAST(node.arguments[1])} : ${serializeAST(node.arguments[2])})`;
@@ -78,6 +78,7 @@ export function serializeAST(node: ASTNode): string {
         return `!(${serializeAST(node.arguments[0])})`;
       }
       return `${node.callee}(${node.arguments.map(serializeAST).join(", ")})`;
+    }
     default:
       return "";
   }
@@ -106,9 +107,7 @@ export async function generateOdmXml(
     if (item.showIf) {
       const hasCentralRule = study.rules?.some(
         (r) =>
-          r.ruleType === RuleType.SHOW_IF &&
-          r.target &&
-          targetMatchesItem(r.target, item.itemOid)
+          r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
       );
       if (!hasCentralRule) {
         const ruleId = `COND.${item.itemOid}`;
@@ -358,23 +357,21 @@ export async function generateOdmXml(
       continue;
     }
     if (processedItems.has(item.itemOid)) continue;
-        processedItems.add(item.itemOid);
+    processedItems.add(item.itemOid);
 
-        // Find matching derivation rule for legacy fallback
-        const derivationRule = study.rules?.find(
-          (r) =>
-            r.ruleType === RuleType.DERIVATION &&
-            r.target &&
-            targetMatchesItem(r.target, item.itemOid)
-        );
+    // Find matching derivation rule for legacy fallback
+    const derivationRule = study.rules?.find(
+      (r) =>
+        r.ruleType === RuleType.DERIVATION && r.target && targetMatchesItem(r.target, item.itemOid)
+    );
 
-        xml += renderItemDef(
-          item,
-          derivationRule?.ruleId,
-          options.exportOptions,
-          study.metadata.defaultLanguage,
-          serializationWarnings
-        );
+    xml += renderItemDef(
+      item,
+      derivationRule?.ruleId,
+      options.exportOptions,
+      study.metadata.defaultLanguage,
+      serializationWarnings
+    );
   }
 
   // 6. CodeLists (Dictionaries)
@@ -458,26 +455,26 @@ export async function generateOdmXml(
     }
     if (!item.showIf) continue;
 
-        const conditionOid = `COND.${item.itemOid}`;
-        if (processedConditions.has(conditionOid)) continue;
+    const conditionOid = `COND.${item.itemOid}`;
+    if (processedConditions.has(conditionOid)) continue;
 
-        const hasCentralRule = allRules.some(
-          (r) =>
-            r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
-        );
-        if (hasCentralRule) continue;
+    const hasCentralRule = allRules.some(
+      (r) =>
+        r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
+    );
+    if (hasCentralRule) continue;
 
-        processedConditions.add(conditionOid);
+    processedConditions.add(conditionOid);
 
-        let formalExpressionString = item.showIf;
-        try {
-          const ast = parseRuleExpression(item.showIf);
-          formalExpressionString = serializeAST(ast);
-        } catch {
-          // ignore
-        }
+    let formalExpressionString = item.showIf;
+    try {
+      const ast = parseRuleExpression(item.showIf);
+      formalExpressionString = serializeAST(ast);
+    } catch {
+      // ignore
+    }
 
-        xml += `
+    xml += `
       <ConditionDef OID="${escapeXml(conditionOid)}" Name="Show condition for ${escapeXml(item.name)}">
         <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>
       </ConditionDef>`;
@@ -776,6 +773,7 @@ function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
 
   // 1. Strip prohibited control characters in U+0000-U+001F (excluding allowed XML 1.0 whitespace)
+  // eslint-disable-next-line no-control-regex
   const stripped = unsafe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 
   // 2. Escape the 5 standard XML entities

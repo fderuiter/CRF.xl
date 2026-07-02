@@ -102,9 +102,7 @@ export class ClinicalIterator {
     }
   }
 
-  public *walkStudy(
-    study: StudyDesign
-  ): Generator<{
+  public *walkStudy(study: StudyDesign): Generator<{
     event: StudyEvent;
     formRef: EventFormRef;
     form: CrfForm;
