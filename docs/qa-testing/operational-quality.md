@@ -42,6 +42,7 @@ These criteria govern the platform stability and performance targets for the Q2 
 | **State Integrity** | 100% session recovery after unexpected taskpane closure. | `recovery-storage` unit tests. |
 
 For a detailed breakdown of host-related risks and mitigations, see the [Office.js Runtime Risk Register](../architecture/office-runtime-risk-register.md).
+For detailed interaction-specific non-functional criteria, see the [Excel Runtime NFR Specification](./excel-runtime-nfr.md).
 
 ## 4. Security & Privacy
 

@@ -68,3 +68,8 @@ An issue is **Done** and may be closed when it meets all acceptance criteria and
 - [ ] Target file exists at the correct path and is fully populated
 - [ ] Document is linked from the README or a parent governance/architecture file
 - [ ] Content is verified for accuracy and technical alignment
+
+### area:excel-integration
+- [ ] Implementation satisfies all NFRs defined in `docs/qa-testing/excel-runtime-nfr.md`
+- [ ] Degraded-mode behavior (e.g., cell-edit mode, standalone browser) is verified
+- [ ] Office.js error handling matches the project's normalization strategy
