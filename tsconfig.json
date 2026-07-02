@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
     "allowUnusedLabels": false,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,

@@ -27,6 +27,7 @@ import { buildAnnotatedCrfDocument, renderToHtml } from "../services/acrf-render
 import { generatePdfBlobFromHtml } from "../services/pdf-export-adapter";
 import { verifyAnnotatedCrf } from "../validators/acrf-output-validator";
 import * as CryptoJS from "crypto-js";
+// @ts-ignore
 import HTMLtoDOCX from "html-to-docx";
 
 export class AnnotatedCrfPipeline {
