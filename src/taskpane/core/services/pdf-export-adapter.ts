@@ -1,52 +1,79 @@
 /**
  * @issue #78
  */
-import html2pdf from "html2pdf.js";
+import * as pdfMake from "pdfmake/build/pdfmake";
+const pdfFonts = require("pdfmake/build/vfs_fonts");
+import htmlToPdfmake from "html-to-pdfmake";
+
+(pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
 
 /**
  * Exports the provided HTML content to a PDF file.
  */
 export async function exportToPdf(html: string, filename: string): Promise<void> {
-  const element = document.createElement("div");
-  element.innerHTML = html;
-
-  const opt: any = {
-    margin: [10, 10, 10, 10],
-    filename: filename,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+  const parsedHtml = htmlToPdfmake(html, {
+    defaultStyles: {
+      div: { margin: [0, 2, 0, 2] },
+      h1: { fontSize: 24, bold: true, margin: [0, 0, 0, 20] },
+      h2: { fontSize: 18, bold: true, margin: [0, 15, 0, 10] },
+    },
+  });
+  
+  const docDefinition: any = {
+    content: parsedHtml,
+    tagged: true,
+    language: "en-US", // Accessibility requirement
+    info: {
+      title: filename.replace(".pdf", ""),
+    },
+    defaultStyle: {
+      fontSize: 10,
+    },
   };
 
-  try {
-    await html2pdf().set(opt).from(element).save();
-  } catch (error) {
-    console.error("[PdfExportAdapter] Failed to export PDF", error);
-    throw error;
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      (pdfMake.createPdf(docDefinition) as any).download(filename);
+      resolve();
+    } catch (error) {
+      console.error("[PdfExportAdapter] Failed to export PDF", error);
+      reject(error);
+    }
+  });
 }
 
 /**
  * Generates a PDF blob from the provided HTML content.
  */
 export async function generatePdfBlobFromHtml(html: string): Promise<Blob> {
-  const element = document.createElement("div");
-  element.innerHTML = html;
+  const parsedHtml = htmlToPdfmake(html, {
+    defaultStyles: {
+      div: { margin: [0, 2, 0, 2] },
+      h1: { fontSize: 24, bold: true, margin: [0, 0, 0, 20] },
+      h2: { fontSize: 18, bold: true, margin: [0, 15, 0, 10] },
+    },
+  });
 
-  const opt: any = {
-    margin: [10, 10, 10, 10],
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+  const docDefinition: any = {
+    content: parsedHtml,
+    tagged: true,
+    language: "en-US", // Accessibility requirement
+    info: {
+      title: "Annotated CRF Export",
+    },
+    defaultStyle: {
+      fontSize: 10,
+    },
   };
 
-  try {
-    const pdfWorker = html2pdf().set(opt).from(element).outputPdf("blob");
-    return await pdfWorker;
-  } catch (error) {
-    console.error("[PdfExportAdapter] Failed to generate PDF blob", error);
-    throw error;
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      (pdfMake.createPdf(docDefinition) as any).getBlob((blob: Blob) => {
+        resolve(blob);
+      });
+    } catch (error) {
+      console.error("[PdfExportAdapter] Failed to generate PDF blob", error);
+      reject(error);
+    }
+  });
 }
