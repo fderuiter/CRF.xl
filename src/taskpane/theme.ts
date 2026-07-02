@@ -1,3 +1,4 @@
+/** @issue #331 */
 export const Theme = {
   colors: {
     primary: "#1F77B4",
