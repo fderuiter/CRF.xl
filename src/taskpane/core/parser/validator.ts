@@ -42,6 +42,20 @@ export async function validateStudyDesign(
 ): Promise<ValidationIssue[]> {
   let issues: ValidationIssue[] = [];
 
+  // 0. Inject OID Collisions from parsing
+  const oidCollisions = study.metadata.customProperties?.oidCollisions as import("../registry/oid-registry").OidCollision[] | undefined;
+  if (oidCollisions && oidCollisions.length > 0) {
+    oidCollisions.forEach((col) => {
+      issues.push({
+        level: "Error",
+        message: `Duplicate OID detected: '${col.oid}' is already defined as a ${col.existingType}. OIDs must be unique study-wide.`,
+        location: `${col.sheetName} > Row ${col.rowIndex || "unknown"}`,
+        rowIndex: col.rowIndex,
+        sheetName: col.sheetName,
+      });
+    });
+  }
+
   // 1. Validate Schedule (_Schedule sheet)
   study.events.forEach((event) => {
     event.forms.forEach((fRef) => {
