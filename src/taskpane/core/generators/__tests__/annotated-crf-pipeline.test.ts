@@ -23,6 +23,7 @@ jest.mock("../../../components/views/study-diff-view-utils", () => ({
 }));
 
 import { AnnotatedCrfPipeline } from "../annotated-crf-pipeline";
+// @ts-ignore
 import HTMLtoDOCX from "html-to-docx";
 
 describe("AnnotatedCrfPipeline", () => {

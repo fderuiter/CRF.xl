@@ -105,7 +105,7 @@ describe("LinguisticService", () => {
   });
 
   describe("calculateCompleteness", () => {
-    const items = [
+    const items: { oid: string, translations: Record<string, string> }[] = [
       { oid: "IT1", translations: { "en-US": "Label 1", "es-ES": "Etiqueta 1" } },
       { oid: "IT2", translations: { "en-US": "Label 2" } },
     ];

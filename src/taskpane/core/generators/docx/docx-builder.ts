@@ -78,10 +78,12 @@ export async function buildDocxDocument(
       sections.push({
         properties: {
           page: {
-            orientation:
-              form.pageLayout === PageLayout.LANDSCAPE
-                ? PageOrientation.LANDSCAPE
-                : PageOrientation.PORTRAIT,
+            size: {
+              orientation:
+                form.pageLayout === PageLayout.LANDSCAPE
+                  ? PageOrientation.LANDSCAPE
+                  : PageOrientation.PORTRAIT,
+            },
           },
         },
         children: [

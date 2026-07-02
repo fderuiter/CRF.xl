@@ -136,11 +136,11 @@ class BindingService {
     }
   }
 
-  private handleSheetActivated() {
+  private async handleSheetActivated() {
     this.debouncedRefresh();
   }
 
-  private handleSelectionChanged() {
+  private async handleSelectionChanged() {
     if (this.isInternalOperation) return;
     this.debouncedRefresh();
   }
