@@ -25,11 +25,7 @@ ctx.onmessage = async (event: MessageEvent) => {
       },
       onProgress: (update: ParseProgressUpdate) => {
         ctx.postMessage({ type: "PROGRESS", payload: update });
-      },
-      yieldControl: async () => {
-        // Simple cooperative yield to let the worker process incoming cancellation messages
-        await new Promise<void>((resolve) => setTimeout(resolve, 0));
-      },
+      }
     };
 
     // A closure to handle cancellation messages while parsing is ongoing
