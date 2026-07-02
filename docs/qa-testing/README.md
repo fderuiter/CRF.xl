@@ -6,7 +6,7 @@ This directory documents the comprehensive verification and validation strategie
 
 ## 🎯 Verification Framework
 
-Every code contribution is subjected to four levels of quality gates before it is merged into the `main` branch:
+Every code contribution is subjected to four levels of quality gates before it is merged into the `main` branch. Detailed test coverage and quality targets for each core module are defined in the **[Subsystem Quality Matrix](./subsystem-quality-matrix.md)**.
 
 ### 1. [Unit Testing](./unit.md)
 * **Goal:** Verify logic transformations, type casting (e.g., cell values $\rightarrow$ typed booleans), and XML sanitization.

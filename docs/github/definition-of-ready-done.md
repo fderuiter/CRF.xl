@@ -45,6 +45,7 @@ An issue is **Done** and may be closed when it meets all acceptance criteria and
 ### General Criteria (Required for all types)
 - [ ] All acceptance criteria in the issue body are checked off
 - [ ] PR is reviewed, CI is green, and merged to `main`
+- [ ] If modifying core subsystems: adherence to the [Subsystem Quality Matrix](../qa-testing/subsystem-quality-matrix.md) verified
 - [ ] If a new module was added: `docs/architecture/module-map.md` updated
 - [ ] If the module map changed or implementation status updated: `docs/github/codebase-alignment.md` updated
 - [ ] README or other docs updated if public behavior or architecture changed
