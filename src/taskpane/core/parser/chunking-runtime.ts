@@ -2,7 +2,9 @@
  * @issue #68
  */
 /* eslint-disable no-undef */
-type ParsePhase =
+import { ChunkingEngine, getDefaultYieldStrategy } from "../engine/chunking-engine";
+
+export type ParsePhase =
   | "metadata"
   | "codelists"
   | "forms"
@@ -61,7 +63,7 @@ export function createParseRuntime(options: ParseRuntimeOptions = {}): ParseRunt
   return {
     chunkSize,
     throwIfStopped,
-    yieldToHost: options.yieldControl ?? defaultYieldControl,
+    yieldToHost: options.yieldControl ?? getDefaultYieldStrategy(),
     reportProgress: (update) => {
       options.onProgress?.(update);
     },
@@ -72,23 +74,26 @@ export async function processRowsInChunks<T>(
   rows: T[],
   runtime: ParseRuntime,
   phase: ParsePhase,
-  onRow: (row: T, index: number) => void
+  onRow: (row: T, index: number) => Promise<void> | void
 ): Promise<void> {
-  for (let chunkStart = 0; chunkStart < rows.length; chunkStart += runtime.chunkSize) {
+  const engine = new ChunkingEngine<T>({
+    chunkSize: runtime.chunkSize,
+    yieldStrategy: runtime.yieldToHost
+  });
+  
+  engine.use(async (_ctx, _chunk, next) => {
     runtime.throwIfStopped(phase);
-    const chunkEnd = Math.min(chunkStart + runtime.chunkSize, rows.length);
-    for (let rowIndex = chunkStart; rowIndex < chunkEnd; rowIndex++) {
-      onRow(rows[rowIndex], rowIndex);
+    await next();
+  });
+  
+  await engine.execute([{ id: phase, data: rows }], async (chunk, ctx) => {
+    for (let i = 0; i < chunk.length; i++) {
+      await onRow(chunk[i], ctx.startIndex + i);
     }
-    await runtime.yieldToHost();
-  }
+  });
 }
 
 function normalizeChunkSize(chunkSize?: number): number {
   if (!Number.isFinite(chunkSize) || (chunkSize ?? 0) < 1) return DEFAULT_CHUNK_SIZE;
   return Math.floor(chunkSize as number);
-}
-
-async function defaultYieldControl(): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }

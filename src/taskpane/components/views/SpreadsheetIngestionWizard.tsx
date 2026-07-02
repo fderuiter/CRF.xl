@@ -13,7 +13,11 @@ import {
   MessageBarBody,
   Option,
   ProgressBar,
+  SelectTabData,
+  SelectTabEvent,
   Spinner,
+  Tab,
+  TabList,
   Text,
   makeStyles,
   tokens,
@@ -108,18 +112,6 @@ const useStyles = makeStyles({
     gap: "6px",
     maxHeight: "240px",
     overflowY: "auto",
-  },
-  sheetItem: {
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: tokens.borderRadiusMedium,
-    padding: "8px 12px",
-    cursor: "pointer",
-    fontSize: tokens.fontSizeBase300,
-    backgroundColor: tokens.colorNeutralBackground2,
-  },
-  sheetItemSelected: {
-    border: `2px solid ${tokens.colorCompoundBrandStroke}`,
-    backgroundColor: tokens.colorBrandBackground2,
   },
   mappingRow: {
     display: "grid",
@@ -468,17 +460,20 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
               <MessageBarBody>No non-system sheets found. Open a legacy CRF file or add data sheets to this workbook.</MessageBarBody>
             </MessageBar>
           )}
-          <div className={styles.sheetList}>
+          <TabList
+            vertical
+            className={styles.sheetList}
+            selectedValue={state.selectedSheet || undefined}
+            onTabSelect={(_e: SelectTabEvent, data: SelectTabData) => {
+              patch({ selectedSheet: data.value as string });
+            }}
+          >
             {state.availableSheets.map((name) => (
-              <div
-                key={name}
-                className={`${styles.sheetItem} ${state.selectedSheet === name ? styles.sheetItemSelected : ""}`}
-                onClick={() => patch({ selectedSheet: name })}
-              >
+              <Tab key={name} value={name}>
                 📄 {name}
-              </div>
+              </Tab>
             ))}
-          </div>
+          </TabList>
         </>
       ),
     },
