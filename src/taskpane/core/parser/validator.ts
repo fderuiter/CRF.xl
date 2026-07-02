@@ -89,7 +89,7 @@ export async function validateStudyDesign(
               rowIndex: row,
               sheetName: sheet,
             });
-          } else if (!study.codelists[item.codelistId]) {
+          } else if (!Object.keys(study.codelists).some((k) => k.toLowerCase() === item.codelistId?.toLowerCase())) {
             issues.push({
               level: "Error",
               message: `Missing Codelist definition for '${item.codelistId}'.`,
@@ -102,7 +102,7 @@ export async function validateStudyDesign(
 
         // Check Duplicates
         if (item.itemOid) {
-          if (globalVariables.has(item.itemOid)) {
+          if (globalVariables.has(item.itemOid.toLowerCase())) {
             issues.push({
               level: "Error",
               message: `Duplicate Variable Name: '${item.itemOid}'. Must be unique across study.`,
@@ -111,7 +111,7 @@ export async function validateStudyDesign(
               sheetName: sheet,
             });
           }
-          globalVariables.add(item.itemOid);
+          globalVariables.add(item.itemOid.toLowerCase());
         }
 
         const isNumericVariable = isNumericDataType(item.dataType);
@@ -378,11 +378,12 @@ export function validateCrossFormDependencies(
     const segments = ident.split(".");
     if (segments.length > 1) {
       const varName = segments[segments.length - 1].toLowerCase();
-      const possibleFormOid = segments[0].toUpperCase();
-      const form = study.forms[possibleFormOid];
+      const possibleFormOid = segments[0];
+      const matchedFormKey = Object.keys(study.forms).find(k => k.toLowerCase() === possibleFormOid.toLowerCase());
+      const form = matchedFormKey ? study.forms[matchedFormKey] : undefined;
       if (form) {
         const itemRes = variableMap.get(varName);
-        if (itemRes && itemRes.formOid === possibleFormOid) {
+        if (itemRes && itemRes.formOid.toLowerCase() === matchedFormKey!.toLowerCase()) {
           return {
             targetItem: itemRes.item,
             targetFormOid: itemRes.formOid,
@@ -460,8 +461,9 @@ export function validateCrossFormDependencies(
 
       if (!resolved) {
         const segments = ident.split(".");
+        const matchedFormKey = segments.length > 1 ? Object.keys(study.forms).find(k => k.toLowerCase() === segments[0].toLowerCase()) : undefined;
         const isCrossFormSuspect =
-          segments.length > 1 && study.forms[segments[0].toUpperCase()] !== undefined;
+          segments.length > 1 && matchedFormKey !== undefined;
 
         const isLocal = !ident.includes(".");
         const isExport = options?.isExport === true;
@@ -473,7 +475,7 @@ export function validateCrossFormDependencies(
           sourceOid,
           sourceType,
           sourceRowIndex,
-          targetFormOid: isCrossFormSuspect ? segments[0].toUpperCase() : "Unknown",
+          targetFormOid: isCrossFormSuspect ? matchedFormKey! : "Unknown",
           targetOid: isCrossFormSuspect ? segments[segments.length - 1] : ident,
           targetType: "Unknown",
           expression,

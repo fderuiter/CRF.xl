@@ -15,7 +15,7 @@ import { migrateStudyDesign } from "./migration";
 import { getLocaleConfig } from "../locale-config";
 import { LinguisticService } from "../services/linguistics-service";
 import { mapRowToFormElement } from "./form-element-utils";
-import { parseReferencedVariables } from "./metadata-utils";
+import { parseReferencedVariables, normalizeOid } from "./metadata-utils";
 
 interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -135,7 +135,7 @@ export async function parseRawDataToStudyDesign(
       const decode = row[decodeIdx];
 
       if (!id) return;
-      const strId = String(id).trim();
+      const strId = normalizeOid(id);
       if (!study.codelists[strId]) {
         study.codelists[strId] = {
           codelistId: strId,
@@ -199,7 +199,7 @@ export async function parseRawDataToStudyDesign(
       const i = rowIndex + 1;
       const [id, name, rep] = row;
       if (!id) return;
-      const strId = String(id).trim();
+      const strId = normalizeOid(id);
       activeFormOids.push(strId);
 
       study.forms[strId] = {
@@ -316,7 +316,7 @@ export async function parseRawDataToStudyDesign(
       } as any;
 
       for (let row = 1; row < schedSheetVals.length; row++) {
-        const formOid = String(schedSheetVals[row][0] || "").trim();
+        const formOid = normalizeOid(schedSheetVals[row][0]);
         const marker = String(schedSheetVals[row][col] || "")
           .trim()
           .toUpperCase();
