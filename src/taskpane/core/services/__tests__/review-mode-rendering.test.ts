@@ -78,6 +78,6 @@ describe("Review Mode Rendering", () => {
     const item = doc.forms[0].itemGroups[0].items[0];
     const reviewAnno = item.annotations.find((a) => a.label === "Review");
 
-    expect(reviewAnno?.color).toBe("#4caf50"); // Success Green
+    expect(reviewAnno?.color).toBe("var(--colorStatusSuccessBackground3)"); // Success Green
   });
 });
