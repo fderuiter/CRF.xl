@@ -26,21 +26,25 @@ The application is divided into two primary layers:
   * `views/AuthoringView.tsx` — item-level authoring and editing
   * `views/DictionarySidecar.tsx` — codelist and terminology browser
 
-* **The Clinical Engine (Core):** Located in `src/taskpane/core/`. Organized into four subdirectories:
+* **The Clinical Engine (Core):** Located in `src/taskpane/core/`. Organized into modular subdirectories:
 
-  * `core/types/` — TypeScript type definitions for clinical metadata (OIDs, StudyDesign, CrfItem, Codelist, Schedule, and CDISC mapping types)
+  * `core/types/` — Centralized TypeScript definitions: `clinical.ts`, `hierarchy.ts`, `validation.ts`, `ui.ts`, `enums.ts`, `common.ts`.
   * `core/parser/` — Excel workbook readers and validation engine:
-    * `excel-parser.ts` — parses `_Study`, `_Codelists`, `_Forms`, form sheets, and `_Schedule` into a typed `StudyDesign`
-    * `validator.ts` — validates referential integrity, numeric metadata, and codelist consistency
-    * `template-generator.ts` — initializes and synchronizes the workbook structure
-    * `chunking-runtime.ts` — handles large-workbook sheet parsing with memory management
-  * `core/generators/` — export engines:
-    * `generators/docx/docx-builder.ts` — DOCX annotated CRF generation
-    * `generators/cdisc/odm-builder.ts` — CDISC ODM XML export
+    * `excel-parser.ts` — parses workbook sheets into a typed `StudyDesign`.
+    * `validator.ts` — validates referential integrity and numeric metadata.
+    * `template-generator.ts` — initializes and synchronizes workbook structure.
+    * `chunking-runtime.ts` — handles large-workbook parsing memory management.
+  * `core/generators/` — Clinical export engines:
+    * `cdisc/odm-builder.ts` — CDISC ODM XML export.
+    * `docx/docx-builder.ts` — Pixel-perfect DOCX annotated CRF generation.
   * `core/services/` — Office.js-isolating service layer:
-    * `authoring-service.ts` — item-level authoring and write-back
-    * `cdisc-api-service.ts` — CDISC Library API client
-    * `dictionary-service.ts` — codelist and terminology write operations
+    * `authoring-service.ts` — Item-level authoring and write-back.
+    * `annotation-service.ts` — Cell background and comment highlights.
+    * `cdisc-api-service.ts` — CDISC Library API client.
+    * `dictionary-service.ts` — Codelist and terminology write operations.
+    * `recovery-storage.ts` — Browser-based recovery snapshot management.
+    * `version-update-service.ts` — Add-in version check and notifications.
+    * `office-error-handling.ts` — Normalization of Office.js API errors.
 
 See `docs/architecture/module-map.md` for the complete module inventory and `docs/architecture/adr-index.md` for key architectural decisions.
 
@@ -54,13 +58,14 @@ See `docs/architecture/module-map.md` for the complete module inventory and `doc
 
 ## 📖 Development Workflow
 
-1. **Define Types First:** New features start in `src/taskpane/core/types/`. Add or extend the relevant type definitions for the new clinical concept.
-2. **Build the Parser:** Update `core/parser/excel-parser.ts` to read the new workbook columns or sheets into the type model.
-3. **Add Validation:** Update `core/parser/validator.ts` with any new referential or clinical validation rules.
-4. **Implement the Service:** Add any Office.js write-back or external API calls in the appropriate `core/services/` module.
-5. **Update the Generators:** Update `core/generators/docx/docx-builder.ts` or `core/generators/cdisc/odm-builder.ts` to output the new data.
-6. **Wire the UI:** Update or add a component in `components/views/` to expose the feature in the taskpane.
-7. **Validate Sidecar UX:** Changes to `DictionarySidecar.tsx` must preserve the existing create/use flows while keeping codelist search responsive.
+1. **Define Types First:** New features start in `src/taskpane/core/types/`. Add or extend the relevant type definitions in the appropriate modular file (e.g., `clinical.ts` or `enums.ts`).
+2. **Build the Parser:** Update `src/taskpane/core/parser/excel-parser.ts` to read the new workbook columns or sheets into the type model.
+3. **Add Validation:** Update `src/taskpane/core/parser/validator.ts` with any new referential or clinical validation rules.
+4. **Implement the Service:** Add any Office.js write-back or external API calls in a new or existing module within `src/taskpane/core/services/`.
+5. **Update the Generators:** Update the relevant builder in `src/taskpane/core/generators/` (CDISC or DOCX) to support the new metadata.
+6. **Wire the UI:** Update or add a component in `src/taskpane/components/views/` to expose the feature in the taskpane.
+7. **Document the Change:** Update `docs/architecture/module-map.md` if any new modules were added or public interfaces changed.
+8. **Validate Sidecar UX:** Changes to `DictionarySidecar.tsx` must preserve the existing create/use flows while keeping codelist search responsive.
 
 ## ✅ CI Quality Gates & Branch Protection
 - On every pull request, GitHub Actions runs:
@@ -94,6 +99,10 @@ To maintain alignment across teams and prevent drift, developers must consult th
 * **Where stable technical contracts live:** Technical interface specs, rules grammar, and schemas are defined in [docs/specification/](./docs/specification/). When code modifications alter a public signature or type definition, the corresponding spec must be updated in the same PR.
 * **Where design decisions live:** Major structural choices, architectural boundaries, and technology selections are recorded in [docs/architecture/adr-index.md](./docs/architecture/adr-index.md).
 * **Where regulatory mappings live:** GxP audits, Part 11 alignments, and security evidence live in [docs/compliance/](./docs/compliance/) and `SECURITY.md`.
+* **Where engineering & operations live:**
+  * [Dependency Management](./docs/github/dependency-management.md) — rules for third-party libraries and security audits.
+  * [Roadmap Operations](./docs/github/roadmap-operations.md) — milestone sequencing and release strategy.
+  * [Definition of Ready/Done](./docs/github/definition-of-ready-done.md) — quality gates for development.
 * **Where fast-changing requirements live:** Milestone scopes, feature sequencing, and backlog tickets live in [docs/github/](./docs/github/) and active GitHub issue templates. Evolving planning details belong in issues rather than specifications.
 
 ---
