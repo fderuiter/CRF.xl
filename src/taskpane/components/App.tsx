@@ -1047,7 +1047,7 @@ export const App: React.FC<{ title?: string }> = () => {
             Design
           </Tab>
           <Tab value="compliance" id="tab-compliance">
-            Compliance
+            Governance Dashboard
           </Tab>
           <Tab value="integrity" id="tour-integrity">
             Integrity Hub

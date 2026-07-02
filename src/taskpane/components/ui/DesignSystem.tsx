@@ -37,6 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   disabled,
   onClick,
+  className,
 }) => {
   const styles = useButtonStyles();
   const appearance =
@@ -52,7 +53,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <FluentButton
-      className={styles.base}
+      className={mergeClasses(styles.base, className)}
       appearance={appearance}
       disabled={disabled || isLoading}
       icon={isLoading ? <FluentSpinner size="tiny" /> : (icon as any)}
