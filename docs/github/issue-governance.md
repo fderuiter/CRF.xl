@@ -195,6 +195,8 @@ It should contain:
 
 It should **not** contain implementation-level acceptance criteria or code/task-level sub-issues.
 
+See `docs/github/roadmap-operations.md` for the maintenance protocol and body template for #28.
+
 ### Allowed direct children of #28
 - open epics
 - major governance tracking issues that are roadmap-level controls
