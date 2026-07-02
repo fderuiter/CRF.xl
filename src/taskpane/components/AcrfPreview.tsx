@@ -122,6 +122,76 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
   );
   const [selectedEntityId, setSelectedEntityId] = React.useState<string | null>(null);
   const [showReviewPane, setShowReviewPane] = React.useState(false);
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  const updateIframeStyles = React.useCallback(() => {
+    if (!rootRef.current || !iframeRef.current || !iframeRef.current.contentDocument) return;
+    
+    const computedStyles = window.getComputedStyle(rootRef.current);
+    const iframeDoc = iframeRef.current.contentDocument;
+
+    const requiredTokens = [
+      '--colorStatusDangerBackground3',
+      '--colorStatusWarningBackground3',
+      '--colorPaletteRedBackground3',
+      '--colorPalettePurpleBackground3',
+      '--colorPaletteOrangeBackground3',
+      '--colorNeutralBackgroundInverted',
+      '--colorStatusSuccessBackground3',
+      '--colorBrandBackground'
+    ];
+
+    let styleContent = ':root {\n';
+    requiredTokens.forEach(token => {
+      const val = computedStyles.getPropertyValue(token);
+      if (val) {
+        styleContent += `  ${token}: ${val};\n`;
+      }
+    });
+
+    styleContent += `
+      --colorStatusDangerBackground3: var(--colorStatusDangerBackground3, #c50f1f);
+      --colorStatusWarningBackground3: var(--colorStatusWarningBackground3, #d83b01);
+      --colorBrandBackground: var(--colorBrandBackground, #0078d4);
+      --colorPaletteRedBackground3: var(--colorPaletteRedBackground3, #d13438);
+      --colorPalettePurpleBackground3: var(--colorPalettePurpleBackground3, #881798);
+      --colorPaletteOrangeBackground3: var(--colorPaletteOrangeBackground3, #ca5010);
+      --colorNeutralBackgroundInverted: var(--colorNeutralBackgroundInverted, #323130);
+      --colorStatusSuccessBackground3: var(--colorStatusSuccessBackground3, #107c10);
+    }`;
+
+    let styleEl = iframeDoc.getElementById('acrf-theme-tokens');
+    if (!styleEl) {
+      styleEl = iframeDoc.createElement('style');
+      styleEl.id = 'acrf-theme-tokens';
+      iframeDoc.head.appendChild(styleEl);
+    }
+    styleEl.textContent = styleContent;
+  }, []);
+
+  React.useEffect(() => {
+    if (!rootRef.current) return;
+    
+    const observerTarget = rootRef.current.closest('[class*="fui-FluentProvider"]') || document.body;
+    
+    const observer = new MutationObserver((mutations) => {
+      let shouldUpdate = false;
+      for (const m of mutations) {
+        if (m.type === 'attributes' && (m.attributeName === 'class' || m.attributeName === 'style')) {
+          shouldUpdate = true;
+          break;
+        }
+      }
+      if (shouldUpdate) {
+        updateIframeStyles();
+      }
+    });
+
+    observer.observe(observerTarget, { attributes: true, attributeFilter: ['class', 'style'] });
+
+    return () => observer.disconnect();
+  }, [updateIframeStyles]);
 
   const runVerification = React.useCallback(async () => {
     setIsVerifying(true);
@@ -178,7 +248,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={rootRef}>
       <div className={styles.toolbar}>
         <Button
           id="tour-export-reviewer-package"
@@ -237,11 +307,14 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
           )}
 
           <iframe
+            ref={iframeRef}
             title="aCRF Preview"
             srcDoc={html}
             className={styles.previewFrame}
             sandbox="allow-same-origin"
             onLoad={(e) => {
+              updateIframeStyles();
+              
               // Add click listeners to items in the iframe to select them for commenting
               const iframe = e.currentTarget;
               if (iframe.contentDocument) {

@@ -49,7 +49,7 @@ export function buildAnnotatedCrfDocument(
               label: "SDTM",
               content: `[${item.itemOid}]<br/>Domain: ${domain} | Var: ${variable} | NCI: ${nciCode}`,
               commentOid: item.sdtmMapping.commentOid,
-              color: "#d32f2f", // Red for SDTM
+              color: "var(--colorPaletteRedBackground3)", // Red for SDTM
             });
           }
 
@@ -62,7 +62,7 @@ export function buildAnnotatedCrfDocument(
               label: "ADaM",
               content: `${dataset}.${variable}`,
               commentOid: item.adamMapping.commentOid,
-              color: "#7b1fa2", // Purple for ADaM
+              color: "var(--colorPalettePurpleBackground3)", // Purple for ADaM
             });
           }
 
@@ -76,7 +76,7 @@ export function buildAnnotatedCrfDocument(
                 type: AcrfAnnotationType.RULE,
                 label: "Rule",
                 content: rule.ruleId,
-                color: "#f57c00", // Orange for Rule
+                color: "var(--colorPaletteOrangeBackground3)", // Orange for Rule
               });
             });
           }
@@ -92,7 +92,7 @@ export function buildAnnotatedCrfDocument(
               type: AcrfAnnotationType.VALIDATION,
               label: issue.level,
               content: issue.message,
-              color: issue.level === "Error" ? "#c62828" : "#fbc02d",
+              color: issue.level === "Error" ? "var(--colorStatusDangerBackground3)" : "var(--colorStatusWarningBackground3)",
             });
           });
 
@@ -106,7 +106,7 @@ export function buildAnnotatedCrfDocument(
               type: anno.type as unknown as AcrfAnnotationType,
               label: anno.type,
               content: content || "",
-              color: "#4a4a4a", // Default color for custom annotations
+              color: "var(--colorNeutralBackgroundInverted)", // Default color for custom annotations
             });
           });
 
@@ -119,7 +119,7 @@ export function buildAnnotatedCrfDocument(
               type: AcrfAnnotationType.COMMENT,
               label: "Review",
               content: `${comment.author}: ${comment.text} (${comment.status})`,
-              color: comment.status === "resolved" ? "#4caf50" : "#2196f3",
+              color: comment.status === "resolved" ? "var(--colorStatusSuccessBackground3)" : "var(--colorBrandBackground)",
             });
           });
 
@@ -225,14 +225,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
       for (const item of group.items) {
         let annotationsHtml = "";
         for (const anno of item.annotations) {
-          let bgColor = "#1F77B4"; // Blue default
-          if (anno.type === AcrfAnnotationType.ADAM)
-            bgColor = "#2CA02C"; // Green
-          else if (anno.type === AcrfAnnotationType.RULE)
-            bgColor = "#FF7F0E"; // Orange
-          else if (anno.type === AcrfAnnotationType.VALIDATION)
-            bgColor = anno.color || "#d32f2f"; // Red
-          else if (anno.label === "Review") bgColor = anno.color || "#2196f3"; // Review Blue/Green
+          let bgColor = anno.color || "var(--colorBrandBackground)";
 
           annotationsHtml += `
             <div class="annotation-box" style="background-color: ${bgColor}; border-color: ${bgColor};">
