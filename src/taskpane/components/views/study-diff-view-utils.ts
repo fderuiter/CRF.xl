@@ -277,19 +277,4 @@ export function filterStudyDiffList(
   });
 }
 
-export function paginateStudyDiffList(
-  entries: StudyDiffListEntry[],
-  page: number,
-  pageSize: number
-) {
-  const safePageSize = Math.max(1, pageSize);
-  const totalPages = Math.max(1, Math.ceil(entries.length / safePageSize));
-  const normalizedPage = Math.min(Math.max(1, page), totalPages);
-  const start = (normalizedPage - 1) * safePageSize;
-  return {
-    page: normalizedPage,
-    totalPages,
-    pageSize: safePageSize,
-    entries: entries.slice(start, start + safePageSize),
-  };
-}
+

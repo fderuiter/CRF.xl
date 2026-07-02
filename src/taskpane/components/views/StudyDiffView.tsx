@@ -17,6 +17,7 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
+import { useUnifiedList } from "../../hooks/useUnifiedList";
 import { StudyDiffReport } from "../../core";
 import {
   DiffChangeClass,
@@ -24,7 +25,6 @@ import {
   DiffSeverity,
   buildStudyDiffList,
   filterStudyDiffList,
-  paginateStudyDiffList,
 } from "./study-diff-view-utils";
 import { formatDate } from "../../core/utils/locale-utils";
 
@@ -114,7 +114,6 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
   const [subsystem, setSubsystem] = React.useState<string | "all">("all");
   const [area, setArea] = React.useState<string | "all">("all");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
-  const [page, setPage] = React.useState(1);
 
   const entries = React.useMemo(() => (report ? buildStudyDiffList(report) : []), [report]);
   const countsByClass = React.useMemo(
@@ -167,25 +166,25 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
       }),
     [entries, group, changeClass, subsystem, severity, area]
   );
-  const pageData = React.useMemo(
-    () => paginateStudyDiffList(filteredEntries, page, PAGE_SIZE),
-    [filteredEntries, page]
-  );
+  
+  const { items: paginatedEntries, page, totalPages, setPage } = useUnifiedList({
+    data: filteredEntries,
+    mode: "paginated",
+    itemsPerPage: PAGE_SIZE,
+    filterDependencies: [group, changeClass, severity, subsystem, area],
+  });
+
   const selectedEntry = React.useMemo(
     () => entries.find((entry) => entry.id === selectedId) ?? null,
     [entries, selectedId]
   );
 
   React.useEffect(() => {
-    setPage(1);
-  }, [group, changeClass, severity, subsystem, area]);
-
-  React.useEffect(() => {
     if (!selectedEntry || selectedEntry.group !== group) {
-      const first = pageData.entries[0];
+      const first = paginatedEntries[0];
       setSelectedId(first ? first.id : null);
     }
-  }, [selectedEntry, group, pageData.entries]);
+  }, [selectedEntry, group, paginatedEntries]);
 
   if (!report) {
     return (
@@ -305,7 +304,7 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
       ) : (
         <>
           <div className={styles.entryList}>
-            {pageData.entries.map((entry) => (
+            {paginatedEntries.map((entry) => (
               <Button
                 key={entry.id}
                 appearance={selectedId === entry.id ? "primary" : "subtle"}
@@ -325,17 +324,17 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
 
           <div className={styles.paginationRow}>
             <Text size={200}>
-              Page {pageData.page} / {pageData.totalPages}
+              Page {page} / {totalPages}
             </Text>
             <div>
               <Button
-                disabled={pageData.page <= 1}
+                disabled={page <= 1}
                 onClick={() => setPage((current) => current - 1)}
               >
                 Previous
               </Button>
               <Button
-                disabled={pageData.page >= pageData.totalPages}
+                disabled={page >= totalPages}
                 onClick={() => setPage((current) => current + 1)}
               >
                 Next

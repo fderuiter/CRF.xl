@@ -35,10 +35,12 @@ import {
   CheckmarkCircleRegular,
 } from "@fluentui/react-icons";
 import { StudyDesign, StudyDiffReport } from "../../core";
+import { useUnifiedList } from "../../hooks/useUnifiedList";
 import {
   buildMatrixSearchIndex,
   filterMatrixSearchIndex,
   MatrixRequiredFilter,
+  MatrixSearchEntry,
 } from "./matrix-view-utils";
 import { StudyDiffView } from "./StudyDiffView";
 
@@ -336,6 +338,46 @@ const useStyles = makeStyles({
 
 const SEARCH_DEBOUNCE_MS = 150;
 
+function MatrixEntryCard({ entry, styles }: { entry: MatrixSearchEntry; styles: any }) {
+  const { items: previewItems, overflowCount } = useUnifiedList({
+    data: entry.previewSource,
+    mode: "capped",
+    previewLimit: 3,
+  });
+
+  const previewText =
+    previewItems.map((item) => `${item.itemOid} — ${item.itemLabel}`).join(" • ") +
+    (overflowCount > 0 ? ` (+ ${overflowCount} more)` : "");
+
+  return (
+    <div className={styles.resultItem}>
+      <div className={styles.resultTopRow}>
+        <div>
+          <Text className={styles.resultTitle} block>
+            {entry.formName}
+          </Text>
+          <Text
+            className={styles.resultMeta}
+            block
+          >{`${entry.formOid} · ${entry.eventName}`}</Text>
+        </div>
+        <Badge appearance="tint" color="brand">{`${entry.itemCount} vars`}</Badge>
+      </div>
+      <div className={styles.badgeRow}>
+        <Badge
+          appearance="outline"
+          color="success"
+        >{`${entry.requiredCount} required`}</Badge>
+        <Badge
+          appearance="outline"
+          color="warning"
+        >{`${entry.optionalCount} optional`}</Badge>
+      </div>
+      <Text className={styles.previewText}>{previewText}</Text>
+    </div>
+  );
+}
+
 export const MatrixView: React.FC<MatrixProps> = ({
   onComplianceExport,
   isProcessing,
@@ -591,31 +633,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
               {filteredEntries.length > 0 ? (
                 <div className={styles.resultList}>
                   {filteredEntries.map((entry) => (
-                    <div key={entry.id} className={styles.resultItem}>
-                      <div className={styles.resultTopRow}>
-                        <div>
-                          <Text className={styles.resultTitle} block>
-                            {entry.formName}
-                          </Text>
-                          <Text
-                            className={styles.resultMeta}
-                            block
-                          >{`${entry.formOid} · ${entry.eventName}`}</Text>
-                        </div>
-                        <Badge appearance="tint" color="brand">{`${entry.itemCount} vars`}</Badge>
-                      </div>
-                      <div className={styles.badgeRow}>
-                        <Badge
-                          appearance="outline"
-                          color="success"
-                        >{`${entry.requiredCount} required`}</Badge>
-                        <Badge
-                          appearance="outline"
-                          color="warning"
-                        >{`${entry.optionalCount} optional`}</Badge>
-                      </div>
-                      <Text className={styles.previewText}>{entry.previewItems.join(" • ")}</Text>
-                    </div>
+                    <MatrixEntryCard key={entry.id} entry={entry} styles={styles} />
                   ))}
                 </div>
               ) : (
