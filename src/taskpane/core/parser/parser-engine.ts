@@ -16,6 +16,7 @@ import { getLocaleConfig } from "../locale-config";
 import { LinguisticService } from "../services/linguistics-service";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables, normalizeOid } from "./metadata-utils";
+import { GlobalOidRegistry } from "../registry/oid-registry";
 
 interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -26,6 +27,7 @@ export async function parseRawDataToStudyDesign(
   options: ParseExcelToStudyDesignOptions = {}
 ): Promise<StudyDesign> {
   const runtime = createParseRuntime(options);
+  const oidRegistry = new GlobalOidRegistry();
   const study: StudyDesign = {
     metadata: {
       protocolId: "PROT-XXXX",
@@ -127,6 +129,9 @@ export async function parseRawDataToStudyDesign(
       total: rows.length,
       message: "Processing codelist rows",
     });
+    
+    let lastSeenCodelistId: string | null = null;
+    
     await processRowsInChunks(rows, runtime, "codelists", (row, rowIndex) => {
       runtime.throwIfStopped("codelists");
       const id = row[idIdx];
@@ -136,6 +141,15 @@ export async function parseRawDataToStudyDesign(
 
       if (!id) return;
       const strId = normalizeOid(id);
+      
+      // If it's the first time we see it, OR if it's a non-contiguous block, register it
+      if (!study.codelists[strId] || (lastSeenCodelistId !== null && lastSeenCodelistId !== strId)) {
+        if (!oidRegistry.register(strId, "Codelist", "_Codelists", rowIndex + dataOffset + 1)) {
+          return;
+        }
+      }
+      lastSeenCodelistId = strId;
+      
       if (!study.codelists[strId]) {
         study.codelists[strId] = {
           codelistId: strId,
@@ -200,6 +214,11 @@ export async function parseRawDataToStudyDesign(
       const [id, name, rep] = row;
       if (!id) return;
       const strId = normalizeOid(id);
+      
+      if (!oidRegistry.register(strId, "Form", "_Forms", rowIndex + 2)) {
+        return;
+      }
+      
       activeFormOids.push(strId);
 
       study.forms[strId] = {
@@ -264,7 +283,13 @@ export async function parseRawDataToStudyDesign(
         await processRowsInChunks(rows, runtime, "items", (row, rowIndex) => {
           runtime.throwIfStopped("items");
           const element = mapRowToFormElement(headers, row, oid, rowIndex + 2);
-          if (isCrfDisplayBlock(element) || (element as CrfItem).itemOid) {
+          if (isCrfDisplayBlock(element)) {
+            targetGroup.items.push(element);
+          } else if ((element as CrfItem).itemOid) {
+            const itemOid = (element as CrfItem).itemOid;
+            if (!oidRegistry.register(itemOid, "Item", oid, rowIndex + 2)) {
+              return;
+            }
             targetGroup.items.push(element as CrfItem);
           }
         });
@@ -412,10 +437,12 @@ export async function parseRawDataToStudyDesign(
     message: "Completed _Methods sheet",
   });
 
-  if (parseWarnings.length > 0) {
+  const oidCollisions = oidRegistry.getCollisions();
+  if (parseWarnings.length > 0 || oidCollisions.length > 0) {
     study.metadata.customProperties = {
       ...(study.metadata.customProperties ?? {}),
       parseWarnings,
+      oidCollisions,
     };
   }
 
