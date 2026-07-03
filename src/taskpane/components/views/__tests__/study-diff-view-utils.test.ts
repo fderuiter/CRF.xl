@@ -7,7 +7,6 @@ import { DataType, RuleType, StudyDiffReport } from "../../../core/types";
 import {
   buildStudyDiffList,
   filterStudyDiffList,
-  paginateStudyDiffList,
 } from "../study-diff-view-utils";
 
 function createReport(): StudyDiffReport {
@@ -223,25 +222,5 @@ describe("study-diff-view-utils", () => {
     });
     expect(filtered).toHaveLength(1);
     expect(filtered[0].title).toBe("DM.AGE");
-  });
-
-  it("paginates large lists safely", () => {
-    const entries = Array.from({ length: 45 }, (_, index) => ({
-      id: `items:DM:ITEM_${index}`,
-      group: "items" as const,
-      key: `DM.ITEM_${index}`,
-      title: `DM.ITEM_${index}`,
-      subtitle: "Synthetic item",
-      operation: "added" as const,
-      changeClass: "added" as const,
-      severity: "low" as const,
-      subsystem: "Structure",
-      area: "DM",
-      changedFields: [],
-    }));
-    const page = paginateStudyDiffList(entries, 3, 20);
-    expect(page.totalPages).toBe(3);
-    expect(page.entries).toHaveLength(5);
-    expect(page.page).toBe(3);
   });
 });

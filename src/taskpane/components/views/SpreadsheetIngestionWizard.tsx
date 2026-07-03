@@ -34,6 +34,7 @@ import {
   TargetSheet,
 } from "../../core";
 import { announcer } from "../../core/services/announcer";
+import { useUnifiedList } from "../../hooks/useUnifiedList";
 import { UniversalWizard, WizardStepDef } from "../ui/UniversalStepper";
 
 interface WizardState {
@@ -260,6 +261,22 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   
   // We need to keep a reset key to restart the wizard
   const [wizardKey, setWizardKey] = React.useState(0);
+
+  const previewData = React.useMemo(() => {
+    if (!state.preview) return [];
+    const rows = state.preview.projectedRows.formItemRows.length > 0
+      ? state.preview.projectedRows.formItemRows
+      : state.preview.projectedRows.formsRows.length > 0
+        ? state.preview.projectedRows.formsRows
+        : state.preview.projectedRows.codelistRows;
+    return rows.length > 1 ? rows.slice(1) : []; // skip header
+  }, [state.preview]);
+
+  const { items: previewItems, overflowCount } = useUnifiedList({
+    data: previewData,
+    mode: "capped",
+    previewLimit: 10,
+  });
 
   const patch = (partial: Partial<WizardState>) =>
     setState((current) => ({ ...current, ...partial }));
@@ -614,7 +631,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                 </tr>
               </thead>
               <tbody>
-                {(state.preview.projectedRows.formItemRows.slice(1) || []).slice(0, 10).map((row, ri) => (
+                {previewItems.map((row, ri) => (
                   <tr key={ri}>
                     {row.map((cell, ci) => (
                       <td key={ci} className={styles.td} title={cell}>{cell}</td>
@@ -624,6 +641,11 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
               </tbody>
             </table>
           </div>
+          {overflowCount > 0 && (
+            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+              + {overflowCount} more row(s) hidden in preview
+            </Text>
+          )}
           {state.syncProgress && (
             <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
               <Text>Syncing: {state.syncProgress.processed} / {state.syncProgress.total} rows</Text>
