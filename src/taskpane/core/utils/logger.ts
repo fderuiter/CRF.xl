@@ -1,3 +1,6 @@
+/**
+ * @issue #339
+ */
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,

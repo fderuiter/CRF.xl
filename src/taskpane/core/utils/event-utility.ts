@@ -1,5 +1,8 @@
 import { logger } from "./logger";
 
+/**
+ * @issue #339
+ */
 type Subscriber<T> = (data: T) => void;
 
 export class SubscriptionManager<T> {
