@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /**
  * @issue #84
  */
@@ -71,7 +72,7 @@ function deserializeAnnotation(element: Element): Annotation {
   try {
     metadata = JSON.parse(getTagValue("Metadata") || "{}");
   } catch (e) {
-    console.warn("[AnnotationService] Failed to parse annotation metadata", e);
+    logger.warn("[AnnotationService] Failed to parse annotation metadata", e);
   }
 
   return {
@@ -328,7 +329,7 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
           });
 
           if (policy.action === "AutoHeal") {
-            console.log(`[AnnotationService] ${policy.description}`);
+            logger.info(`[AnnotationService] ${policy.description}`);
             await applyAnnotationInternal(
               context,
               newLocation.sheetName,
@@ -415,7 +416,7 @@ export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<v
           existingAnnotations
         );
       } catch (e) {
-        console.warn(`[AnnotationService] Failed to bulk apply annotation ${annotation.id}`, e);
+        logger.warn(`[AnnotationService] Failed to bulk apply annotation ${annotation.id}`, e);
       }
     }
 
@@ -488,7 +489,7 @@ async function applyAnnotationInternal(
     if (policy.action === "Block") {
       throw new Error(`[AnnotationService] ${issue.message} (${policy.description})`);
     }
-    console.warn(`[AnnotationService] ${issue.message} (${policy.description})`);
+    logger.warn(`[AnnotationService] ${issue.message} (${policy.description})`);
   }
 
   // 2. Conflict Detection
@@ -499,7 +500,7 @@ async function applyAnnotationInternal(
     if (policy.action === "Block") {
       throw new Error(`[AnnotationService] ${conflict.message} (${policy.description})`);
     }
-    console.warn(`[AnnotationService] ${conflict.message} (${policy.description})`);
+    logger.warn(`[AnnotationService] ${conflict.message} (${policy.description})`);
   }
 
   const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
@@ -658,7 +659,7 @@ export async function applyValidationVisuals(
         try {
           state.comments.add(cell, issue.message);
         } catch (e) {
-          console.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
+          logger.warn(`[AnnotationService] Could not add comment to sheet: ${issue.sheetName}`, e);
         }
 
         rt.reportProgress({
@@ -796,7 +797,7 @@ export async function syncAnnotationsAfterMutation(): Promise<void> {
 
             const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
             if (currentLogicalId && currentLogicalId !== logicalId) {
-              console.warn(
+              logger.warn(
                 `[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`
               );
               // Logic to handle orphan/drift could be added here
@@ -818,7 +819,7 @@ export async function handleAnnotationCopyPaste(
 ): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
-    console.log(`[AnnotationService] Handling copy from ${sourceAddress} to ${targetAddress}`);
+    logger.info(`[AnnotationService] Handling copy from ${sourceAddress} to ${targetAddress}`);
 
     const resolveRange = (addr: string) => {
       if (addr.includes("!")) {
@@ -853,7 +854,7 @@ export async function handleAnnotationCopyPaste(
 export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
-    console.log(`[AnnotationService] Reconciling annotations for sheet: ${sheetName}`);
+    logger.info(`[AnnotationService] Reconciling annotations for sheet: ${sheetName}`);
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const comments = sheet.comments;
     comments.load("items/content");
@@ -868,7 +869,7 @@ export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<
         const currentId = await resolveLogicalId(sheetName, location.address);
         const metaMatch = comment.content.match(/^\[.*?:(.*?)\].*/);
         if (metaMatch && currentId !== metaMatch[1]) {
-          console.warn(
+          logger.warn(
             `[AnnotationService] Annotation for ${metaMatch[1]} drifted to ${currentId} after sort at ${location.address}`
           );
         }
@@ -886,7 +887,7 @@ export async function handlePartialRangeMovement(
 ): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
-    console.log(`[AnnotationService] Partial move to ${movedAddress}`);
+    logger.info(`[AnnotationService] Partial move to ${movedAddress}`);
     const movedRange = movedAddress.includes("!")
       ? context.workbook.worksheets
           .getItem(movedAddress.split("!")[0])
@@ -902,7 +903,7 @@ export async function handlePartialRangeMovement(
 
     if (comments.items.length > 0) {
       // If it moved but was part of a larger range, flag it
-      console.log(
+      logger.info(
         `[AnnotationService] Moved range ${movedAddress} contains annotations. Checking for splits...`
       );
     }

@@ -5,6 +5,7 @@
 
 import { DiagnosticError } from "./diagnostic-framework";
 import { createOfficeDiagnostic } from "./office-error-handling";
+import { SubscriptionManager } from "../utils/event-utility";
 
 export interface SelectionContext {
   sheetName: string;
@@ -19,8 +20,8 @@ export interface SelectionContext {
 export type SelectionChangeListener = (context: SelectionContext) => void;
 
 class BindingService {
-  private listeners: Set<SelectionChangeListener> = new Set();
-  private errorListeners: Set<(error: DiagnosticError) => void> = new Set();
+  private selectionManager = new SubscriptionManager<SelectionContext>();
+  private errorManager = new SubscriptionManager<DiagnosticError>();
   private currentContext: SelectionContext | null = null;
   private debounceTimer: any = null;
   private isInternalOperation = false;
@@ -33,34 +34,23 @@ class BindingService {
    * Subscribes to selection changes. Returns an unsubscribe function.
    */
   public subscribe(listener: SelectionChangeListener, immediate = true): () => void {
-    this.listeners.add(listener);
+    const unsubscribe = this.selectionManager.subscribe(listener);
     if (immediate && this.currentContext) {
       listener(this.currentContext);
     }
-    return () => {
-      this.listeners.delete(listener);
-    };
+    return unsubscribe;
   }
 
   /**
    * Subscribes to binding service errors.
    */
   public subscribeError(listener: (error: DiagnosticError) => void): () => void {
-    this.errorListeners.add(listener);
-    return () => {
-      this.errorListeners.delete(listener);
-    };
+    return this.errorManager.subscribe(listener);
   }
 
   private emitError(error: unknown) {
     const diagnostic = createOfficeDiagnostic(error);
-    this.errorListeners.forEach((listener) => {
-      try {
-        listener(diagnostic);
-      } catch (e) {
-        console.error("Error in error listener:", e);
-      }
-    });
+    this.errorManager.notify(diagnostic);
   }
 
   /**
@@ -212,13 +202,7 @@ class BindingService {
   private notifyListeners() {
     if (this.currentContext) {
       const contextToNotify = { ...this.currentContext };
-      this.listeners.forEach((l) => {
-        try {
-          l(contextToNotify);
-        } catch (err) {
-          this.emitError(err);
-        }
-      });
+      this.selectionManager.notify(contextToNotify);
     }
   }
 

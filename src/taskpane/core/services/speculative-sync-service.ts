@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /* global Excel */
 /**
  * @issue #28
@@ -154,7 +155,7 @@ class SpeculativeSyncManager {
 
     // Progress listener 2: Telemetry/Diagnostics
     engine.on("progress", (data: any) => {
-      console.log(`[Telemetry] Speculative Sync Progress: ${data.completed}/${data.total} for plan ${data.planId}`);
+      logger.info(`[Telemetry] Speculative Sync Progress: ${data.completed}/${data.total} for plan ${data.planId}`);
     });
     
     let errorCaught = false;

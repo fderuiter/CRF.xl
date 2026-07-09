@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /**
  * @issue #28
  */
@@ -44,7 +45,7 @@ export class VaultService {
         }),
       });
     } catch (e) {
-      console.error("Vault sync failed", e);
+      logger.error("Vault sync failed", e);
     }
   }
 
@@ -70,7 +71,7 @@ export class VaultService {
         }),
       });
     } catch (e) {
-      console.error("Vault freeze failed", e);
+      logger.error("Vault freeze failed", e);
     }
   }
 
@@ -86,7 +87,7 @@ export class VaultService {
         return await response.json();
       }
     } catch (e) {
-      console.error("Vault history fetch failed", e);
+      logger.error("Vault history fetch failed", e);
     }
     return [];
   }

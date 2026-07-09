@@ -5,6 +5,7 @@ import { StudyDesign } from "../types/index";
 import { ValidationIssue } from "../types";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { announcer } from "./announcer";
+import { SubscriptionManager } from "../utils/event-utility";
 
 export interface ValidationState {
   isProcessing: boolean;
@@ -22,21 +23,18 @@ class BackgroundValidationEngine {
     issues: [],
     status: "Ready",
   };
-  private subscribers: Set<Subscriber> = new Set();
+  private subscriptionManager = new SubscriptionManager<ValidationState>();
   private validationTimeout: number | null = null;
   private currentAbortController: AbortController | null = null;
   private latestSheetFilter: string | undefined = undefined;
 
   public subscribe(callback: Subscriber) {
-    this.subscribers.add(callback);
     callback(this.state);
-    return () => {
-      this.subscribers.delete(callback);
-    };
+    return this.subscriptionManager.subscribe(callback);
   }
 
   private notify() {
-    this.subscribers.forEach((sub) => sub(this.state));
+    this.subscriptionManager.notify(this.state);
   }
 
   public getState() {

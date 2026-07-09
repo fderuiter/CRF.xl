@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /**
  * @issue #84
  */
@@ -246,7 +247,7 @@ class AnnotationPaintbrushService {
         for (const issue of issues) {
           const policy = getRepairPolicy(issue);
           if (policy.action === "Block") {
-            console.error(
+            logger.error(
               `[AnnotationPaintbrush] Application blocked at ${address}: ${issue.message}`
             );
             isBlocked = true;

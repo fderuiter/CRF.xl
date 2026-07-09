@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /**
  * @issue #78
  */
@@ -36,7 +37,7 @@ export async function exportToPdf(html: string, filename: string): Promise<void>
       (pdfMake.createPdf(docDefinition) as any).download(filename);
       resolve();
     } catch (error) {
-      console.error("[PdfExportAdapter] Failed to export PDF", error);
+      logger.error("[PdfExportAdapter] Failed to export PDF", error);
       reject(error);
     }
   });
@@ -72,7 +73,7 @@ export async function generatePdfBlobFromHtml(html: string): Promise<Blob> {
         resolve(blob);
       });
     } catch (error) {
-      console.error("[PdfExportAdapter] Failed to generate PDF blob", error);
+      logger.error("[PdfExportAdapter] Failed to generate PDF blob", error);
       reject(error);
     }
   });
