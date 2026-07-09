@@ -1,3 +1,5 @@
+import { SubscriptionManager } from "../utils/event-utility";
+
 /** @issue #331 */
 export type AnnouncementPriority = "polite" | "assertive";
 
@@ -10,15 +12,14 @@ interface Announcement {
 type AnnouncerSubscriber = (announcement: Announcement) => void;
 
 class AnnouncerUtility {
-  private subscribers = new Set<AnnouncerSubscriber>();
+  private subscriptionManager = new SubscriptionManager<Announcement>();
   private messageId = 0;
   private lastMessage = "";
   private lastAnnounceTime = 0;
   private lastPercentageReported = -1;
 
   public subscribe(callback: AnnouncerSubscriber) {
-    this.subscribers.add(callback);
-    return () => this.subscribers.delete(callback);
+    return this.subscriptionManager.subscribe(callback);
   }
 
   public announce(message: string, priority: AnnouncementPriority = "polite") {
@@ -47,8 +48,9 @@ class AnnouncerUtility {
     this.lastAnnounceTime = Date.now();
 
     const announcement = { id: ++this.messageId, message, priority };
-    this.subscribers.forEach((sub) => sub(announcement));
+    this.subscriptionManager.notify(announcement);
   }
 }
 
 export const announcer = new AnnouncerUtility();
+

@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * @issue #44, #139
  */
@@ -185,7 +186,7 @@ export async function generateOdmXml(
     const warnings = validationResult.errors.filter((e) => e.level === "Warning");
     warnings.forEach((w) => {
       const warningMsg = `Rule '${w.ruleId}': ${w.message}`;
-      console.warn(warningMsg);
+      logger.warn(warningMsg);
       serializationWarnings.push(warningMsg);
     });
 
@@ -215,22 +216,22 @@ export async function generateOdmXml(
         if (!exists) {
           if (rule.ruleType === RuleType.DERIVATION) {
             const warnMsg = `Derivation target '${rule.target}' not found in study design; MethodDef will be serialized but not linked to any ItemDef.`;
-            console.warn(warnMsg);
+            logger.warn(warnMsg);
             serializationWarnings.push(warnMsg);
           } else if (rule.ruleType === RuleType.SHOW_IF) {
             const warnMsg = `ShowIf target '${rule.target}' not found in study design; ConditionDef will be serialized but not linked to any ItemRef.`;
-            console.warn(warnMsg);
+            logger.warn(warnMsg);
             serializationWarnings.push(warnMsg);
           }
         }
       } else {
         if (rule.ruleType === RuleType.DERIVATION) {
           const warnMsg = `Derivation rule '${rule.ruleId}' has no target variable; MethodDef will be serialized but not linked.`;
-          console.warn(warnMsg);
+          logger.warn(warnMsg);
           serializationWarnings.push(warnMsg);
         } else if (rule.ruleType === RuleType.SHOW_IF) {
           const warnMsg = `ShowIf rule '${rule.ruleId}' has no target variable; ConditionDef will be serialized but not linked.`;
-          console.warn(warnMsg);
+          logger.warn(warnMsg);
           serializationWarnings.push(warnMsg);
         }
       }

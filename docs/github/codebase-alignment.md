@@ -8,6 +8,7 @@ Related: [`docs/architecture/module-map.md`](../architecture/module-map.md) — 
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#339` | feat: implement standardized logging and event management utilities | Present | [`src/taskpane/core/utils/event-utility.ts`](../../src/taskpane/core/utils/event-utility.ts)<br>[`src/taskpane/core/utils/logger.ts`](../../src/taskpane/core/utils/logger.ts) |
 | `#337` | Implement Unified Global OID Registry for cross-entity validation | Present | [`src/taskpane/core/registry/oid-registry.ts`](../../src/taskpane/core/registry/oid-registry.ts) |
 | `#335` | Centralize list state management with useUnifiedList hook | Present | [`src/taskpane/hooks/useUnifiedList.ts`](../../src/taskpane/hooks/useUnifiedList.ts) |
 | `#334` | Implement Chunking Middleware Engine for unified background processing | Present | [`src/taskpane/core/engine/chunking-engine.ts`](../../src/taskpane/core/engine/chunking-engine.ts)<br>[`src/taskpane/core/engine/middlewares.ts`](../../src/taskpane/core/engine/middlewares.ts) |

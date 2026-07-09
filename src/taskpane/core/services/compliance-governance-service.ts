@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /* global window, console, btoa, URL, Office */
 /**
  * @issue #28
@@ -63,7 +64,7 @@ export class ComplianceGovernanceService {
       this.setupGraphClient();
       this.processPendingSync();
     } catch (error) {
-      console.error("Login failed", error);
+      logger.error("Login failed", error);
       throw error;
     }
   }
@@ -165,7 +166,7 @@ export class ComplianceGovernanceService {
           );
         }
       } catch (colErr) {
-        console.warn("Failed to fetch columns", colErr);
+        logger.warn("Failed to fetch columns", colErr);
       }
 
       let isAdmin = false;
@@ -197,7 +198,7 @@ export class ComplianceGovernanceService {
         isCompliant,
       };
     } catch (error) {
-      console.error("Error fetching environment status from Graph", error);
+      logger.error("Error fetching environment status from Graph", error);
       // Fallback
       return {
         isCloudHosted,
@@ -235,7 +236,7 @@ export class ComplianceGovernanceService {
           text: {},
         });
       } catch (e) {
-        console.warn("Could not create GovernanceSummary", e);
+        logger.warn("Could not create GovernanceSummary", e);
       }
     }
 
@@ -246,7 +247,7 @@ export class ComplianceGovernanceService {
           number: {},
         });
       } catch (e) {
-        console.warn("Could not create JustificationCount", e);
+        logger.warn("Could not create JustificationCount", e);
       }
     }
   }
@@ -403,7 +404,7 @@ export class ComplianceGovernanceService {
           this.pendingSync = null;
         }
       } catch (error) {
-        console.warn("Failed to sync SharePoint metadata for justifications", error);
+        logger.warn("Failed to sync SharePoint metadata for justifications", error);
       }
     }, 1000);
   }
