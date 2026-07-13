@@ -288,7 +288,7 @@ export async function generateOdmXml(
       <FormDef OID="${escapeXml(form.formOid)}" Name="${escapeXml(form.formName)}" Repeating="${form.repeating ? "Yes" : "No"}">`;
     for (const group of iterator.itemGroups(form)) {
       xml += `
-        <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
+        <ItemGroupRef ItemGroupOID="${escapeXml(group.groupOid!)}" OrderNumber="${group.orderNumber}" Mandatory="Yes"/>`;
     }
     xml += `
       </FormDef>`;
@@ -298,7 +298,7 @@ export async function generateOdmXml(
   for (const form of iterator.forms(study)) {
     for (const group of iterator.itemGroups(form)) {
       xml += `
-      <ItemGroupDef OID="${escapeXml(group.groupOid)}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
+      <ItemGroupDef OID="${escapeXml(group.groupOid!)}" Name="${escapeXml(group.name)}" Repeating="${group.repeating ? "Yes" : "No"}">`;
       for (const item of iterator.items(group)) {
         if (!isCrfItem(item)) {
           continue;
@@ -379,7 +379,7 @@ export async function generateOdmXml(
   Object.values(study.codelists)
     .sort((a, b) => a.codelistId.localeCompare(b.codelistId))
     .forEach((cl) => {
-      const odmType = mapDataTypeToOdm(cl.dataType);
+      const odmType = mapDataTypeToOdm(cl.dataType as any as any);
       xml += `
       <CodeList OID="${escapeXml(cl.codelistId)}" Name="${escapeXml(cl.codelistName)}" DataType="${odmType}">`;
       [...cl.items]
@@ -598,7 +598,7 @@ function renderItemDef(
   defaultLanguage?: string,
   warnings?: string[]
 ): string {
-  const odmType = mapDataTypeToOdm(item.dataType);
+  const odmType = mapDataTypeToOdm(item.dataType as any as any);
   let output = `
       <ItemDef OID="${escapeXml(item.itemOid)}" Name="${escapeXml(item.name)}" DataType="${odmType}"`;
 

@@ -202,7 +202,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   }
 
   mappedForms
-    .sort((left, right) => left.orderNumber - right.orderNumber)
+    .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
     .forEach((entry, index) => {
       study.forms[entry.formOid].orderNumber = index + 1;
     });
@@ -313,7 +313,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
 export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProjection {
   const formRows = Object.values(study.forms)
     .slice()
-    .sort((left, right) => left.orderNumber - right.orderNumber)
+    .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
     .map((form) => [form.formOid, form.formName, form.repeating ? "Yes" : "No", "Portrait"]);
 
   const codelistRows: string[][] = [];
@@ -323,7 +323,7 @@ export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProje
     .forEach((codelist) => {
       codelist.items
         .slice()
-        .sort((left, right) => left.orderNumber - right.orderNumber)
+        .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
         .forEach((item) => {
           codelistRows.push([
             codelist.codelistId,
