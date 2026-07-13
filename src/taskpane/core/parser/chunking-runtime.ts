@@ -1,7 +1,7 @@
 /**
  * @issue #68
  */
-/* eslint-disable no-undef */
+
 import { ChunkingEngine, getDefaultYieldStrategy } from "../engine/chunking-engine";
 
 export type ParsePhase =
@@ -78,14 +78,14 @@ export async function processRowsInChunks<T>(
 ): Promise<void> {
   const engine = new ChunkingEngine<T>({
     chunkSize: runtime.chunkSize,
-    yieldStrategy: runtime.yieldToHost
+    yieldStrategy: runtime.yieldToHost,
   });
-  
+
   engine.use(async (_ctx, _chunk, next) => {
     runtime.throwIfStopped(phase);
     await next();
   });
-  
+
   await engine.execute([{ id: phase, data: rows }], async (chunk, ctx) => {
     for (let i = 0; i < chunk.length; i++) {
       await onRow(chunk[i], ctx.startIndex + i);

@@ -21,7 +21,7 @@ import {
   eventFormRefSchema,
   studyEventSchema,
   studyMetadataSchema,
-  studyDesignSchema
+  studyDesignSchema,
 } from "./schemas";
 
 export type SystemTrigger = z.infer<typeof systemTriggerSchema>;

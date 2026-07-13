@@ -20,7 +20,7 @@ export function createRetryMiddleware<T>(policy: RetryPolicy): Middleware<T> {
         if (!policy.shouldRetry(error) || retries >= policy.maxRetries) {
           throw error;
         }
-        await new Promise(r => setTimeout(r, policy.delayMs));
+        await new Promise((r) => setTimeout(r, policy.delayMs));
         retries++;
       }
     }

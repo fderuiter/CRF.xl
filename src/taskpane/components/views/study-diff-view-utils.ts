@@ -276,5 +276,3 @@ export function filterStudyDiffList(
     return true;
   });
 }
-
-

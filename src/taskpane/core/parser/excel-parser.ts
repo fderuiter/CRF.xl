@@ -52,7 +52,12 @@ async function fetchRawDataFromExcel(
     await context.sync();
 
     const rawData: Record<string, unknown[][]> = {};
-    const rangesInfo: { name: string; sheet: Excel.Worksheet; range: Excel.Range; tables: Excel.TableCollection }[] = [];
+    const rangesInfo: {
+      name: string;
+      sheet: Excel.Worksheet;
+      range: Excel.Range;
+      tables: Excel.TableCollection;
+    }[] = [];
 
     for (const sheet of sheets.items) {
       // Check cancellation during setup
@@ -62,7 +67,7 @@ async function fetchRawDataFromExcel(
       // Attempt to load table first
       const tables = sheet.tables;
       tables.load("count");
-      
+
       const range = sheet.getUsedRangeOrNullObject();
       range.load(["rowIndex", "columnIndex", "rowCount", "columnCount"]);
       rangesInfo.push({ name: sheet.name, sheet, range, tables });

@@ -28,7 +28,7 @@ export async function upgradeSystemSheetsToTables(context: Excel.RequestContext)
         const table = sheet.tables.add(usedRange, true);
         table.name = `${sheetName.replace(/[^A-Za-z0-9_]/g, "")}Table`;
         table.style = "Slate 900";
-        
+
         await context.sync();
       }
     }

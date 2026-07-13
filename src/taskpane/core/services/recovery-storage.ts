@@ -1,7 +1,7 @@
 /**
  * @issue #68
  */
-/* eslint-disable no-undef */
+
 import { z } from "zod";
 import { StudyDesign, isCrfItem } from "../types";
 import { ValidationIssue } from "../types";

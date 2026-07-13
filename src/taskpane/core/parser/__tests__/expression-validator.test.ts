@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
+
 import { parseRuleExpression } from "../rules-parser";
 import { inferExpressionType, validateExpression } from "../expression-validator";
 import { DataType } from "../../types/index";

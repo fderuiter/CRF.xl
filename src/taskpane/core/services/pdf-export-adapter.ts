@@ -19,7 +19,7 @@ export async function exportToPdf(html: string, filename: string): Promise<void>
       h2: { fontSize: 18, bold: true, margin: [0, 15, 0, 10] },
     },
   });
-  
+
   const docDefinition: any = {
     content: parsedHtml,
     tagged: true,

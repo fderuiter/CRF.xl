@@ -18,7 +18,6 @@ export interface DatasetDraft<T> {
 
 export type SubmissionMetadataValidationErrors = Record<string, string>;
 
-
 export function createSdtmDatasetDrafts(
   datasets: SdtmDatasetMetadata[] | undefined
 ): DatasetDraft<SdtmDatasetMetadata>[] {
@@ -65,7 +64,7 @@ export function validateSdtmDatasetMetadata(
   const errors: SubmissionMetadataValidationErrors = {};
   const pipeline = new ClinicalValidationPipeline();
   const result = pipeline.validateDataset(metadata, "SDTM");
-  result.issues.forEach(issue => {
+  result.issues.forEach((issue) => {
     if (issue.message.includes("SDTM Domain is required")) errors.domain = issue.message;
     else if (issue.message.includes("Label is required")) errors.label = issue.message;
     else if (issue.message.includes("Structure is required")) errors.structure = issue.message;
@@ -81,7 +80,7 @@ export function validateAdamDatasetMetadata(
   const errors: SubmissionMetadataValidationErrors = {};
   const pipeline = new ClinicalValidationPipeline();
   const result = pipeline.validateDataset(metadata, "ADaM");
-  result.issues.forEach(issue => {
+  result.issues.forEach((issue) => {
     if (issue.message.includes("ADaM Dataset is required")) errors.dataset = issue.message;
     else if (issue.message.includes("Label is required")) errors.label = issue.message;
     else if (issue.message.includes("Structure is required")) errors.structure = issue.message;

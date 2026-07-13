@@ -23,7 +23,7 @@ export function useUnifiedList<T>({
   // Reset page to 1 when specific filter dependencies change
   useEffect(() => {
     setPage(1);
-  }, filterDependencies); // eslint-disable-line react-hooks/exhaustive-deps
+  }, filterDependencies);
 
   const { items, totalPages, overflowCount, boundedPage } = useMemo(() => {
     if (mode === "capped") {
@@ -40,10 +40,10 @@ export function useUnifiedList<T>({
       const safePageSize = Math.max(1, itemsPerPage);
       const total = Math.max(1, Math.ceil(data.length / safePageSize));
       const current = Math.min(Math.max(1, page), total);
-      
+
       const start = (current - 1) * safePageSize;
       const sliced = data.slice(start, start + safePageSize);
-      
+
       return {
         items: sliced,
         totalPages: total,

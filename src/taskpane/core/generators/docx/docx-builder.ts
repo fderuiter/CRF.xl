@@ -1,7 +1,7 @@
 /**
  * @issue #56, #57
  */
-/* eslint-disable no-undef */
+
 import {
   ImageRun,
   Document,

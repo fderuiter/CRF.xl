@@ -1,7 +1,7 @@
 /**
  * @issue #57
  */
-/* eslint-disable no-undef */
+
 /* global Excel */
 import { ReviewerComment, ReviewerCommentStatus } from "../types/reviewer";
 

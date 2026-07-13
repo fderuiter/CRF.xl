@@ -3,7 +3,7 @@ import { logger } from "../utils/logger";
 /**
  * @issue #84
  */
-/* eslint-disable no-undef */
+
 /* global Excel */
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
@@ -275,27 +275,27 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
 
   await Excel.run(async (context) => {
     const stored = await loadAnnotationsFromStore(context);
-    
+
     for (const annotation of stored) {
       if (!annotation.metadata || !annotation.metadata.anchoringHash) continue;
-      
+
       const sheet = context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName);
       sheet.load("isNullObject");
       await context.sync();
-      
+
       if (sheet.isNullObject) continue;
-      
+
       try {
         const range = sheet.getRange(annotation.anchor.address);
         range.load("rowIndex");
         await context.sync();
-        
+
         const currentHash = await generateRowHash(
           annotation.anchor.sheetName,
           range.rowIndex,
           annotation.anchor.logicalId
         );
-        
+
         if (currentHash !== annotation.metadata.anchoringHash) {
           // It drifted. Let's scan for its new location
           const newAddress = await scanForDrift(
@@ -304,13 +304,13 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
             annotation.metadata.anchoringHash,
             annotation.anchor.logicalId
           );
-          
+
           drifts.push({
             annotationId: annotation.id,
             originalAddress: annotation.anchor.address,
             proposedAddress: newAddress,
             message: `Annotation ${annotation.anchor.logicalId || annotation.id} drifted from ${annotation.anchor.address}.`,
-            lostHash: newAddress === null
+            lostHash: newAddress === null,
           });
         }
       } catch (e) {
@@ -327,12 +327,12 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
           originalAddress: annotation.anchor.address,
           proposedAddress: newAddress,
           message: `Annotation ${annotation.anchor.logicalId || annotation.id} lost its anchor at ${annotation.anchor.address}.`,
-          lostHash: newAddress === null
+          lostHash: newAddress === null,
         });
       }
     }
   });
-  
+
   return drifts;
 }
 
@@ -578,7 +578,11 @@ export async function applyAnnotationInternal(
   // Generate initial anchoring hash
   range.load("rowIndex");
   await context.sync();
-  const anchoringHash = await generateRowHash(sheetName, range.rowIndex, annotation.anchor.logicalId);
+  const anchoringHash = await generateRowHash(
+    sheetName,
+    range.rowIndex,
+    annotation.anchor.logicalId
+  );
   if (!annotation.metadata) {
     annotation.metadata = {};
   }
@@ -857,7 +861,7 @@ export async function generateRowHash(
 ): Promise<string> {
   let hash = "";
   if (typeof Excel === "undefined") return hash;
-  
+
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     // Grab first 5 columns to form the hash
@@ -871,7 +875,7 @@ export async function generateRowHash(
       hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
     }
   });
-  
+
   return hash;
 }
 
@@ -896,52 +900,53 @@ export async function scanForDrift(
   logicalId?: string
 ): Promise<string | null> {
   if (typeof Excel === "undefined") return null;
-  
+
   return new Promise((resolve) => {
     Excel.run(async (context) => {
       const sheet = context.workbook.worksheets.getItem(sheetName);
       const usedRange = sheet.getUsedRangeOrNullObject();
       usedRange.load(["rowCount"]);
       await context.sync();
-      
+
       if (usedRange.isNullObject) {
         resolve(null);
         return;
       }
-      
+
       const maxRows = usedRange.rowCount;
       const MAX_OFFSET = 50;
       let offset = 0;
-      
+
       const processNextBatch = async () => {
         if (offset > MAX_OFFSET) {
           resolve(null);
           return;
         }
-        
+
         await Excel.run(async (batchContext) => {
           const batchSheet = batchContext.workbook.worksheets.getItem(sheetName);
           const checks: { rowIndex: number; direction: string }[] = [];
-          
+
           if (offset === 0) {
-            if (startRowIndex < maxRows) checks.push({ rowIndex: startRowIndex, direction: 'center' });
+            if (startRowIndex < maxRows)
+              checks.push({ rowIndex: startRowIndex, direction: "center" });
           } else {
             const upRow = startRowIndex - offset;
             const downRow = startRowIndex + offset;
-            if (upRow >= 0) checks.push({ rowIndex: upRow, direction: 'up' });
-            if (downRow < maxRows) checks.push({ rowIndex: downRow, direction: 'down' });
+            if (upRow >= 0) checks.push({ rowIndex: upRow, direction: "up" });
+            if (downRow < maxRows) checks.push({ rowIndex: downRow, direction: "down" });
           }
-          
+
           for (const check of checks) {
             const rowRange = batchSheet.getRangeByIndexes(check.rowIndex, 0, 1, 5);
             rowRange.load(["values", "address"]);
             await batchContext.sync();
-            
+
             if (rowRange.values && rowRange.values.length > 0) {
               const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
               const signature = `${logicalId || "NO_OID"}::${rowString}`;
               const hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
-              
+
               if (hash === targetHash) {
                 // Found it! Return the address of the first cell in that row
                 const foundCell = batchSheet.getRangeByIndexes(check.rowIndex, 0, 1, 1);
@@ -952,17 +957,19 @@ export async function scanForDrift(
               }
             }
           }
-          
+
           offset++;
           // Cooperative yield to UI thread
-          if (typeof requestIdleCallback !== 'undefined') {
-            requestIdleCallback(() => { processNextBatch(); });
+          if (typeof requestIdleCallback !== "undefined") {
+            requestIdleCallback(() => {
+              processNextBatch();
+            });
           } else {
             setTimeout(processNextBatch, 0);
           }
         });
       };
-      
+
       processNextBatch();
     }).catch((e) => {
       logger.error("[AnnotationService] Error during drift scanning", e);
@@ -974,58 +981,62 @@ export async function scanForDrift(
 /**
  * Manually applies a user-approved re-anchor action for a drifted annotation.
  */
-export async function applyManualReAnchor(
-  annotationId: string,
-  newAddress: string
-): Promise<void> {
+export async function applyManualReAnchor(annotationId: string, newAddress: string): Promise<void> {
   if (typeof Excel === "undefined") return;
-  
+
   await Excel.run(async (context) => {
     const allStored = await loadAnnotationsFromStore(context);
     const annotation = allStored.find((a) => a.id === annotationId);
-    
+
     if (!annotation) {
-      throw new Error(`[AnnotationService] Cannot re-anchor: Annotation ${annotationId} not found in store.`);
+      throw new Error(
+        `[AnnotationService] Cannot re-anchor: Annotation ${annotationId} not found in store.`
+      );
     }
-    
+
     // Remove old comment if it exists at the old location or globally
     const sheet = context.workbook.worksheets.getItem(annotation.anchor.sheetName);
-    
+
     // We try to find and delete the old comment object
     sheet.comments.load("items");
     await context.sync();
-    
-    const oldComment = sheet.comments.items.find(c => c.id === annotation.id);
+
+    const oldComment = sheet.comments.items.find((c) => c.id === annotation.id);
     if (oldComment) {
       oldComment.delete();
     }
-    
+
     // Update annotation model with new coordinates
     annotation.anchor.address = newAddress;
-    
+
     // Generate new hash for the new location
     const range = sheet.getRange(newAddress);
     range.load("rowIndex");
     await context.sync();
-    
-    const newHash = await generateRowHash(annotation.anchor.sheetName, range.rowIndex, annotation.anchor.logicalId);
+
+    const newHash = await generateRowHash(
+      annotation.anchor.sheetName,
+      range.rowIndex,
+      annotation.anchor.logicalId
+    );
     if (!annotation.metadata) {
       annotation.metadata = {};
     }
     annotation.metadata.anchoringHash = newHash;
-    annotation.metadata.lifecycleState = 'resolved'; // Mark as resolved upon manual fix
+    annotation.metadata.lifecycleState = "resolved"; // Mark as resolved upon manual fix
     annotation.updatedTimestamp = new Date().toISOString();
-    
+
     // Write back comment to the new address
     const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
-    const displayContent = typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
+    const displayContent =
+      typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
     const fullContent = `${metaPrefix}\n${displayContent}`;
-    
+
     const newRange = sheet.getRange(newAddress);
     const newComment = sheet.comments.add(newRange, fullContent);
     newComment.load("id");
     await context.sync();
-    
+
     // Update store with new comment ID and coordinates
     annotation.id = newComment.id;
     await saveAnnotationToStore(annotation, context);

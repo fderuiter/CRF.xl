@@ -14,11 +14,7 @@ export interface ChunkContext {
 
 export type NextFunction = () => Promise<void>;
 
-export type Middleware<T> = (
-  ctx: ChunkContext,
-  chunk: T[],
-  next: NextFunction
-) => Promise<void>;
+export type Middleware<T> = (ctx: ChunkContext, chunk: T[], next: NextFunction) => Promise<void>;
 
 export interface ExecutionPlan<T> {
   id: string;
@@ -34,11 +30,18 @@ export interface ChunkingEngineOptions {
 }
 
 export function getDefaultYieldStrategy(): () => Promise<void> {
-  const isWorker = typeof (globalThis as any).WorkerGlobalScope !== 'undefined' && typeof self !== 'undefined' && self instanceof (globalThis as any).WorkerGlobalScope;
+  const isWorker =
+    typeof (globalThis as any).WorkerGlobalScope !== "undefined" &&
+    typeof self !== "undefined" &&
+    self instanceof (globalThis as any).WorkerGlobalScope;
   if (isWorker) {
-    return async () => { await new Promise(r => setTimeout(r, 0)); };
+    return async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    };
   }
-  return async () => { await new Promise(r => setTimeout(r, 20)); };
+  return async () => {
+    await new Promise((r) => setTimeout(r, 20));
+  };
 }
 
 export class ChunkingEngine<T> {
@@ -64,12 +67,12 @@ export class ChunkingEngine<T> {
   public on(event: EngineEvent, listener: Function): () => void {
     this.listeners[event].push(listener);
     return () => {
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter((l) => l !== listener);
     };
   }
 
   public emit(event: EngineEvent, payload: any) {
-    this.listeners[event].forEach(l => l(payload));
+    this.listeners[event].forEach((l) => l(payload));
   }
 
   public async execute(
