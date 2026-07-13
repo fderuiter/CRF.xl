@@ -753,6 +753,7 @@ describe("Clinical Validator Engine", () => {
             label: "Demographics",
             class: SdtmDatasetClass.SPECIAL_PURPOSE,
             structure: "One per subject",
+            keyVariables: ["USUBJID"],
           },
         ],
         adamDatasets: [
@@ -761,6 +762,7 @@ describe("Clinical Validator Engine", () => {
             label: "Subject-Level Analysis",
             class: AdamDatasetClass.ADAM_BASIC_DATA_STRUCTURE,
             structure: "One per subject",
+            keyVariables: ["USUBJID"],
           },
         ],
         sdtmDerivations: [],
