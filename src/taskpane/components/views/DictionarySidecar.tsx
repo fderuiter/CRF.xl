@@ -80,11 +80,6 @@ const useStyles = makeStyles({
     alignItems: "center",
     gap: "8px",
   },
-  headerActions: {
-    display: "flex",
-    gap: "8px",
-    alignItems: "center",
-  },
   body: {
     flexGrow: 1,
     display: "flex",
@@ -158,34 +153,11 @@ const useStyles = makeStyles({
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     overflowX: "auto",
   },
-  dataGrid: {
-    minWidth: "680px",
-  },
-  gridCellStack: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-  },
-  dictId: {
-    fontSize: tokens.fontSizeBase300,
-    fontWeight: tokens.fontWeightBold,
-    color: tokens.colorNeutralForeground1,
-  },
-  dictName: {
-    fontSize: tokens.fontSizeBase100,
-    color: tokens.colorNeutralForeground3,
-  },
   tagRow: {
     display: "flex",
     flexWrap: "wrap",
     gap: "4px",
     alignItems: "center",
-  },
-  fallbackIndicator: {
-    color: tokens.colorPaletteMarigoldForeground1,
-    display: "flex",
-    alignItems: "center",
-    marginLeft: "2px",
   },
   tag: {
     fontSize: tokens.fontSizeBase100,
@@ -199,10 +171,6 @@ const useStyles = makeStyles({
     textAlign: "center",
     color: tokens.colorNeutralForeground3,
     padding: "24px 0",
-  },
-  actionCell: {
-    display: "flex",
-    justifyContent: "flex-end",
   },
   createForm: {
     display: "flex",
@@ -243,17 +211,6 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: "12px",
-  },
-  importTextarea: {
-    width: "100%",
-    minHeight: "120px",
-    fontFamily: "monospace",
-    fontSize: tokens.fontSizeBase100,
-    resize: "vertical",
-    padding: "8px",
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderRadius: tokens.borderRadiusMedium,
-    backgroundColor: tokens.colorNeutralBackground1,
   },
   progressCard: {
     backgroundColor: tokens.colorNeutralBackground1,

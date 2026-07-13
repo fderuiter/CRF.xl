@@ -93,16 +93,6 @@ const useStyles = makeStyles({
     fontSize: tokens.fontSizeBase100,
     color: tokens.colorNeutralForeground3,
   },
-  analyzeButton: {
-    width: "100%",
-    marginBottom: "12px",
-  },
-  exportGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    marginTop: "12px",
-  },
   exportButton: {
     display: "flex",
     flexDirection: "column",
@@ -205,56 +195,6 @@ const useStyles = makeStyles({
     textAlign: "center",
     color: tokens.colorNeutralForeground3,
   },
-  depMapSection: {
-    marginTop: "20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  depMapTitle: {
-    fontSize: tokens.fontSizeBase300,
-    fontWeight: tokens.fontWeightBold,
-    color: tokens.colorNeutralForeground1,
-  },
-  depMapFormGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
-    padding: "12px",
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-  },
-  depMapFormHeader: {
-    fontWeight: tokens.fontWeightBold,
-    fontSize: tokens.fontSizeBase100,
-    color: tokens.colorNeutralForeground3,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
-    paddingBottom: "4px",
-    marginBottom: "4px",
-  },
-  depItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    padding: "10px 12px",
-    backgroundColor: tokens.colorNeutralBackground1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderRadius: tokens.borderRadiusMedium,
-    cursor: "pointer",
-    transition: "all 0.15s ease-in-out",
-    outline: "none",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-      ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
-    },
-    ":focus-visible": {
-      outline: `2px solid ${tokens.colorCompoundBrandStroke}`,
-      ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
-    },
-  },
   depItemActive: {
     ...shorthands.borderColor(tokens.colorCompoundBrandStroke),
     backgroundColor: tokens.colorBrandBackground2,
@@ -268,12 +208,6 @@ const useStyles = makeStyles({
   },
   depItemOk: {
     borderLeft: `4px solid ${tokens.colorStatusSuccessBorder2}`,
-  },
-  depItemHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "8px",
   },
   depItemTitle: {
     fontWeight: tokens.fontWeightSemibold,
