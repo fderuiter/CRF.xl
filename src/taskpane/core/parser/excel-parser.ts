@@ -52,19 +52,33 @@ async function fetchRawDataFromExcel(
     await context.sync();
 
     const rawData: Record<string, unknown[][]> = {};
-    const rangesInfo: { name: string; sheet: Excel.Worksheet; range: Excel.Range }[] = [];
+    const rangesInfo: { name: string; sheet: Excel.Worksheet; range: Excel.Range; tables: Excel.TableCollection }[] = [];
 
     for (const sheet of sheets.items) {
       // Check cancellation during setup
       if (options.signal?.aborted) {
         throw new Error("Parsing cancelled during Excel extraction");
       }
+      // Attempt to load table first
+      const tables = sheet.tables;
+      tables.load("count");
+      
       const range = sheet.getUsedRangeOrNullObject();
       range.load(["rowIndex", "columnIndex", "rowCount", "columnCount"]);
-      rangesInfo.push({ name: sheet.name, sheet, range });
+      rangesInfo.push({ name: sheet.name, sheet, range, tables });
     }
 
-    // Execute single batch fetch to get all dimensions
+    // Execute single batch fetch to get all dimensions and table counts
+    await context.sync();
+
+    for (const info of rangesInfo) {
+      if (info.tables.count > 0) {
+        const table = info.tables.getItemAt(0);
+        const tableRange = table.getRange();
+        tableRange.load(["rowIndex", "columnIndex", "rowCount", "columnCount"]);
+        info.range = tableRange; // Override with table range to respect Table schema
+      }
+    }
     await context.sync();
 
     let totalRows = 0;

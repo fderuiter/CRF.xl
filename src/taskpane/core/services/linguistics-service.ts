@@ -14,10 +14,6 @@ import {
  * Locale-aware linguistic engine providing utility, normalization, and fallback logic.
  */
 export class LinguisticService {
-  private static readonly DECODE_REGEX = /^decode\s*\(([^)]+)\)$/i;
-  private static readonly LABEL_REGEX = /^(?:label|question(?:\s*\/)?\s*text)\s*\(([^)]+)\)$/i;
-  private static readonly INSTRUCTIONS_REGEX = /^instructions\s*\(([^)]+)\)$/i;
-
   /**
    * Normalizes a locale string to BCP 47 format (e.g., "es-es" -> "es-ES").
    */
@@ -33,22 +29,27 @@ export class LinguisticService {
     return `${parts[0].toLowerCase()}-${secondPart}`;
   }
 
-  /**
-   * Discovers the locale from a header string based on known patterns.
-   */
   public static discoverLocaleFromHeader(
     header: string
   ): { locale: string; type: "decode" | "label" | "instruction" } | null {
-    const trimmed = header.trim();
+    const trimmed = header.trim().toLowerCase();
+    
+    // Instead of regex, use simple string manipulation based on known patterns
+    // e.g. "decode (en-US)"
+    if (trimmed.startsWith("decode") && trimmed.includes("(") && trimmed.endsWith(")")) {
+      const locale = trimmed.substring(trimmed.indexOf("(") + 1, trimmed.length - 1).trim();
+      if (locale) return { locale: this.normalizeLocale(locale), type: "decode" };
+    }
 
-    let match = trimmed.match(this.DECODE_REGEX);
-    if (match) return { locale: this.normalizeLocale(match[1].trim()), type: "decode" };
+    if ((trimmed.startsWith("label") || trimmed.startsWith("question / text") || trimmed.startsWith("question/text")) && trimmed.includes("(") && trimmed.endsWith(")")) {
+      const locale = trimmed.substring(trimmed.indexOf("(") + 1, trimmed.length - 1).trim();
+      if (locale) return { locale: this.normalizeLocale(locale), type: "label" };
+    }
 
-    match = trimmed.match(this.LABEL_REGEX);
-    if (match) return { locale: this.normalizeLocale(match[1].trim()), type: "label" };
-
-    match = trimmed.match(this.INSTRUCTIONS_REGEX);
-    if (match) return { locale: this.normalizeLocale(match[1].trim()), type: "instruction" };
+    if (trimmed.startsWith("instructions") && trimmed.includes("(") && trimmed.endsWith(")")) {
+      const locale = trimmed.substring(trimmed.indexOf("(") + 1, trimmed.length - 1).trim();
+      if (locale) return { locale: this.normalizeLocale(locale), type: "instruction" };
+    }
 
     return null;
   }
