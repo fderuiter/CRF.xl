@@ -177,12 +177,6 @@ const useAppStyles = makeStyles({
     lineHeight: "1.5",
     opacity: 0.9,
   },
-  initButton: {
-    width: "100%",
-    backgroundColor: tokens.colorNeutralBackground1,
-    color: tokens.colorBrandForeground1,
-    fontWeight: tokens.fontWeightBold,
-  },
   recoveryActions: {
     marginTop: "8px",
     display: "flex",

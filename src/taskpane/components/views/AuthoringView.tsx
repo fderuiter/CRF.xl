@@ -61,9 +61,6 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     marginLeft: "auto",
   },
-  validateButton: {
-    width: "100%",
-  },
 });
 
 export const AuthoringView: React.FC<AuthoringProps> = ({ sheetName, isProcessing, onError }) => {
