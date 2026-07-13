@@ -50,7 +50,7 @@ Understand deployment environments, Office manifests, and release steps:
 | Directory | Ownership | Contents |
 | --- | --- | --- |
 | [architecture/](./architecture/) | Engineering | Module maps, ADRs, boundaries, documentation structure rules |
-| [specification/](./specification/) | Engineering / Product | Subsystem contracts, API specs, schemas, platform scope |
+| [src/ (sidecar specs)](../src/) | Engineering / Product | Subsystem contracts, API specs, schemas, platform scope |
 | [compliance/](./compliance/) | Quality / Security | GxP evidence, 21 CFR Part 11 mappings, security controls |
 | [deployment/](./deployment/) | DevOps | Add-in manifests, environment configs, deployment runbooks |
 | [qa-testing/](./qa-testing/) | Engineering / QA | Quality matrix, benchmarks, test strategies, fixture rules |
