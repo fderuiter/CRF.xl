@@ -47,6 +47,9 @@ export {
   highlightLocaleColumns,
   refreshAnnotationHighlights,
   clearAnnotationHighlights,
+  DriftWarning,
+  detectDrifts,
+  applyManualReAnchor,
 } from "./services/annotation-service";
 export { annotationPaintbrushService } from "./services/annotation-paintbrush-service";
 export {

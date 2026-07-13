@@ -1,3 +1,4 @@
+import * as CryptoJS from "crypto-js";
 import { logger } from "../utils/logger";
 /**
  * @issue #84
@@ -265,6 +266,77 @@ export async function deleteAnnotationsFromStoreBatch(
 }
 
 /**
+ * Detects drifted annotations where the current row hash no longer matches the stored anchoringHash.
+ * Uses the bi-directional scanner to propose a new address if found.
+ */
+export async function detectDrifts(): Promise<DriftWarning[]> {
+  const drifts: DriftWarning[] = [];
+  if (typeof Excel === "undefined") return drifts;
+
+  await Excel.run(async (context) => {
+    const stored = await loadAnnotationsFromStore(context);
+    
+    for (const annotation of stored) {
+      if (!annotation.metadata || !annotation.metadata.anchoringHash) continue;
+      
+      const sheet = context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName);
+      sheet.load("isNullObject");
+      await context.sync();
+      
+      if (sheet.isNullObject) continue;
+      
+      try {
+        const range = sheet.getRange(annotation.anchor.address);
+        range.load("rowIndex");
+        await context.sync();
+        
+        const currentHash = await generateRowHash(
+          annotation.anchor.sheetName,
+          range.rowIndex,
+          annotation.anchor.logicalId
+        );
+        
+        if (currentHash !== annotation.metadata.anchoringHash) {
+          // It drifted. Let's scan for its new location
+          const newAddress = await scanForDrift(
+            annotation.anchor.sheetName,
+            range.rowIndex,
+            annotation.metadata.anchoringHash,
+            annotation.anchor.logicalId
+          );
+          
+          drifts.push({
+            annotationId: annotation.id,
+            originalAddress: annotation.anchor.address,
+            proposedAddress: newAddress,
+            message: `Annotation ${annotation.anchor.logicalId || annotation.id} drifted from ${annotation.anchor.address}.`,
+            lostHash: newAddress === null
+          });
+        }
+      } catch (e) {
+        // Range might be invalid if rows/cols deleted
+        // Try starting scan from row 0 if address is completely invalid
+        const newAddress = await scanForDrift(
+          annotation.anchor.sheetName,
+          0,
+          annotation.metadata.anchoringHash,
+          annotation.anchor.logicalId
+        );
+        drifts.push({
+          annotationId: annotation.id,
+          originalAddress: annotation.anchor.address,
+          proposedAddress: newAddress,
+          message: `Annotation ${annotation.anchor.logicalId || annotation.id} lost its anchor at ${annotation.anchor.address}.`,
+          lostHash: newAddress === null
+        });
+      }
+    }
+  });
+  
+  return drifts;
+}
+
+/**
  * Detects orphaned annotations in the store.
  * An annotation is orphaned if its physical address no longer contains a comment with its ID.
  */
@@ -472,7 +544,7 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
 /**
  * Internal helper to apply annotation content to a cell.
  */
-async function applyAnnotationInternal(
+export async function applyAnnotationInternal(
   context: Excel.RequestContext,
   sheetName: string,
   address: string,
@@ -502,6 +574,15 @@ async function applyAnnotationInternal(
     }
     logger.warn(`[AnnotationService] ${conflict.message} (${policy.description})`);
   }
+
+  // Generate initial anchoring hash
+  range.load("rowIndex");
+  await context.sync();
+  const anchoringHash = await generateRowHash(sheetName, range.rowIndex, annotation.anchor.logicalId);
+  if (!annotation.metadata) {
+    annotation.metadata = {};
+  }
+  annotation.metadata.anchoringHash = anchoringHash;
 
   const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
   const displayContent =
@@ -763,6 +844,193 @@ export async function resolveLogicalId(sheetName: string, address: string): Prom
     }
   });
   return logicalId;
+}
+
+/**
+ * Generates a stable content hash for an annotation's anchor row.
+ * Joins the logicalId with the first 5 columns of the row to create a unique signature.
+ */
+export async function generateRowHash(
+  sheetName: string,
+  rowIndex: number,
+  logicalId?: string
+): Promise<string> {
+  let hash = "";
+  if (typeof Excel === "undefined") return hash;
+  
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    // Grab first 5 columns to form the hash
+    const rowRange = sheet.getRangeByIndexes(rowIndex, 0, 1, 5);
+    rowRange.load("values");
+    await context.sync();
+
+    if (rowRange.values && rowRange.values.length > 0) {
+      const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
+      const signature = `${logicalId || "NO_OID"}::${rowString}`;
+      hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
+    }
+  });
+  
+  return hash;
+}
+
+/**
+ * Represents a drifted annotation that needs manual re-anchoring.
+ */
+export interface DriftWarning {
+  annotationId: string;
+  originalAddress: string;
+  proposedAddress: string | null;
+  message: string;
+  lostHash?: boolean;
+}
+
+/**
+ * Scans up to 50 rows bi-directionally to find a matching anchoring hash using a cooperative, non-blocking interval.
+ */
+export async function scanForDrift(
+  sheetName: string,
+  startRowIndex: number,
+  targetHash: string,
+  logicalId?: string
+): Promise<string | null> {
+  if (typeof Excel === "undefined") return null;
+  
+  return new Promise((resolve) => {
+    Excel.run(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      const usedRange = sheet.getUsedRangeOrNullObject();
+      usedRange.load(["rowCount"]);
+      await context.sync();
+      
+      if (usedRange.isNullObject) {
+        resolve(null);
+        return;
+      }
+      
+      const maxRows = usedRange.rowCount;
+      const MAX_OFFSET = 50;
+      let offset = 0;
+      
+      const processNextBatch = async () => {
+        if (offset > MAX_OFFSET) {
+          resolve(null);
+          return;
+        }
+        
+        await Excel.run(async (batchContext) => {
+          const batchSheet = batchContext.workbook.worksheets.getItem(sheetName);
+          const checks: { rowIndex: number; direction: string }[] = [];
+          
+          if (offset === 0) {
+            if (startRowIndex < maxRows) checks.push({ rowIndex: startRowIndex, direction: 'center' });
+          } else {
+            const upRow = startRowIndex - offset;
+            const downRow = startRowIndex + offset;
+            if (upRow >= 0) checks.push({ rowIndex: upRow, direction: 'up' });
+            if (downRow < maxRows) checks.push({ rowIndex: downRow, direction: 'down' });
+          }
+          
+          for (const check of checks) {
+            const rowRange = batchSheet.getRangeByIndexes(check.rowIndex, 0, 1, 5);
+            rowRange.load(["values", "address"]);
+            await batchContext.sync();
+            
+            if (rowRange.values && rowRange.values.length > 0) {
+              const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
+              const signature = `${logicalId || "NO_OID"}::${rowString}`;
+              const hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
+              
+              if (hash === targetHash) {
+                // Found it! Return the address of the first cell in that row
+                const foundCell = batchSheet.getRangeByIndexes(check.rowIndex, 0, 1, 1);
+                foundCell.load("address");
+                await batchContext.sync();
+                resolve(foundCell.address);
+                return;
+              }
+            }
+          }
+          
+          offset++;
+          // Cooperative yield to UI thread
+          if (typeof requestIdleCallback !== 'undefined') {
+            requestIdleCallback(() => { processNextBatch(); });
+          } else {
+            setTimeout(processNextBatch, 0);
+          }
+        });
+      };
+      
+      processNextBatch();
+    }).catch((e) => {
+      logger.error("[AnnotationService] Error during drift scanning", e);
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Manually applies a user-approved re-anchor action for a drifted annotation.
+ */
+export async function applyManualReAnchor(
+  annotationId: string,
+  newAddress: string
+): Promise<void> {
+  if (typeof Excel === "undefined") return;
+  
+  await Excel.run(async (context) => {
+    const allStored = await loadAnnotationsFromStore(context);
+    const annotation = allStored.find((a) => a.id === annotationId);
+    
+    if (!annotation) {
+      throw new Error(`[AnnotationService] Cannot re-anchor: Annotation ${annotationId} not found in store.`);
+    }
+    
+    // Remove old comment if it exists at the old location or globally
+    const sheet = context.workbook.worksheets.getItem(annotation.anchor.sheetName);
+    
+    // We try to find and delete the old comment object
+    sheet.comments.load("items");
+    await context.sync();
+    
+    const oldComment = sheet.comments.items.find(c => c.id === annotation.id);
+    if (oldComment) {
+      oldComment.delete();
+    }
+    
+    // Update annotation model with new coordinates
+    annotation.anchor.address = newAddress;
+    
+    // Generate new hash for the new location
+    const range = sheet.getRange(newAddress);
+    range.load("rowIndex");
+    await context.sync();
+    
+    const newHash = await generateRowHash(annotation.anchor.sheetName, range.rowIndex, annotation.anchor.logicalId);
+    if (!annotation.metadata) {
+      annotation.metadata = {};
+    }
+    annotation.metadata.anchoringHash = newHash;
+    annotation.metadata.lifecycleState = 'resolved'; // Mark as resolved upon manual fix
+    annotation.updatedTimestamp = new Date().toISOString();
+    
+    // Write back comment to the new address
+    const metaPrefix = `[${annotation.type}:${annotation.anchor.logicalId || "N/A"}]`;
+    const displayContent = typeof annotation.content === "string" ? annotation.content : annotation.content.value || "";
+    const fullContent = `${metaPrefix}\n${displayContent}`;
+    
+    const newRange = sheet.getRange(newAddress);
+    const newComment = sheet.comments.add(newRange, fullContent);
+    newComment.load("id");
+    await context.sync();
+    
+    // Update store with new comment ID and coordinates
+    annotation.id = newComment.id;
+    await saveAnnotationToStore(annotation, context);
+    await context.sync();
+  });
 }
 
 /**

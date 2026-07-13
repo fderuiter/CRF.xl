@@ -13,6 +13,7 @@ import {
 } from "@fluentui/react-components";
 import { insertDateBlock, insertAEBlock } from "../../core";
 import { AnnotationPalette } from "../AnnotationPalette";
+import { AnnotationInspector } from "../AnnotationInspector";
 
 interface AuthoringProps {
   sheetName: string;
@@ -94,6 +95,7 @@ export const AuthoringView: React.FC<AuthoringProps> = ({ sheetName, isProcessin
   return (
     <div className={styles.container} id="tour-authoring">
       <AnnotationPalette />
+      <AnnotationInspector />
       <Divider />
       <Card className={styles.card}>
         <Body1 className={styles.cardTitle}>

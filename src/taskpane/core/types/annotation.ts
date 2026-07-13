@@ -35,6 +35,8 @@ export interface AnnotationAnchor {
   sheetName: string;
 }
 
+export type LifecycleState = 'draft' | 'under_review' | 'resolved';
+
 /**
  * Core annotation model for workbook interaction and clinical metadata.
  */
@@ -52,5 +54,10 @@ export interface Annotation {
   /** Schema version for the annotation. */
   version: number;
   /** Optional metadata for type-specific properties. */
-  metadata?: Record<string, any>;
+  metadata?: {
+    studyOid?: string;
+    lifecycleState?: LifecycleState;
+    anchoringHash?: string;
+    [key: string]: any;
+  };
 }
