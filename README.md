@@ -96,7 +96,7 @@ All project documentation is structured and maintained under the [docs/](./docs/
 
 ### 🔍 Documentation Source of Truth Guidelines
 To maintain alignment across teams and prevent drift, developers must consult the appropriate documentation directory based on the nature of their work:
-* **Where stable technical contracts live:** Technical interface specs, rules grammar, and schemas are defined in [docs/specification/](./docs/specification/). When code modifications alter a public signature or type definition, the corresponding spec must be updated in the same PR.
+* **Where stable technical contracts live:** Technical interface specs, rules grammar, and schemas are defined in their respective module directories within [src/](./src/). When code modifications alter a public signature or type definition, the corresponding spec must be updated in the same PR.
 * **Where module boundaries live:** The [Module Map](./docs/architecture/module-map.md) provides a comprehensive inventory of all core modules, their responsibilities, and public interfaces.
 * **Where design decisions live:** Major structural choices, architectural boundaries, and technology selections are recorded in [docs/architecture/adr-index.md](./docs/architecture/adr-index.md).
 * **Where regulatory mappings live:** GxP audits, Part 11 alignments, and security evidence live in [docs/compliance/](./docs/compliance/) and `SECURITY.md`.
