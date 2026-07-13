@@ -8,8 +8,10 @@ type Subscriber<T> = (data: T) => void;
 export class SubscriptionManager<T> {
   private subscribers: Set<Subscriber<T>> = new Set();
   private isHostReady: boolean = false;
+  private stateProvider?: () => T | undefined;
 
-  constructor() {
+  constructor(stateProvider?: () => T | undefined) {
+    this.stateProvider = stateProvider;
     // Ensure execution only when host is ready
     if (typeof Office !== "undefined") {
       Office.onReady(() => {
@@ -27,8 +29,32 @@ export class SubscriptionManager<T> {
     }
   }
 
-  public subscribe(callback: Subscriber<T>): () => void {
+  private shallowClone(data: T): T {
+    if (data === null || typeof data !== "object") {
+      return data;
+    }
+    if (Array.isArray(data)) {
+      return [...data] as any;
+    }
+    return { ...data };
+  }
+
+  public subscribe(callback: Subscriber<T>, options?: { immediate?: boolean } | boolean): () => void {
     this.subscribers.add(callback);
+    
+    const isImmediate = typeof options === 'boolean' ? options : options?.immediate;
+    if (isImmediate && this.stateProvider) {
+      try {
+        const state = this.stateProvider();
+        if (state !== undefined) {
+          const initialState = this.shallowClone(state);
+          callback(initialState);
+        }
+      } catch (error) {
+        logger.error("Error in subscriber callback (immediate):", error);
+      }
+    }
+
     return () => {
       this.subscribers.delete(callback);
     };
@@ -36,9 +62,11 @@ export class SubscriptionManager<T> {
 
   public notify(data: T): void {
     if (!this.isHostReady) return;
+    
+    const clonedData = this.shallowClone(data);
     this.subscribers.forEach((sub) => {
       try {
-        sub(data);
+        sub(clonedData);
       } catch (error) {
         logger.error("Error in subscriber callback:", error);
       }

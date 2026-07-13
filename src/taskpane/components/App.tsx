@@ -483,7 +483,7 @@ export const App: React.FC<{ title?: string }> = () => {
   };
 
   useEffect(() => {
-    return speculativeSyncManager.subscribe((state, details) => {
+    return speculativeSyncManager.subscribe(({ state, details }) => {
       if (state === "syncing") {
         setIsBackgroundSyncing(true);
         if (details?.predictedStudy) {

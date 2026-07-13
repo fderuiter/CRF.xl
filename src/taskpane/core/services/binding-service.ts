@@ -20,7 +20,7 @@ export interface SelectionContext {
 export type SelectionChangeListener = (context: SelectionContext) => void;
 
 class BindingService {
-  private selectionManager = new SubscriptionManager<SelectionContext>();
+  private selectionManager = new SubscriptionManager<SelectionContext>(() => this.currentContext || undefined);
   private errorManager = new SubscriptionManager<DiagnosticError>();
   private currentContext: SelectionContext | null = null;
   private debounceTimer: any = null;
@@ -34,11 +34,7 @@ class BindingService {
    * Subscribes to selection changes. Returns an unsubscribe function.
    */
   public subscribe(listener: SelectionChangeListener, immediate = true): () => void {
-    const unsubscribe = this.selectionManager.subscribe(listener);
-    if (immediate && this.currentContext) {
-      listener(this.currentContext);
-    }
-    return unsubscribe;
+    return this.selectionManager.subscribe(listener, { immediate });
   }
 
   /**

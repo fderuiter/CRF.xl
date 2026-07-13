@@ -23,14 +23,13 @@ class BackgroundValidationEngine {
     issues: [],
     status: "Ready",
   };
-  private subscriptionManager = new SubscriptionManager<ValidationState>();
+  private subscriptionManager = new SubscriptionManager<ValidationState>(() => this.state);
   private validationTimeout: number | null = null;
   private currentAbortController: AbortController | null = null;
   private latestSheetFilter: string | undefined = undefined;
 
   public subscribe(callback: Subscriber) {
-    callback(this.state);
-    return this.subscriptionManager.subscribe(callback);
+    return this.subscriptionManager.subscribe(callback, { immediate: true });
   }
 
   private notify() {
