@@ -1,3 +1,6 @@
+/**
+ * @issue #349
+ */
 import { SubscriptionManager } from "../utils/event-utility";
 import { backgroundValidationEngine } from "./validation-engine";
 import { speculativeSyncManager, SyncState } from "./speculative-sync-service";

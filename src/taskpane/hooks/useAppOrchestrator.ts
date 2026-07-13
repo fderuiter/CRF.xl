@@ -1,3 +1,6 @@
+/**
+ * @issue #349
+ */
 import { useState, useEffect } from "react";
 import { appOrchestrator, OrchestratorState } from "../core/services/app-orchestrator";
 import { speculativeSyncManager } from "../core/services/speculative-sync-service";
