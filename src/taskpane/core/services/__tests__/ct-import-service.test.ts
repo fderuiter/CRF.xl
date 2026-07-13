@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
+
 import { readFileSync } from "fs";
 import { join } from "path";
 import { buildCtImportPlan, executeCtImport, ConflictResolution } from "../ct-import-service";

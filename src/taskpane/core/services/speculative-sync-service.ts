@@ -109,7 +109,7 @@ class SpeculativeSyncManager {
     const { predictedStudy, recoverySnapshot, plans } = this.currentOp;
 
     const engine = new ChunkingEngine<string[]>({
-      chunkSize: 500
+      chunkSize: 500,
     });
 
     // Fingerprint middleware
@@ -118,35 +118,41 @@ class SpeculativeSyncManager {
       if (this.state !== "syncing") {
         throw new Error("CANCELLED");
       }
-      
+
       await Excel.run(async (excelCtx) => {
         const currentFp = await this.getSheetFingerprint(excelCtx, sheetName);
         if (currentFp !== this.currentOp!.snapshotFingerprints[sheetName]) {
           throw new Error("FINGERPRINT_MISMATCH");
         }
       });
-      
+
       await next();
-      
+
       if (this.state !== "syncing") {
         throw new Error("CANCELLED");
       }
-      
+
       await Excel.run(async (excelCtx) => {
-         this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(excelCtx, sheetName);
+        this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(
+          excelCtx,
+          sheetName
+        );
       });
     });
 
     // Retry middleware
-    engine.use(createRetryMiddleware({
-      maxRetries: 15,
-      delayMs: 2000,
-      shouldRetry: (error) => {
-        if (error.message === "FINGERPRINT_MISMATCH" || error.message === "CANCELLED") return false;
-        const errClass = classifyOfficeError(error);
-        return errClass === "excelBusy";
-      }
-    }));
+    engine.use(
+      createRetryMiddleware({
+        maxRetries: 15,
+        delayMs: 2000,
+        shouldRetry: (error) => {
+          if (error.message === "FINGERPRINT_MISMATCH" || error.message === "CANCELLED")
+            return false;
+          const errClass = classifyOfficeError(error);
+          return errClass === "excelBusy";
+        },
+      })
+    );
 
     // Progress listener 1: State management
     engine.on("progress", (_data: any) => {
@@ -155,9 +161,11 @@ class SpeculativeSyncManager {
 
     // Progress listener 2: Telemetry/Diagnostics
     engine.on("progress", (data: any) => {
-      logger.info(`[Telemetry] Speculative Sync Progress: ${data.completed}/${data.total} for plan ${data.planId}`);
+      logger.info(
+        `[Telemetry] Speculative Sync Progress: ${data.completed}/${data.total} for plan ${data.planId}`
+      );
     });
-    
+
     let errorCaught = false;
 
     // Observe error
@@ -183,9 +191,7 @@ class SpeculativeSyncManager {
         await Excel.run(async (excelCtx) => {
           const sheet = excelCtx.workbook.worksheets.getItemOrNullObject(ctx.id);
           await excelCtx.sync();
-          const target = sheet.isNullObject
-            ? excelCtx.workbook.worksheets.add(ctx.id)
-            : sheet;
+          const target = sheet.isNullObject ? excelCtx.workbook.worksheets.add(ctx.id) : sheet;
 
           if (ctx.isFirstChunk && !sheet.isNullObject) {
             target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);

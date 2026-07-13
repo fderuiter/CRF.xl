@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
+
 import {
   OFFICE_ERROR_MESSAGES,
   classifyOfficeError,

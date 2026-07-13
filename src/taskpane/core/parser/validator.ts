@@ -43,7 +43,9 @@ export async function validateStudyDesign(
   let issues: ValidationIssue[] = [];
 
   // 0. Inject OID Collisions from parsing
-  const oidCollisions = study.metadata.customProperties?.oidCollisions as import("../registry/oid-registry").OidCollision[] | undefined;
+  const oidCollisions = study.metadata.customProperties?.oidCollisions as
+    | import("../registry/oid-registry").OidCollision[]
+    | undefined;
   if (oidCollisions && oidCollisions.length > 0) {
     oidCollisions.forEach((col) => {
       issues.push({
@@ -624,7 +626,14 @@ export function validateCrossFormDependencies(
     form.itemGroups.forEach((group) => {
       // Analyze Group-level showIf
       if (group.showIf) {
-        analyzeExpression(form.formOid, group.groupOid!, "Group", undefined, group.showIf, "ShowIf");
+        analyzeExpression(
+          form.formOid,
+          group.groupOid!,
+          "Group",
+          undefined,
+          group.showIf,
+          "ShowIf"
+        );
       }
 
       // Analyze Item-level showIf
@@ -697,11 +706,13 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           sdtmDatasetDomains.add(ds.domain.toUpperCase());
         }
         const result = pipeline.validateDataset(ds, "SDTM", true);
-        result.issues.forEach(i => issues.push({
-          level: i.level as "Error" | "Warning",
-          message: i.message,
-          sheetName: "_Study"
-        }));
+        result.issues.forEach((i) =>
+          issues.push({
+            level: i.level as "Error" | "Warning",
+            message: i.message,
+            sheetName: "_Study",
+          })
+        );
       });
     }
 
@@ -711,11 +722,13 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           adamDatasetNames.add(ds.dataset.toUpperCase());
         }
         const result = pipeline.validateDataset(ds, "ADaM", true);
-        result.issues.forEach(i => issues.push({
-          level: i.level as "Error" | "Warning",
-          message: i.message,
-          sheetName: "_Study"
-        }));
+        result.issues.forEach((i) =>
+          issues.push({
+            level: i.level as "Error" | "Warning",
+            message: i.message,
+            sheetName: "_Study",
+          })
+        );
       });
     }
 
@@ -764,13 +777,15 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           // 1. Validate SDTM Variable Mapping
           if (item.sdtmMapping) {
             const result = pipeline.validateVariable(item.sdtmMapping, "SDTM", true);
-            result.issues.forEach(i => issues.push({
-              level: i.level as "Error" | "Warning",
-              message: i.message,
-              location: `${sheet} > Row ${row}`,
-              rowIndex: row,
-              sheetName: sheet,
-            }));
+            result.issues.forEach((i) =>
+              issues.push({
+                level: i.level as "Error" | "Warning",
+                message: i.message,
+                location: `${sheet} > Row ${row}`,
+                rowIndex: row,
+                sheetName: sheet,
+              })
+            );
 
             const hasDomain = !!item.sdtmMapping.domain && !!item.sdtmMapping.domain.trim();
             const hasVar = !!item.sdtmMapping.variable && !!item.sdtmMapping.variable.trim();
@@ -791,13 +806,15 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           // 2. Validate ADaM Variable Mapping
           if (item.adamMapping) {
             const result = pipeline.validateVariable(item.adamMapping, "ADaM", true);
-            result.issues.forEach(i => issues.push({
-              level: i.level as "Error" | "Warning",
-              message: i.message,
-              location: `${sheet} > Row ${row}`,
-              rowIndex: row,
-              sheetName: sheet,
-            }));
+            result.issues.forEach((i) =>
+              issues.push({
+                level: i.level as "Error" | "Warning",
+                message: i.message,
+                location: `${sheet} > Row ${row}`,
+                rowIndex: row,
+                sheetName: sheet,
+              })
+            );
 
             const hasDs = !!item.adamMapping.dataset && !!item.adamMapping.dataset.trim();
             const hasVar = !!item.adamMapping.variable && !!item.adamMapping.variable.trim();

@@ -33,7 +33,7 @@ export class LinguisticService {
     header: string
   ): { locale: string; type: "decode" | "label" | "instruction" } | null {
     const trimmed = header.trim().toLowerCase();
-    
+
     // Instead of regex, use simple string manipulation based on known patterns
     // e.g. "decode (en-US)"
     if (trimmed.startsWith("decode") && trimmed.includes("(") && trimmed.endsWith(")")) {
@@ -41,7 +41,13 @@ export class LinguisticService {
       if (locale) return { locale: this.normalizeLocale(locale), type: "decode" };
     }
 
-    if ((trimmed.startsWith("label") || trimmed.startsWith("question / text") || trimmed.startsWith("question/text")) && trimmed.includes("(") && trimmed.endsWith(")")) {
+    if (
+      (trimmed.startsWith("label") ||
+        trimmed.startsWith("question / text") ||
+        trimmed.startsWith("question/text")) &&
+      trimmed.includes("(") &&
+      trimmed.endsWith(")")
+    ) {
       const locale = trimmed.substring(trimmed.indexOf("(") + 1, trimmed.length - 1).trim();
       if (locale) return { locale: this.normalizeLocale(locale), type: "label" };
     }

@@ -19,7 +19,7 @@ export class GlobalOidRegistry {
   public register(oid: string, type: EntityType, sheetName: string, rowIndex?: number): boolean {
     if (!oid) return false;
     const normalized = oid.trim().toLowerCase();
-    
+
     if (this.registry.has(normalized)) {
       if (!this.reportedCollisions.has(normalized)) {
         this.collisions.push({
@@ -33,7 +33,7 @@ export class GlobalOidRegistry {
       }
       return false; // Collision detected
     }
-    
+
     this.registry.set(normalized, type);
     return true; // Successfully registered
   }

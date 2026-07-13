@@ -25,7 +25,7 @@ import {
   submissionStandardSchema,
   sdtmVariableMetadataSchema,
   adamVariableMetadataSchema,
-  submissionMetadataSchema
+  submissionMetadataSchema,
 } from "./schemas";
 
 export type SensorConfig = z.infer<typeof sensorConfigSchema>;

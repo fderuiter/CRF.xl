@@ -2,7 +2,7 @@ import { logger } from "../../utils/logger";
 /**
  * @issue #44, #139
  */
-/* eslint-disable no-undef */
+
 import {
   StudyDesign,
   DataType,

@@ -129,9 +129,9 @@ export async function parseRawDataToStudyDesign(
       total: rows.length,
       message: "Processing codelist rows",
     });
-    
+
     let lastSeenCodelistId: string | null = null;
-    
+
     await processRowsInChunks(rows, runtime, "codelists", (row, rowIndex) => {
       runtime.throwIfStopped("codelists");
       const id = row[idIdx];
@@ -141,15 +141,18 @@ export async function parseRawDataToStudyDesign(
 
       if (!id) return;
       const strId = normalizeOid(id);
-      
+
       // If it's the first time we see it, OR if it's a non-contiguous block, register it
-      if (!study.codelists[strId] || (lastSeenCodelistId !== null && lastSeenCodelistId !== strId)) {
+      if (
+        !study.codelists[strId] ||
+        (lastSeenCodelistId !== null && lastSeenCodelistId !== strId)
+      ) {
         if (!oidRegistry.register(strId, "Codelist", "_Codelists", rowIndex + dataOffset + 1)) {
           return;
         }
       }
       lastSeenCodelistId = strId;
-      
+
       if (!study.codelists[strId]) {
         study.codelists[strId] = {
           codelistId: strId,
@@ -214,11 +217,11 @@ export async function parseRawDataToStudyDesign(
       const [id, name, rep] = row;
       if (!id) return;
       const strId = normalizeOid(id);
-      
+
       if (!oidRegistry.register(strId, "Form", "_Forms", rowIndex + 2)) {
         return;
       }
-      
+
       activeFormOids.push(strId);
 
       study.forms[strId] = {

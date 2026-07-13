@@ -92,7 +92,10 @@ export function buildAnnotatedCrfDocument(
               type: AcrfAnnotationType.VALIDATION,
               label: issue.level,
               content: issue.message,
-              color: issue.level === "Error" ? "var(--colorStatusDangerBackground3)" : "var(--colorStatusWarningBackground3)",
+              color:
+                issue.level === "Error"
+                  ? "var(--colorStatusDangerBackground3)"
+                  : "var(--colorStatusWarningBackground3)",
             });
           });
 
@@ -119,7 +122,10 @@ export function buildAnnotatedCrfDocument(
               type: AcrfAnnotationType.COMMENT,
               label: "Review",
               content: `${comment.author}: ${comment.text} (${comment.status})`,
-              color: comment.status === "resolved" ? "var(--colorStatusSuccessBackground3)" : "var(--colorBrandBackground)",
+              color:
+                comment.status === "resolved"
+                  ? "var(--colorStatusSuccessBackground3)"
+                  : "var(--colorBrandBackground)",
             });
           });
 

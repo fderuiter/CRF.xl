@@ -52,12 +52,12 @@ class Logger {
     for (const pattern of this.config.redactPatterns) {
       redactedMessage = redactedMessage.replace(pattern, (match, p1) => {
         if (p1) {
-            return p1 + '"[REDACTED]"';
+          return p1 + '"[REDACTED]"';
         }
         return match;
       });
     }
-    
+
     // Fallback simple redactors if the group capture isn't enough:
     redactedMessage = redactedMessage.replace(/([?&]token=)[^&]+/gi, "$1[REDACTED]");
     redactedMessage = redactedMessage.replace(/([?&]secret=)[^&]+/gi, "$1[REDACTED]");
@@ -82,19 +82,15 @@ class Logger {
 
     switch (level) {
       case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
         console.debug(redactedMessage);
         break;
       case LogLevel.INFO:
-        // eslint-disable-next-line no-console
         console.info(redactedMessage);
         break;
       case LogLevel.WARN:
-        // eslint-disable-next-line no-console
         console.warn(redactedMessage);
         break;
       case LogLevel.ERROR:
-        // eslint-disable-next-line no-console
         console.error(redactedMessage);
         break;
     }

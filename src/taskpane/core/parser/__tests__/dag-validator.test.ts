@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
+
 import { validateRules } from "../dag-validator";
 import { parseRuleExpression } from "../rules-parser";
 import { RuleDefinition, RuleType, StudyDesign, DataType } from "../../types/index";

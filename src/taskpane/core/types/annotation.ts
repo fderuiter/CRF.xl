@@ -35,7 +35,7 @@ export interface AnnotationAnchor {
   sheetName: string;
 }
 
-export type LifecycleState = 'draft' | 'under_review' | 'resolved';
+export type LifecycleState = "draft" | "under_review" | "resolved";
 
 /**
  * Core annotation model for workbook interaction and clinical metadata.

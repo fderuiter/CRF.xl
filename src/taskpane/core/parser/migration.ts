@@ -62,10 +62,10 @@ export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext 
     sm.sdtmDatasets = sm.sdtmDatasets || [];
     if (Array.isArray(sm.sdtmDatasets)) {
       sm.sdtmDatasets.forEach((dataset: any) => {
-        if (dataset && typeof dataset === 'object') {
-          if (dataset.class === 'Special Purpose') dataset.class = 'SpecialPurpose';
-          if (dataset.class === 'Findings About Events') dataset.class = 'FindingsAboutEvents';
-          if (dataset.class === 'Trial Design') dataset.class = 'TrialDesign';
+        if (dataset && typeof dataset === "object") {
+          if (dataset.class === "Special Purpose") dataset.class = "SpecialPurpose";
+          if (dataset.class === "Findings About Events") dataset.class = "FindingsAboutEvents";
+          if (dataset.class === "Trial Design") dataset.class = "TrialDesign";
         }
       });
     }
@@ -146,7 +146,8 @@ export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext 
   // Zod validation step
   const parsed = StudyDesignSchema.safeParse(clone);
   if (!parsed.success) {
-    console.error(JSON.stringify(parsed.error.issues, null, 2)); const issues = parsed.error.issues
+    console.error(JSON.stringify(parsed.error.issues, null, 2));
+    const issues = parsed.error.issues
       .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
       .join(", ");
     if (manifest.errors) manifest.errors.push(issues);

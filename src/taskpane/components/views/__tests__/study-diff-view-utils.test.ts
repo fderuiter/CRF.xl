@@ -4,10 +4,7 @@
  */
 
 import { DataType, RuleType, StudyDiffReport } from "../../../core/types";
-import {
-  buildStudyDiffList,
-  filterStudyDiffList,
-} from "../study-diff-view-utils";
+import { buildStudyDiffList, filterStudyDiffList } from "../study-diff-view-utils";
 
 function createReport(): StudyDiffReport {
   return {

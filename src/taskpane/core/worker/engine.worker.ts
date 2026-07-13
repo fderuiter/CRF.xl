@@ -25,7 +25,7 @@ ctx.onmessage = async (event: MessageEvent) => {
       },
       onProgress: (update: ParseProgressUpdate) => {
         ctx.postMessage({ type: "PROGRESS", payload: update });
-      }
+      },
     };
 
     // A closure to handle cancellation messages while parsing is ongoing

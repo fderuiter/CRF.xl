@@ -1,8 +1,32 @@
 /** @issue #331 */
 import { z } from "zod";
 import {
-  DataType, DictionaryType, DataOrigin, CollectionMethod, SdvTier, FormType, PaperLayoutFormat, GroupLayout, FormLayout, PageLayout, SignatureMeaning, EventType, SystemTriggerType,
-  LabType, CodingTermType, SdtmCore, VariableOrigin, AdamCore, SdtmDatasetClass, AdamDatasetClass, DatasetPurpose, VasOrientation, AggregateFunction, RangeValueType, QuerySeverity, DateImputationRule
+  DataType,
+  DictionaryType,
+  DataOrigin,
+  CollectionMethod,
+  SdvTier,
+  FormType,
+  PaperLayoutFormat,
+  GroupLayout,
+  FormLayout,
+  PageLayout,
+  SignatureMeaning,
+  EventType,
+  SystemTriggerType,
+  LabType,
+  CodingTermType,
+  SdtmCore,
+  VariableOrigin,
+  AdamCore,
+  SdtmDatasetClass,
+  AdamDatasetClass,
+  DatasetPurpose,
+  VasOrientation,
+  AggregateFunction,
+  RangeValueType,
+  QuerySeverity,
+  DateImputationRule,
 } from "./enums";
 
 export const translatedTextSchema = z.record(z.string(), z.string());

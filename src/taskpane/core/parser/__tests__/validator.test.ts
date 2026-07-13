@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-/* eslint-disable no-undef */
+
 import { validateStudyDesign, validateSubmissionMetadataForRelease } from "../validator";
 import {
   StudyDesign,
