@@ -46,12 +46,11 @@ import { StudyDesign, SubmissionMetadata, ExportMode, ExportOptions } from "../c
 import { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "../core";
 import {
   RECOVERY_APP_VERSION,
-  dismissRecoverySnapshot,
   summarizeStudyDesign,
   formatDate,
 } from "../core";
-import { createOfficeDiagnostic, Diagnostic } from "../core";
-import { checkForVersionUpdate, dismissVersionNotification, VersionUpdateMetadata } from "../core";
+import { createOfficeDiagnostic } from "../core";
+import { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "../core";
 import { loadImportManifest, onboardingService } from "../core";
 
 // Telemetry & Views
@@ -363,7 +362,7 @@ export const App: React.FC<{ title?: string }> = () => {
     variableCount: number;
     visitCount: number;
   } | null>(null);
-  const [currentFilter, setCurrentFilter] = useState<string | null>(null);
+  const [, setCurrentFilter] = useState<string | null>(null);
   const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});

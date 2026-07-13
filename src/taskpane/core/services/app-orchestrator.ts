@@ -1,5 +1,5 @@
 import { SubscriptionManager } from "../utils/event-utility";
-import { backgroundValidationEngine, ValidationState } from "./validation-engine";
+import { backgroundValidationEngine } from "./validation-engine";
 import { speculativeSyncManager, SyncState } from "./speculative-sync-service";
 import { bindingService } from "./binding-service";
 import { 
@@ -13,7 +13,6 @@ import {
   summarizeStudyDesign
 } from "./recovery-storage";
 import { StudyDesign, ValidationIssue, AuditJustification, SubmissionMetadata } from "../types";
-import { createOfficeDiagnostic } from "./office-error-handling";
 import { logger } from "../utils/logger";
 
 export interface OrchestratorState {
