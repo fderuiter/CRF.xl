@@ -3,15 +3,14 @@ import {
   makeStyles,
   tokens,
   Card,
-  Body1,
   Dropdown,
   Option,
   Label,
   Badge,
 } from "@fluentui/react-components";
-import { bindingService, SelectionContext } from "../../core/services/binding-service";
-import { loadAnnotationsFromStore, editAnnotation } from "../../core/services/annotation-service";
-import { Annotation, LifecycleState } from "../../core/types/annotation";
+import { bindingService, SelectionContext } from "../core/services/binding-service";
+import { loadAnnotationsFromStore, editAnnotation } from "../core/services/annotation-service";
+import { Annotation, LifecycleState } from "../core/types/annotation";
 
 const useStyles = makeStyles({
   container: {
