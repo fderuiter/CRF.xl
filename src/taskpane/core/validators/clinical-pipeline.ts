@@ -1,3 +1,7 @@
+/**
+ * @issue #347
+ */
+
 import {
   StudyDesign,
   SubmissionMetadata,
