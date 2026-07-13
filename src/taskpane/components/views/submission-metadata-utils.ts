@@ -7,6 +7,7 @@ import {
   SdtmDatasetClass,
   SdtmDatasetMetadata,
 } from "../../core/types";
+import { ClinicalValidationPipeline } from "../../core/validators/clinical-pipeline";
 
 export interface DatasetDraft<T> {
   id: string;
@@ -17,9 +18,6 @@ export interface DatasetDraft<T> {
 
 export type SubmissionMetadataValidationErrors = Record<string, string>;
 
-function hasText(value: string | undefined): boolean {
-  return !!value && value.trim().length > 0;
-}
 
 export function createSdtmDatasetDrafts(
   datasets: SdtmDatasetMetadata[] | undefined
@@ -65,9 +63,15 @@ export function validateSdtmDatasetMetadata(
   metadata: SdtmDatasetMetadata
 ): SubmissionMetadataValidationErrors {
   const errors: SubmissionMetadataValidationErrors = {};
-  if (!hasText(metadata.domain)) errors.domain = "SDTM Domain is required.";
-  if (!hasText(metadata.label)) errors.label = "Label is required.";
-  if (!hasText(metadata.structure)) errors.structure = "Structure is required.";
+  const pipeline = new ClinicalValidationPipeline();
+  const result = pipeline.validateDataset(metadata, "SDTM");
+  result.issues.forEach(issue => {
+    if (issue.message.includes("SDTM Domain is required")) errors.domain = issue.message;
+    else if (issue.message.includes("Label is required")) errors.label = issue.message;
+    else if (issue.message.includes("Structure is required")) errors.structure = issue.message;
+    else if (issue.message.includes("Class is required")) errors.class = issue.message;
+    else if (issue.message.includes("naming conventions")) errors.domain = issue.message;
+  });
   return errors;
 }
 
@@ -75,8 +79,13 @@ export function validateAdamDatasetMetadata(
   metadata: AdamDatasetMetadata
 ): SubmissionMetadataValidationErrors {
   const errors: SubmissionMetadataValidationErrors = {};
-  if (!hasText(metadata.dataset)) errors.dataset = "ADaM Dataset is required.";
-  if (!hasText(metadata.label)) errors.label = "Label is required.";
-  if (!hasText(metadata.structure)) errors.structure = "Structure is required.";
+  const pipeline = new ClinicalValidationPipeline();
+  const result = pipeline.validateDataset(metadata, "ADaM");
+  result.issues.forEach(issue => {
+    if (issue.message.includes("ADaM Dataset is required")) errors.dataset = issue.message;
+    else if (issue.message.includes("Label is required")) errors.label = issue.message;
+    else if (issue.message.includes("Structure is required")) errors.structure = issue.message;
+    else if (issue.message.includes("Class is required")) errors.class = issue.message;
+  });
   return errors;
 }

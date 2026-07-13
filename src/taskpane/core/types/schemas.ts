@@ -109,6 +109,30 @@ export const editCheckSchema = z.object({
 });
 
 // Clinical
+export const clinicalVariableBaseSchema = z.object({
+  variable: z.string().optional(),
+  nciVariableCode: z.string().optional(),
+  sasFieldName: z.string().optional(),
+  sasLabel: z.string().optional(),
+  role: z.string().optional(),
+  origin: z.nativeEnum(VariableOrigin).optional(),
+  commentOid: z.string().optional(),
+  isVlm: z.boolean().optional(),
+});
+
+export const clinicalDatasetBaseSchema = z.object({
+  label: z.string(),
+  structure: z.string(),
+  keyVariables: z.array(z.string()).optional(),
+  repeating: z.boolean().optional(),
+  description: z.string().optional(),
+  standardOid: z.string().optional(),
+  archivedFlag: z.boolean().optional(),
+  leafHref: z.string().optional(),
+  commentOid: z.string().optional(),
+  hasNoData: z.boolean().optional(),
+});
+
 export const sensorConfigSchema = z.object({
   deviceType: z.string(),
   metricId: z.string(),
@@ -127,38 +151,22 @@ export const medicalCodingLinkSchema = z.object({
   dictionaryLevel: z.string().optional(),
 });
 
-export const sdtmMappingSchema = z.object({
+export const sdtmMappingSchema = clinicalVariableBaseSchema.extend({
   domain: z.string().optional(),
-  variable: z.string().optional(),
-  nciVariableCode: z.string().optional(),
-  sasFieldName: z.string().optional(),
-  sasLabel: z.string().optional(),
   sasDatasetName: z.string().optional(),
   core: z.nativeEnum(SdtmCore).optional(),
-  role: z.string().optional(),
-  origin: z.nativeEnum(VariableOrigin).optional(),
   pages: z.string().optional(),
-  commentOid: z.string().optional(),
   mandatory: z.boolean().optional(),
-  isVlm: z.boolean().optional(),
 });
 
-export const adamMappingSchema = z.object({
+export const adamMappingSchema = clinicalVariableBaseSchema.extend({
   dataset: z.string().optional(),
-  variable: z.string().optional(),
-  nciVariableCode: z.string().optional(),
-  sasFieldName: z.string().optional(),
-  sasLabel: z.string().optional(),
   core: z.nativeEnum(AdamCore).optional(),
-  role: z.string().optional(),
   type: z.string().optional(),
   length: z.number().optional(),
   significantDigits: z.number().optional(),
-  origin: z.nativeEnum(VariableOrigin).optional(),
-  commentOid: z.string().optional(),
   predecessor: z.string().optional(),
   derivationOid: z.string().optional(),
-  isVlm: z.boolean().optional(),
 });
 
 export const codelistItemSchema = z.object({
@@ -191,37 +199,17 @@ export const methodDefinitionSchema = z.object({
   referencedVariables: z.array(z.string()).optional(),
 });
 
-export const sdtmDatasetMetadataSchema = z.object({
+export const sdtmDatasetMetadataSchema = clinicalDatasetBaseSchema.extend({
   domain: z.string(),
-  label: z.string(),
   class: z.nativeEnum(SdtmDatasetClass),
-  structure: z.string(),
-  keyVariables: z.array(z.string()).optional(),
-  repeating: z.boolean().optional(),
-  description: z.string().optional(),
-  standardOid: z.string().optional(),
-  archivedFlag: z.boolean().optional(),
-  leafHref: z.string().optional(),
   isReferenceData: z.boolean().optional(),
-  commentOid: z.string().optional(),
-  hasNoData: z.boolean().optional(),
 });
 
-export const adamDatasetMetadataSchema = z.object({
+export const adamDatasetMetadataSchema = clinicalDatasetBaseSchema.extend({
   dataset: z.string(),
-  label: z.string(),
   class: z.nativeEnum(AdamDatasetClass),
-  structure: z.string(),
-  keyVariables: z.array(z.string()).optional(),
-  repeating: z.boolean().optional(),
-  description: z.string().optional(),
-  standardOid: z.string().optional(),
-  archivedFlag: z.boolean().optional(),
-  leafHref: z.string().optional(),
   purpose: z.nativeEnum(DatasetPurpose).optional(),
   analysisType: z.string().optional(),
-  commentOid: z.string().optional(),
-  hasNoData: z.boolean().optional(),
 });
 
 export const submissionDerivationSchema = z.object({

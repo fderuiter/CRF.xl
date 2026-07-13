@@ -4,7 +4,7 @@
 import { StudyDesign } from "../types/hierarchy";
 import { ImportManifest, WorkbookProjection } from "../types/migration";
 import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
-import { StudyDesignSchema } from "./schemas";
+import { studyDesignSchema as StudyDesignSchema } from "../types/schemas";
 
 export interface MigrationContext {
   isDryRun?: boolean;
@@ -60,6 +60,15 @@ export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext 
   } else {
     const sm = clone.submissionMetadata as Record<string, unknown>;
     sm.sdtmDatasets = sm.sdtmDatasets || [];
+    if (Array.isArray(sm.sdtmDatasets)) {
+      sm.sdtmDatasets.forEach((dataset: any) => {
+        if (dataset && typeof dataset === 'object') {
+          if (dataset.class === 'Special Purpose') dataset.class = 'SpecialPurpose';
+          if (dataset.class === 'Findings About Events') dataset.class = 'FindingsAboutEvents';
+          if (dataset.class === 'Trial Design') dataset.class = 'TrialDesign';
+        }
+      });
+    }
     sm.adamDatasets = sm.adamDatasets || [];
     sm.sdtmDerivations = sm.sdtmDerivations || [];
     sm.adamDerivations = sm.adamDerivations || [];

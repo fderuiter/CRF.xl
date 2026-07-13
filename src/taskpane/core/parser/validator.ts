@@ -678,8 +678,11 @@ function isNumericDataType(dataType: unknown): boolean {
   return normalized === "integer" || normalized === "float";
 }
 
+import { ClinicalValidationPipeline } from "../validators/clinical-pipeline";
+
 export function validateSubmissionMetadataForRelease(study: StudyDesign): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  const pipeline = new ClinicalValidationPipeline();
 
   const sdtmDatasetDomains = new Set<string>();
   const adamDatasetNames = new Set<string>();
@@ -692,29 +695,13 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
       study.submissionMetadata.sdtmDatasets.forEach((ds) => {
         if (ds.domain) {
           sdtmDatasetDomains.add(ds.domain.toUpperCase());
-          // Validate dataset metadata required fields
-          if (!ds.label) {
-            issues.push({
-              level: "Error",
-              message: `SDTM Dataset Metadata '${ds.domain}' is missing a label.`,
-              sheetName: "_Study",
-            });
-          }
-          if (!ds.structure) {
-            issues.push({
-              level: "Error",
-              message: `SDTM Dataset Metadata '${ds.domain}' is missing structure details.`,
-              sheetName: "_Study",
-            });
-          }
-          if (!ds.class) {
-            issues.push({
-              level: "Error",
-              message: `SDTM Dataset Metadata '${ds.domain}' is missing class designation.`,
-              sheetName: "_Study",
-            });
-          }
         }
+        const result = pipeline.validateDataset(ds, "SDTM", true);
+        result.issues.forEach(i => issues.push({
+          level: i.level as "Error" | "Warning",
+          message: i.message,
+          sheetName: "_Study"
+        }));
       });
     }
 
@@ -722,29 +709,13 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
       study.submissionMetadata.adamDatasets.forEach((ds) => {
         if (ds.dataset) {
           adamDatasetNames.add(ds.dataset.toUpperCase());
-          // Validate dataset metadata required fields
-          if (!ds.label) {
-            issues.push({
-              level: "Error",
-              message: `ADaM Dataset Metadata '${ds.dataset}' is missing a label.`,
-              sheetName: "_Study",
-            });
-          }
-          if (!ds.structure) {
-            issues.push({
-              level: "Error",
-              message: `ADaM Dataset Metadata '${ds.dataset}' is missing structure details.`,
-              sheetName: "_Study",
-            });
-          }
-          if (!ds.class) {
-            issues.push({
-              level: "Error",
-              message: `ADaM Dataset Metadata '${ds.dataset}' is missing class designation.`,
-              sheetName: "_Study",
-            });
-          }
         }
+        const result = pipeline.validateDataset(ds, "ADaM", true);
+        result.issues.forEach(i => issues.push({
+          level: i.level as "Error" | "Warning",
+          message: i.message,
+          sheetName: "_Study"
+        }));
       });
     }
 
@@ -792,154 +763,54 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
 
           // 1. Validate SDTM Variable Mapping
           if (item.sdtmMapping) {
+            const result = pipeline.validateVariable(item.sdtmMapping, "SDTM", true);
+            result.issues.forEach(i => issues.push({
+              level: i.level as "Error" | "Warning",
+              message: i.message,
+              location: `${sheet} > Row ${row}`,
+              rowIndex: row,
+              sheetName: sheet,
+            }));
+
             const hasDomain = !!item.sdtmMapping.domain && !!item.sdtmMapping.domain.trim();
             const hasVar = !!item.sdtmMapping.variable && !!item.sdtmMapping.variable.trim();
-
-            if (hasDomain || hasVar) {
-              if (!hasDomain) {
+            if (hasDomain && hasVar) {
+              const domainUpper = item.sdtmMapping.domain?.toUpperCase();
+              if (sdtmDatasetDomains.size > 0 && !sdtmDatasetDomains.has(domainUpper!)) {
                 issues.push({
                   level: "Error",
-                  message: `SDTM variable '${item.sdtmMapping.variable}' is mapped but SDTM domain is missing.`,
+                  message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
                   sheetName: sheet,
                 });
-              } else if (!hasVar) {
-                issues.push({
-                  level: "Error",
-                  message: `SDTM domain '${item.sdtmMapping.domain}' is mapped but SDTM variable name is missing.`,
-                  location: `${sheet} > Row ${row}`,
-                  rowIndex: row,
-                  sheetName: sheet,
-                });
-              } else {
-                // Both domain and variable are present
-                const domainUpper = item.sdtmMapping.domain?.toUpperCase();
-                // Check if references a valid defined dataset
-                if (sdtmDatasetDomains.size > 0 && !sdtmDatasetDomains.has(domainUpper!)) {
-                  issues.push({
-                    level: "Error",
-                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-
-                // Check other required variable fields for release
-                if (!item.sdtmMapping.core) {
-                  issues.push({
-                    level: "Error",
-                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Core requiredness designation.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.sdtmMapping.role) {
-                  issues.push({
-                    level: "Error",
-                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing Role designation.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.sdtmMapping.sasFieldName) {
-                  issues.push({
-                    level: "Error",
-                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Field Name.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.sdtmMapping.sasLabel) {
-                  issues.push({
-                    level: "Error",
-                    message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' is missing SAS Label.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
               }
             }
           }
 
           // 2. Validate ADaM Variable Mapping
           if (item.adamMapping) {
+            const result = pipeline.validateVariable(item.adamMapping, "ADaM", true);
+            result.issues.forEach(i => issues.push({
+              level: i.level as "Error" | "Warning",
+              message: i.message,
+              location: `${sheet} > Row ${row}`,
+              rowIndex: row,
+              sheetName: sheet,
+            }));
+
             const hasDs = !!item.adamMapping.dataset && !!item.adamMapping.dataset.trim();
             const hasVar = !!item.adamMapping.variable && !!item.adamMapping.variable.trim();
-
-            if (hasDs || hasVar) {
-              if (!hasDs) {
+            if (hasDs && hasVar) {
+              const dsUpper = item.adamMapping.dataset?.toUpperCase();
+              if (adamDatasetNames.size > 0 && !adamDatasetNames.has(dsUpper!)) {
                 issues.push({
                   level: "Error",
-                  message: `ADaM variable '${item.adamMapping.variable}' is mapped but ADaM dataset is missing.`,
+                  message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,
                   location: `${sheet} > Row ${row}`,
                   rowIndex: row,
                   sheetName: sheet,
                 });
-              } else if (!hasVar) {
-                issues.push({
-                  level: "Error",
-                  message: `ADaM dataset '${item.adamMapping.dataset}' is mapped but ADaM variable name is missing.`,
-                  location: `${sheet} > Row ${row}`,
-                  rowIndex: row,
-                  sheetName: sheet,
-                });
-              } else {
-                // Both dataset and variable are present
-                const dsUpper = item.adamMapping.dataset?.toUpperCase();
-                // Check if references a valid defined dataset
-                if (adamDatasetNames.size > 0 && !adamDatasetNames.has(dsUpper!)) {
-                  issues.push({
-                    level: "Error",
-                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-
-                // Check other required variable fields for release
-                if (!item.adamMapping.core) {
-                  issues.push({
-                    level: "Error",
-                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Core requiredness designation.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.adamMapping.role) {
-                  issues.push({
-                    level: "Error",
-                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing Role designation.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.adamMapping.sasFieldName) {
-                  issues.push({
-                    level: "Error",
-                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Field Name.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
-                if (!item.adamMapping.sasLabel) {
-                  issues.push({
-                    level: "Error",
-                    message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' is missing SAS Label.`,
-                    location: `${sheet} > Row ${row}`,
-                    rowIndex: row,
-                    sheetName: sheet,
-                  });
-                }
               }
             }
           }
