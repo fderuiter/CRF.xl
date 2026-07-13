@@ -38,7 +38,8 @@ describe("Annotation Persistence & Lifecycle", () => {
         customXmlParts: mockCustomXmlParts,
         worksheets: {
           getItem: jest.fn().mockReturnValue({
-            getRange: jest.fn().mockReturnValue({
+            getRangeByIndexes: jest.fn().mockReturnValue({ load: jest.fn(), values: [["test_val"]] }),
+            getRange: jest.fn().mockReturnValue({ load: jest.fn(), rowIndex: 1,
               getComments: jest.fn().mockReturnValue({
                 load: jest.fn(),
                 items: [],
@@ -49,7 +50,8 @@ describe("Annotation Persistence & Lifecycle", () => {
           getItemOrNullObject: jest.fn().mockReturnValue({
             isNullObject: false,
             load: jest.fn(),
-            getRange: jest.fn().mockReturnValue({
+            getRangeByIndexes: jest.fn().mockReturnValue({ load: jest.fn(), values: [["test_val"]] }),
+            getRange: jest.fn().mockReturnValue({ load: jest.fn(), rowIndex: 1,
               getComments: jest.fn().mockReturnValue({
                 load: jest.fn(),
                 items: [],

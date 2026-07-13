@@ -19,11 +19,15 @@ describe("Annotation Interaction Semantics", () => {
   beforeEach(() => {
     mockAdd = jest.fn().mockReturnValue({ load: jest.fn(), id: "comment-1" });
     mockSheet = {
-      getRange: jest.fn().mockReturnValue({
+      getRange: jest.fn().mockReturnValue({ load: jest.fn(), rowIndex: 1,
         getComments: jest.fn().mockReturnValue({
           load: jest.fn(),
           items: [],
         }),
+      }),
+      getRangeByIndexes: jest.fn().mockReturnValue({
+        load: jest.fn(),
+        values: [["test_val"]],
       }),
       comments: {
         add: mockAdd,
