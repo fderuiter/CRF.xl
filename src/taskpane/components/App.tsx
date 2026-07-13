@@ -72,7 +72,7 @@ import { AuthoringView } from "./views/AuthoringView";
 import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal } from "./AuditOrchestratorModal";
-import { AuditJustification } from "../core";
+import { AuditJustification, DriftWarning, detectDrifts, applyManualReAnchor } from "../core";
 import { OnboardingTour } from "./OnboardingTour";
 import { ReviewView } from "./views/ReviewView";
 
@@ -326,6 +326,9 @@ export const App: React.FC<{ title?: string }> = () => {
       if (!complianceGovernanceService.isAuthenticated) {
         complianceGovernanceService.initialize().catch(console.error);
       }
+      
+      // 5. Detect drifts
+      detectDrifts().then(setDrifts).catch(console.error);
       Office.context.document.getFilePropertiesAsync((result) => {
         if (result.status === Office.AsyncResultStatus.Succeeded) {
           const documentUrl = result.value.url || "local://document";
@@ -395,6 +398,7 @@ export const App: React.FC<{ title?: string }> = () => {
   const [activeTab, setActiveTab] = useState("design");
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [signOffTimestamp, setSignOffTimestamp] = useState<string | null>(null);
+  const [drifts, setDrifts] = useState<DriftWarning[]>([]);
 
   // Revert sign-off if study changes
   useEffect(() => {
@@ -766,6 +770,24 @@ export const App: React.FC<{ title?: string }> = () => {
       setShowAuditModal(true);
     }
   }, [studyDiffReport, hasMissingJustifications]);
+
+  const handleReAnchor = async (annotationId: string, newAddress: string) => {
+    try {
+      await applyManualReAnchor(annotationId, newAddress);
+      // Re-detect drifts to clear the resolved one
+      const updatedDrifts = await detectDrifts();
+      setDrifts(updatedDrifts);
+      announce("Annotation re-anchored successfully.", "polite");
+    } catch (e) {
+      console.error(e);
+      setUiError({
+        severity: "error",
+        category: "REANCHOR_FAILED",
+        message: "Failed to manually re-anchor annotation.",
+        allowRetry: false,
+      });
+    }
+  };
 
   const handleComplianceExport = async () => {
     // Check environment compliance first
@@ -1154,6 +1176,8 @@ export const App: React.FC<{ title?: string }> = () => {
             onExport={handleComplianceExport}
             isSignedOff={isSignedOff}
             signOffTimestamp={signOffTimestamp}
+            drifts={drifts}
+            onReAnchor={handleReAnchor}
           />
         )}
 

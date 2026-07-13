@@ -12,7 +12,7 @@ import {
   MessageBarBody,
   Divider,
 } from "@fluentui/react-components";
-import { ValidationIssue } from "../../core";
+import { ValidationIssue, DriftWarning } from "../../core";
 import { StudyDiffReport } from "../../core";
 import { loadImportManifest } from "../../core";
 import { formatDate } from "../../core/utils/locale-utils";
@@ -59,6 +59,8 @@ export interface IntegrityHubViewProps {
   onExport: () => void;
   isSignedOff: boolean;
   signOffTimestamp: string | null;
+  drifts?: DriftWarning[];
+  onReAnchor?: (annotationId: string, newAddress: string) => Promise<void>;
 }
 
 export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
@@ -68,6 +70,8 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
   onExport,
   isSignedOff,
   signOffTimestamp,
+  drifts = [],
+  onReAnchor,
 }) => {
   const styles = useStyles();
   const manifest = loadImportManifest();
@@ -104,6 +108,43 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
       </div>
 
       <Divider />
+
+      {/* Drift Management */}
+      {drifts.length > 0 && (
+        <div className={styles.section}>
+          <Text weight="semibold">Clinical Drift Management</Text>
+          <div className={styles.feed}>
+            {drifts.map((drift, idx) => (
+              <div key={`drift-${idx}`} className={styles.feedItem}>
+                <Badge color="danger">Drift</Badge>
+                <Text block size={200} weight="semibold" style={{ marginTop: 4 }}>
+                  {drift.message}
+                </Text>
+                {drift.lostHash ? (
+                  <Text block size={200} style={{ color: tokens.colorPaletteRedBorderActive }}>
+                    Hash mismatch could not be resolved. Physical data might be lost.
+                  </Text>
+                ) : drift.proposedAddress ? (
+                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <Text block size={200}>
+                      Proposed new coordinates: {drift.proposedAddress}
+                    </Text>
+                    <Button 
+                      size="small" 
+                      appearance="primary" 
+                      onClick={() => onReAnchor?.(drift.annotationId, drift.proposedAddress!)}
+                    >
+                      Re-Anchor
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {drifts.length > 0 && <Divider />}
 
       {/* Audit Feed */}
       <div className={styles.section}>
@@ -171,7 +212,7 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
           <Button
             appearance="primary"
             onClick={onSignOff}
-            disabled={isSignedOff || criticalIssues.length > 0}
+            disabled={isSignedOff || criticalIssues.length > 0 || drifts.length > 0}
           >
             Sign-off
           </Button>
