@@ -76,7 +76,7 @@ export class ClinicalIterator {
   public *itemGroups(form: CrfForm): Generator<ItemGroup> {
     const groups = [...form.itemGroups];
     if (this.config.sortStrategy === SortStrategy.OID) {
-      groups.sort((a, b) => a.groupOid.localeCompare(b.groupOid));
+      groups.sort((a, b) => (a.groupOid ?? "").localeCompare(b.groupOid ?? ""));
     } else {
       groups.sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0));
     }

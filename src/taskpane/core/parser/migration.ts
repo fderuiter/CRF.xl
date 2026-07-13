@@ -137,7 +137,7 @@ export function migrateStudyDesign(rawStudy: unknown, context: MigrationContext 
   // Zod validation step
   const parsed = StudyDesignSchema.safeParse(clone);
   if (!parsed.success) {
-    const issues = parsed.error.issues
+    console.error(JSON.stringify(parsed.error.issues, null, 2)); const issues = parsed.error.issues
       .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
       .join(", ");
     if (manifest.errors) manifest.errors.push(issues);

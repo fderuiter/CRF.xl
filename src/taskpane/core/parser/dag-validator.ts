@@ -307,7 +307,7 @@ export async function validateRules(
                 continue;
               }
               if (item.itemOid) {
-                variablesMap.set(item.itemOid, item.dataType);
+                variablesMap.set(item.itemOid, item.dataType as any);
               }
             }
           }

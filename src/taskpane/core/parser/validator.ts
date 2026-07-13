@@ -352,7 +352,7 @@ export function validateCrossFormDependencies(
           variableMap.set(item.itemOid.toLowerCase(), {
             item,
             formOid: form.formOid,
-            groupOid: group.groupOid,
+            groupOid: group.groupOid!,
             rowIndex: (item as unknown as Record<string, unknown>).rowIndex as number,
           });
         }
@@ -432,10 +432,10 @@ export function validateCrossFormDependencies(
     study.events.forEach((evt) => {
       evt.forms.forEach((fRef) => {
         if (fRef.formOid === sourceFormOid) {
-          sourceSched.push({ eventOrder: evt.orderNumber, formOrder: fRef.orderNumber });
+          sourceSched.push({ eventOrder: evt.orderNumber ?? 0, formOrder: fRef.orderNumber ?? 0 });
         }
         if (fRef.formOid === targetFormOid) {
-          targetSched.push({ eventOrder: evt.orderNumber, formOrder: fRef.orderNumber });
+          targetSched.push({ eventOrder: evt.orderNumber ?? 0, formOrder: fRef.orderNumber ?? 0 });
         }
       });
     });
@@ -624,7 +624,7 @@ export function validateCrossFormDependencies(
     form.itemGroups.forEach((group) => {
       // Analyze Group-level showIf
       if (group.showIf) {
-        analyzeExpression(form.formOid, group.groupOid, "Group", undefined, group.showIf, "ShowIf");
+        analyzeExpression(form.formOid, group.groupOid!, "Group", undefined, group.showIf, "ShowIf");
       }
 
       // Analyze Item-level showIf
@@ -814,9 +814,9 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 });
               } else {
                 // Both domain and variable are present
-                const domainUpper = item.sdtmMapping.domain.toUpperCase();
+                const domainUpper = item.sdtmMapping.domain?.toUpperCase();
                 // Check if references a valid defined dataset
-                if (sdtmDatasetDomains.size > 0 && !sdtmDatasetDomains.has(domainUpper)) {
+                if (sdtmDatasetDomains.size > 0 && !sdtmDatasetDomains.has(domainUpper!)) {
                   issues.push({
                     level: "Error",
                     message: `SDTM variable '${item.sdtmMapping.domain}.${item.sdtmMapping.variable}' references undefined domain '${item.sdtmMapping.domain}' in central dataset metadata.`,
@@ -891,9 +891,9 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
                 });
               } else {
                 // Both dataset and variable are present
-                const dsUpper = item.adamMapping.dataset.toUpperCase();
+                const dsUpper = item.adamMapping.dataset?.toUpperCase();
                 // Check if references a valid defined dataset
-                if (adamDatasetNames.size > 0 && !adamDatasetNames.has(dsUpper)) {
+                if (adamDatasetNames.size > 0 && !adamDatasetNames.has(dsUpper!)) {
                   issues.push({
                     level: "Error",
                     message: `ADaM variable '${item.adamMapping.dataset}.${item.adamMapping.variable}' references undefined dataset '${item.adamMapping.dataset}' in central dataset metadata.`,

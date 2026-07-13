@@ -42,11 +42,11 @@ export function normalizeMatrixSearch(value: string): string {
 export function buildMatrixSearchIndex(study: StudyDesign): MatrixSearchEntry[] {
   return study.events
     .slice()
-    .sort((left, right) => left.orderNumber - right.orderNumber)
+    .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
     .flatMap((event) =>
       event.forms
         .slice()
-        .sort((left, right) => left.orderNumber - right.orderNumber)
+        .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
         .map((formRef) => {
           const form = study.forms[formRef.formOid];
           if (!form) return null;

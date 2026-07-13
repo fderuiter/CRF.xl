@@ -127,7 +127,7 @@ export function buildAnnotatedCrfDocument(
             itemOid: item.itemOid,
             name: item.name,
             label: item.label,
-            dataType: item.dataType,
+            dataType: item.dataType as any,
             mandatory: !!item.validation?.required,
             codelistId: item.codelistId,
             instructions: item.instructions,
@@ -137,7 +137,7 @@ export function buildAnnotatedCrfDocument(
       }
 
       itemGroups.push({
-        groupOid: group.groupOid,
+        groupOid: group.groupOid!,
         name: group.name,
         label: group.label,
         items,
