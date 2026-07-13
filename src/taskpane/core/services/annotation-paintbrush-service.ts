@@ -1,3 +1,4 @@
+import { SubscriptionManager } from "../utils/event-utility";
 import { logger } from "../utils/logger";
 /**
  * @issue #84
@@ -39,7 +40,7 @@ class AnnotationPaintbrushService {
     history: [],
   };
 
-  private listeners: Set<(state: PaintbrushState) => void> = new Set();
+  private subscriptionManager = new SubscriptionManager<PaintbrushState>(() => this.getState());
 
   /**
    * Returns the current state of the paintbrush.
@@ -57,14 +58,11 @@ class AnnotationPaintbrushService {
    * Subscribes to paintbrush state changes.
    */
   public subscribe(listener: (state: PaintbrushState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.getState());
-    return () => this.listeners.delete(listener);
+    return this.subscriptionManager.subscribe(listener, { immediate: true });
   }
 
   private notify() {
-    const currentState = this.getState();
-    this.listeners.forEach((l) => l(currentState));
+    this.subscriptionManager.notify(this.state);
   }
 
   /**

@@ -4,6 +4,7 @@ import { logger } from "../utils/logger";
  * @issue #28
  */
 
+import { SubscriptionManager } from "../utils/event-utility";
 import * as CryptoJS from "crypto-js";
 import { StudyDesign } from "../types";
 import { classifyOfficeError } from "./office-error-handling";
@@ -24,6 +25,11 @@ export interface SpeculativeSyncOperation {
 
 export type SyncState = "idle" | "syncing" | "conflict" | "error";
 
+export interface SyncStatePayload {
+  state: SyncState;
+  details?: any;
+}
+
 export async function getPredictedStudyDesign(
   projection: WorkbookProjection
 ): Promise<StudyDesign> {
@@ -39,19 +45,21 @@ export async function getPredictedStudyDesign(
 
 class SpeculativeSyncManager {
   private state: SyncState = "idle";
+  private currentDetails?: any;
   private currentOp: SpeculativeSyncOperation | null = null;
-  private listeners: Set<(state: SyncState, details?: any) => void> = new Set();
+  private subscriptionManager = new SubscriptionManager<SyncStatePayload>(() => ({
+    state: this.state,
+    details: this.currentDetails,
+  }));
 
-  public subscribe(listener: (state: SyncState, details?: any) => void) {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
+  public subscribe(listener: (payload: SyncStatePayload) => void) {
+    return this.subscriptionManager.subscribe(listener, { immediate: true });
   }
 
   private notify(state: SyncState, details?: any) {
     this.state = state;
-    this.listeners.forEach((l) => l(state, details));
+    this.currentDetails = details;
+    this.subscriptionManager.notify({ state, details });
   }
 
   public getState() {

@@ -1,3 +1,5 @@
+import { SubscriptionManager } from "../utils/event-utility";
+
 /**
  * @issue #214
  */
@@ -19,7 +21,7 @@ class OnboardingService {
     isCompleted: false,
   };
 
-  private listeners: Set<(state: OnboardingState) => void> = new Set();
+  private subscriptionManager = new SubscriptionManager<OnboardingState>(() => this.state);
 
   constructor() {
     if (typeof localStorage !== "undefined") {
@@ -38,14 +40,11 @@ class OnboardingService {
    * Subscribes to onboarding state changes.
    */
   public subscribe(listener: (state: OnboardingState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.getState());
-    return () => this.listeners.delete(listener);
+    return this.subscriptionManager.subscribe(listener, { immediate: true });
   }
 
   private notify() {
-    const currentState = this.getState();
-    this.listeners.forEach((l) => l(currentState));
+    this.subscriptionManager.notify(this.state);
   }
 
   /**
