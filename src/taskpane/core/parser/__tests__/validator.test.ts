@@ -228,14 +228,26 @@ describe("Clinical Validator Engine", () => {
       ],
     };
 
+    mockStudy.metadata.customProperties = {
+      oidCollisions: [
+        {
+          oid: "I1",
+          type: "Item",
+          existingType: "Item",
+          sheetName: "F2",
+          rowIndex: 2,
+        },
+      ],
+    };
+
     const issues = await validateStudyDesign(mockStudy);
 
     expect(issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           level: "Error",
-          message: "Duplicate Variable Name: 'I1'. Must be unique across study.",
-          location: "F2 > I1",
+          message: "Duplicate OID detected: 'I1' is already defined as a Item. OIDs must be unique study-wide.",
+          location: "F2 > Row 2",
           sheetName: "F2",
         }),
       ])

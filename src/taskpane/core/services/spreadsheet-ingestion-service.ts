@@ -20,6 +20,7 @@
 
 import { ImportDiagnostic, ImportProvenance, WorkbookProjection } from "./migration-pipeline";
 import { groupBy } from "../utils/collection-utils";
+import { normalizeOid } from "../parser/metadata-utils";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -738,7 +739,7 @@ export function validateMappings(
     const seen = new Set<string>();
     const duplicates: string[] = [];
     for (const v of mapping.sourceColumn.sampleValues) {
-      const key = v.trim().toUpperCase();
+      const key = normalizeOid(v).toLowerCase();
       if (key && seen.has(key)) {
         duplicates.push(v);
       }

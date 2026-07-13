@@ -1,7 +1,7 @@
 /**
  * @issue #337
  */
-export type EntityType = "Form" | "Codelist" | "Item";
+export type EntityType = "Form" | "Codelist" | "Item" | "Method";
 
 export interface OidCollision {
   oid: string;
