@@ -2,7 +2,38 @@
 /**
  * @issue #292
  */
-import { SHEET_HEADERS } from "../registry/sheet-metadata-registry";
+import { SHEET_HEADERS, SYSTEM_SHEETS } from "../registry/sheet-metadata-registry";
+
+export async function upgradeSystemSheetsToTables(context: Excel.RequestContext): Promise<void> {
+  for (const sheetName of SYSTEM_SHEETS) {
+    const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
+    await context.sync();
+    if (sheet.isNullObject) continue;
+
+    const tables = sheet.tables;
+    tables.load("count");
+    await context.sync();
+
+    if (tables.count === 0) {
+      const usedRange = sheet.getUsedRange();
+      usedRange.load("address, rowCount");
+      await context.sync();
+
+      if (usedRange.rowCount > 0) {
+        // Clear manual header styles before upgrading to let Table Style take over
+        const headerRange = usedRange.getRow(0);
+        headerRange.format.fill.clear();
+        headerRange.format.font.color = "Automatic";
+
+        const table = sheet.tables.add(usedRange, true);
+        table.name = `${sheetName.replace(/[^A-Za-z0-9_]/g, "")}Table`;
+        table.style = "Slate 900";
+        
+        await context.sync();
+      }
+    }
+  }
+}
 
 export async function createOrClearSystemSheet(
   context: Excel.RequestContext,
@@ -21,16 +52,24 @@ export async function createOrClearSystemSheet(
 
   const headers = SHEET_HEADERS[sheetName as keyof typeof SHEET_HEADERS];
   if (headers && headers.length > 0) {
-    const headerRange = sheet.getRangeByIndexes(0, 0, 1, headers.length);
+    const rowCount = data && data.length > 0 ? data.length + 1 : 2;
+    let colStr = "";
+    let c = headers.length - 1;
+    while (c >= 0) {
+      colStr = String.fromCharCode(65 + (c % 26)) + colStr;
+      c = Math.floor(c / 26) - 1;
+    }
+    const rangeAddress = `A1:${colStr}${rowCount}`;
+
+    const table = sheet.tables.add(rangeAddress, true);
+    table.name = `${sheetName.replace(/[^A-Za-z0-9_]/g, "")}Table`;
+    table.style = "Slate 900";
+
+    const headerRange = table.getHeaderRowRange();
     headerRange.values = [headers];
 
-    // Apply Standard Theme: Slate 900 background, white bold text
-    headerRange.format.fill.color = "#1e293b";
-    headerRange.format.font.color = "white";
-    headerRange.format.font.bold = true;
-
     if (data && data.length > 0) {
-      const dataRange = sheet.getRangeByIndexes(1, 0, data.length, headers.length);
+      const dataRange = table.getDataBodyRange();
       dataRange.values = data;
     }
 
@@ -41,9 +80,6 @@ export async function createOrClearSystemSheet(
   return sheet;
 }
 
-export function applyThemeToHeader(headerRange: Excel.Range): void {
-  headerRange.format.fill.color = "#1e293b";
-  headerRange.format.font.color = "white";
-  headerRange.format.font.bold = true;
-  headerRange.format.autofitColumns();
+export function applyThemeToHeader(_headerRange: Excel.Range): void {
+  // Deprecated: Themes are now handled via native Table Styles.
 }

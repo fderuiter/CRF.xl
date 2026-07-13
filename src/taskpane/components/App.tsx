@@ -34,6 +34,7 @@ import {
 } from "@fluentui/react-components";
 
 // Core Logic
+import { upgradeSystemSheetsToTables } from "../core/factory/sheet-factory";
 import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue } from "../core";
 import { complianceGovernanceService } from "../core";
@@ -518,7 +519,11 @@ export const App: React.FC<{ title?: string }> = () => {
           await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItemOrNullObject("_Study");
             await context.sync();
-            setIsInitialized(!sheet.isNullObject);
+            const init = !sheet.isNullObject;
+            setIsInitialized(init);
+            if (init) {
+              await upgradeSystemSheetsToTables(context);
+            }
           });
           return true;
         },
