@@ -13,15 +13,15 @@ Learn about the architecture, module boundaries, technical decisions, and active
 * Explore the [Architecture Decision Records (ADRs)](./architecture/adr-index.md) to understand key architectural decisions.
 * See the [QA & Testing Strategy Index](./qa-testing/README.md) for the active quality gates.
 * View the subsystem specifications for implementation contracts:
-  * [Rules and Logic Contract](./specification/rules-and-logic-contract.md)
-  * [Annotation System Contract](./specification/annotation-system-contract.md)
-  * [Reviewer Export Contract](./specification/reviewer-export-contract.md)
-  * [Ingestion Normalization Contract](./specification/ingestion-normalization-contract.md)
-  * [CDISC Library API Service Contract](./specification/cdisc-api-service.md)
+  * [Rules and Logic Contract](../src/taskpane/core/parser/rules-and-logic-contract.md)
+  * [Annotation System Contract](../src/taskpane/core/services/annotation-system-contract.md)
+  * [Reviewer Export Contract](../src/taskpane/core/generators/reviewer-export-contract.md)
+  * [Ingestion Normalization Contract](../src/taskpane/core/services/ingestion-normalization-contract.md)
+  * [CDISC Library API Service Contract](../src/taskpane/core/services/cdisc-api-service.md)
 
 ### 📋 For Product & Delivery
 Understand platform capabilities, roadmap alignment, milestones, and issue tracking rules:
-* Read the [Product Scope](./specification/product-scope.md) to understand current capability boundaries.
+* Read the [Product Scope](../src/taskpane/product-scope.md) to understand current capability boundaries.
 * Review the [Strategic Delivery Dashboard (#28)](https://github.com/fderuiter/CRF.xl/issues/28) master issue.
 * Review the [Roadmap Operations](./github/roadmap-operations.md) for milestone sequencing.
 * Review the [Definition of Ready & Definition of Done](./github/definition-of-ready-done.md) quality gates.
@@ -36,7 +36,7 @@ Verify regulatory controls, security postures, and quality gates:
 * Consult [Dependency Management](./github/dependency-management.md) for third-party library rules and security audits.
 * Review [Roadmap Operations](./github/roadmap-operations.md) for milestone sequencing and release strategy.
 * See `SECURITY.md` in the root folder for CIS control mapping and data security.
-* Audit the [Clinical Validation Rules Dictionary](./specification/clinical-validation-rules-dictionary.md).
+* Audit the [Clinical Validation Rules Dictionary](../src/taskpane/core/parser/clinical-validation-rules-dictionary.md).
 
 ### 🚀 For Deployment & Operations
 Understand deployment environments, Office manifests, and release steps:
@@ -64,6 +64,6 @@ The following documents have been retired and replaced to maintain high alignmen
 
 | Retired File | Replacement File | Purpose of Change |
 | --- | --- | --- |
-| `docs/mvp-specification.md` | [product-scope.md](./specification/product-scope.md) | Shift away from legacy MVP framing to multi-stream capability scope. |
+| `docs/mvp-specification.md` | [product-scope.md](../src/taskpane/product-scope.md) | Shift away from legacy MVP framing to multi-stream capability scope. |
 | `docs/qa-testing.md` | [qa-testing/README.md](./qa-testing/README.md) | Folderized and structured QA index linking to specific suites. |
-| `docs/serialization-proofing.md` | [specification/export-serialization-requirements.md](./specification/export-serialization-requirements.md) | Standardized contract for deterministic ODM XML serialization. |
+| `docs/serialization-proofing.md` | [specification/export-serialization-requirements.md](../src/taskpane/core/generators/cdisc/export-serialization-requirements.md) | Standardized contract for deterministic ODM XML serialization. |
