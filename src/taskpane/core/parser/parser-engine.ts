@@ -411,11 +411,16 @@ export async function parseRawDataToStudyDesign(
     try {
       if (methodsSheetVals.length > 1) {
         const rows = methodsSheetVals.slice(1);
-        await processRowsInChunks(rows, runtime, "methods", (row) => {
+        await processRowsInChunks(rows, runtime, "methods", (row, rowIndex) => {
           runtime.throwIfStopped("methods");
           const [oid, name, type, description, expression, referencedVariables] = row;
           if (!oid) return;
-          const strOid = String(oid).trim();
+          const strOid = normalizeOid(oid);
+
+          if (!oidRegistry.register(strOid, "Method", "_Methods", rowIndex + 2)) {
+            return;
+          }
+
           study.methods![strOid] = {
             methodOid: strOid,
             name: String(name || "").trim(),

@@ -166,7 +166,7 @@ function mapRowToItem(
     if (normalizedHeader === "codelist id") item.codelistId = normalizeOid(value);
     if (normalizedHeader === "origin") item.origin = normalizeDataOrigin(value);
     if (normalizedHeader === "methodoid" || normalizedHeader === "method oid")
-      item.methodOid = String(value).trim();
+      item.methodOid = normalizeOid(value);
 
     if (normalizedHeader === "sdtmdomain" || normalizedHeader === "sdtm domain")
       item.sdtmMapping.domain = String(value).trim();

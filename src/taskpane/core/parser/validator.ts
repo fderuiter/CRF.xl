@@ -13,6 +13,7 @@ import { validateRules, collectIdentifiers } from "./dag-validator";
 import { parseRuleExpression } from "./rules-parser";
 import { detectAnnotationConflicts } from "../services/annotation-service";
 import { parseNumber } from "../utils/locale-utils";
+import { normalizeOid } from "./metadata-utils";
 
 export interface CrossFormDependency {
   id: string;
@@ -73,8 +74,6 @@ export async function validateStudyDesign(
   });
 
   // 2. Validate CRF Forms (Individual tabs)
-  const globalVariables = new Set<string>();
-
   Object.values(study.forms).forEach((form) => {
     form.itemGroups.forEach((group) => {
       group.items.forEach((item) => {
@@ -107,7 +106,7 @@ export async function validateStudyDesign(
             });
           } else if (
             !Object.keys(study.codelists).some(
-              (k) => k.toLowerCase() === item.codelistId?.toLowerCase()
+              (k) => normalizeOid(k).toLowerCase() === normalizeOid(item.codelistId!).toLowerCase()
             )
           ) {
             issues.push({
@@ -118,20 +117,6 @@ export async function validateStudyDesign(
               sheetName: sheet,
             });
           }
-        }
-
-        // Check Duplicates
-        if (item.itemOid) {
-          if (globalVariables.has(item.itemOid.toLowerCase())) {
-            issues.push({
-              level: "Error",
-              message: `Duplicate Variable Name: '${item.itemOid}'. Must be unique across study.`,
-              location: `${sheet} > ${item.itemOid}`,
-              rowIndex: row,
-              sheetName: sheet,
-            });
-          }
-          globalVariables.add(item.itemOid.toLowerCase());
         }
 
         const isNumericVariable = isNumericDataType(item.dataType);
@@ -254,9 +239,9 @@ export async function validateStudyDesign(
         }
 
         if (item.methodOid && item.methodOid.trim()) {
-          const cleanMethodOid = item.methodOid.trim().toLowerCase();
+          const cleanMethodOid = normalizeOid(item.methodOid).toLowerCase();
           const methodsKeys = study.methods
-            ? Object.keys(study.methods).map((k) => k.toLowerCase())
+            ? Object.keys(study.methods).map((k) => normalizeOid(k).toLowerCase())
             : [];
           if (!methodsKeys.includes(cleanMethodOid)) {
             issues.push({
@@ -351,7 +336,7 @@ export function validateCrossFormDependencies(
           return;
         }
         if (item.itemOid) {
-          variableMap.set(item.itemOid.toLowerCase(), {
+          variableMap.set(normalizeOid(item.itemOid).toLowerCase(), {
             item,
             formOid: form.formOid,
             groupOid: group.groupOid!,
@@ -365,14 +350,14 @@ export function validateCrossFormDependencies(
   // Helper to resolve an identifier to its target
   function resolveIdent(ident: string) {
     const isRuleLike = /^R(?:ule)?_?\d+$/i.test(ident);
-    const lowercaseIdent = ident.toLowerCase();
+    const lowercaseIdent = normalizeOid(ident).toLowerCase();
 
     // 1. Try rule ID match
     if (study.rules) {
       const matchedRule = study.rules.find((r) => r.ruleId.toLowerCase() === lowercaseIdent);
       if (matchedRule) {
         if (matchedRule.target) {
-          const varRes = variableMap.get(matchedRule.target.toLowerCase());
+          const varRes = variableMap.get(normalizeOid(matchedRule.target).toLowerCase());
           return {
             targetRule: matchedRule,
             targetItem: varRes?.item,
@@ -401,15 +386,15 @@ export function validateCrossFormDependencies(
     // 3. Try dot-separated qualified variable match (e.g. FormOid.VariableOid)
     const segments = ident.split(".");
     if (segments.length > 1) {
-      const varName = segments[segments.length - 1].toLowerCase();
-      const possibleFormOid = segments[0];
+      const varName = normalizeOid(segments[segments.length - 1]).toLowerCase();
+      const possibleFormOid = normalizeOid(segments[0]).toLowerCase();
       const matchedFormKey = Object.keys(study.forms).find(
-        (k) => k.toLowerCase() === possibleFormOid.toLowerCase()
+        (k) => normalizeOid(k).toLowerCase() === possibleFormOid
       );
       const form = matchedFormKey ? study.forms[matchedFormKey] : undefined;
       if (form) {
         const itemRes = variableMap.get(varName);
-        if (itemRes && itemRes.formOid.toLowerCase() === matchedFormKey!.toLowerCase()) {
+        if (itemRes && normalizeOid(itemRes.formOid).toLowerCase() === normalizeOid(matchedFormKey!).toLowerCase()) {
           return {
             targetItem: itemRes.item,
             targetFormOid: itemRes.formOid,
