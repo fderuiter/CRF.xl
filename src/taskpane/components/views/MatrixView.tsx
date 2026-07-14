@@ -411,7 +411,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
         renderCell: (item) => (
           <div className={styles.depItemRelation}>
             <span>{item.sourceType}</span>
-            <ArrowRightRegular style={{ fontSize: "12px" }} />
+            <ArrowRightRegular style={{ fontSize: "12px" }} aria-label="targets" />
             <span>
               {item.targetFormOid !== "Unknown"
                 ? `${item.targetFormOid}.${item.targetOid}`
@@ -594,7 +594,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
           <div className={styles.cardHeader}>
             <div className={styles.iconBox}>🔗</div>
             <div style={{ flexGrow: 1 }}>
-              <Body1 className={styles.cardTitle}>Cross-Form Dependency Map</Body1>
+              <Body1 id="cross-form-dependency-title" className={styles.cardTitle}>Cross-Form Dependency Map</Body1>
               <Body1 className={styles.cardSubtitle}>
                 Traces rule-linked variables across forms
               </Body1>
@@ -618,6 +618,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
 
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "12px" }}>
             <DataGrid
+              aria-labelledby="cross-form-dependency-title"
               items={study.crossFormDependencies || []}
               columns={columns}
               focusMode="cell"
