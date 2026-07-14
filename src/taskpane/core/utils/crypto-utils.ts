@@ -10,8 +10,8 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
     encoder = new TextEncoder();
   } else {
     // Hide require from Webpack to prevent polyfill warnings
-    const req = typeof module !== "undefined" && module.require ? module.require : require;
-    const util = req("util");
+    // @ts-ignore
+    const util = typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__("util") : /* webpackIgnore: true */ require("util");
     encoder = new util.TextEncoder();
   }
 
@@ -20,9 +20,9 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
     subtleCrypto = window.crypto.subtle;
   } else {
     // Hide require from Webpack to prevent polyfill warnings
-    const req = typeof module !== "undefined" && module.require ? module.require : require;
-    const crypto = req("crypto");
-    subtleCrypto = crypto.webcrypto.subtle;
+    // @ts-ignore
+    const cryptoNode = typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__("crypto") : /* webpackIgnore: true */ require("crypto");
+    subtleCrypto = cryptoNode.webcrypto.subtle;
   }
 
   let data: BufferSource;
