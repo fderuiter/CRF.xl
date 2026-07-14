@@ -12,7 +12,6 @@ import { createParseRuntime } from "../core";
 import * as React from "react";
 import { sha256Native } from "../core/utils/crypto-utils";
 import { useState, useEffect, useRef } from "react";
-import { speculativeSyncManager } from "../core";
 
 import {
   makeStyles,
@@ -39,7 +38,6 @@ import { ValidationLog } from "./ValidationLog";
 import { ValidationIssue } from "../core";
 import { complianceGovernanceService } from "../core";
 import { VaultService } from "../core";
-import { backgroundValidationEngine } from "../core";
 import { LinguisticService } from "../core";
 
 import { diffStudyDesigns } from "../core";
@@ -47,23 +45,15 @@ import { initializeWorkbook, navigateToSource, syncRegistry } from "../core";
 import { StudyDesign, SubmissionMetadata, ExportMode, ExportOptions } from "../core";
 import { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "../core";
 import {
-  RecoverySnapshot,
   RECOVERY_APP_VERSION,
-  WorkbookFingerprint,
-  createRecoverySnapshot,
-  dismissRecoverySnapshot,
-  hasWorkbookChanged,
-  persistRecoverySnapshot,
-  readRecoverySnapshot,
   summarizeStudyDesign,
   formatDate,
 } from "../core";
-import { createOfficeDiagnostic, Diagnostic } from "../core";
-import { checkForVersionUpdate, dismissVersionNotification, VersionUpdateMetadata } from "../core";
+import { createOfficeDiagnostic } from "../core";
+import { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "../core";
 import { loadImportManifest, onboardingService } from "../core";
 
 // Telemetry & Views
-import { useExcelTelemetry } from "./views/useExcelTelemetry";
 import { RegistryView } from "./views/RegistryView";
 import { ComplianceGovernanceView } from "./views/ComplianceGovernanceView";
 import { TabList, Tab } from "@fluentui/react-components";
@@ -75,6 +65,8 @@ import { AuditOrchestratorModal } from "./AuditOrchestratorModal";
 import { AuditJustification, DriftWarning, detectDrifts, applyManualReAnchor } from "../core";
 import { OnboardingTour } from "./OnboardingTour";
 import { ReviewView } from "./views/ReviewView";
+
+import { useAppOrchestrator } from "../hooks/useAppOrchestrator";
 
 const useAppStyles = makeStyles({
   root: {
@@ -197,6 +189,7 @@ function toSafeHttpUrl(url: string | undefined): string | null {
 }
 
 import { useAnnouncer } from "../hooks/useAnnouncer";
+import { appOrchestrator } from "../core/services/app-orchestrator";
 
 export const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
@@ -210,16 +203,24 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, []);
 
-  // 1. Telemetry & Initialization State
-  const { activeSheet, isCodelistActive, telemetryTrigger } = useExcelTelemetry();
+  // 1. Unified Orchestrator State
+  const { state, actions } = useAppOrchestrator();
+  const {
+    activeSheet,
+    isCodelistActive,
+    study,
+    issues,
+    isProcessing,
+    status: validationStatus,
+    syncConflict,
+    recoverySnapshot,
+    storageWarning,
+    uiError,
+    isSyncing
+  } = state;
+
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
-
-  // 2. Application State
-  const [validationState, setValidationState] = useState(backgroundValidationEngine.getState());
-  const study = validationState.study;
-  const issues = validationState.issues;
-
   const [appIsProcessing, setAppIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState("Ready");
   const [showExportOptions, setShowExportOptions] = useState(false);
@@ -229,19 +230,14 @@ export const App: React.FC<{ title?: string }> = () => {
   });
   const [annotationProgress, setAnnotationProgress] = useState<string | null>(null);
 
-  const isProcessing = validationState.isProcessing || appIsProcessing;
-  const status = validationState.isProcessing ? validationState.status : appStatus;
+  const totalIsProcessing = isProcessing || appIsProcessing || isSyncing;
+  const status = isProcessing ? validationStatus : appStatus;
   const displayStatus = annotationProgress || status;
 
   const lastVisualsRef = useRef<{ study: any; activeSheet: string | null } | null>(null);
 
   useEffect(() => {
     if (isInitialized) {
-      backgroundValidationEngine.triggerValidation(
-        activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
-        1000 // Throttle
-      );
-
       // Handle Paintbrush target selection on change
       const paintbrush = annotationPaintbrushService.getState();
       if (paintbrush.isEnabled && activeSheet && !activeSheet.startsWith("_")) {
@@ -254,7 +250,7 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       }
     }
-  }, [telemetryTrigger, isInitialized, activeSheet]);
+  }, [isInitialized, activeSheet]);
 
   // Initial highlight refresh on sheet change
   useEffect(() => {
@@ -262,10 +258,6 @@ export const App: React.FC<{ title?: string }> = () => {
       refreshAnnotationHighlights(activeSheet).catch(console.error);
     }
   }, [activeSheet, isInitialized]);
-
-  useEffect(() => {
-    return backgroundValidationEngine.subscribe(setValidationState);
-  }, []);
 
   useEffect(() => {
     if (study && study.metadata.defaultLanguage) {
@@ -282,7 +274,7 @@ export const App: React.FC<{ title?: string }> = () => {
   }, [study]);
 
   useEffect(() => {
-    if (study && !isProcessing) {
+    if (study && !totalIsProcessing) {
       // 1. Visual Validation
       if (
         !lastVisualsRef.current ||
@@ -349,20 +341,11 @@ export const App: React.FC<{ title?: string }> = () => {
                 if (
                   !issues.some((i) => i.location === issue.location && i.message === issue.message)
                 ) {
-                  backgroundValidationEngine.updateState((prev) => ({
-                    issues: [...prev.issues, issue],
-                    status: "Issues detected",
-                  }));
+                  actions.injectValidationIssue(issue);
                 }
               } else {
                 if (issues.some((i) => i.location === "Host Environment")) {
-                  backgroundValidationEngine.updateState((prev) => {
-                    const filtered = prev.issues.filter((i) => i.location !== "Host Environment");
-                    return {
-                      issues: filtered,
-                      status: filtered.length === 0 ? "Ready" : "Issues detected",
-                    };
-                  });
+                  actions.clearValidationIssueByLocation("Host Environment");
                 }
               }
             })
@@ -370,10 +353,8 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       });
     }
-  }, [study, issues, isProcessing, activeSheet]);
+  }, [study, issues, totalIsProcessing, activeSheet]);
 
-  const [, setIsBackgroundSyncing] = useState(false);
-  const [syncConflict, setSyncConflict] = useState<any>(null);
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
   const [showGate, setShowGate] = useState(false);
@@ -383,24 +364,20 @@ export const App: React.FC<{ title?: string }> = () => {
     variableCount: number;
     visitCount: number;
   } | null>(null);
-  const [currentFilter, setCurrentFilter] = useState<string | null>(null);
-  const [workbookFingerprint] = useState<WorkbookFingerprint | undefined>(undefined);
-  const [recoverySnapshot, setRecoverySnapshot] = useState<{
-    snapshot: RecoverySnapshot;
-    workbookChanged: boolean;
-  } | null>(null);
-  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [, setCurrentFilter] = useState<string | null>(null);
   const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
   const [showAuditModal, setShowAuditModal] = useState(false);
-  const [uiError, setUiError] = useState<
-    (Diagnostic & { retryAction?: () => Promise<void> }) | null
-  >(null);
   const [activeTab, setActiveTab] = useState("design");
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [signOffTimestamp, setSignOffTimestamp] = useState<string | null>(null);
   const [drifts, setDrifts] = useState<DriftWarning[]>([]);
+
+  // Push justifications to orchestrator
+  useEffect(() => {
+    actions.updateJustifications(justifications);
+  }, [justifications]);
 
   // Revert sign-off if study changes
   useEffect(() => {
@@ -409,15 +386,6 @@ export const App: React.FC<{ title?: string }> = () => {
       setSignOffTimestamp(null);
     }
   }, [study, issues]);
-
-  useEffect(() => {
-    const unsubscribeError = bindingService.subscribeError((diagnostic) => {
-      setUiError({
-        ...diagnostic.toJSON(),
-      });
-    });
-    return () => unsubscribeError();
-  }, []);
 
   const errorContainerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
@@ -448,16 +416,20 @@ export const App: React.FC<{ title?: string }> = () => {
       previousFocusRef.current.focus();
       previousFocusRef.current = null;
     }
-    setUiError(null);
+    actions.dismissUiError();
   };
 
   const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
     const diagnostic = createOfficeDiagnostic(error);
     console.error(`[${diagnostic.category}]`, error);
-    setUiError({
-      ...diagnostic.toJSON(),
-      retryAction: diagnostic.allowRetry ? retryAction : undefined,
-    });
+    // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
+    // For manual operation errors, we might still want local state, but we can just use Orchestrator state.
+    appOrchestrator["updateState"]({ 
+      uiError: {
+        ...diagnostic.toJSON(),
+        retryAction: diagnostic.allowRetry ? retryAction : undefined,
+      } 
+    } as any);
   };
 
   const runWithOfficeErrorHandling = async <T,>(
@@ -485,33 +457,10 @@ export const App: React.FC<{ title?: string }> = () => {
   };
 
   useEffect(() => {
-    return speculativeSyncManager.subscribe(({ state, details }) => {
-      if (state === "syncing") {
-        setIsBackgroundSyncing(true);
-        if (details?.predictedStudy) {
-          backgroundValidationEngine.updateState(() => ({ study: details.predictedStudy }));
-        }
-      } else if (state === "conflict") {
-        setIsBackgroundSyncing(false);
-        setSyncConflict(details);
-        announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
-      } else if (state === "idle") {
-        setIsBackgroundSyncing(false);
-        if (details?.study) {
-          backgroundValidationEngine.updateState(() => ({ study: details.study })); // rollback case
-        }
-      } else if (state === "error") {
-        setIsBackgroundSyncing(false);
-        setUiError({
-          severity: "error",
-          category: "SYNC_ERROR",
-          message: "Background sync failed.",
-          recoveryAction: "Check workbook and retry.",
-          allowRetry: true,
-        });
-      }
-    });
-  }, []);
+    if (syncConflict) {
+      announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
+    }
+  }, [syncConflict]);
 
   // Startup Check: Does the Matrix architecture exist yet?
   useEffect(() => {
@@ -545,33 +494,6 @@ export const App: React.FC<{ title?: string }> = () => {
   }, []);
 
   useEffect(() => {
-    const detectRecoverableSnapshot = async () => {
-      const snapshot = readRecoverySnapshot();
-      if (!snapshot) return;
-
-      let currentFingerprint: WorkbookFingerprint | undefined = undefined;
-      try {
-        currentFingerprint = await Excel.run(async (context) => {
-          const sheets = context.workbook.worksheets;
-          sheets.load("items/name");
-          await context.sync();
-          const sheetNames = sheets.items.map((sheet) => sheet.name).sort();
-          return { sheetCount: sheetNames.length, sheetNames };
-        });
-      } catch {
-        currentFingerprint = undefined;
-      }
-
-      setRecoverySnapshot({
-        snapshot,
-        workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
-      });
-    };
-
-    void detectRecoverableSnapshot();
-  }, []);
-
-  useEffect(() => {
     const detectVersionUpdate = async () => {
       const globalRef = globalThis as { CRF_XL_VERSION_ENDPOINT?: string };
       const versionEndpoint = globalRef.CRF_XL_VERSION_ENDPOINT;
@@ -588,48 +510,16 @@ export const App: React.FC<{ title?: string }> = () => {
     void detectVersionUpdate();
   }, []);
 
-  useEffect(() => {
-    if (!studySummary) return undefined;
-
-    const saveCheckpoint = () => {
-      const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
-      const snapshot = createRecoverySnapshot({
-        issues,
-        studySummary,
-        openForm,
-        currentFilter: currentFilter ?? undefined,
-        workbookFingerprint,
-        justifications,
-      });
-      const saveResult = persistRecoverySnapshot(snapshot);
-      if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
-        setStorageWarning("Recovery checkpoint could not be saved (localStorage quota exceeded).");
-      } else if (saveResult.saved) {
-        setStorageWarning(null);
-      }
-    };
-
-    const checkpointTimer = window.setInterval(saveCheckpoint, 30000);
-    return () => window.clearInterval(checkpointTimer);
-  }, [studySummary, issues, activeSheet, currentFilter, workbookFingerprint]);
-
   const handleRestoreSnapshot = () => {
-    if (!recoverySnapshot) return;
-    backgroundValidationEngine.updateState(() => ({
-      issues: recoverySnapshot.snapshot.issues as ValidationIssue[],
-    }));
-    setStudySummary(recoverySnapshot.snapshot.studySummary);
-    setCurrentFilter(recoverySnapshot.snapshot.uiState.currentFilter ?? null);
-    if (recoverySnapshot.snapshot.justifications) {
-      handleSaveJustifications(recoverySnapshot.snapshot.justifications);
+    const snapshot = actions.restoreRecoverySnapshot();
+    if (snapshot) {
+      setStudySummary(snapshot.studySummary);
+      setCurrentFilter(snapshot.uiState.currentFilter ?? null);
+      if (snapshot.justifications) {
+        handleSaveJustifications(snapshot.justifications);
+      }
+      setAppStatus(`Recovered snapshot from ${formatDate(snapshot.savedAt)}`);
     }
-    setAppStatus(`Recovered snapshot from ${formatDate(recoverySnapshot.snapshot.savedAt)}`);
-    setRecoverySnapshot(null);
-  };
-
-  const handleDismissSnapshot = () => {
-    dismissRecoverySnapshot();
-    setRecoverySnapshot(null);
   };
 
   const handleDismissVersionUpdate = () => {
@@ -650,6 +540,7 @@ export const App: React.FC<{ title?: string }> = () => {
       window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
   }, []);
+
   // --- Action Handlers ---
   const handleInitialize = async () => {
     setAppIsProcessing(true);
@@ -766,7 +657,6 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [isInitialized]);
 
-  // We need an effect to pop the modal after diffing is computed (since performAnalysis updates study, which triggers studyDiffReport update).
   React.useEffect(() => {
     if (studyDiffReport && hasMissingJustifications) {
       setShowAuditModal(true);
@@ -776,13 +666,12 @@ export const App: React.FC<{ title?: string }> = () => {
   const handleReAnchor = async (annotationId: string, newAddress: string) => {
     try {
       await applyManualReAnchor(annotationId, newAddress);
-      // Re-detect drifts to clear the resolved one
       const updatedDrifts = await detectDrifts();
       setDrifts(updatedDrifts);
       announce("Annotation re-anchored successfully.", "polite");
     } catch (e) {
       console.error(e);
-      setUiError({
+      presentOfficeError({
         severity: "error",
         category: "REANCHOR_FAILED",
         message: "Failed to manually re-anchor annotation.",
@@ -792,7 +681,6 @@ export const App: React.FC<{ title?: string }> = () => {
   };
 
   const handleComplianceExport = async () => {
-    // Check environment compliance first
     let envStatus;
     try {
       if (!complianceGovernanceService.isAuthenticated) {
@@ -813,7 +701,7 @@ export const App: React.FC<{ title?: string }> = () => {
     }
 
     if (!envStatus || !envStatus.isCompliant) {
-      setUiError({
+      presentOfficeError({
         severity: "error",
         category: "ENV_NONCOMPLIANT",
         message: "Environment is not compliant.",
@@ -826,8 +714,8 @@ export const App: React.FC<{ title?: string }> = () => {
     }
 
     const s = study;
-    if (isProcessing) {
-      setUiError({
+    if (totalIsProcessing) {
+      presentOfficeError({
         severity: "error",
         category: "ANALYSIS_IN_PROGRESS",
         message: "Analysis is currently running in the background.",
@@ -838,7 +726,6 @@ export const App: React.FC<{ title?: string }> = () => {
     }
     if (!s || issues.some((i) => i.level === "Error")) return;
 
-    // Initialize export options with study metadata
     setExportOptions({
       mode: ExportMode.PRIMARY_ONLY,
       primaryLocale: selectedLanguage || s.metadata.defaultLanguage || "en-US",
@@ -854,7 +741,6 @@ export const App: React.FC<{ title?: string }> = () => {
     const s = study;
     if (!s) return;
 
-    // Check for orphaned annotations
     const sheets = ["_Study", "_Schedule", "_Codelists", "_Dictionaries", "_Rules"];
     Object.keys(s.forms).forEach((f) => sheets.push(f));
     const count = await getOrphanedAnnotationsCount(sheets);
@@ -892,7 +778,7 @@ export const App: React.FC<{ title?: string }> = () => {
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       if (err.message === "COMPRESSION_NOT_SUPPORTED") {
-        setUiError({
+        presentOfficeError({
           severity: "error",
           category: "COMPRESSION_NOT_SUPPORTED",
           message: "Native compression is not supported by your browser.",
@@ -909,14 +795,7 @@ export const App: React.FC<{ title?: string }> = () => {
   };
 
   const handleSaveSubmissionMetadata = (submissionMetadata: SubmissionMetadata) => {
-    backgroundValidationEngine.updateState((prev) => ({
-      study: prev.study
-        ? {
-            ...prev.study,
-            submissionMetadata,
-          }
-        : prev.study,
-    }));
+    actions.updateStudySubmissionMetadata(submissionMetadata);
     setAppStatus("Submission metadata draft saved in session");
   };
 
@@ -966,8 +845,8 @@ export const App: React.FC<{ title?: string }> = () => {
             id="tour-init-canvas"
             appearance="secondary"
             onClick={handleInitialize}
-            disabled={isProcessing}
-            icon={isProcessing ? <Spinner size="tiny" /> : undefined}
+            disabled={totalIsProcessing}
+            icon={totalIsProcessing ? <Spinner size="tiny" /> : undefined}
             style={{
               width: "100%",
               backgroundColor: tokens.colorNeutralBackground1,
@@ -996,10 +875,7 @@ export const App: React.FC<{ title?: string }> = () => {
           onInit={handleInitialize}
           onSync={handleSync}
           onLoadSubmissionMetadata={async () => {
-            backgroundValidationEngine.triggerValidation(
-              activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined,
-              0
-            );
+            actions.requestValidation(activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined);
           }}
           onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
           onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
@@ -1007,7 +883,7 @@ export const App: React.FC<{ title?: string }> = () => {
           submissionMetadata={study?.submissionMetadata}
           baselineStudy={baselineStudy}
           baselineError={baselineError}
-          isProcessing={isProcessing}
+          isProcessing={totalIsProcessing}
           study={study}
           issues={issues}
         />
@@ -1017,7 +893,7 @@ export const App: React.FC<{ title?: string }> = () => {
       return (
         <MatrixView
           onComplianceExport={handleComplianceExport}
-          isProcessing={isProcessing}
+          isProcessing={totalIsProcessing}
           hasErrors={issues.some((i) => i.level === "Error") || hasMissingJustifications}
           isLoaded={!!studySummary}
           study={study}
@@ -1035,7 +911,7 @@ export const App: React.FC<{ title?: string }> = () => {
       return (
         <AuthoringView
           sheetName={activeSheet}
-          isProcessing={isProcessing}
+          isProcessing={totalIsProcessing}
           onError={presentOfficeError}
         />
       );
@@ -1145,7 +1021,7 @@ export const App: React.FC<{ title?: string }> = () => {
                 <Button appearance="primary" size="small" onClick={handleRestoreSnapshot}>
                   Restore
                 </Button>
-                <Button appearance="secondary" size="small" onClick={handleDismissSnapshot}>
+                <Button appearance="secondary" size="small" onClick={actions.dismissRecoverySnapshot}>
                   Dismiss
                 </Button>
               </div>
@@ -1194,8 +1070,7 @@ export const App: React.FC<{ title?: string }> = () => {
                 <Button
                   size="small"
                   onClick={() => {
-                    speculativeSyncManager.resolveConflict(true);
-                    setSyncConflict(null);
+                    actions.resolveConflict(true);
                   }}
                 >
                   Keep Manual Edits
@@ -1204,8 +1079,7 @@ export const App: React.FC<{ title?: string }> = () => {
                   size="small"
                   appearance="primary"
                   onClick={() => {
-                    speculativeSyncManager.resolveConflict(false);
-                    setSyncConflict(null);
+                    actions.resolveConflict(false);
                   }}
                 >
                   Overwrite with Sync
@@ -1214,8 +1088,7 @@ export const App: React.FC<{ title?: string }> = () => {
                   size="small"
                   appearance="outline"
                   onClick={() => {
-                    speculativeSyncManager.rollback();
-                    setSyncConflict(null);
+                    actions.rollbackSync();
                   }}
                 >
                   Rollback
@@ -1277,7 +1150,7 @@ export const App: React.FC<{ title?: string }> = () => {
         {isInitialized && (
           <ValidationLog
             issues={issues}
-            isProcessing={isProcessing}
+            isProcessing={totalIsProcessing}
             onNavigate={(i: ValidationIssue) => {
               const sheet = i.location?.includes("Events") ? "_Schedule" : i.sheetName;
               if (i.rowIndex !== undefined && sheet) navigateToSource(sheet, i.rowIndex);
