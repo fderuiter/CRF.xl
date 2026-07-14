@@ -2,7 +2,7 @@
  * @issue #28
  */
 import { ZipWriter } from "../utils/zip-writer";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../utils/crypto-utils";
 import { StudyDesign } from "../types/hierarchy";
 import { ExportOptions } from "../types/linguistics";
 import { StudyDiffReport } from "../types/diff";
@@ -50,8 +50,7 @@ export class ComplianceExportService {
       reader.onerror = reject;
       reader.readAsArrayBuffer(docxBlob);
     });
-    const docxWord = CryptoJS.lib.WordArray.create(docxArrayBuffer as any);
-    const docxHash = CryptoJS.SHA256(docxWord).toString(CryptoJS.enc.Hex);
+    const docxHash = await sha256Native(docxArrayBuffer);
 
     const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
     await zip.addFile(
@@ -80,8 +79,7 @@ export class ComplianceExportService {
       reader.onerror = reject;
       reader.readAsArrayBuffer(pdfBlob);
     });
-    const pdfWord = CryptoJS.lib.WordArray.create(pdfArrayBuffer as any);
-    const pdfHash = CryptoJS.SHA256(pdfWord).toString(CryptoJS.enc.Hex);
+    const pdfHash = await sha256Native(pdfArrayBuffer);
     await zip.addFile(
       `${protocolId}_Annotated_CRF.pdf`,
       new Uint8Array(pdfArrayBuffer as ArrayBuffer)
@@ -92,7 +90,7 @@ export class ComplianceExportService {
       bestEffort: true,
       exportOptions: options?.exportOptions,
     });
-    const odmHash = CryptoJS.SHA256(odmXml).toString(CryptoJS.enc.Hex);
+    const odmHash = await sha256Native(odmXml);
 
     const encoder = new TextEncoder();
     await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, encoder.encode(odmXml));
