@@ -21,7 +21,7 @@ export function useAppOrchestrator() {
     storageWarning: null,
     activeSheet: null,
     isCodelistActive: false,
-    uiError: null
+    uiError: null,
   });
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function useAppOrchestrator() {
       appOrchestrator.initialize();
       isOrchestratorInitialized = true;
     }
-    
+
     const unsubscribe = appOrchestrator.subscribe((newState) => {
       setState({ ...newState }); // Create new object to trigger React re-render
     });
@@ -44,12 +44,15 @@ export function useAppOrchestrator() {
     restoreRecoverySnapshot: () => appOrchestrator.restoreRecoverySnapshot(),
     dismissUiError: () => appOrchestrator.dismissUiError(),
     updateJustifications: (j: any) => appOrchestrator.updateJustifications(j),
-    resolveConflict: (keepManualEdits: boolean) => speculativeSyncManager.resolveConflict(keepManualEdits),
+    resolveConflict: (keepManualEdits: boolean) =>
+      speculativeSyncManager.resolveConflict(keepManualEdits),
     rollbackSync: () => speculativeSyncManager.rollback(),
     requestValidation: (activeSheet?: string) => appOrchestrator.requestValidation(activeSheet),
     injectValidationIssue: (issue: ValidationIssue) => appOrchestrator.injectValidationIssue(issue),
-    clearValidationIssueByLocation: (location: string) => appOrchestrator.clearValidationIssueByLocation(location),
-    updateStudySubmissionMetadata: (metadata: SubmissionMetadata) => appOrchestrator.updateStudySubmissionMetadata(metadata)
+    clearValidationIssueByLocation: (location: string) =>
+      appOrchestrator.clearValidationIssueByLocation(location),
+    updateStudySubmissionMetadata: (metadata: SubmissionMetadata) =>
+      appOrchestrator.updateStudySubmissionMetadata(metadata),
   };
 
   return { state, actions };
