@@ -394,7 +394,11 @@ export function validateCrossFormDependencies(
       const form = matchedFormKey ? study.forms[matchedFormKey] : undefined;
       if (form) {
         const itemRes = variableMap.get(varName);
-        if (itemRes && normalizeOid(itemRes.formOid).toLowerCase() === normalizeOid(matchedFormKey!).toLowerCase()) {
+        if (
+          itemRes &&
+          normalizeOid(itemRes.formOid).toLowerCase() ===
+            normalizeOid(matchedFormKey!).toLowerCase()
+        ) {
           return {
             targetItem: itemRes.item,
             targetFormOid: itemRes.formOid,

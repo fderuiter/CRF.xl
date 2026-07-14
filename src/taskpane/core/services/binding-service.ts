@@ -20,7 +20,9 @@ export interface SelectionContext {
 export type SelectionChangeListener = (context: SelectionContext) => void;
 
 class BindingService {
-  private selectionManager = new SubscriptionManager<SelectionContext>(() => this.currentContext || undefined);
+  private selectionManager = new SubscriptionManager<SelectionContext>(
+    () => this.currentContext || undefined
+  );
   private errorManager = new SubscriptionManager<DiagnosticError>();
   private currentContext: SelectionContext | null = null;
   private debounceTimer: any = null;
