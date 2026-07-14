@@ -1,3 +1,4 @@
+/** @issue #351 */
 import { TranslatedText, ExportOptions, ExportMode } from "../types/index";
 import { LinguisticService } from "../services/linguistics-service";
 
