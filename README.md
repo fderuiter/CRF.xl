@@ -109,11 +109,9 @@ To maintain alignment across teams and prevent drift, developers must consult th
 ---
 
 ## 🚢 Manifest & Deployment
-* Environment manifests:
-  * [manifest.dev.xml](./manifest.dev.xml)
-  * [manifest.staging.xml](./manifest.staging.xml)
-  * [manifest.production.xml](./manifest.production.xml)
-* Validate manifests before release: `npm run manifest:validate`
+* Core application manifest:
+  * [manifest.xml](./manifest.xml)
+* Validate manifest before release: `npm run validate`
 * Deployment runbook & version notifications: [docs/deployment/manifests.md](./docs/deployment/manifests.md)
 
 
