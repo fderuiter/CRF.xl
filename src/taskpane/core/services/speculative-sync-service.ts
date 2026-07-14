@@ -5,7 +5,7 @@ import { logger } from "../utils/logger";
  */
 
 import { SubscriptionManager } from "../utils/event-utility";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../utils/crypto-utils";
 import { StudyDesign } from "../types";
 import { classifyOfficeError } from "./office-error-handling";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
@@ -75,7 +75,7 @@ class SpeculativeSyncManager {
     if (range.isNullObject) return "empty";
     range.load("values");
     await ctx.sync();
-    return CryptoJS.SHA256(JSON.stringify(range.values)).toString();
+    return await sha256Native(JSON.stringify(range.values));
   }
 
   public async startSync(

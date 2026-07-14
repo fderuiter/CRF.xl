@@ -1,4 +1,4 @@
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../utils/crypto-utils";
 import { logger } from "../utils/logger";
 /**
  * @issue #84
@@ -872,7 +872,7 @@ export async function generateRowHash(
     if (rowRange.values && rowRange.values.length > 0) {
       const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
       const signature = `${logicalId || "NO_OID"}::${rowString}`;
-      hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
+      hash = await sha256Native(signature);
     }
   });
 
@@ -945,7 +945,7 @@ export async function scanForDrift(
             if (rowRange.values && rowRange.values.length > 0) {
               const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
               const signature = `${logicalId || "NO_OID"}::${rowString}`;
-              const hash = CryptoJS.SHA256(signature).toString(CryptoJS.enc.Hex);
+              const hash = await sha256Native(signature);
 
               if (hash === targetHash) {
                 // Found it! Return the address of the first cell in that row
