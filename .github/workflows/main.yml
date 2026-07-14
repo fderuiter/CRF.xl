@@ -33,7 +33,10 @@ jobs:
       run: npm audit --omit=dev --audit-level=high
 
     - name: 🧾 Validate Office add-in manifests
-      run: npm run manifest:validate
+      run: npm run validate
+
+    - name: 🎨 Enforce Code Formatting
+      run: npm run lint
 
     - name: 📚 Validate Documentation Links
       run: npm run docs:validate

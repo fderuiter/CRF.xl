@@ -5,15 +5,15 @@ import { SubscriptionManager } from "../utils/event-utility";
 import { backgroundValidationEngine } from "./validation-engine";
 import { speculativeSyncManager, SyncState } from "./speculative-sync-service";
 import { bindingService } from "./binding-service";
-import { 
-  RecoverySnapshot, 
-  persistRecoverySnapshot, 
+import {
+  RecoverySnapshot,
+  persistRecoverySnapshot,
   readRecoverySnapshot,
   hasWorkbookChanged,
   WorkbookFingerprint,
   dismissRecoverySnapshot,
   createRecoverySnapshot,
-  summarizeStudyDesign
+  summarizeStudyDesign,
 } from "./recovery-storage";
 import { StudyDesign, ValidationIssue, AuditJustification, SubmissionMetadata } from "../types";
 import { logger } from "../utils/logger";
@@ -49,11 +49,11 @@ export class AppOrchestrator {
     storageWarning: null,
     activeSheet: null,
     isCodelistActive: false,
-    uiError: null
+    uiError: null,
   };
 
   private subscriptionManager = new SubscriptionManager<OrchestratorState>();
-  private pendingValidation: { activeSheet?: string, throttleMs: number } | null = null;
+  private pendingValidation: { activeSheet?: string; throttleMs: number } | null = null;
   private checkpointTimer: number | null = null;
   private dataChangedHandler: any = null;
   private justifications: Record<string, AuditJustification> = {};
@@ -65,18 +65,18 @@ export class AppOrchestrator {
         isProcessing: valState.isProcessing,
         study: valState.study,
         issues: valState.issues,
-        status: valState.status
+        status: valState.status,
       });
     });
 
     // Subscribe to Sync Manager
     speculativeSyncManager.subscribe(({ state: syncState, details }) => {
       let overrides: Partial<OrchestratorState> = { syncStatus: syncState };
-      
+
       if (syncState === "syncing") {
         overrides.isSyncing = true;
         if (details?.predictedStudy) {
-           backgroundValidationEngine.updateState(() => ({ study: details.predictedStudy }));
+          backgroundValidationEngine.updateState(() => ({ study: details.predictedStudy }));
         }
       } else if (syncState === "conflict") {
         overrides.isSyncing = false;
@@ -87,7 +87,10 @@ export class AppOrchestrator {
           backgroundValidationEngine.updateState(() => ({ study: details.study }));
         }
         if (this.pendingValidation) {
-          backgroundValidationEngine.triggerValidation(this.pendingValidation.activeSheet, this.pendingValidation.throttleMs);
+          backgroundValidationEngine.triggerValidation(
+            this.pendingValidation.activeSheet,
+            this.pendingValidation.throttleMs
+          );
           this.pendingValidation = null;
         }
       } else if (syncState === "error") {
@@ -112,11 +115,12 @@ export class AppOrchestrator {
     bindingService.initialize().catch(logger.error);
     bindingService.subscribe((context) => {
       const activeSheet = context.sheetName;
-      const shouldShowSidecar = !activeSheet.startsWith("_") && context.columnIndex === 9 && context.isValid;
-      
+      const shouldShowSidecar =
+        !activeSheet.startsWith("_") && context.columnIndex === 9 && context.isValid;
+
       this.updateState({
         activeSheet,
-        isCodelistActive: shouldShowSidecar
+        isCodelistActive: shouldShowSidecar,
       });
       this.requestValidation(activeSheet, 1000);
     });
@@ -125,7 +129,7 @@ export class AppOrchestrator {
     if (typeof Excel !== "undefined") {
       Excel.run(async (context) => {
         this.dataChangedHandler = context.workbook.worksheets.onChanged.add(async () => {
-           this.requestValidation(this.state.activeSheet || undefined, 1000);
+          this.requestValidation(this.state.activeSheet || undefined, 1000);
         });
         await context.sync();
       }).catch(logger.error);
@@ -143,7 +147,7 @@ export class AppOrchestrator {
   public terminate() {
     if (this.checkpointTimer) window.clearInterval(this.checkpointTimer);
     if (this.dataChangedHandler && typeof Excel !== "undefined") {
-       this.dataChangedHandler.remove();
+      this.dataChangedHandler.remove();
     }
     bindingService.terminate().catch(logger.error);
     this.subscriptionManager.clear();
@@ -174,8 +178,8 @@ export class AppOrchestrator {
 
   public injectValidationIssue(issue: ValidationIssue) {
     backgroundValidationEngine.updateState((prev) => {
-      if (!prev.issues.some(i => i.location === issue.location && i.message === issue.message)) {
-         return { issues: [...prev.issues, issue], status: "Issues detected" };
+      if (!prev.issues.some((i) => i.location === issue.location && i.message === issue.message)) {
+        return { issues: [...prev.issues, issue], status: "Issues detected" };
       }
       return {};
     });
@@ -183,8 +187,8 @@ export class AppOrchestrator {
 
   public clearValidationIssueByLocation(location: string) {
     backgroundValidationEngine.updateState((prev) => {
-      if (prev.issues.some(i => i.location === location)) {
-        const filtered = prev.issues.filter(i => i.location !== location);
+      if (prev.issues.some((i) => i.location === location)) {
+        const filtered = prev.issues.filter((i) => i.location !== location);
         return { issues: filtered, status: filtered.length === 0 ? "Ready" : "Issues detected" };
       }
       return {};
@@ -193,7 +197,7 @@ export class AppOrchestrator {
 
   public updateStudySubmissionMetadata(metadata: SubmissionMetadata) {
     backgroundValidationEngine.updateState((prev) => ({
-      study: prev.study ? { ...prev.study, submissionMetadata: metadata } : prev.study
+      study: prev.study ? { ...prev.study, submissionMetadata: metadata } : prev.study,
     }));
   }
 
@@ -202,19 +206,21 @@ export class AppOrchestrator {
     const studySummary = summarizeStudyDesign(this.state.study);
     const activeSheet = this.state.activeSheet;
     const openForm = activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined;
-    
+
     const snapshot = createRecoverySnapshot({
       issues: this.state.issues,
       studySummary,
       openForm,
       currentFilter: openForm,
       workbookFingerprint: undefined, // Fingerprints dynamically measured on load
-      justifications: this.justifications
+      justifications: this.justifications,
     });
 
     const saveResult = persistRecoverySnapshot(snapshot);
     if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
-      this.updateState({ storageWarning: "Recovery checkpoint could not be saved (localStorage quota exceeded)." });
+      this.updateState({
+        storageWarning: "Recovery checkpoint could not be saved (localStorage quota exceeded).",
+      });
     } else if (saveResult.saved) {
       this.updateState({ storageWarning: null });
     }
@@ -242,8 +248,8 @@ export class AppOrchestrator {
     this.updateState({
       recoverySnapshot: {
         snapshot,
-        workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint)
-      }
+        workbookChanged: hasWorkbookChanged(snapshot.workbookFingerprint, currentFingerprint),
+      },
     });
   }
 
@@ -257,7 +263,7 @@ export class AppOrchestrator {
     const rec = this.state.recoverySnapshot;
     if (!rec) return;
     backgroundValidationEngine.updateState(() => ({
-      issues: rec.snapshot.issues as ValidationIssue[]
+      issues: rec.snapshot.issues as ValidationIssue[],
     }));
     this.updateState({ recoverySnapshot: null });
     return rec.snapshot;

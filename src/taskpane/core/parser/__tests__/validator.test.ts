@@ -246,7 +246,8 @@ describe("Clinical Validator Engine", () => {
       expect.arrayContaining([
         expect.objectContaining({
           level: "Error",
-          message: "Duplicate OID detected: 'I1' is already defined as a Item. OIDs must be unique study-wide.",
+          message:
+            "Duplicate OID detected: 'I1' is already defined as a Item. OIDs must be unique study-wide.",
           location: "F2 > Row 2",
           sheetName: "F2",
         }),

@@ -15,7 +15,7 @@ This checklist must be completed and all blocking items must provide linked evid
 
 | Item | Status | Evidence (Link/Path) | Nature |
 |:---|:---:|:---|:---:|
-| `npm run manifest:validate` passes for all environments | [ ] | | Blocking |
+| `npm run validate` passes for all environments | [ ] | | Blocking |
 | TypeScript compilation clean (`npx tsc --noEmit`) | [ ] | | Blocking |
 | All unit and integration tests pass (`npm test`) | [ ] | | Blocking |
 | CI pipeline green on the release branch | [ ] | | Blocking |

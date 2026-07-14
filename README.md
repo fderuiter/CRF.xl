@@ -10,7 +10,7 @@ CRF.xl is an Excel Add-in designed to transform a standard workbook into a struc
 
 ### Installation
 1. Clone the repository: `git clone [your-repo-url]`
-2. Install dependencies: `npm install`
+2. Initialize the workspace: `./setup.sh`
 3. Start the local development server: `npm run start`
 
 *Note: The first time you run the start command, it may ask you to install local SSL certificates. Accept this prompt, as Office Add-ins require HTTPS to run locally.*
@@ -113,7 +113,7 @@ To maintain alignment across teams and prevent drift, developers must consult th
   * [manifest.dev.xml](./manifest.dev.xml)
   * [manifest.staging.xml](./manifest.staging.xml)
   * [manifest.production.xml](./manifest.production.xml)
-* Validate manifests before release: `npm run manifest:validate`
+* Validate manifests before release: `npm run validate`
 * Deployment runbook & version notifications: [docs/deployment/manifests.md](./docs/deployment/manifests.md)
 
 

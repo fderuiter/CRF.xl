@@ -48,7 +48,7 @@ Before uploading manifests to non-development environments, you must replace the
 1. Open the relevant manifest file (e.g., `manifest.staging.xml` or `manifest.production.xml`).
 2. Search for the placeholder strings: `REPLACE_WITH_STAGING_HOST` or `REPLACE_WITH_PRODUCTION_HOST`.
 3. Replace these placeholders with the final, fully-qualified HTTPS endpoint of your deployed application host.
-4. Run the validation script (`npm run manifest:validate`) to ensure no syntax errors were introduced.
+4. Run the validation script (`npm run validate`) to ensure no syntax errors were introduced.
 
 ## 4. Environment Verification
 
