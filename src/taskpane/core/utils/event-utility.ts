@@ -39,10 +39,13 @@ export class SubscriptionManager<T> {
     return { ...data };
   }
 
-  public subscribe(callback: Subscriber<T>, options?: { immediate?: boolean } | boolean): () => void {
+  public subscribe(
+    callback: Subscriber<T>,
+    options?: { immediate?: boolean } | boolean
+  ): () => void {
     this.subscribers.add(callback);
-    
-    const isImmediate = typeof options === 'boolean' ? options : options?.immediate;
+
+    const isImmediate = typeof options === "boolean" ? options : options?.immediate;
     if (isImmediate && this.stateProvider) {
       try {
         const state = this.stateProvider();
@@ -62,7 +65,7 @@ export class SubscriptionManager<T> {
 
   public notify(data: T): void {
     if (!this.isHostReady) return;
-    
+
     const clonedData = this.shallowClone(data);
     this.subscribers.forEach((sub) => {
       try {
