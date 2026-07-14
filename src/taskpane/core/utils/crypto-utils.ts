@@ -1,5 +1,5 @@
 /**
- * @issue #352
+ * @issue #68
  * Asynchronously generates a SHA-256 hash using the native Web Crypto API or Node crypto in tests.
  * @param input The string or ArrayBuffer to hash.
  * @returns A promise that resolves to the hex-encoded SHA-256 hash.
