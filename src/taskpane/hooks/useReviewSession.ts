@@ -9,7 +9,6 @@ import {
   updateCommentStatus,
   deleteComment as deleteCommentFromStore,
 } from "../core/services/review-service";
-import { v4 as uuidv4 } from "uuid";
 
 export const useReviewSession = (reviewerName: string) => {
   const [comments, setComments] = useState<ReviewerComment[]>([]);
@@ -33,7 +32,7 @@ export const useReviewSession = (reviewerName: string) => {
 
   const addComment = async (text: string, targetEntityId: string) => {
     const newComment: ReviewerComment = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       author: reviewerName,
       text,
       timestamp: new Date().toISOString(),
