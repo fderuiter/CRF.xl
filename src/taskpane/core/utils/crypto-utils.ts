@@ -9,7 +9,9 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
   if (typeof TextEncoder !== "undefined") {
     encoder = new TextEncoder();
   } else {
-    const util = require("util");
+    // Hide require from Webpack to prevent polyfill warnings
+    const req = typeof module !== "undefined" && module.require ? module.require : require;
+    const util = req("util");
     encoder = new util.TextEncoder();
   }
 
@@ -17,7 +19,9 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
   if (typeof window !== "undefined" && window.crypto && window.crypto.subtle) {
     subtleCrypto = window.crypto.subtle;
   } else {
-    const crypto = require("crypto");
+    // Hide require from Webpack to prevent polyfill warnings
+    const req = typeof module !== "undefined" && module.require ? module.require : require;
+    const crypto = req("crypto");
     subtleCrypto = crypto.webcrypto.subtle;
   }
 
@@ -25,7 +29,7 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
   if (typeof input === "string") {
     data = encoder.encode(input);
   } else {
-    data = input;
+    data = input as ArrayBuffer;
   }
   const hashBuffer = await subtleCrypto.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
