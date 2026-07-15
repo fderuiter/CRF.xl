@@ -3,6 +3,7 @@ import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   ...officeAddins.configs.react,
@@ -12,16 +13,7 @@ export default [
     plugins: {
       "office-addins": officeAddins,
       "@typescript-eslint": tsPlugin,
-      "react-hooks": {
-        rules: {
-          "exhaustive-deps": {
-            create: () => ({})
-          },
-          "rules-of-hooks": {
-            create: () => ({})
-          }
-        }
-      }
+      "react-hooks": reactHooksPlugin
     },
     languageOptions: {
       parser: tsParser,
@@ -53,8 +45,8 @@ export default [
       "office-addins/no-navigational-load": "off",
       "office-addins/call-sync-after-load": "error",
       "no-useless-escape": "off",
-      "react-hooks/exhaustive-deps": "off",
-      "react-hooks/rules-of-hooks": "off"
+      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/rules-of-hooks": "warn"
     }
   }
 ];
