@@ -4,8 +4,7 @@
  * @param input The string or ArrayBuffer to hash.
  * @returns A promise that resolves to the hex-encoded SHA-256 hash.
  */
-
-declare const __non_webpack_require__: any;
+declare var __non_webpack_require__: any;
 
 export async function sha256Native(input: string | ArrayBuffer): Promise<string> {
   let encoder;
