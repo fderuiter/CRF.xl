@@ -478,6 +478,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             </MessageBar>
           )}
           <TabList
+            aria-label="Worksheet selection"
             vertical
             className={styles.sheetList}
             selectedValue={state.selectedSheet || undefined}
@@ -553,6 +554,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                   <span className={styles.mappingArrow}>←</span>
                   <Field>
                     <Dropdown
+                      aria-label={`Map source column for ${descriptor.label}`}
                       value={cols.find((c) => c.value === currentValue)?.label ?? "(not mapped)"}
                       onOptionSelect={(_ev, data) => {
                         const idx = data.optionValue ? parseInt(data.optionValue, 10) : -1;
@@ -579,6 +581,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
           {state.confirmedStructure === "form_item" && (
             <Field label="Target form sheet name (will be created if absent)">
               <Dropdown
+                aria-label="Target form sheet name"
                 value={state.targetFormSheet ?? state.selectedSheet ?? ""}
                 onOptionSelect={(_ev, data) => patch({ targetFormSheet: data.optionValue ?? null })}
               >
