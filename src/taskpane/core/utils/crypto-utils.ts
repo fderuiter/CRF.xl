@@ -1,3 +1,5 @@
+declare var __non_webpack_require__: any;
+
 /**
  * @issue #68
  * Asynchronously generates a SHA-256 hash using the native Web Crypto API or Node crypto in tests.
