@@ -65,7 +65,7 @@ function deserializeAnnotation(element: Element): Annotation {
     if (contentStr.startsWith("{")) {
       content = JSON.parse(contentStr);
     }
-  } catch (e) {
+  } catch {
     // Keep as string
   }
 
@@ -313,7 +313,7 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
             lostHash: newAddress === null,
           });
         }
-      } catch (e) {
+      } catch {
         // Range might be invalid if rows/cols deleted
         // Try starting scan from row 0 if address is completely invalid
         const newAddress = await scanForDrift(
@@ -369,7 +369,7 @@ export async function detectOrphans(): Promise<Annotation[]> {
         if (!found) {
           orphans.push(annotation);
         }
-      } catch (e) {
+      } catch {
         // Range might be invalid if rows/cols deleted
         orphans.push(annotation);
       }
@@ -439,7 +439,7 @@ export async function refreshAnnotationHighlights(sheetName: string): Promise<vo
       try {
         const range = sheet.getRange(anno.anchor.address);
         range.format.fill.color = colorMap[anno.type] || "#f3f4f6";
-      } catch (e) {
+      } catch {
         // Range might be invalid if rows/cols deleted
       }
     }
@@ -530,7 +530,7 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
           if (comment) {
             comment.delete();
           }
-        } catch (e) {
+        } catch {
           // Range or comment might be gone
         }
       }

@@ -35,7 +35,12 @@ export default [
     rules: {
       "no-undef": "off",
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "vars": "all",
+        "args": "none",
+        "caughtErrors": "all",
+        "ignoreRestSiblings": true
+      }],
       "no-redeclare": "off",
       "jsx-a11y/no-static-element-interactions": "off",
       "jsx-a11y/no-noninteractive-tabindex": "off",

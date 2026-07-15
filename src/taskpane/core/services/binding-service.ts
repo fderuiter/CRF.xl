@@ -1,4 +1,4 @@
-/* global Excel, console, setTimeout, clearTimeout */
+/* global Excel, setTimeout, clearTimeout */
 /**
  * @issue #165
  */

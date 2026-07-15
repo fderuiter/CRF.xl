@@ -1,6 +1,6 @@
 {
   "name": "office-addin-taskpane-react",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/OfficeDev/Office-Addin-TaskPane-React.git"
@@ -12,6 +12,7 @@
     "dev_server_port": 3000
   },
   "scripts": {
+    "setup": "npm install && npm run validate",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",

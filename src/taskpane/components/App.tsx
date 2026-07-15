@@ -549,7 +549,7 @@ export const App: React.FC<{ title?: string }> = () => {
       if (!completed) return;
       setIsInitialized(true); // Manually set to true once built
       setAppStatus("Canvas initialized");
-    } catch (e) {
+    } catch {
       setAppStatus("Init failed");
     } finally {
       setAppIsProcessing(false);
@@ -571,7 +571,7 @@ export const App: React.FC<{ title?: string }> = () => {
       );
       if (!completed) return;
       setAppStatus("Sheets synchronized");
-    } catch (e) {
+    } catch {
       setAppStatus("Sync failed");
     } finally {
       setAppIsProcessing(false);

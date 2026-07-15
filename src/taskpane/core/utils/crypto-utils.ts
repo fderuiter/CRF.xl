@@ -1,4 +1,4 @@
-declare var __non_webpack_require__: any;
+declare const __non_webpack_require__: ((id: string) => any) | undefined;
 
 /**
  * @issue #68
@@ -6,8 +6,6 @@ declare var __non_webpack_require__: any;
  * @param input The string or ArrayBuffer to hash.
  * @returns A promise that resolves to the hex-encoded SHA-256 hash.
  */
-declare var __non_webpack_require__: any;
-
 export async function sha256Native(input: string | ArrayBuffer): Promise<string> {
   let encoder;
   if (typeof TextEncoder !== "undefined") {

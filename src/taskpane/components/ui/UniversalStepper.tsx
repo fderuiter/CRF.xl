@@ -173,7 +173,7 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
       } else if (onComplete) {
         await onComplete();
       }
-    } catch (e) {
+    } catch {
       // Step's onNext threw an error, prevent advancing.
     } finally {
       setIsProcessing(false);
