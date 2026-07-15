@@ -348,7 +348,10 @@ describe("ct-import-service", () => {
                   },
                 }),
               },
-              names: { getItemOrNullObject: () => ({ isNullObject: true, load: () => {} }), add: () => {} },
+              names: {
+                getItemOrNullObject: () => ({ isNullObject: true, load: () => {} }),
+                add: () => {},
+              },
             },
             sync: async () => {
               throw new Error("Simulated Excel write failure");
