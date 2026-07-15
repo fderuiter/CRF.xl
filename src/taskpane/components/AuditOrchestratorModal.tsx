@@ -163,6 +163,7 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
                     </div>
                   </div>
                   <Textarea
+                    aria-label={`Audit justification for ${item.itemOid}`}
                     placeholder="Enter reason for change..."
                     value={val}
                     onChange={(_e, data) => handleReasonChange(key, data.value)}
