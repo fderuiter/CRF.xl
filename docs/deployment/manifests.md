@@ -2,17 +2,15 @@
 
 This repository maintains separate Office add-in XML manifests for each deployment environment to enforce environment isolation and GxP compliance:
 
-- **Development:** [manifest.dev.xml](../../manifest.dev.xml)
-- **Staging / UAT:** [manifest.staging.xml](../../manifest.staging.xml)
-- **Production:** [manifest.production.xml](../../manifest.production.xml)
+- **Unified Manifest:** [manifest.xml](../../manifest.xml)
 
 ---
 
 ## 🛠️ Which manifest to use
 
-- **Local developer sideload:** `manifest.dev.xml` (points to `localhost:3000` or dev-tunnel URLs).
-- **Department/UAT validation:** `manifest.staging.xml` (points to secure UAT sandbox host).
-- **Centralized rollout in Microsoft 365 Admin Center:** `manifest.production.xml` (points to canonical production host).
+- **Local developer sideload:** `manifest.xml` (points to `localhost:3000` or dev-tunnel URLs).
+- **Department/UAT validation:** `manifest.xml` (points to secure UAT sandbox host).
+- **Centralized rollout in Microsoft 365 Admin Center:** `manifest.xml` (points to canonical production host).
 
 ---
 
@@ -65,11 +63,11 @@ This permission is **strictly limited** to the workbook context. It is required 
 ## 🚀 Microsoft 365 Centralized Rollout (Production)
 
 1. Build and publish production web assets to the approved production host.
-2. Update `manifest.production.xml` placeholders with the final provisioned production URLs.
+2. Update `manifest.xml` placeholders with the final provisioned production URLs.
 3. Verify manifest integrity: `npm run manifest:validate`.
 4. Log in to the **Microsoft 365 Admin Center** as an Global Admin or Exchange Admin.
 5. Navigate to **Settings → Integrated apps**.
-6. Select **Upload custom apps** and upload your production `manifest.production.xml`.
+6. Select **Upload custom apps** and upload your production `manifest.xml`.
 7. Configure deployment scope:
    - Stage 1: Pilot IT / QA validation group.
    - Stage 2: Clinical Data Management / UAT department rollout.
