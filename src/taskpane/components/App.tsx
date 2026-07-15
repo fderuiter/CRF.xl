@@ -271,7 +271,7 @@ export const App: React.FC<{ title?: string }> = () => {
         setSelectedLanguage(normalizedDefault);
       }
     }
-  }, [study]);
+  }, [study, selectedLanguage]);
 
   useEffect(() => {
     if (study && !totalIsProcessing) {
@@ -298,10 +298,6 @@ export const App: React.FC<{ title?: string }> = () => {
           .catch(console.error)
           .finally(() => setAnnotationProgress(null));
       }
-
-      // 2. Summary
-      setStudySummary(summarizeStudyDesign(study));
-      setCurrentFilter(activeSheet && !activeSheet.startsWith("_") ? activeSheet : null);
 
       // 3. Vault Sync
       const vaultService = new VaultService();
@@ -359,12 +355,9 @@ export const App: React.FC<{ title?: string }> = () => {
   const [baselineError, setBaselineError] = useState<string | null>(null);
   const [showGate, setShowGate] = useState(false);
   const [orphanedCount, setOrphanedCount] = useState(0);
-  const [studySummary, setStudySummary] = useState<{
-    formCount: number;
-    variableCount: number;
-    visitCount: number;
-  } | null>(null);
-  const [, setCurrentFilter] = useState<string | null>(null);
+  const studySummary = React.useMemo(() => {
+    return study ? summarizeStudyDesign(study) : null;
+  }, [study]);
   const [versionUpdate, setVersionUpdate] = useState<VersionUpdateMetadata | null>(null);
   const safeChangelogUrl = toSafeHttpUrl(versionUpdate?.changelogUrl);
   const [justifications, setJustifications] = useState<Record<string, AuditJustification>>({});
@@ -513,8 +506,6 @@ export const App: React.FC<{ title?: string }> = () => {
   const handleRestoreSnapshot = () => {
     const snapshot = actions.restoreRecoverySnapshot();
     if (snapshot) {
-      setStudySummary(snapshot.studySummary);
-      setCurrentFilter(snapshot.uiState.currentFilter ?? null);
       if (snapshot.justifications) {
         handleSaveJustifications(snapshot.justifications);
       }

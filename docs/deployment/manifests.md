@@ -12,7 +12,6 @@ This repository maintains a single, unified Office add-in XML manifest. Environm
 - **Department/UAT validation:** Injected in CI pipeline (points to secure UAT sandbox host).
 - **Centralized rollout in Microsoft 365 Admin Center:** Injected in CI pipeline (points to canonical production host).
 
-
 ---
 
 ## 🚫 External Host Provisioning Status (Issue #135 Block)
