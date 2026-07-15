@@ -1,4 +1,4 @@
-declare const __non_webpack_require__: any;
+declare const __non_webpack_require__: ((id: string) => any) | undefined;
 
 /**
  * @issue #68
