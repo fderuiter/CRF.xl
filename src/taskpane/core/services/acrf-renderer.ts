@@ -277,9 +277,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
         `;
       }
 
-      const groupLabel = group.label
-        ? getTranslation(group.label, "en-US")
-        : group.name;
+      const groupLabel = group.label ? getTranslation(group.label, "en-US") : group.name;
 
       groupsHtml += `
         <div class="item-group">
