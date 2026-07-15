@@ -11,7 +11,7 @@ import { classifyOfficeError } from "./office-error-handling";
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { diffStudyDesigns } from "./diff-engine";
 import { WorkbookProjection } from "./migration-pipeline";
-import { parseWorkbookSheetValuesToStudyDesign } from "../parser/baseline-workbook-parser";
+import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
 import { createRetryMiddleware } from "../engine/middlewares";
 
@@ -33,14 +33,12 @@ export interface SyncStatePayload {
 export async function getPredictedStudyDesign(
   projection: WorkbookProjection
 ): Promise<StudyDesign> {
-  return await parseWorkbookSheetValuesToStudyDesign({
-    async getSheetValues(sheetName: string): Promise<unknown[][] | null> {
-      if (sheetName === "_Study") return projection.studyRows ?? null;
-      if (sheetName === "_Forms") return projection.formsRows ?? null;
-      if (sheetName === "_Codelists") return projection.codelistRows ?? null;
-      return null;
-    },
-  });
+  const rawData: Record<string, unknown[][]> = {
+    _Study: projection.studyRows ?? [],
+    _Forms: projection.formsRows ?? [],
+    _Codelists: projection.codelistRows ?? [],
+  };
+  return await parseRawDataToStudyDesign(rawData);
 }
 
 class SpeculativeSyncManager {
