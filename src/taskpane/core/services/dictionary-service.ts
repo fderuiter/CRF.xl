@@ -5,6 +5,8 @@
 import { LinguisticService } from "./linguistics-service";
 import { CodelistItem as CoreCodelistItem } from "../types/clinical";
 import { groupBy } from "../utils/collection-utils";
+import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
+import { announcer } from "./announcer";
 
 export type CodelistItem = Pick<CoreCodelistItem, "codedValue" | "decodedText">;
 
@@ -18,35 +20,42 @@ export interface CodelistGroup {
  * Reads the _Codelists sheet and transforms flat rows into grouped JSON objects.
  */
 export async function fetchDictionaries(): Promise<CodelistGroup[]> {
-  return await Excel.run(async (context) => {
+  let allRows: any[] = [];
+  let idIdx = -1, nameIdx = -1, codeIdx = -1, decodeIdx = -1;
+  const localeMap = new Map<string, number>();
+
+  await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
     await context.sync();
-    if (sheet.isNullObject) return [];
+    if (sheet.isNullObject) return;
 
     const tables = sheet.tables;
     tables.load("count");
     await context.sync();
 
-    let range: Excel.Range;
+    let rangeInfo: Excel.Range;
     if (tables.count > 0) {
-      const table = tables.getItemAt(0);
-      range = table.getRange();
+      rangeInfo = tables.getItemAt(0).getRange();
     } else {
-      range = sheet.getUsedRange();
+      rangeInfo = sheet.getUsedRange();
     }
 
-    range.load("values");
+    rangeInfo.load(["rowCount", "columnCount", "rowIndex", "columnIndex"]);
     await context.sync();
 
-    const vals = range.values;
-    if (!vals || vals.length <= 1) return [];
+    if (rangeInfo.rowCount <= 1) return;
 
+    const rowCount = rangeInfo.rowCount;
+    const colCount = rangeInfo.columnCount;
+    const rowIndex = rangeInfo.rowIndex;
+    const colIndex = rangeInfo.columnIndex;
+
+    const headerRange = sheet.getRangeByIndexes(rowIndex, colIndex, 1, colCount);
+    headerRange.load("values");
+    await context.sync();
+
+    const vals = headerRange.values;
     const headers = vals[0].map((h: unknown) => String(h || "").trim());
-    const localeMap = new Map<string, number>();
-    let idIdx = -1,
-      nameIdx = -1,
-      codeIdx = -1,
-      decodeIdx = -1;
 
     headers.forEach((h, idx) => {
       const normalized = h.toLowerCase();
@@ -62,44 +71,57 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
       }
     });
 
-    // Fallback if no headers found
     if (idIdx === -1) {
-      idIdx = 0;
-      nameIdx = 1;
-      codeIdx = 2;
-      decodeIdx = 3;
+      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
     }
 
-    const validRows = vals.slice(1).filter((row: any) => row[idIdx]);
-    const groupedMap = groupBy(validRows, (row: any) => String(row[idIdx]).trim());
+    const engine = new ChunkingEngine<number>({ chunkSize: 500 });
+    engine.on("progress", (p: any) => {
+      const pct = Math.round((p.completed / p.total) * 100);
+      announcer.announce(`Loading dictionary: ${pct}% complete`);
+    });
 
-    return Array.from(groupedMap.entries()).map(([strId, rows]) => {
-      const items = rows.map((row: any) => {
-        const decodedText: Record<string, string> = {};
-        // Base decode (if any)
-        if (decodeIdx !== -1 && row[decodeIdx]) {
-          decodedText["en-US"] = String(row[decodeIdx]); // Assuming en-US as default if not specified
+    const dataRowCount = rowCount - 1;
+    const plan: ExecutionPlan<number> = {
+      id: "fetch_dictionaries",
+      data: Array.from({ length: dataRowCount }, (_, i) => i + 1)
+    };
+
+    await engine.execute([plan], async (chunk) => {
+      const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+      chunkRange.load("values");
+      await context.sync();
+      allRows.push(...chunkRange.values);
+    });
+  });
+
+  if (allRows.length === 0) return [];
+
+  const validRows = allRows.filter((row: any) => row[idIdx]);
+  const groupedMap = groupBy(validRows, (row: any) => String(row[idIdx]).trim());
+
+  return Array.from(groupedMap.entries()).map(([strId, rows]) => {
+    const items = rows.map((row: any) => {
+      const decodedText: Record<string, string> = {};
+      if (decodeIdx !== -1 && row[decodeIdx]) {
+        decodedText["en-US"] = String(row[decodeIdx]);
+      }
+      localeMap.forEach((idx, locale) => {
+        if (row[idx]) {
+          decodedText[locale] = String(row[idx]);
         }
-
-        // Dynamic locales
-        localeMap.forEach((idx, locale) => {
-          if (row[idx]) {
-            decodedText[locale] = String(row[idx]);
-          }
-        });
-
-        return {
-          codedValue: String(row[codeIdx] || ""),
-          decodedText,
-        };
       });
-
       return {
-        id: strId,
-        name: String(rows[0][nameIdx] || ""),
-        items,
+        codedValue: String(row[codeIdx] || ""),
+        decodedText,
       };
     });
+
+    return {
+      id: strId,
+      name: String(rows[0][nameIdx] || ""),
+      items,
+    };
   });
 }
 
@@ -171,15 +193,10 @@ export async function saveDictionary(
       }
     });
 
-    // Fallback if no headers
     if (idIdx === -1) {
-      idIdx = 0;
-      nameIdx = 1;
-      codeIdx = 2;
-      decodeIdx = 3;
+      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
     }
 
-    // Collect all locales present in items
     const allLocales = new Set<string>();
     items.forEach((item) => {
       Object.keys(item.decodedText).forEach((l) => {
@@ -187,7 +204,6 @@ export async function saveDictionary(
       });
     });
 
-    // Ensure headers for all locales exist
     let maxColIdx = Math.max(
       rangeColumnCount - 1,
       idIdx,
@@ -216,10 +232,9 @@ export async function saveDictionary(
       }
     });
 
-    // Build 2D array for rows
     const rowCount = items.length;
     const finalColCount = maxColIdx + 1;
-    const itemRows: (string | number | boolean)[][] = Array.from({ length: rowCount }, () =>
+    const itemRows: any[][] = Array.from({ length: rowCount }, () =>
       Array(finalColCount).fill("")
     );
 
@@ -228,7 +243,6 @@ export async function saveDictionary(
       if (nameIdx !== -1) itemRows[idx][nameIdx] = name;
       if (codeIdx !== -1) itemRows[idx][codeIdx] = item.codedValue;
 
-      // Map translations to columns
       Object.entries(item.decodedText).forEach(([locale, text]) => {
         let colIdx = localeMap.get(locale);
         if (locale === "en-US" && colIdx === undefined && decodeIdx !== -1) {
@@ -241,17 +255,31 @@ export async function saveDictionary(
       });
     });
 
+    const engine = new ChunkingEngine<any[]>({ chunkSize: 500 });
+    engine.on("progress", (p: any) => {
+      const pct = Math.round((p.completed / p.total) * 100);
+      announcer.announce(`Saving dictionary: ${pct}% complete`);
+    });
+
+    const plan: ExecutionPlan<any[]> = {
+      id: "save_dictionary",
+      data: itemRows
+    };
+
     if (isNew) {
-      // Append at bottom
-      const insertRange = sheet.getRangeByIndexes(
-        rangeRowIndex + rangeRowCount,
-        rangeColumnIndex,
-        rowCount,
-        finalColCount
-      );
-      insertRange.values = itemRows;
+      let currentRowOffset = rangeRowIndex + rangeRowCount;
+      await engine.execute([plan], async (chunk) => {
+        const chunkRange = sheet.getRangeByIndexes(
+          currentRowOffset,
+          rangeColumnIndex,
+          chunk.length,
+          finalColCount
+        );
+        chunkRange.values = chunk;
+        currentRowOffset += chunk.length;
+        await context.sync();
+      });
     } else {
-      // Find and replace existing rows
       const existingVals = rangeValues;
       const normalizedId = id.toUpperCase();
       const firstRowToReplace = existingVals.findIndex(
@@ -259,7 +287,6 @@ export async function saveDictionary(
       );
 
       if (firstRowToReplace !== -1) {
-        // Find how many rows to delete
         let rowsToDelete = 0;
         for (let i = firstRowToReplace; i < existingVals.length; i++) {
           if (String(existingVals[i][idIdx]).trim().toUpperCase() === normalizedId) {
@@ -277,7 +304,6 @@ export async function saveDictionary(
         );
         deleteRange.delete(Excel.DeleteShiftDirection.up);
 
-        // Insert new rows at the same position
         const insertRange = sheet.getRangeByIndexes(
           rangeRowIndex + firstRowToReplace,
           rangeColumnIndex,
@@ -285,13 +311,22 @@ export async function saveDictionary(
           finalColCount
         );
         insertRange.insert(Excel.InsertShiftDirection.down);
-        insertRange.values = itemRows;
+
+        let currentRowOffset = rangeRowIndex + firstRowToReplace;
+        await engine.execute([plan], async (chunk) => {
+          const chunkRange = sheet.getRangeByIndexes(
+            currentRowOffset,
+            rangeColumnIndex,
+            chunk.length,
+            finalColCount
+          );
+          chunkRange.values = chunk;
+          currentRowOffset += chunk.length;
+          await context.sync();
+        });
       }
     }
 
-    // Expand the Named Range so native Excel dropdowns immediately see the new ID
-    // We start from the row after the header (rangeRowIndex + 1)
-    // The total number of data rows is (rangeRowCount + rowCount - 1)
     const dataRowCount = rangeRowCount + (isNew ? rowCount : 0) - 1;
     context.workbook.names.add(
       "CodelistDictionary",
@@ -299,5 +334,6 @@ export async function saveDictionary(
     );
 
     await context.sync();
+    announcer.announce("Dictionary saved successfully");
   });
 }

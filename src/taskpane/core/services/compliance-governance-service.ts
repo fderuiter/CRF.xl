@@ -9,6 +9,8 @@ import { Client } from "@microsoft/microsoft-graph-client";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { applyThemeToHeader } from "../factory/sheet-factory";
 import { AuditJustification } from "../types";
+import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
+import { announcer } from "./announcer";
 
 export interface EnvironmentComplianceStatus {
   isCloudHosted: boolean;
@@ -263,26 +265,47 @@ export class ComplianceGovernanceService {
       }
 
       const usedRange = sheet.getUsedRangeOrNullObject();
-      usedRange.load("values");
+      usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex"]);
       await context.sync();
 
-      if (usedRange.isNullObject || !usedRange.values || usedRange.values.length <= 1) {
+      if (usedRange.isNullObject || usedRange.rowCount <= 1) {
         return {};
       }
 
-      const justifications: Record<string, AuditJustification> = {};
-      const rows = usedRange.values.slice(1); // Skip header
+      const rowCount = usedRange.rowCount;
+      const colCount = usedRange.columnCount;
+      const rowIndex = usedRange.rowIndex;
+      const colIndex = usedRange.columnIndex;
 
-      for (const row of rows) {
-        const [key, reason, userId, timestamp] = row;
-        if (key && reason) {
-          justifications[key] = {
-            reason: String(reason),
-            userId: String(userId || ""),
-            timestamp: String(timestamp || ""),
-          };
+      const justifications: Record<string, AuditJustification> = {};
+      
+      const engine = new ChunkingEngine<number>({ chunkSize: 500 });
+      engine.on("progress", (p: any) => {
+        const pct = Math.round((p.completed / p.total) * 100);
+        announcer.announce(`Loading justifications: ${pct}% complete`);
+      });
+
+      const plan: ExecutionPlan<number> = {
+        id: "load_justifications",
+        data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1)
+      };
+
+      await engine.execute([plan], async (chunk) => {
+        const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+        chunkRange.load("values");
+        await context.sync();
+
+        for (const row of chunkRange.values) {
+          const [key, reason, userId, timestamp] = row;
+          if (key && reason) {
+            justifications[key] = {
+              reason: String(reason),
+              userId: String(userId || ""),
+              timestamp: String(timestamp || ""),
+            };
+          }
         }
-      }
+      });
 
       return justifications;
     });
@@ -305,44 +328,78 @@ export class ComplianceGovernanceService {
       } else {
         sheet.protection.unprotect(SHEET_PROTECTION_PASSWORD);
         const usedRange = sheet.getUsedRangeOrNullObject();
-        usedRange.load("values");
+        usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex"]);
         await context.sync();
 
-        if (!usedRange.isNullObject && usedRange.values && usedRange.values.length > 1) {
-          const rows = usedRange.values.slice(1);
-          for (const row of rows) {
-            const [key, reason, userId, timestamp] = row;
-            if (key && reason) {
-              existingJustifications[key] = {
-                reason: String(reason),
-                userId: String(userId || ""),
-                timestamp: String(timestamp || ""),
-              };
+        if (!usedRange.isNullObject && usedRange.rowCount > 1) {
+          const rowCount = usedRange.rowCount;
+          const colCount = usedRange.columnCount;
+          const rowIndex = usedRange.rowIndex;
+          const colIndex = usedRange.columnIndex;
+
+          const loadEngine = new ChunkingEngine<number>({ chunkSize: 500 });
+          const plan: ExecutionPlan<number> = {
+            id: "load_existing_justifications",
+            data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1)
+          };
+
+          await loadEngine.execute([plan], async (chunk) => {
+            const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+            chunkRange.load("values");
+            await context.sync();
+
+            for (const row of chunkRange.values) {
+              const [key, reason, userId, timestamp] = row;
+              if (key && reason) {
+                existingJustifications[key] = {
+                  reason: String(reason),
+                  userId: String(userId || ""),
+                  timestamp: String(timestamp || ""),
+                };
+              }
             }
-          }
+          });
         }
-        usedRange.clear();
+        
+        if (!usedRange.isNullObject) {
+          usedRange.clear();
+        }
       }
 
-      // Merge new justifications over existing to avoid overwrites during concurrent edits
       const mergedJustifications = { ...existingJustifications, ...justifications };
-
       const keys = Object.keys(mergedJustifications);
-      const data: any[][] = [[...SHEET_HEADERS[SHEET_NAMES.JUSTIFICATIONS]]];
+      const data: any[][] = [];
 
       for (const key of keys) {
         const j = mergedJustifications[key];
         data.push([key, j.reason, j.userId, j.timestamp]);
       }
 
-      const range = sheet.getRangeByIndexes(0, 0, data.length, 4);
-      range.values = data;
-
+      // Write headers
       const headerRange = sheet.getRangeByIndexes(0, 0, 1, 4);
+      headerRange.values = [[...SHEET_HEADERS[SHEET_NAMES.JUSTIFICATIONS]]];
       applyThemeToHeader(headerRange);
       sheet.freezePanes.freezeRows(1);
 
-      // Make it visible or hidden but not veryHidden for auditor accessibility
+      const writeEngine = new ChunkingEngine<any[]>({ chunkSize: 500 });
+      writeEngine.on("progress", (p: any) => {
+        const pct = Math.round((p.completed / p.total) * 100);
+        announcer.announce(`Saving justifications: ${pct}% complete`);
+      });
+
+      const writePlan: ExecutionPlan<any[]> = {
+        id: "write_justifications",
+        data
+      };
+
+      let currentRowOffset = 1; // After header
+      await writeEngine.execute([writePlan], async (chunk) => {
+        const chunkRange = sheet.getRangeByIndexes(currentRowOffset, 0, chunk.length, 4);
+        chunkRange.values = chunk;
+        currentRowOffset += chunk.length;
+        await context.sync();
+      });
+
       sheet.visibility = Excel.SheetVisibility.visible;
 
       sheet.protection.protect(
@@ -354,6 +411,7 @@ export class ComplianceGovernanceService {
       );
 
       await context.sync();
+      announcer.announce("Justifications saved successfully");
     });
   }
 
