@@ -186,7 +186,7 @@ class SpeculativeSyncManager {
           const currentStudy = currentStudyResult.studyDesign;
           const diff = diffStudyDesigns(predictedStudy, currentStudy);
           this.notify("conflict", { diff, recoverySnapshot });
-        } catch (parseErr) {
+        } catch {
           this.notify("conflict", { diff: null, recoverySnapshot });
         }
         return;
@@ -223,7 +223,7 @@ class SpeculativeSyncManager {
         this.notify("idle");
         this.currentOp = null;
       }
-    } catch (e: any) {
+    } catch {
       // Already handled by error listener
     }
   }

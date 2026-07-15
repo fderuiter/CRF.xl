@@ -1,4 +1,4 @@
-/* global Worker, self, MessageEvent, setTimeout */
+/* global Worker, self, MessageEvent */
 /**
  * @issue #28
  */
