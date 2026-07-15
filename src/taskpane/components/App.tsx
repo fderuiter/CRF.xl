@@ -349,7 +349,7 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       });
     }
-  }, [study, issues, totalIsProcessing, activeSheet]);
+  }, [study, issues, totalIsProcessing, activeSheet, actions]);
 
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
@@ -370,7 +370,7 @@ export const App: React.FC<{ title?: string }> = () => {
   // Push justifications to orchestrator
   useEffect(() => {
     actions.updateJustifications(justifications);
-  }, [justifications]);
+  }, [justifications, actions]);
 
   // Revert sign-off if study changes
   useEffect(() => {
@@ -378,7 +378,7 @@ export const App: React.FC<{ title?: string }> = () => {
       setIsSignedOff(false);
       setSignOffTimestamp(null);
     }
-  }, [study, issues]);
+  }, [study, issues, isSignedOff]);
 
   const errorContainerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
@@ -404,15 +404,15 @@ export const App: React.FC<{ title?: string }> = () => {
     }
   }, [uiError]);
 
-  const dismissUiError = () => {
+  const dismissUiError = React.useCallback(() => {
     if (previousFocusRef.current) {
       previousFocusRef.current.focus();
       previousFocusRef.current = null;
     }
     actions.dismissUiError();
-  };
+  }, [actions]);
 
-  const presentOfficeError = (error: unknown, retryAction?: () => Promise<void>) => {
+  const presentOfficeError = React.useCallback((error: unknown, retryAction?: () => Promise<void>) => {
     const diagnostic = createOfficeDiagnostic(error);
     console.error(`[${diagnostic.category}]`, error);
     // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
@@ -423,9 +423,9 @@ export const App: React.FC<{ title?: string }> = () => {
         retryAction: diagnostic.allowRetry ? retryAction : undefined,
       } 
     } as any);
-  };
+  }, []);
 
-  const runWithOfficeErrorHandling = async <T,>(
+  const runWithOfficeErrorHandling = React.useCallback(async <T,>(
     operation: () => Promise<T>,
     retryAction?: () => Promise<void>
   ): Promise<T | null> => {
@@ -447,13 +447,13 @@ export const App: React.FC<{ title?: string }> = () => {
       presentOfficeError(error, retryAction);
       return null;
     }
-  };
+  }, [dismissUiError, presentOfficeError]);
 
   useEffect(() => {
     if (syncConflict) {
       announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
     }
-  }, [syncConflict]);
+  }, [syncConflict, announce]);
 
   // Startup Check: Does the Matrix architecture exist yet?
   useEffect(() => {
@@ -484,7 +484,7 @@ export const App: React.FC<{ title?: string }> = () => {
       }
     };
     checkInit();
-  }, []);
+  }, [runWithOfficeErrorHandling]);
 
   useEffect(() => {
     const detectVersionUpdate = async () => {
@@ -530,7 +530,7 @@ export const App: React.FC<{ title?: string }> = () => {
       isMountedRef.current = false;
       window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
-  }, []);
+  }, [presentOfficeError]);
 
   // --- Action Handlers ---
   const handleInitialize = async () => {
