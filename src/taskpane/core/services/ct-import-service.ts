@@ -10,6 +10,8 @@ import {
 } from "./cdisc-ct-mapping-service";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { groupBy } from "../utils/collection-utils";
+import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
+import { announcer } from "./announcer";
 
 export type ConflictResolution = "skip" | "overwrite" | "append";
 
@@ -78,7 +80,7 @@ export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
 
     sheet.load("protection/protected");
     const usedRange = sheet.getUsedRange();
-    usedRange.load("values");
+    usedRange.load(["rowCount", "columnCount"]);
     await context.sync();
 
     if (sheet.protection.protected) {
@@ -87,30 +89,45 @@ export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
       );
     }
 
-    const vals = usedRange.values as (string | number | boolean)[][];
-    if (!vals || vals.length <= 1) {
+    if (usedRange.isNullObject || usedRange.rowCount <= 1) {
       return [];
     }
 
-    // Skip header row at index 0
-    return vals.slice(1).reduce<CrfCodelistsRow[]>((acc, row) => {
-      const codelistId = String(row[0] ?? "").trim();
-      if (!codelistId) return acc;
-      acc.push({
-        codelistId,
-        codelistName: String(row[1] ?? "").trim(),
-        codedValue: String(row[2] ?? "").trim(),
-        decode: String(row[3] ?? "").trim(),
-        // Provenance fields are not stored in the worksheet
-        codelistOid: "",
-        termOid: "",
-        codelistVersion: "",
-        source: "",
-        sourcePackageOid: "",
-        sourcePackageTitle: "",
-      });
-      return acc;
-    }, []);
+    const rowCount = usedRange.rowCount;
+    const allRows: CrfCodelistsRow[] = [];
+
+    const engine = new ChunkingEngine<number>({ chunkSize: 500 });
+    const plan: ExecutionPlan<number> = {
+      id: "read_existing_ct",
+      data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1),
+    };
+
+    await engine.execute([plan], async (chunk) => {
+      const chunkRange = sheet.getRangeByIndexes(chunk[0], 0, chunk.length, 4);
+      chunkRange.load("values");
+      await context.sync();
+
+      const chunkValues = chunkRange.values as (string | number | boolean)[][];
+      for (const row of chunkValues) {
+        const codelistId = String(row[0] ?? "").trim();
+        if (codelistId) {
+          allRows.push({
+            codelistId,
+            codelistName: String(row[1] ?? "").trim(),
+            codedValue: String(row[2] ?? "").trim(),
+            decode: String(row[3] ?? "").trim(),
+            codelistOid: "",
+            termOid: "",
+            codelistVersion: "",
+            source: "",
+            sourcePackageOid: "",
+            sourcePackageTitle: "",
+          });
+        }
+      }
+    });
+
+    return allRows;
   });
 }
 
@@ -222,26 +239,38 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
       );
     }
 
-    // Build the complete new dataset: header + all data rows
+    const existingRowCount = usedRange.isNullObject ? 0 : usedRange.rowCount;
+
     const newValues: (string | number | boolean)[][] = [
       CODELISTS_HEADER,
       ...rows.map((r) => [r.codelistId, r.codelistName, r.codedValue, r.decode]),
     ];
-
-    const existingRowCount = usedRange.rowCount;
     const newRowCount = newValues.length;
 
-    // Write header + all data rows in one shot
-    const writeRange = sheet.getRangeByIndexes(0, 0, newRowCount, 4);
-    writeRange.values = newValues;
+    const engine = new ChunkingEngine<any[]>({ chunkSize: 500 });
+    engine.on("progress", (p: any) => {
+      const pct = Math.round((p.completed / p.total) * 100);
+      announcer.announce(`Writing controlled terminology: ${pct}% complete`);
+    });
 
-    // Clear any surplus rows from a previously larger dataset
+    const plan: ExecutionPlan<any[]> = {
+      id: "write_ct_rows",
+      data: newValues,
+    };
+
+    let currentRowOffset = 0;
+    await engine.execute([plan], async (chunk) => {
+      const writeRange = sheet.getRangeByIndexes(currentRowOffset, 0, chunk.length, 4);
+      writeRange.values = chunk;
+      currentRowOffset += chunk.length;
+      await context.sync();
+    });
+
     if (existingRowCount > newRowCount) {
       const clearRange = sheet.getRangeByIndexes(newRowCount, 0, existingRowCount - newRowCount, 4);
       clearRange.clear("Contents");
     }
 
-    // Keep the Named Range covering all data rows for dropdown validation
     const namedItem = context.workbook.names.getItemOrNullObject("CodelistDictionary");
     await context.sync();
     if (!namedItem.isNullObject) {
