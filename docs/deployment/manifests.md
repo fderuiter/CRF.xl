@@ -1,4 +1,4 @@
-# Office Add-in Manifests by Environment
+# Office Add-in Manifest
 
 This repository maintains a single, unified Office add-in XML manifest. Environment-specific URLs (development, staging, production) are injected during the CI/CD deployment pipeline to enforce environment isolation and GxP compliance:
 
@@ -63,7 +63,7 @@ This permission is **strictly limited** to the workbook context. It is required 
    - Stage 1: Pilot IT / QA validation group.
    - Stage 2: Clinical Data Management / UAT department rollout.
    - Stage 3: Global organization-wide deployment.
-8. Verify that the CRF.xl task pane appears in the Excel clients of the target users.
+7. Verify that the CRF.xl task pane appears in the Excel clients of the target users.
 
 ---
 
