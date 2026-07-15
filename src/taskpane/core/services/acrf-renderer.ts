@@ -14,6 +14,7 @@ import {
   ReviewerComment,
 } from "../types";
 import { formatDate } from "../utils/locale-utils";
+import { getTranslation } from "../generators/shared-localization";
 
 /**
  * Builds an AnnotatedCrfDocument from a StudyDesign and optional annotations.
@@ -241,9 +242,9 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
           `;
         }
 
-        const label = item.label["en-US"] || Object.values(item.label)[0] || item.name;
+        const label = getTranslation(item.label, "en-US") || item.name;
         const instructions = item.instructions
-          ? `<div class="item-instructions">${item.instructions["en-US"] || Object.values(item.instructions)[0]}</div>`
+          ? `<div class="item-instructions">${getTranslation(item.instructions, "en-US")}</div>`
           : "";
 
         let affordanceHtml = `<div class="item-affordance"></div>`;
@@ -277,7 +278,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
       }
 
       const groupLabel = group.label
-        ? group.label["en-US"] || Object.values(group.label)[0]
+        ? getTranslation(group.label, "en-US")
         : group.name;
 
       groupsHtml += `
