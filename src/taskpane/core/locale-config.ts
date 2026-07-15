@@ -33,7 +33,7 @@ export function initLocale(locale: string) {
       decimalSeparator,
       currentLocale: locale,
     };
-  } catch (e) {
+  } catch {
     // Fallback to en-US if locale formatting fails
     currentLocaleConfig = {
       argSeparator: ",",

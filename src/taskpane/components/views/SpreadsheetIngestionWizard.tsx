@@ -293,7 +293,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         });
         const nonSystem = sheets.filter((name) => !SYSTEM_SHEETS.has(name));
         patch({ availableSheets: nonSystem });
-      } catch (e) {
+      } catch {
         patch({ error: "Could not read workbook sheets. Ensure a workbook is open." });
       } finally {
         setInitialLoading(false);

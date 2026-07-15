@@ -115,7 +115,7 @@ class BackgroundValidationEngine {
       };
       this.notify();
       announcer.announce("Validation Complete", "polite");
-    } catch (e) {
+    } catch {
       if (signal.aborted) return;
       this.state = {
         ...this.state,

@@ -1,5 +1,5 @@
 import { logger } from "../utils/logger";
-/* global window, console, btoa, URL, Office */
+/* global window, btoa */
 /**
  * @issue #28
  */
@@ -173,7 +173,7 @@ export class ComplianceGovernanceService {
       try {
         await this.graphClient.api(`/sites/${siteId}/permissions`).top(1).get();
         isAdmin = true;
-      } catch (e) {
+      } catch {
         isAdmin = false;
       }
 

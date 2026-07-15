@@ -10,6 +10,7 @@ This repository maintains a single Office add-in XML manifest.
 
 - **Local developer sideload:** `manifest.xml` (points to `localhost:3000` or dev-tunnel URLs).
 
+
 ---
 
 ## 🚫 External Host Provisioning Status (Issue #135 Block)
