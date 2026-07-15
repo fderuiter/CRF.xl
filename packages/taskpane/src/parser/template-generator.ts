@@ -7,9 +7,7 @@ import { CRF_VARIABLE_TYPE_OPTIONS } from "@crf-xl/core/parser/form-element-util
 
 import { DATA_ORIGIN_OPTIONS } from "@crf-xl/core/parser/metadata-utils";
 
-
 import { getLocaleConfig } from "@crf-xl/core/locale-config";
-
 
 import { SHEET_NAMES, getDefaultData } from "@crf-xl/core/registry/sheet-metadata-registry";
 

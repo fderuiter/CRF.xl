@@ -4,7 +4,6 @@
  */
 import { SHEET_HEADERS, SYSTEM_SHEETS } from "@crf-xl/core/registry/sheet-metadata-registry";
 
-
 export async function upgradeSystemSheetsToTables(context: Excel.RequestContext): Promise<void> {
   for (const sheetName of SYSTEM_SHEETS) {
     const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);

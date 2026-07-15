@@ -3,7 +3,6 @@
  */
 import { CodelistGroup, CodelistItem } from "@crf-xl/taskpane/services/dictionary-service";
 
-
 export interface DictionaryPreview {
   previewItems: string[];
   overflowCount: number;

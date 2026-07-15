@@ -2,12 +2,7 @@
  * @issue #313
  */
 import * as React from "react";
-import {
-  makeStyles,
-  tokens,
-  Text,
-  Button,
-} from "@fluentui/react-components";
+import { makeStyles, tokens, Text, Button } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { Spinner } from "./DesignSystem";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
@@ -76,7 +71,7 @@ export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, class
     <ul className={`${styles.stagesContainer} ${className || ""}`}>
       {steps.map((stage, idx) => (
         <React.Fragment key={idx}>
-          <li 
+          <li
             className={styles.stage}
             aria-current={stage.status === "active" ? "step" : undefined}
           >
@@ -91,7 +86,9 @@ export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, class
           </li>
           {idx < steps.length - 1 && (
             <li aria-hidden="true" style={{ display: "flex", alignItems: "center" }}>
-              <ChevronRightRegular style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }} />
+              <ChevronRightRegular
+                style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }}
+              />
             </li>
           )}
         </React.Fragment>
@@ -230,12 +227,7 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
     <div className={`${styles.container} ${className || ""}`}>
       <UniversalStepper steps={mappedSteps} />
 
-      <div 
-        className={styles.content} 
-        ref={contentRef} 
-        tabIndex={-1} 
-        style={{ outline: "none" }}
-      >
+      <div className={styles.content} ref={contentRef} tabIndex={-1} style={{ outline: "none" }}>
         {activeStep.content}
       </div>
 

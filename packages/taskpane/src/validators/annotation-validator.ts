@@ -4,7 +4,6 @@
 /* global Excel */
 import { Annotation } from "@crf-xl/core/types/annotation";
 
-
 export enum RepairConfidence {
   High = "High", // Auto-heal
   Medium = "Medium", // Warn + User Action

@@ -33,7 +33,6 @@ import { getRepairPolicy } from "@crf-xl/taskpane/validators/annotation-validato
 
 import { bindingService } from "@crf-xl/taskpane/services/binding-service";
 
-
 const useStyles = makeStyles({
   container: {
     padding: "12px",

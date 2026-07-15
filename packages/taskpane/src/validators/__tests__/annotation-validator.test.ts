@@ -4,7 +4,6 @@
 import { detectConflicts, getRepairPolicy, RepairConfidence } from "../annotation-validator";
 import { Annotation, AnnotationType, AnnotationTargetType } from "@crf-xl/core/types/annotation";
 
-
 describe("AnnotationValidator", () => {
   const mockAnnotation = (id: string, type: AnnotationType, address: string): Annotation => ({
     id,

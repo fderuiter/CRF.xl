@@ -13,7 +13,14 @@
 
 import { StudyDesign } from "@crf-xl/core/types/hierarchy";
 
-import { AnnotatedCrfPipelineResult, AnnotatedCrfPipelineManifest, PipelineDiagnostic, PipelineStageResult, AcrfVerificationResult, AnnotatedCrfDocument } from "@crf-xl/core/types/annotated-crf";
+import {
+  AnnotatedCrfPipelineResult,
+  AnnotatedCrfPipelineManifest,
+  PipelineDiagnostic,
+  PipelineStageResult,
+  AcrfVerificationResult,
+  AnnotatedCrfDocument,
+} from "@crf-xl/core/types/annotated-crf";
 
 import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { loadAnnotationsFromStore } from "../services/annotation-service";

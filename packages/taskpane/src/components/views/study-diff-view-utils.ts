@@ -1,8 +1,13 @@
 /**
  * @issue #128
  */
-import { CodelistDiffEntry, FormDiffEntry, ItemDiffEntry, RuleDiffEntry, StudyDiffReport } from "@crf-xl/core/types/diff";
-
+import {
+  CodelistDiffEntry,
+  FormDiffEntry,
+  ItemDiffEntry,
+  RuleDiffEntry,
+  StudyDiffReport,
+} from "@crf-xl/core/types/diff";
 
 export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
 export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";

@@ -22,7 +22,17 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { buildIngestionPreview, buildSheetScanResult, detectColumnMappings, mapRow, FieldMapping, IngestionPreview, SheetScanResult, TARGET_FIELDS, TargetSheet } from "@crf-xl/taskpane/services/spreadsheet-ingestion-service";
+import {
+  buildIngestionPreview,
+  buildSheetScanResult,
+  detectColumnMappings,
+  mapRow,
+  FieldMapping,
+  IngestionPreview,
+  SheetScanResult,
+  TARGET_FIELDS,
+  TargetSheet,
+} from "@crf-xl/taskpane/services/spreadsheet-ingestion-service";
 
 import { announcer } from "@crf-xl/core/services/announcer";
 
@@ -250,17 +260,18 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   const [state, setState] = React.useState<WizardState>(INITIAL_STATE);
   const [initialLoading, setInitialLoading] = React.useState(true);
   const abortControllerRef = React.useRef<AbortController | null>(null);
-  
+
   // We need to keep a reset key to restart the wizard
   const [wizardKey, setWizardKey] = React.useState(0);
 
   const previewData = React.useMemo(() => {
     if (!state.preview) return [];
-    const rows = state.preview.projectedRows.formItemRows.length > 0
-      ? state.preview.projectedRows.formItemRows
-      : state.preview.projectedRows.formsRows.length > 0
-        ? state.preview.projectedRows.formsRows
-        : state.preview.projectedRows.codelistRows;
+    const rows =
+      state.preview.projectedRows.formItemRows.length > 0
+        ? state.preview.projectedRows.formItemRows
+        : state.preview.projectedRows.formsRows.length > 0
+          ? state.preview.projectedRows.formsRows
+          : state.preview.projectedRows.codelistRows;
     return rows.length > 1 ? rows.slice(1) : []; // skip header
   }, [state.preview]);
 
@@ -297,7 +308,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
   const handleScan = async () => {
     if (!state.selectedSheet) throw new Error("No sheet selected");
     patch({ error: null });
-    
+
     let rawRows: string[][] = [];
     let totalRows = 0;
     await Excel.run(async (ctx) => {
@@ -321,7 +332,10 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
 
   const handleConfirmStructure = async () => {
     if (!state.scanResult || !state.confirmedStructure) throw new Error("Missing structure data");
-    const mappings = detectColumnMappings(state.scanResult.columnCandidates, state.confirmedStructure);
+    const mappings = detectColumnMappings(
+      state.scanResult.columnCandidates,
+      state.confirmedStructure
+    );
     patch({ mappings });
   };
 
@@ -346,7 +360,10 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       let rowsWritten = 0;
       let targetSheetName = "";
 
-      const maxColIndex = Math.max(0, ...state.scanResult.columnCandidates.map((c) => c.columnIndex));
+      const maxColIndex = Math.max(
+        0,
+        ...state.scanResult.columnCandidates.map((c) => c.columnIndex)
+      );
       const colCount = maxColIndex + 1;
 
       for (let i = 0; i < totalRows; i += pageSize) {
@@ -390,9 +407,21 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             if (formSheet.isNullObject) {
               formSheet = sheets.add(formSheetName);
               const headers = [
-                "Variable Name", "Label", "Variable Type", "Required", "Length",
-                "Significant Digits", "Minimum", "Maximum", "Show If", "Codelist ID",
-                "Origin", "Method OID", "SDTM Domain", "SDTM Variable", "Comment",
+                "Variable Name",
+                "Label",
+                "Variable Type",
+                "Required",
+                "Length",
+                "Significant Digits",
+                "Minimum",
+                "Maximum",
+                "Show If",
+                "Codelist ID",
+                "Origin",
+                "Method OID",
+                "SDTM Domain",
+                "SDTM Variable",
+                "Comment",
               ];
               formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
             }
@@ -400,7 +429,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             used.load("rowCount");
             await ctx.sync();
             const startRow = used.rowCount > 0 ? used.rowCount : 0;
-            const range = formSheet.getRangeByIndexes(startRow, 0, mappedRows.length, mappedRows[0].length);
+            const range = formSheet.getRangeByIndexes(
+              startRow,
+              0,
+              mappedRows.length,
+              mappedRows[0].length
+            );
             range.values = mappedRows as string[][];
             targetSheetName = formSheetName;
           }
@@ -410,10 +444,13 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         rowsWritten += currentChunkSize;
         const percent = Math.round((rowsWritten / totalRows) * 100);
         announcer.announce(`Importing data: ${percent}%`);
-        
+
         setState((current) => {
           if (current.syncProgress) {
-            return { ...current, syncProgress: { ...current.syncProgress, processed: rowsWritten } };
+            return {
+              ...current,
+              syncProgress: { ...current.syncProgress, processed: rowsWritten },
+            };
           }
           return current;
         });
@@ -428,13 +465,16 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             rowsWritten,
             targetSheet: targetSheetName,
             message: `Partial import: ${rowsWritten} row(s) imported before cancellation.`,
-            warnings: (state.preview.diagnostics || []).filter((d) => d.severity === "warning").length,
+            warnings: (state.preview.diagnostics || []).filter((d) => d.severity === "warning")
+              .length,
           },
         });
         return;
       }
 
-      const warnings = (state.preview.diagnostics || []).filter((d) => d.severity === "warning").length;
+      const warnings = (state.preview.diagnostics || []).filter(
+        (d) => d.severity === "warning"
+      ).length;
       announcer.announce("Import Complete", "polite");
       patch({
         importResult: {
@@ -461,12 +501,16 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       content: (
         <>
           <Body1 className={styles.desc}>
-            Select a sheet from the current workbook to ingest. System sheets (prefixed with _) are excluded.
+            Select a sheet from the current workbook to ingest. System sheets (prefixed with _) are
+            excluded.
           </Body1>
           {initialLoading && <Spinner size="tiny" label="Loading sheets…" />}
           {!initialLoading && state.availableSheets.length === 0 && (
             <MessageBar intent="warning">
-              <MessageBarBody>No non-system sheets found. Open a legacy CRF file or add data sheets to this workbook.</MessageBarBody>
+              <MessageBarBody>
+                No non-system sheets found. Open a legacy CRF file or add data sheets to this
+                workbook.
+              </MessageBarBody>
             </MessageBar>
           )}
           <TabList
@@ -496,13 +540,20 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       content: state.scanResult && (
         <>
           <Body1 className={styles.desc}>
-            Scanned <strong>{state.scanResult.sheetName}</strong>: found <strong>{state.scanResult.columnCandidates.length}</strong> column(s) and <strong>{state.scanResult.rowCount}</strong> data row(s).
+            Scanned <strong>{state.scanResult.sheetName}</strong>: found{" "}
+            <strong>{state.scanResult.columnCandidates.length}</strong> column(s) and{" "}
+            <strong>{state.scanResult.rowCount}</strong> data row(s).
           </Body1>
           <Text style={{ fontSize: tokens.fontSizeBase200, fontWeight: tokens.fontWeightSemibold }}>
-            Detected columns: {state.scanResult.columnCandidates.map((c) => c.columnName).join(", ") || "none"}
+            Detected columns:{" "}
+            {state.scanResult.columnCandidates.map((c) => c.columnName).join(", ") || "none"}
           </Text>
           <Body1 className={styles.desc}>
-            CRF.xl detected that this sheet most likely contains <strong>{STRUCTURE_LABELS[detectedStructureToTargetSheet(state.scanResult.detectedStructure)]}</strong>. Confirm or select the correct structure type:
+            CRF.xl detected that this sheet most likely contains{" "}
+            <strong>
+              {STRUCTURE_LABELS[detectedStructureToTargetSheet(state.scanResult.detectedStructure)]}
+            </strong>
+            . Confirm or select the correct structure type:
           </Body1>
           <div className={styles.structureButtonGroup}>
             {(["form_item", "forms_registry", "codelists"] as TargetSheet[]).map((ts) => (
@@ -527,19 +578,33 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       content: state.scanResult && (
         <>
           <Body1 className={styles.desc}>
-            Map source columns to CRF.xl target fields. Auto-detected suggestions are shown. Override any mapping using the dropdowns.
+            Map source columns to CRF.xl target fields. Auto-detected suggestions are shown.
+            Override any mapping using the dropdowns.
           </Body1>
           <div className={styles.mappingList}>
             {state.mappings.map((mapping) => {
               const descriptor = TARGET_FIELDS.find((f) => f.field === mapping.targetField)!;
-              const currentValue = mapping.sourceColumn !== null ? String(mapping.sourceColumn.columnIndex) : "-1";
-              const cols = [{ label: "(not mapped)", value: "-1" }, ...state.scanResult!.columnCandidates.map(c => ({ label: `${c.columnName} (col ${c.columnIndex + 1})`, value: String(c.columnIndex) }))];
+              const currentValue =
+                mapping.sourceColumn !== null ? String(mapping.sourceColumn.columnIndex) : "-1";
+              const cols = [
+                { label: "(not mapped)", value: "-1" },
+                ...state.scanResult!.columnCandidates.map((c) => ({
+                  label: `${c.columnName} (col ${c.columnIndex + 1})`,
+                  value: String(c.columnIndex),
+                })),
+              ];
               return (
                 <div key={mapping.targetField} className={styles.mappingRow}>
                   <span className={styles.mappingLabel}>
                     {descriptor.label}
-                    {descriptor.required && <span style={{ color: tokens.colorPaletteRedForeground1 }}>*</span>}
-                    <Badge size="small" color={confidenceBadgeColor(mapping.confidence)} appearance="tint">
+                    {descriptor.required && (
+                      <span style={{ color: tokens.colorPaletteRedForeground1 }}>*</span>
+                    )}
+                    <Badge
+                      size="small"
+                      color={confidenceBadgeColor(mapping.confidence)}
+                      appearance="tint"
+                    >
                       {confidenceLabel(mapping.confidence)}
                     </Badge>
                   </span>
@@ -551,18 +616,32 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                       onOptionSelect={(_ev, data) => {
                         const idx = data.optionValue ? parseInt(data.optionValue, 10) : -1;
                         setState((current) => {
-                          const col = idx !== -1 ? (current.scanResult?.columnCandidates.find((c) => c.columnIndex === idx) ?? null) : null;
+                          const col =
+                            idx !== -1
+                              ? (current.scanResult?.columnCandidates.find(
+                                  (c) => c.columnIndex === idx
+                                ) ?? null)
+                              : null;
                           return {
                             ...current,
                             mappings: current.mappings.map((m) =>
-                              m.targetField === mapping.targetField ? { ...m, sourceColumn: col, confidence: col ? "high" : "unresolved", isUserOverridden: true } : m
+                              m.targetField === mapping.targetField
+                                ? {
+                                    ...m,
+                                    sourceColumn: col,
+                                    confidence: col ? "high" : "unresolved",
+                                    isUserOverridden: true,
+                                  }
+                                : m
                             ),
                           };
                         });
                       }}
                     >
                       {cols.map((c) => (
-                        <Option key={c.value} value={c.value}>{c.label}</Option>
+                        <Option key={c.value} value={c.value}>
+                          {c.label}
+                        </Option>
                       ))}
                     </Dropdown>
                   </Field>
@@ -577,9 +656,16 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                 value={state.targetFormSheet ?? state.selectedSheet ?? ""}
                 onOptionSelect={(_ev, data) => patch({ targetFormSheet: data.optionValue ?? null })}
               >
-                {[state.selectedSheet ?? "", ...state.availableSheets.filter((s) => s !== state.selectedSheet)].filter(Boolean).map((s) => (
-                  <Option key={s} value={s}>{s}</Option>
-                ))}
+                {[
+                  state.selectedSheet ?? "",
+                  ...state.availableSheets.filter((s) => s !== state.selectedSheet),
+                ]
+                  .filter(Boolean)
+                  .map((s) => (
+                    <Option key={s} value={s}>
+                      {s}
+                    </Option>
+                  ))}
               </Dropdown>
             </Field>
           )}
@@ -595,13 +681,20 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         <>
           {state.preview.diagnostics.length === 0 && (
             <MessageBar intent="success">
-              <MessageBarBody>No issues found. All required fields are mapped correctly.</MessageBarBody>
+              <MessageBarBody>
+                No issues found. All required fields are mapped correctly.
+              </MessageBarBody>
             </MessageBar>
           )}
           {state.preview.diagnostics.map((d, i) => (
             <div key={i} className={styles.diagItem}>
-              <MessageBar intent={d.severity === "error" ? "error" : "warning"} style={{ width: "100%" }}>
-                <MessageBarBody><strong>{d.category}:</strong> {d.message}</MessageBarBody>
+              <MessageBar
+                intent={d.severity === "error" ? "error" : "warning"}
+                style={{ width: "100%" }}
+              >
+                <MessageBarBody>
+                  <strong>{d.category}:</strong> {d.message}
+                </MessageBarBody>
               </MessageBar>
             </div>
           ))}
@@ -615,13 +708,22 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       onNext: handleCommit,
       content: state.preview && (
         <>
-          <Body1 className={styles.desc}>This is a <strong>dry-run preview</strong> showing what will be written to the workbook.</Body1>
+          <Body1 className={styles.desc}>
+            This is a <strong>dry-run preview</strong> showing what will be written to the workbook.
+          </Body1>
           <div className={styles.previewTable}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  {(state.preview.projectedRows.formItemRows[0] || state.preview.projectedRows.formsRows[0] || state.preview.projectedRows.codelistRows[0] || []).map((h, i) => (
-                    <th key={i} className={styles.th}>{h}</th>
+                  {(
+                    state.preview.projectedRows.formItemRows[0] ||
+                    state.preview.projectedRows.formsRows[0] ||
+                    state.preview.projectedRows.codelistRows[0] ||
+                    []
+                  ).map((h, i) => (
+                    <th key={i} className={styles.th}>
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -629,7 +731,9 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
                 {previewItems.map((row, ri) => (
                   <tr key={ri}>
                     {row.map((cell, ci) => (
-                      <td key={ci} className={styles.td} title={cell}>{cell}</td>
+                      <td key={ci} className={styles.td} title={cell}>
+                        {cell}
+                      </td>
                     ))}
                   </tr>
                 ))}
@@ -642,13 +746,19 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             </Text>
           )}
           {state.syncProgress && (
-            <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <Text>Syncing: {state.syncProgress.processed} / {state.syncProgress.total} rows</Text>
+            <div
+              style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}
+            >
+              <Text>
+                Syncing: {state.syncProgress.processed} / {state.syncProgress.total} rows
+              </Text>
               <ProgressBar value={state.syncProgress.processed} max={state.syncProgress.total} />
-              <Button onClick={() => {
-                abortControllerRef.current?.abort();
-                patch({ syncProgress: { ...state.syncProgress!, cancelRequested: true } });
-              }}>
+              <Button
+                onClick={() => {
+                  abortControllerRef.current?.abort();
+                  patch({ syncProgress: { ...state.syncProgress!, cancelRequested: true } });
+                }}
+              >
                 Cancel Sync
               </Button>
             </div>
@@ -664,7 +774,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       backLabel: "Start New Ingestion",
       onBack: () => {
         setState({ ...INITIAL_STATE, availableSheets: state.availableSheets });
-        setWizardKey(prev => prev + 1);
+        setWizardKey((prev) => prev + 1);
       },
       content: state.importResult && (
         <>
@@ -681,10 +791,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
               <span className={styles.summaryLabel}>Warnings</span>
             </div>
           </div>
-          <Button appearance="primary" onClick={onClose} style={{ marginTop: "16px" }}>Close Wizard</Button>
+          <Button appearance="primary" onClick={onClose} style={{ marginTop: "16px" }}>
+            Close Wizard
+          </Button>
         </>
       ),
-    }
+    },
   ];
 
   return (
@@ -698,11 +810,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             <MessageBarBody>{state.error}</MessageBarBody>
           </MessageBar>
         )}
-        <UniversalWizard
-          key={wizardKey}
-          steps={steps}
-          onCancel={onClose}
-        />
+        <UniversalWizard key={wizardKey} steps={steps} onCancel={onClose} />
       </Card>
     </div>
   );

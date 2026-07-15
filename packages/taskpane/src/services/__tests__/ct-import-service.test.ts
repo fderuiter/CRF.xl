@@ -5,8 +5,10 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { buildCtImportPlan, executeCtImport, ConflictResolution } from "../ct-import-service";
-import { mapCdiscApiResponseToCrfCodelists, CrfCodelistsRow } from "@crf-xl/core/services/cdisc-ct-mapping-service";
-
+import {
+  mapCdiscApiResponseToCrfCodelists,
+  CrfCodelistsRow,
+} from "@crf-xl/core/services/cdisc-ct-mapping-service";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Fixture helpers

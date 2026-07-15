@@ -28,7 +28,12 @@ import {
   ArrowDownloadRegular,
   InfoRegular,
 } from "@fluentui/react-icons";
-import { fetchDictionaries, saveDictionary, CodelistGroup, CodelistItem } from "@crf-xl/taskpane/services/dictionary-service";
+import {
+  fetchDictionaries,
+  saveDictionary,
+  CodelistGroup,
+  CodelistItem,
+} from "@crf-xl/taskpane/services/dictionary-service";
 
 import { TerminologySearchResult } from "@crf-xl/core/types/terminology-search";
 
@@ -40,17 +45,31 @@ import { highlightLocaleColumns } from "@crf-xl/taskpane/services/annotation-ser
 
 import { LinguisticService } from "@crf-xl/core/services/linguistics-service";
 
-import { createCdiscApiService, CdiscCtPackage, CdiscCtTerm, CdiscApiFailure } from "@crf-xl/core/services/cdisc-api-service";
+import {
+  createCdiscApiService,
+  CdiscCtPackage,
+  CdiscCtTerm,
+  CdiscApiFailure,
+} from "@crf-xl/core/services/cdisc-api-service";
 
 import { getDictionaryPreview } from "./dictionary-sidecar-utils";
-import { mapCdiscApiResponseToCrfCodelists, CdiscCtMappingFailure } from "@crf-xl/core/services/cdisc-ct-mapping-service";
+import {
+  mapCdiscApiResponseToCrfCodelists,
+  CdiscCtMappingFailure,
+} from "@crf-xl/core/services/cdisc-ct-mapping-service";
 
 import { announcer } from "@crf-xl/core/services/announcer";
 
-import { buildCtImportPlan, executeCtImport, readExistingCodelistRows, ConflictResolution, ImportSummary, CtImportPlan } from "@crf-xl/taskpane/services/ct-import-service";
+import {
+  buildCtImportPlan,
+  executeCtImport,
+  readExistingCodelistRows,
+  ConflictResolution,
+  ImportSummary,
+  CtImportPlan,
+} from "@crf-xl/taskpane/services/ct-import-service";
 import { Diagnostic } from "@crf-xl/core/services/diagnostic-framework";
 import { createOfficeDiagnostic } from "@crf-xl/taskpane/services/office-error-handling";
-
 
 const useStyles = makeStyles({
   root: {
@@ -583,13 +602,19 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setImportSummary(summary);
 
       if (summary.errors.length === 0) {
-        announcer.announce("Dictionary Import Complete: Successfully imported terminology.", "polite");
+        announcer.announce(
+          "Dictionary Import Complete: Successfully imported terminology.",
+          "polite"
+        );
         setLastActionStatus({ type: "imported", message: "CDISC CT Import complete." });
         setTimeout(() => setLastActionStatus(null), 3000);
         // Reload the codelist library after a successful import
         await loadData();
       } else {
-        announcer.announce(`Dictionary Import Complete with ${summary.errors.length} errors.`, "polite");
+        announcer.announce(
+          `Dictionary Import Complete with ${summary.errors.length} errors.`,
+          "polite"
+        );
       }
     } catch (error) {
       const diagnostic = createOfficeDiagnostic(error);
@@ -1574,8 +1599,15 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                         Import Controlled Terminology
                       </Text>
-                      <Text block style={{ color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100 }}>
-                        Search and browse CDISC Controlled Terminology packages to import into your workbook.
+                      <Text
+                        block
+                        style={{
+                          color: tokens.colorNeutralForeground3,
+                          fontSize: tokens.fontSizeBase100,
+                        }}
+                      >
+                        Search and browse CDISC Controlled Terminology packages to import into your
+                        workbook.
                       </Text>
                       <Input
                         className={styles.searchInput}
@@ -1589,78 +1621,190 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Spinner size="small" label="Loading packages from CDISC Library..." />
                         </div>
                       ) : (
-                        <div className={styles.gridCard} style={{ maxHeight: "300px", overflowY: "auto" }}>
+                        <div
+                          className={styles.gridCard}
+                          style={{ maxHeight: "300px", overflowY: "auto" }}
+                        >
                           {importPackages
-                            .filter((pkg) => (pkg.title || pkg.packageOid).toLowerCase().includes(importPackageSearch.toLowerCase()) || pkg.packageOid.toLowerCase().includes(importPackageSearch.toLowerCase()))
+                            .filter(
+                              (pkg) =>
+                                (pkg.title || pkg.packageOid)
+                                  .toLowerCase()
+                                  .includes(importPackageSearch.toLowerCase()) ||
+                                pkg.packageOid
+                                  .toLowerCase()
+                                  .includes(importPackageSearch.toLowerCase())
+                            )
                             .map((pkg) => (
                               <AccessibleWrapper
                                 key={pkg.packageOid}
-                                style={{ padding: "8px", cursor: "pointer", borderBottom: `1px solid ${tokens.colorNeutralStroke1}`, backgroundColor: selectedPackage?.packageOid === pkg.packageOid ? tokens.colorNeutralBackground1Selected : "transparent" }}
+                                style={{
+                                  padding: "8px",
+                                  cursor: "pointer",
+                                  borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+                                  backgroundColor:
+                                    selectedPackage?.packageOid === pkg.packageOid
+                                      ? tokens.colorNeutralBackground1Selected
+                                      : "transparent",
+                                }}
                                 onClick={() => setSelectedPackage(pkg)}
                                 ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
                               >
-                                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{pkg.title || pkg.packageOid}</Text>
-                                <Text block style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>
-                                  OID: {pkg.packageOid} {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
+                                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                                  {pkg.title || pkg.packageOid}
+                                </Text>
+                                <Text
+                                  block
+                                  style={{
+                                    fontSize: tokens.fontSizeBase100,
+                                    color: tokens.colorNeutralForeground3,
+                                  }}
+                                >
+                                  OID: {pkg.packageOid}{" "}
+                                  {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                                 </Text>
                               </AccessibleWrapper>
                             ))}
                         </div>
                       )}
                       {importParseError && (
-                        <MessageBar intent="error"><MessageBarBody>{importParseError}</MessageBarBody></MessageBar>
+                        <MessageBar intent="error">
+                          <MessageBarBody>{importParseError}</MessageBarBody>
+                        </MessageBar>
                       )}
                     </div>
-                  )
+                  ),
                 },
                 {
                   id: "conflicts",
                   label: "Review Plan",
                   nextLabel: "Execute Import ✓",
                   onNext: async () => {
-                     await handleExecuteImport();
+                    await handleExecuteImport();
                   },
                   content: importPlan ? (
                     <>
                       <div className={styles.formCard}>
-                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>Import Plan</Text>
-                        <div className={styles.summaryRow}><Text>New codelists to insert</Text><Text className={styles.summaryCount}>{importPlan.autoInsertIds.size}</Text></div>
-                        <div className={styles.summaryRow}><Text>Codelists with newer version (auto-overwrite)</Text><Text className={styles.summaryCount}>{importPlan.autoOverwriteIds.size}</Text></div>
-                        <div className={styles.summaryRow}><Text>Identical codelists (auto-skip)</Text><Text className={styles.summaryCount}>{importPlan.skipIdenticalIds.size}</Text></div>
-                        <div className={styles.summaryRow}><Text>Conflicts requiring resolution</Text><Text className={styles.summaryCount}>{importPlan.conflictIds.size}</Text></div>
+                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                          Import Plan
+                        </Text>
+                        <div className={styles.summaryRow}>
+                          <Text>New codelists to insert</Text>
+                          <Text className={styles.summaryCount}>
+                            {importPlan.autoInsertIds.size}
+                          </Text>
+                        </div>
+                        <div className={styles.summaryRow}>
+                          <Text>Codelists with newer version (auto-overwrite)</Text>
+                          <Text className={styles.summaryCount}>
+                            {importPlan.autoOverwriteIds.size}
+                          </Text>
+                        </div>
+                        <div className={styles.summaryRow}>
+                          <Text>Identical codelists (auto-skip)</Text>
+                          <Text className={styles.summaryCount}>
+                            {importPlan.skipIdenticalIds.size}
+                          </Text>
+                        </div>
+                        <div className={styles.summaryRow}>
+                          <Text>Conflicts requiring resolution</Text>
+                          <Text className={styles.summaryCount}>{importPlan.conflictIds.size}</Text>
+                        </div>
                       </div>
                       {importPlan.conflicts.length > 0 && (
                         <div className={styles.conflictCard}>
-                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>Resolve Conflicts</Text>
+                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                            Resolve Conflicts
+                          </Text>
                           {importPlan.conflicts.map((conflict) => (
                             <div key={conflict.codelistId} className={styles.conflictItem}>
-                              <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{conflict.codelistId}</Text>
+                              <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                                {conflict.codelistId}
+                              </Text>
                               <div className={styles.conflictActions}>
-                                <Button appearance={conflictResolutions[conflict.codelistId] === "skip" ? "primary" : "outline"} onClick={() => handleConflictResolution(conflict.codelistId, "skip")}>Skip</Button>
-                                <Button appearance={conflictResolutions[conflict.codelistId] === "overwrite" ? "primary" : "outline"} onClick={() => handleConflictResolution(conflict.codelistId, "overwrite")}>Overwrite</Button>
+                                <Button
+                                  appearance={
+                                    conflictResolutions[conflict.codelistId] === "skip"
+                                      ? "primary"
+                                      : "outline"
+                                  }
+                                  onClick={() =>
+                                    handleConflictResolution(conflict.codelistId, "skip")
+                                  }
+                                >
+                                  Skip
+                                </Button>
+                                <Button
+                                  appearance={
+                                    conflictResolutions[conflict.codelistId] === "overwrite"
+                                      ? "primary"
+                                      : "outline"
+                                  }
+                                  onClick={() =>
+                                    handleConflictResolution(conflict.codelistId, "overwrite")
+                                  }
+                                >
+                                  Overwrite
+                                </Button>
                               </div>
                             </div>
                           ))}
                         </div>
                       )}
-                      {importError && <MessageBar intent="error"><MessageBarBody>{importError}</MessageBarBody></MessageBar>}
+                      {importError && (
+                        <MessageBar intent="error">
+                          <MessageBarBody>{importError}</MessageBarBody>
+                        </MessageBar>
+                      )}
                       {importProgress && (
                         <div className={styles.progressCard} style={{ marginTop: "16px" }}>
-                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importProgress.stage}</Text>
-                          <ProgressBar value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined} />
-                          <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>{importProgress.total > 0 ? `${importProgress.completed} / ${importProgress.total}` : "Processing…"}</Text>
+                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                            {importProgress.stage}
+                          </Text>
+                          <ProgressBar
+                            value={
+                              importProgress.total > 0
+                                ? importProgress.completed / importProgress.total
+                                : undefined
+                            }
+                          />
+                          <Text
+                            style={{
+                              fontSize: tokens.fontSizeBase100,
+                              color: tokens.colorNeutralForeground3,
+                            }}
+                          >
+                            {importProgress.total > 0
+                              ? `${importProgress.completed} / ${importProgress.total}`
+                              : "Processing…"}
+                          </Text>
                         </div>
                       )}
                     </>
-                  ) : (
-                    importProgress ? (
-                      <div className={styles.progressCard} style={{ marginTop: "16px" }}>
-                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importProgress.stage}</Text>
-                        <ProgressBar value={importProgress.total > 0 ? importProgress.completed / importProgress.total : undefined} />
-                        <Text style={{ fontSize: tokens.fontSizeBase100, color: tokens.colorNeutralForeground3 }}>{importProgress.total > 0 ? `${importProgress.completed} / ${importProgress.total}` : "Processing…"}</Text>
-                      </div>
-                    ) : null
-                  )
+                  ) : importProgress ? (
+                    <div className={styles.progressCard} style={{ marginTop: "16px" }}>
+                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                        {importProgress.stage}
+                      </Text>
+                      <ProgressBar
+                        value={
+                          importProgress.total > 0
+                            ? importProgress.completed / importProgress.total
+                            : undefined
+                        }
+                      />
+                      <Text
+                        style={{
+                          fontSize: tokens.fontSizeBase100,
+                          color: tokens.colorNeutralForeground3,
+                        }}
+                      >
+                        {importProgress.total > 0
+                          ? `${importProgress.completed} / ${importProgress.total}`
+                          : "Processing…"}
+                      </Text>
+                    </div>
+                  ) : null,
                 },
                 {
                   id: "summary",
@@ -1675,16 +1819,40 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   },
                   content: importSummary ? (
                     <div className={styles.summaryCard}>
-                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>{importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}</Text>
-                      <div className={styles.summaryRow}><Text>Added</Text><Text className={styles.summaryCount}>{importSummary.added}</Text></div>
-                      <div className={styles.summaryRow}><Text>Updated</Text><Text className={styles.summaryCount}>{importSummary.updated}</Text></div>
-                      <div className={styles.summaryRow}><Text>Skipped</Text><Text className={styles.summaryCount}>{importSummary.skipped}</Text></div>
-                      {importSummary.failed > 0 && <div className={styles.summaryRow}><Text>Failed</Text><Text className={styles.summaryCount}>{importSummary.failed}</Text></div>}
-                      {importSummary.errors.map((err, i) => <MessageBar key={i} intent="error"><MessageBarBody>{err}</MessageBarBody></MessageBar>)}
-                      {importSummary.warnings.map((w, i) => <MessageBar key={i} intent="warning"><MessageBarBody>{w}</MessageBarBody></MessageBar>)}
+                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                        {importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}
+                      </Text>
+                      <div className={styles.summaryRow}>
+                        <Text>Added</Text>
+                        <Text className={styles.summaryCount}>{importSummary.added}</Text>
+                      </div>
+                      <div className={styles.summaryRow}>
+                        <Text>Updated</Text>
+                        <Text className={styles.summaryCount}>{importSummary.updated}</Text>
+                      </div>
+                      <div className={styles.summaryRow}>
+                        <Text>Skipped</Text>
+                        <Text className={styles.summaryCount}>{importSummary.skipped}</Text>
+                      </div>
+                      {importSummary.failed > 0 && (
+                        <div className={styles.summaryRow}>
+                          <Text>Failed</Text>
+                          <Text className={styles.summaryCount}>{importSummary.failed}</Text>
+                        </div>
+                      )}
+                      {importSummary.errors.map((err, i) => (
+                        <MessageBar key={i} intent="error">
+                          <MessageBarBody>{err}</MessageBarBody>
+                        </MessageBar>
+                      ))}
+                      {importSummary.warnings.map((w, i) => (
+                        <MessageBar key={i} intent="warning">
+                          <MessageBarBody>{w}</MessageBarBody>
+                        </MessageBar>
+                      ))}
                     </div>
-                  ) : null
-                }
+                  ) : null,
+                },
               ]}
             />
           </div>

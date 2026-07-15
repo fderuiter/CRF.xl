@@ -21,7 +21,6 @@ import { loadImportManifest } from "@crf-xl/core/services/migration-pipeline";
 
 import { formatDate } from "@crf-xl/core/utils/locale-utils";
 
-
 const useStyles = makeStyles({
   container: {
     display: "flex",
@@ -130,13 +129,13 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
                     Hash mismatch could not be resolved. Physical data might be lost.
                   </Text>
                 ) : drift.proposedAddress ? (
-                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                     <Text block size={200}>
                       Proposed new coordinates: {drift.proposedAddress}
                     </Text>
-                    <Button 
-                      size="small" 
-                      appearance="primary" 
+                    <Button
+                      size="small"
+                      appearance="primary"
                       onClick={() => onReAnchor?.(drift.annotationId, drift.proposedAddress!)}
                     >
                       Re-Anchor

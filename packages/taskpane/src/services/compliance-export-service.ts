@@ -18,9 +18,7 @@ import { generateDocxBlob } from "@crf-xl/core/generators/docx/docx-builder";
 import { generatePdfBlob } from "../generators/pdf/pdf-builder";
 import { ImportProvenance } from "@crf-xl/core/services/migration-pipeline";
 
-
 import { diffStudyDesigns } from "@crf-xl/core/services/diff-engine";
-
 
 export interface VerificationManifest {
   manifestVersion: string;

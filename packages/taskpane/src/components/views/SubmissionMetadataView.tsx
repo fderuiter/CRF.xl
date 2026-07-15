@@ -21,7 +21,11 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import { AdamDatasetClass, DatasetPurpose, SdtmDatasetClass } from "@crf-xl/core/types/enums";
-import { AdamDatasetMetadata, SdtmDatasetMetadata, SubmissionMetadata } from "@crf-xl/core/types/clinical";
+import {
+  AdamDatasetMetadata,
+  SdtmDatasetMetadata,
+  SubmissionMetadata,
+} from "@crf-xl/core/types/clinical";
 
 import { InfoRegular } from "@fluentui/react-icons";
 import {

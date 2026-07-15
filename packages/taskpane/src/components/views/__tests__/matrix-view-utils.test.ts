@@ -8,7 +8,6 @@ import { buildMatrixSearchIndex, filterMatrixSearchIndex } from "../matrix-view-
 import { DataType, EventType } from "@crf-xl/core/types/enums";
 import { StudyDesign } from "@crf-xl/core/types/hierarchy";
 
-
 function createStudy(options?: {
   formCount?: number;
   variablesPerForm?: number;

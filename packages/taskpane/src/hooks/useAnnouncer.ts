@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { announcer, AnnouncementPriority } from "@crf-xl/core/services/announcer";
 
-
 export const useAnnouncer = () => {
   const [announcement, setAnnouncement] = useState<{
     id: number;

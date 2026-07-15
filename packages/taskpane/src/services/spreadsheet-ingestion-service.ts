@@ -18,12 +18,15 @@
  * No Excel.run / Office.js calls live here so the module is fully unit-testable.
  */
 
-import { ImportDiagnostic, ImportProvenance, WorkbookProjection } from "@crf-xl/core/services/migration-pipeline";
+import {
+  ImportDiagnostic,
+  ImportProvenance,
+  WorkbookProjection,
+} from "@crf-xl/core/services/migration-pipeline";
 
 import { groupBy } from "@crf-xl/core/utils/collection-utils";
 
 import { normalizeOid } from "@crf-xl/core/parser/metadata-utils";
-
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -97,11 +100,7 @@ export interface FieldMapping {
 
 /** Diagnostic categories aligned with the issue acceptance criteria. */
 export type DiagnosticCategory =
-  | "missing-required"
-  | "ambiguous"
-  | "unsupported"
-  | "conflicting-types"
-  | "duplicate-identity";
+  "missing-required" | "ambiguous" | "unsupported" | "conflicting-types" | "duplicate-identity";
 
 /** A single validation finding emitted by validateMappings(). */
 export interface IngestionDiagnostic extends ImportDiagnostic {

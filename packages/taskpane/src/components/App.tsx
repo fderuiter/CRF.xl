@@ -1,7 +1,11 @@
 /**
  * @issue #28
  */
-import { applyValidationVisuals, getOrphanedAnnotationsCount, refreshAnnotationHighlights } from "@crf-xl/taskpane/services/annotation-service";
+import {
+  applyValidationVisuals,
+  getOrphanedAnnotationsCount,
+  refreshAnnotationHighlights,
+} from "@crf-xl/taskpane/services/annotation-service";
 import { annotationPaintbrushService } from "@crf-xl/taskpane/services/annotation-paintbrush-service";
 import { bindingService } from "@crf-xl/taskpane/services/binding-service";
 
@@ -43,27 +47,36 @@ import { VaultService } from "@crf-xl/core/services/vault-service";
 
 import { LinguisticService } from "@crf-xl/core/services/linguistics-service";
 
-
 import { diffStudyDesigns } from "@crf-xl/core/services/diff-engine";
 
-import { initializeWorkbook, navigateToSource, syncRegistry } from "@crf-xl/taskpane/parser/template-generator";
+import {
+  initializeWorkbook,
+  navigateToSource,
+  syncRegistry,
+} from "@crf-xl/taskpane/parser/template-generator";
 
 import { StudyDesign } from "@crf-xl/core/types/hierarchy";
 import { SubmissionMetadata } from "@crf-xl/core/types/clinical";
 import { ExportMode, ExportOptions } from "@crf-xl/core/types/linguistics";
 
-import { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "@crf-xl/core/services/baseline-workbook-service";
+import {
+  BaselineWorkbookParseError,
+  parseBaselineWorkbookFile,
+} from "@crf-xl/core/services/baseline-workbook-service";
 
 import { RECOVERY_APP_VERSION, summarizeStudyDesign } from "@crf-xl/core/services/recovery-storage";
 import { formatDate } from "@crf-xl/core/utils/locale-utils";
 
 import { createOfficeDiagnostic } from "@crf-xl/taskpane/services/office-error-handling";
 
-import { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "@crf-xl/core/services/version-update-service";
+import {
+  VersionUpdateMetadata,
+  checkForVersionUpdate,
+  dismissVersionNotification,
+} from "@crf-xl/core/services/version-update-service";
 
 import { loadImportManifest } from "@crf-xl/core/services/migration-pipeline";
 import { onboardingService } from "@crf-xl/core/services/onboarding-service";
-
 
 // Telemetry & Views
 import { RegistryView } from "./views/RegistryView";
@@ -75,7 +88,11 @@ import { IntegrityHubView } from "./views/IntegrityHubView";
 import { DictionarySidecar } from "./views/DictionarySidecar";
 import { AuditOrchestratorModal } from "./AuditOrchestratorModal";
 import { AuditJustification } from "@crf-xl/core/types/common";
-import { DriftWarning, detectDrifts, applyManualReAnchor } from "@crf-xl/taskpane/services/annotation-service";
+import {
+  DriftWarning,
+  detectDrifts,
+  applyManualReAnchor,
+} from "@crf-xl/taskpane/services/annotation-service";
 
 import { OnboardingTour } from "./OnboardingTour";
 import { ReviewView } from "./views/ReviewView";
@@ -205,7 +222,6 @@ function toSafeHttpUrl(url: string | undefined): string | null {
 import { useAnnouncer } from "../hooks/useAnnouncer";
 import { appOrchestrator } from "@crf-xl/taskpane/services/app-orchestrator";
 
-
 export const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
@@ -231,7 +247,7 @@ export const App: React.FC<{ title?: string }> = () => {
     recoverySnapshot,
     storageWarning,
     uiError,
-    isSyncing
+    isSyncing,
   } = state;
 
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
@@ -331,7 +347,7 @@ export const App: React.FC<{ title?: string }> = () => {
       if (!complianceGovernanceService.isAuthenticated) {
         complianceGovernanceService.initialize().catch(console.error);
       }
-      
+
       // 5. Detect drifts
       detectDrifts().then(setDrifts).catch(console.error);
       Office.context.document.getFilePropertiesAsync((result) => {
@@ -401,7 +417,11 @@ export const App: React.FC<{ title?: string }> = () => {
 
   useEffect(() => {
     if (uiError) {
-      if (!previousFocusRef.current && document.activeElement && document.activeElement !== document.body) {
+      if (
+        !previousFocusRef.current &&
+        document.activeElement &&
+        document.activeElement !== document.body
+      ) {
         previousFocusRef.current = document.activeElement as HTMLElement;
       }
       setTimeout(() => {
@@ -432,11 +452,11 @@ export const App: React.FC<{ title?: string }> = () => {
     console.error(`[${diagnostic.category}]`, error);
     // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
     // For manual operation errors, we might still want local state, but we can just use Orchestrator state.
-    appOrchestrator["updateState"]({ 
+    appOrchestrator["updateState"]({
       uiError: {
         ...diagnostic.toJSON(),
         retryAction: diagnostic.allowRetry ? retryAction : undefined,
-      } 
+      },
     } as any);
   };
 
@@ -466,7 +486,10 @@ export const App: React.FC<{ title?: string }> = () => {
 
   useEffect(() => {
     if (syncConflict) {
-      announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
+      announce(
+        "Conflict Detected: The workbook was modified during a background sync.",
+        "assertive"
+      );
     }
   }, [syncConflict]);
 
@@ -881,7 +904,9 @@ export const App: React.FC<{ title?: string }> = () => {
           onInit={handleInitialize}
           onSync={handleSync}
           onLoadSubmissionMetadata={async () => {
-            actions.requestValidation(activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined);
+            actions.requestValidation(
+              activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined
+            );
           }}
           onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
           onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
@@ -1027,7 +1052,11 @@ export const App: React.FC<{ title?: string }> = () => {
                 <Button appearance="primary" size="small" onClick={handleRestoreSnapshot}>
                   Restore
                 </Button>
-                <Button appearance="secondary" size="small" onClick={actions.dismissRecoverySnapshot}>
+                <Button
+                  appearance="secondary"
+                  size="small"
+                  onClick={actions.dismissRecoverySnapshot}
+                >
                   Dismiss
                 </Button>
               </div>
@@ -1208,7 +1237,10 @@ export const App: React.FC<{ title?: string }> = () => {
                         {lang}
                       </Option>
                     )) || (
-                      <Option value={study?.metadata.defaultLanguage} text={study?.metadata.defaultLanguage || ""}>
+                      <Option
+                        value={study?.metadata.defaultLanguage}
+                        text={study?.metadata.defaultLanguage || ""}
+                      >
                         {study?.metadata.defaultLanguage}
                       </Option>
                     )}

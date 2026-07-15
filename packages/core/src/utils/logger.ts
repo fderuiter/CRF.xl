@@ -33,9 +33,7 @@ class Logger {
 
   private isHostReady = true;
 
-  constructor() {
-    
-  }
+  constructor() {}
 
   public configure(config: Partial<LoggerConfig>) {
     this.config = { ...this.config, ...config };

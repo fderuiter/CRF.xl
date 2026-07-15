@@ -9,7 +9,6 @@ import { speculativeSyncManager } from "@crf-xl/taskpane/services/speculative-sy
 import { ValidationIssue } from "@crf-xl/core/types/validation";
 import { SubmissionMetadata } from "@crf-xl/core/types/clinical";
 
-
 let isOrchestratorInitialized = false;
 
 export function useAppOrchestrator() {

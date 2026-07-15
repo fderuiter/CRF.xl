@@ -5,7 +5,6 @@
 /* global Excel */
 import { ReviewerComment, ReviewerCommentStatus } from "@crf-xl/core/types/reviewer";
 
-
 const REVIEW_XML_NAMESPACE = "http://schemas.crf-xl.com/review";
 
 /**

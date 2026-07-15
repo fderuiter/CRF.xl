@@ -8,7 +8,6 @@ import { DiagnosticError } from "@crf-xl/core/services/diagnostic-framework";
 import { createOfficeDiagnostic } from "./office-error-handling";
 import { SubscriptionManager } from "@crf-xl/core/utils/event-utility";
 
-
 export interface SelectionContext {
   sheetName: string;
   address: string;

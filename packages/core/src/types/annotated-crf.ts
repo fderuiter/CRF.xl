@@ -120,11 +120,7 @@ export interface AnnotatedCrfPipelineManifest {
  * A single verification issue for an aCRF.
  */
 export type AcrfVerificationCategory =
-  | "Metadata"
-  | "Structure"
-  | "Annotation"
-  | "Consistency"
-  | "Completeness";
+  "Metadata" | "Structure" | "Annotation" | "Consistency" | "Completeness";
 
 export interface AcrfVerificationIssue {
   severity: "error" | "warning";

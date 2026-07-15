@@ -14,7 +14,6 @@ import {
 } from "@fluentui/react-components";
 import { onboardingService, OnboardingState } from "@crf-xl/core/services/onboarding-service";
 
-
 const useStyles = makeStyles({
   surface: {
     maxWidth: "320px",

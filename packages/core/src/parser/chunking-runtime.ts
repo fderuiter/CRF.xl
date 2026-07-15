@@ -5,14 +5,7 @@
 import { ChunkingEngine, getDefaultYieldStrategy } from "../engine/chunking-engine";
 
 export type ParsePhase =
-  | "metadata"
-  | "codelists"
-  | "forms"
-  | "items"
-  | "schedule"
-  | "rules"
-  | "methods"
-  | "complete";
+  "metadata" | "codelists" | "forms" | "items" | "schedule" | "rules" | "methods" | "complete";
 
 export interface ParseProgressUpdate {
   phase: ParsePhase;

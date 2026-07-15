@@ -5,7 +5,6 @@
 import { useState, useEffect } from "react";
 import { bindingService } from "@crf-xl/taskpane/services/binding-service";
 
-
 export function useExcelTelemetry() {
   const [activeSheet, setActiveSheet] = useState<string>("_Study");
   const [isCodelistActive, setIsCodelistActive] = useState<boolean>(false);

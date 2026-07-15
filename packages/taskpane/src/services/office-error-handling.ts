@@ -1,6 +1,5 @@
 import { DiagnosticError } from "@crf-xl/core/services/diagnostic-framework";
 
-
 /**
  * @issue #68
  */

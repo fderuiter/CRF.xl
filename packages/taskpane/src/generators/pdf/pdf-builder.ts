@@ -23,7 +23,6 @@ import { Theme } from "@crf-xl/taskpane/theme";
 
 import { getTranslation } from "@crf-xl/core/generators/shared-localization";
 
-
 export async function generatePdfBlob(
   study: StudyDesign,
   validationIssues: any[] = [],

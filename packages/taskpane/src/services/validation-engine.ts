@@ -10,7 +10,6 @@ import { announcer } from "@crf-xl/core/services/announcer";
 
 import { SubscriptionManager } from "@crf-xl/core/utils/event-utility";
 
-
 export interface ValidationState {
   isProcessing: boolean;
   study: StudyDesign | null;

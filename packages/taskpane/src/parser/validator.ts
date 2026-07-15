@@ -15,7 +15,6 @@ import { parseNumber } from "@crf-xl/core/utils/locale-utils";
 
 import { normalizeOid } from "@crf-xl/core/parser/metadata-utils";
 
-
 export interface CrossFormDependency {
   id: string;
   sourceFormOid: string;
@@ -46,8 +45,7 @@ export async function validateStudyDesign(
 
   // 0. Inject OID Collisions from parsing
   const oidCollisions = study.metadata.customProperties?.oidCollisions as
-    | import("@crf-xl/core/registry/oid-registry").OidCollision[]
-    | undefined;
+    import("@crf-xl/core/registry/oid-registry").OidCollision[] | undefined;
   if (oidCollisions && oidCollisions.length > 0) {
     oidCollisions.forEach((col) => {
       issues.push({
@@ -678,7 +676,6 @@ function isNumericDataType(dataType: unknown): boolean {
 }
 
 import { ClinicalValidationPipeline } from "@crf-xl/core/validators/clinical-pipeline";
-
 
 export function validateSubmissionMetadataForRelease(study: StudyDesign): ValidationIssue[] {
   const issues: ValidationIssue[] = [];

@@ -117,8 +117,7 @@ export const RecoverySnapshotSchema = z
   .strict();
 
 type PersistResult =
-  | { saved: true }
-  | { saved: false; reason: "storage-unavailable" | "quota-exceeded" | "unknown" };
+  { saved: true } | { saved: false; reason: "storage-unavailable" | "quota-exceeded" | "unknown" };
 
 function resolveStorage(storage?: StorageLike): StorageLike | null {
   if (storage) return storage;

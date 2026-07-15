@@ -6,7 +6,6 @@ import { AdamDatasetMetadata, SdtmDatasetMetadata } from "@crf-xl/core/types/cli
 
 import { ClinicalValidationPipeline } from "@crf-xl/core/validators/clinical-pipeline";
 
-
 export interface DatasetDraft<T> {
   id: string;
   metadata: T;

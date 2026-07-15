@@ -7,7 +7,11 @@ import { logger } from "@crf-xl/core/utils/logger";
  */
 
 /* global Excel */
-import { ParseRuntime, createParseRuntime, processRowsInChunks } from "@crf-xl/core/parser/chunking-runtime";
+import {
+  ParseRuntime,
+  createParseRuntime,
+  processRowsInChunks,
+} from "@crf-xl/core/parser/chunking-runtime";
 
 import { LinguisticService } from "@crf-xl/core/services/linguistics-service";
 

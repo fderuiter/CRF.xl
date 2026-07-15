@@ -27,7 +27,6 @@ import { sha256Native } from "@crf-xl/core/utils/crypto-utils";
 
 import { formatDate } from "@crf-xl/core/utils/locale-utils";
 
-
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
 import { SpreadsheetIngestionWizard } from "./SpreadsheetIngestionWizard";
 import { OdmImportWizard } from "./OdmImportWizard";

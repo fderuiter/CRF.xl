@@ -23,7 +23,6 @@ import { ChunkingEngine, ExecutionPlan } from "@crf-xl/core/engine/chunking-engi
 
 import { createRetryMiddleware } from "@crf-xl/core/engine/middlewares";
 
-
 export interface SpeculativeSyncOperation {
   id: string;
   plans: ExecutionPlan<string[]>[];

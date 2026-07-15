@@ -24,7 +24,6 @@ import {
 } from "@fluentui/react-icons";
 import { ReviewerComment } from "@crf-xl/core/types/reviewer";
 
-
 const useStyles = makeStyles({
   root: {
     display: "flex",

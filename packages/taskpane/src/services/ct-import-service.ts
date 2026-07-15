@@ -3,7 +3,11 @@
  * @issue #76
  */
 
-import { applyCodelistLifecycle, CrfCodelistsRow, LifecycleAction } from "@crf-xl/core/services/cdisc-ct-mapping-service";
+import {
+  applyCodelistLifecycle,
+  CrfCodelistsRow,
+  LifecycleAction,
+} from "@crf-xl/core/services/cdisc-ct-mapping-service";
 
 import { SHEET_NAMES, SHEET_HEADERS } from "@crf-xl/core/registry/sheet-metadata-registry";
 
@@ -12,7 +16,6 @@ import { groupBy } from "@crf-xl/core/utils/collection-utils";
 import { ChunkingEngine, ExecutionPlan } from "@crf-xl/core/engine/chunking-engine";
 
 import { announcer } from "@crf-xl/core/services/announcer";
-
 
 export type ConflictResolution = "skip" | "overwrite" | "append";
 

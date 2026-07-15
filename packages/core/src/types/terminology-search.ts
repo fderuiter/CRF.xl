@@ -11,11 +11,7 @@
 export type TerminologySearchMode = "exact" | "prefix" | "fuzzy" | "synonym" | "code";
 
 export type MatchReason =
-  | "exact_match"
-  | "prefix_match"
-  | "fuzzy_match"
-  | "synonym_match"
-  | "code_match";
+  "exact_match" | "prefix_match" | "fuzzy_match" | "synonym_match" | "code_match";
 
 /**
  * Priority order for ranking:

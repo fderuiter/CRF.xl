@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 
+const path = require("path");
 const devCerts = require("office-addin-dev-certs");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -20,16 +21,20 @@ module.exports = async (env, options) => {
     entry: {
       react: ["react", "react-dom"],
       taskpane: {
-        import: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
+        import: ["./packages/taskpane/src/index.tsx", "./packages/taskpane/src/taskpane.html"],
         dependOn: "react",
       },
-      commands: "./src/commands/commands.ts",
+      commands: "./packages/taskpane/src/commands/commands.ts",
     },
     output: {
       clean: true,
     },
     resolve: {
       extensions: [".ts", ".tsx", ".html", ".js"],
+      alias: {
+        "@crf-xl/core": path.resolve(__dirname, "packages/core/src/"),
+        "@crf-xl/taskpane": path.resolve(__dirname, "packages/taskpane/src/")
+      },
       fallback: {
         "crypto": require.resolve("crypto-browserify"),
         "stream": require.resolve("stream-browserify"),
@@ -76,7 +81,7 @@ module.exports = async (env, options) => {
     plugins: [
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
-        template: "./src/taskpane/taskpane.html",
+        template: "./packages/taskpane/src/taskpane.html",
         chunks: ["taskpane", "react"],
       }),
       new CopyWebpackPlugin({
@@ -117,7 +122,7 @@ module.exports = async (env, options) => {
       }),
       new HtmlWebpackPlugin({
         filename: "commands.html",
-        template: "./src/commands/commands.html",
+        template: "./packages/taskpane/src/commands/commands.html",
         chunks: ["commands"],
       }),
       new webpack.ProvidePlugin({

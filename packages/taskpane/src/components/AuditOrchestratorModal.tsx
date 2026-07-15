@@ -19,7 +19,6 @@ import {
 import { StudyDiffReport } from "@crf-xl/core/types/diff";
 import { AuditJustification } from "@crf-xl/core/types/common";
 
-
 interface AuditOrchestratorModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;

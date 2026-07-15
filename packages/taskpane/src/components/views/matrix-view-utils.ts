@@ -4,7 +4,6 @@
 import { StudyDesign, isCrfItem } from "@crf-xl/core/types/hierarchy";
 import { DataType } from "@crf-xl/core/types/enums";
 
-
 export type MatrixRequiredFilter = "all" | "required" | "optional";
 
 export interface MatrixSearchFilters {

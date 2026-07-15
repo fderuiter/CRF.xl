@@ -10,7 +10,6 @@ import { ParseProgressUpdate } from "@crf-xl/core/parser/chunking-runtime";
 import { validateStudyDesign } from "../parser/validator";
 import { DiagnosticError } from "@crf-xl/core/services/diagnostic-framework";
 
-
 const ctx: Worker = self as any;
 
 ctx.onmessage = async (event: MessageEvent) => {

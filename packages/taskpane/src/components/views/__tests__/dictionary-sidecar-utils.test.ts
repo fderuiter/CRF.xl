@@ -6,7 +6,6 @@
 import { filterDictionaries, getDictionaryPreview } from "../dictionary-sidecar-utils";
 import { CodelistGroup } from "@crf-xl/taskpane/services/dictionary-service";
 
-
 const dictionaries: CodelistGroup[] = [
   {
     id: "SEV_DICT",
@@ -73,10 +72,11 @@ describe("dictionary-sidecar-utils", () => {
   });
 
   it("builds a preview using only the coded value when decode is absent", () => {
-    const itemsWithoutDecode: import("@crf-xl/taskpane/services/dictionary-service").CodelistItem[] = [
-      { codedValue: "A", decodedText: {} },
-      { codedValue: "B", decodedText: { "en-US": "Beta" } },
-    ];
+    const itemsWithoutDecode: import("@crf-xl/taskpane/services/dictionary-service").CodelistItem[] =
+      [
+        { codedValue: "A", decodedText: {} },
+        { codedValue: "B", decodedText: { "en-US": "Beta" } },
+      ];
     expect(getDictionaryPreview(itemsWithoutDecode, "en-US", "en-US")).toEqual({
       previewItems: ["A", "B = Beta"],
       overflowCount: 0,

@@ -17,9 +17,7 @@ export interface CrfCodelistsRow {
 }
 
 type MappingWarningCode =
-  | "unsupported_field"
-  | "ambiguous_term_decode"
-  | "lifecycle_conflict_requires_user_prompt";
+  "unsupported_field" | "ambiguous_term_decode" | "lifecycle_conflict_requires_user_prompt";
 
 interface MappingWarning {
   code: MappingWarningCode;

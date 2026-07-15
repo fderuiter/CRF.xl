@@ -4,8 +4,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { ReviewerComment } from "@crf-xl/core/types/reviewer";
 
-import { loadComments, saveComment, updateCommentStatus, deleteComment as deleteCommentFromStore } from "@crf-xl/taskpane/services/review-service";
-
+import {
+  loadComments,
+  saveComment,
+  updateCommentStatus,
+  deleteComment as deleteCommentFromStore,
+} from "@crf-xl/taskpane/services/review-service";
 
 export const useReviewSession = (reviewerName: string) => {
   const [comments, setComments] = useState<ReviewerComment[]>([]);

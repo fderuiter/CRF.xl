@@ -16,7 +16,6 @@ import { ChunkingEngine, ExecutionPlan } from "@crf-xl/core/engine/chunking-engi
 
 import { announcer } from "@crf-xl/core/services/announcer";
 
-
 export interface EnvironmentComplianceStatus {
   isCloudHosted: boolean;
   documentUrl: string;

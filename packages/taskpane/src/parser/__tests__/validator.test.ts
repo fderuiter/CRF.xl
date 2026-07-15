@@ -4,8 +4,13 @@
 
 import { validateStudyDesign, validateSubmissionMetadataForRelease } from "../validator";
 import { StudyDesign } from "@crf-xl/core/types/hierarchy";
-import { DataType, EventType, SdtmDatasetClass, AdamDatasetClass, AdamCore } from "@crf-xl/core/types/enums";
-
+import {
+  DataType,
+  EventType,
+  SdtmDatasetClass,
+  AdamDatasetClass,
+  AdamCore,
+} from "@crf-xl/core/types/enums";
 
 describe("Clinical Validator Engine", () => {
   let mockStudy: StudyDesign;

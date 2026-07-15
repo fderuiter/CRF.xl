@@ -4,15 +4,16 @@
  */
 import { LinguisticService } from "@crf-xl/core/services/linguistics-service";
 
-
 import { groupBy } from "@crf-xl/core/utils/collection-utils";
 
 import { ChunkingEngine, ExecutionPlan } from "@crf-xl/core/engine/chunking-engine";
 
 import { announcer } from "@crf-xl/core/services/announcer";
 
-
-export type CodelistItem = Pick<import("@crf-xl/core/types").CodelistItem, "codedValue" | "decodedText">;
+export type CodelistItem = Pick<
+  import("@crf-xl/core/types").CodelistItem,
+  "codedValue" | "decodedText"
+>;
 
 export interface CodelistGroup {
   id: string;

@@ -11,7 +11,6 @@ import { parseRawDataToStudyDesign } from "@crf-xl/core/parser/parser-engine";
 
 import { DiagnosticError } from "@crf-xl/core/services/diagnostic-framework";
 
-
 interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
 }

@@ -13,10 +13,12 @@ import {
 } from "@fluentui/react-components";
 import { bindingService, SelectionContext } from "@crf-xl/taskpane/services/binding-service";
 
-import { loadAnnotationsFromStore, editAnnotation } from "@crf-xl/taskpane/services/annotation-service";
+import {
+  loadAnnotationsFromStore,
+  editAnnotation,
+} from "@crf-xl/taskpane/services/annotation-service";
 
 import { Annotation, LifecycleState } from "@crf-xl/core/types/annotation";
-
 
 const useStyles = makeStyles({
   container: {
@@ -44,7 +46,9 @@ const useStyles = makeStyles({
 
 export const AnnotationInspector: React.FC = () => {
   const styles = useStyles();
-  const [context, setContext] = React.useState<SelectionContext | null>(bindingService.getCurrentContext());
+  const [context, setContext] = React.useState<SelectionContext | null>(
+    bindingService.getCurrentContext()
+  );
   const [annotation, setAnnotation] = React.useState<Annotation | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -93,13 +97,13 @@ export const AnnotationInspector: React.FC = () => {
         ...annotation,
         metadata: updatedMeta,
       };
-      
+
       await editAnnotation(
         annotation.anchor.sheetName,
         annotation.anchor.address,
         updatedAnnotation
       );
-      
+
       setAnnotation(updatedAnnotation);
     } catch (e) {
       console.error("Failed to update lifecycle state", e);

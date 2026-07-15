@@ -15,10 +15,12 @@ import {
   MessageBarBody,
 } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ErrorCircleRegular } from "@fluentui/react-icons";
-import { complianceGovernanceService as service, EnvironmentComplianceStatus } from "@crf-xl/taskpane/services/compliance-governance-service";
+import {
+  complianceGovernanceService as service,
+  EnvironmentComplianceStatus,
+} from "@crf-xl/taskpane/services/compliance-governance-service";
 
 import { backgroundValidationEngine } from "@crf-xl/taskpane/services/validation-engine";
-
 
 const useStyles = makeStyles({
   container: {

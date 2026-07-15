@@ -29,7 +29,6 @@ import {
 } from "./study-diff-view-utils";
 import { formatDate } from "@crf-xl/core/utils/locale-utils";
 
-
 interface StudyDiffViewProps {
   report: StudyDiffReport | null;
 }
@@ -168,8 +167,13 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
       }),
     [entries, group, changeClass, subsystem, severity, area]
   );
-  
-  const { items: paginatedEntries, page, totalPages, setPage } = useUnifiedList({
+
+  const {
+    items: paginatedEntries,
+    page,
+    totalPages,
+    setPage,
+  } = useUnifiedList({
     data: filteredEntries,
     mode: "paginated",
     itemsPerPage: PAGE_SIZE,
@@ -329,10 +333,7 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
               Page {page} / {totalPages}
             </Text>
             <div>
-              <Button
-                disabled={page <= 1}
-                onClick={() => setPage((current) => current - 1)}
-              >
+              <Button disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
                 Previous
               </Button>
               <Button
