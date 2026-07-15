@@ -29,10 +29,11 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
 
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
+    sheet.load("isNullObject");
     await context.sync();
     if (sheet.isNullObject) return;
 
-    const tables = sheet.tables;
+    const { tables } = sheet;
     tables.load("count");
     await context.sync();
 
@@ -162,7 +163,7 @@ export async function saveDictionary(
 ): Promise<void> {
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem("_Codelists");
-    const tables = sheet.tables;
+    const { tables } = sheet;
     tables.load("count");
     await context.sync();
 

@@ -59,13 +59,14 @@ export async function saveCommentsBatch(comments: ReviewerComment[]): Promise<vo
 
   await Excel.run(async (context) => {
     const parts = context.workbook.customXmlParts.getByNamespace(REVIEW_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
     await context.sync();
 
     let xmlDoc: Document;
     let part: Excel.CustomXmlPart;
 
-    if (parts.items.length === 0) {
+    const { items } = parts;
+    if (items.length === 0) {
       const initialXml = `<ReviewerComments xmlns="${REVIEW_XML_NAMESPACE}"></ReviewerComments>`;
       part = context.workbook.customXmlParts.add(initialXml);
       const parser = new DOMParser();
@@ -118,11 +119,12 @@ export async function loadComments(): Promise<ReviewerComment[]> {
 
   await Excel.run(async (context) => {
     const parts = context.workbook.customXmlParts.getByNamespace(REVIEW_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
     await context.sync();
 
-    if (parts.items.length > 0) {
-      const part = parts.items[0];
+    const { items } = parts;
+    if (items.length > 0) {
+      const part = items[0];
       (part as any).load("xml");
       await context.sync();
 
@@ -146,11 +148,12 @@ export async function deleteComment(id: string): Promise<void> {
 
   await Excel.run(async (context) => {
     const parts = context.workbook.customXmlParts.getByNamespace(REVIEW_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
     await context.sync();
 
-    if (parts.items.length > 0) {
-      const part = parts.items[0];
+    const { items } = parts;
+    if (items.length > 0) {
+      const part = items[0];
       (part as any).load("xml");
       await context.sync();
 

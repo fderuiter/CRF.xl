@@ -102,9 +102,13 @@ class AnnotationPaintbrushService {
       const { loadAnnotationsFromStore } = await import("./annotation-service");
       const sheet = context.workbook.worksheets.getItem(sheetName);
       const range = sheet.getRange(address);
-      const comments = (range as any).getComments
-        ? (range as any).getComments()
-        : (sheet.comments as any).getComments(range);
+      sheet.load("comments");
+      await context.sync();
+      const anyRange = range as any;
+      const anySheet = sheet as any;
+      const comments = anyRange.getComments
+        ? anyRange.getComments()
+        : anySheet.comments.getComments(range);
       comments.load("items");
       await context.sync();
 

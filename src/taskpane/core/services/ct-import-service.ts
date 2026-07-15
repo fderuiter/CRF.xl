@@ -72,6 +72,7 @@ function groupByCodelistId(rows: CrfCodelistsRow[]): Map<string, CrfCodelistsRow
 export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
+    sheet.load("isNullObject");
     await context.sync();
 
     if (sheet.isNullObject) {
@@ -79,8 +80,8 @@ export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
     }
 
     sheet.load("protection/protected");
-    const usedRange = sheet.getUsedRange();
-    usedRange.load(["rowCount", "columnCount"]);
+    const usedRange = sheet.getUsedRangeOrNullObject();
+    usedRange.load(["rowCount", "columnCount", "isNullObject"]);
     await context.sync();
 
     if (sheet.protection.protected) {
@@ -222,6 +223,7 @@ export function buildCtImportPlan(
 async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> {
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
+    sheet.load("isNullObject");
     await context.sync();
 
     if (sheet.isNullObject) {
@@ -229,8 +231,8 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
     }
 
     sheet.load("protection/protected");
-    const usedRange = sheet.getUsedRange();
-    usedRange.load("rowCount");
+    const usedRange = sheet.getUsedRangeOrNullObject();
+    usedRange.load(["rowCount", "isNullObject"]);
     await context.sync();
 
     if (sheet.protection.protected) {
@@ -272,6 +274,7 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
     }
 
     const namedItem = context.workbook.names.getItemOrNullObject("CodelistDictionary");
+    namedItem.load("isNullObject");
     await context.sync();
     if (!namedItem.isNullObject) {
       namedItem.delete();

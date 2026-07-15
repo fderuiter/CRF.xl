@@ -60,7 +60,10 @@ describe("AnnotationPaintbrushService", () => {
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext),
+      run: (callback: any) => {
+        const { createSafeMock } = require("../../utils/test-proxy");
+        return callback(createSafeMock(mockContext));
+      },
     };
 
     (global as any).DOMParser = class {

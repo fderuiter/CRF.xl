@@ -257,7 +257,7 @@ export class ComplianceGovernanceService {
   public async loadJustificationsFromWorkbook(): Promise<Record<string, AuditJustification>> {
     return await Excel.run(async (context) => {
       const sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
-      sheet.load("name");
+      sheet.load(["name", "isNullObject"]);
       await context.sync();
 
       if (sheet.isNullObject) {
@@ -265,7 +265,7 @@ export class ComplianceGovernanceService {
       }
 
       const usedRange = sheet.getUsedRangeOrNullObject();
-      usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex"]);
+      usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex", "isNullObject"]);
       await context.sync();
 
       if (usedRange.isNullObject || usedRange.rowCount <= 1) {
@@ -323,7 +323,7 @@ export class ComplianceGovernanceService {
 
     await Excel.run(async (context) => {
       let sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
-      sheet.load("name");
+      sheet.load(["name", "isNullObject"]);
       await context.sync();
 
       let existingJustifications: Record<string, AuditJustification> = {};
@@ -333,7 +333,7 @@ export class ComplianceGovernanceService {
       } else {
         sheet.protection.unprotect(SHEET_PROTECTION_PASSWORD);
         const usedRange = sheet.getUsedRangeOrNullObject();
-        usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex"]);
+        usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex", "isNullObject"]);
         await context.sync();
 
         if (!usedRange.isNullObject && usedRange.rowCount > 1) {

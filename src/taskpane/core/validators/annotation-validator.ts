@@ -50,7 +50,7 @@ export async function validateAnnotationTarget(
   let mergedAreas: any = null;
   if (typeof range.getMergedAreasOrNullObject === "function") {
     mergedAreas = range.getMergedAreasOrNullObject();
-    mergedAreas.load("address");
+    mergedAreas.load(["address", "isNullObject"]);
   }
 
   if (typeof range.context?.sync === "function") {

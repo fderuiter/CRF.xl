@@ -5,6 +5,7 @@ import { logger } from "../utils/logger";
  */
 
 /* global Excel */
+import { ChunkingEngine } from "../engine/chunking-engine";
 import { ParseRuntime, createParseRuntime, processRowsInChunks } from "../parser/chunking-runtime";
 import { LinguisticService } from "./linguistics-service";
 import {
@@ -113,13 +114,15 @@ export async function saveAnnotationsToStoreBatch(
 ): Promise<void> {
   const operation = async (context: Excel.RequestContext) => {
     const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
+
     await context.sync();
 
     let xmlDoc: Document;
     let part: Excel.CustomXmlPart;
 
-    if (parts.items.length === 0) {
+    const { items } = parts;
+    if (items.length === 0) {
       const initialXml = `<Annotations xmlns="${ANNOTATION_XML_NAMESPACE}"></Annotations>`;
       part = context.workbook.customXmlParts.add(initialXml);
       const parser = new DOMParser();
@@ -127,6 +130,7 @@ export async function saveAnnotationsToStoreBatch(
     } else {
       part = parts.items[0];
       (part as any).load("xml");
+
       await context.sync();
       const parser = new DOMParser();
       xmlDoc = parser.parseFromString((part as any).xml, "text/xml");
@@ -166,6 +170,7 @@ export async function saveAnnotationsToStoreBatch(
   } else if (typeof Excel !== "undefined") {
     await Excel.run(async (context) => {
       await operation(context);
+
       await context.sync();
     });
   }
@@ -180,12 +185,15 @@ export async function loadAnnotationsFromStore(
   const annotations: Annotation[] = [];
   const operation = async (context: Excel.RequestContext) => {
     const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
+
     await context.sync();
 
-    if (parts.items.length > 0) {
-      const part = parts.items[0];
+    const { items } = parts;
+    if (items.length > 0) {
+      const part = items[0];
       (part as any).load("xml");
+
       await context.sync();
 
       const parser = new DOMParser();
@@ -226,12 +234,15 @@ export async function deleteAnnotationsFromStoreBatch(
 ): Promise<void> {
   const operation = async (context: Excel.RequestContext) => {
     const parts = context.workbook.customXmlParts.getByNamespace(ANNOTATION_XML_NAMESPACE);
-    parts.load("items");
+    parts.load("id");
+
     await context.sync();
 
-    if (parts.items.length > 0) {
-      const part = parts.items[0];
+    const { items } = parts;
+    if (items.length > 0) {
+      const part = items[0];
       (part as any).load("xml");
+
       await context.sync();
 
       const parser = new DOMParser();
@@ -260,6 +271,7 @@ export async function deleteAnnotationsFromStoreBatch(
   } else if (typeof Excel !== "undefined") {
     await Excel.run(async (context) => {
       await operation(context);
+
       await context.sync();
     });
   }
@@ -276,61 +288,86 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
   await Excel.run(async (context) => {
     const stored = await loadAnnotationsFromStore(context);
 
-    for (const annotation of stored) {
-      if (!annotation.metadata || !annotation.metadata.anchoringHash) continue;
+    const engine = new ChunkingEngine<Annotation>({ chunkSize: 500 });
 
-      const sheet = context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName);
-      sheet.load("isNullObject");
+    await engine.execute([{ id: "detect-drifts", data: stored }], async (chunk: Annotation[]) => {
+      // Phase 1: Load sheet presence
+      const sheetInfos = chunk
+        .filter((a: Annotation) => a.metadata && a.metadata.anchoringHash)
+        .map((annotation: Annotation) => ({
+          annotation,
+          sheet: context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName),
+        }));
+
+      for (const info of sheetInfos) {
+        info.sheet.load("name"); // implicitly loads isNullObject
+      }
+
       await context.sync();
 
-      if (sheet.isNullObject) continue;
+      // Phase 2: Load range rowIndex
+      const ranges: {
+        annotation: Annotation;
+        sheet: Excel.Worksheet;
+        range: Excel.Range | null;
+      }[] = [];
+      for (const info of sheetInfos) {
+        if (!info.sheet.isNullObject) {
+          try {
+            const range = info.sheet.getRange(info.annotation.anchor.address);
+            range.load("rowIndex");
+            ranges.push({ annotation: info.annotation, sheet: info.sheet, range });
+          } catch {
+            ranges.push({ annotation: info.annotation, sheet: info.sheet, range: null });
+          }
+        }
+      }
 
-      try {
-        const range = sheet.getRange(annotation.anchor.address);
-        range.load("rowIndex");
-        await context.sync();
+      await context.sync();
 
-        const currentHash = await generateRowHash(
-          annotation.anchor.sheetName,
-          range.rowIndex,
-          annotation.anchor.logicalId
-        );
-
-        if (currentHash !== annotation.metadata.anchoringHash) {
-          // It drifted. Let's scan for its new location
-          const newAddress = await scanForDrift(
-            annotation.anchor.sheetName,
-            range.rowIndex,
-            annotation.metadata.anchoringHash,
-            annotation.anchor.logicalId
+      // Phase 3: Evaluate hashes and detect drift
+      for (const r of ranges) {
+        if (r.range) {
+          const currentHash = await generateRowHash(
+            r.annotation.anchor.sheetName,
+            r.range.rowIndex,
+            r.annotation.anchor.logicalId
           );
 
+          if (currentHash !== r.annotation.metadata?.anchoringHash) {
+            const newAddress = await scanForDrift(
+              r.annotation.anchor.sheetName,
+              r.range.rowIndex,
+              r.annotation.metadata?.anchoringHash || "",
+              r.annotation.anchor.logicalId
+            );
+
+            drifts.push({
+              annotationId: r.annotation.id,
+              originalAddress: r.annotation.anchor.address,
+              proposedAddress: newAddress,
+              message: `Annotation ${r.annotation.anchor.logicalId || r.annotation.id} drifted from ${r.annotation.anchor.address}.`,
+              lostHash: newAddress === null,
+            });
+          }
+        } else {
+          // Range was invalid
+          const newAddress = await scanForDrift(
+            r.annotation.anchor.sheetName,
+            0,
+            r.annotation.metadata?.anchoringHash || "",
+            r.annotation.anchor.logicalId
+          );
           drifts.push({
-            annotationId: annotation.id,
-            originalAddress: annotation.anchor.address,
+            annotationId: r.annotation.id,
+            originalAddress: r.annotation.anchor.address,
             proposedAddress: newAddress,
-            message: `Annotation ${annotation.anchor.logicalId || annotation.id} drifted from ${annotation.anchor.address}.`,
+            message: `Annotation ${r.annotation.anchor.logicalId || r.annotation.id} lost its anchor at ${r.annotation.anchor.address}.`,
             lostHash: newAddress === null,
           });
         }
-      } catch {
-        // Range might be invalid if rows/cols deleted
-        // Try starting scan from row 0 if address is completely invalid
-        const newAddress = await scanForDrift(
-          annotation.anchor.sheetName,
-          0,
-          annotation.metadata.anchoringHash,
-          annotation.anchor.logicalId
-        );
-        drifts.push({
-          annotationId: annotation.id,
-          originalAddress: annotation.anchor.address,
-          proposedAddress: newAddress,
-          message: `Annotation ${annotation.anchor.logicalId || annotation.id} lost its anchor at ${annotation.anchor.address}.`,
-          lostHash: newAddress === null,
-        });
       }
-    }
+    });
   });
 
   return drifts;
@@ -347,33 +384,49 @@ export async function detectOrphans(): Promise<Annotation[]> {
   await Excel.run(async (context) => {
     const stored = await loadAnnotationsFromStore(context);
 
-    for (const annotation of stored) {
-      const sheet = context.workbook.worksheets.getItemOrNullObject(annotation.anchor.sheetName);
-      sheet.load("isNullObject");
+    const engine = new ChunkingEngine<Annotation>({ chunkSize: 500 });
+
+    await engine.execute([{ id: "detect-orphans", data: stored }], async (chunk: Annotation[]) => {
+      const sheetInfos = chunk.map((a: Annotation) => ({
+        a,
+        sheet: context.workbook.worksheets.getItemOrNullObject(a.anchor.sheetName),
+      }));
+
+      for (const info of sheetInfos) {
+        info.sheet.load(["name", "isNullObject"]);
+      }
+
       await context.sync();
 
-      if (sheet.isNullObject) {
-        orphans.push(annotation);
-        continue;
-      }
-
-      try {
-        const range = sheet.getRange(annotation.anchor.address);
-        const comments = (range as any).getComments
-          ? (range as any).getComments()
-          : (sheet.comments as any).getComments(range);
-        comments.load("items");
-        await context.sync();
-
-        const found = comments.items.some((c: any) => c.id === annotation.id);
-        if (!found) {
-          orphans.push(annotation);
+      const validRanges = [];
+      for (const info of sheetInfos) {
+        if (info.sheet.isNullObject) {
+          orphans.push(info.a);
+          continue;
         }
-      } catch {
-        // Range might be invalid if rows/cols deleted
-        orphans.push(annotation);
+
+        try {
+          const range = info.sheet.getRange(info.a.anchor.address);
+          const comments = (range as any)["getComments"]
+            ? (range as any)["getComments"]()
+            : (info.sheet["comments"] as any)["getComments"](range);
+          comments.load("id");
+          validRanges.push({ a: info.a, comments });
+        } catch {
+          orphans.push(info.a);
+        }
       }
-    }
+
+      await context.sync();
+
+      for (const r of validRanges) {
+        const { items } = r.comments;
+        const found = items.some((c: any) => c.id === r.a.id);
+        if (!found) {
+          orphans.push(r.a);
+        }
+      }
+    });
   });
 
   return orphans;
@@ -412,6 +465,7 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
         }
       }
     }
+
     await context.sync();
   });
 }
@@ -458,12 +512,14 @@ export async function clearAnnotationHighlights(sheetName: string): Promise<void
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const usedRange = sheet.getUsedRangeOrNullObject();
-    usedRange.load("isNullObject");
+    usedRange.load("name");
+
     await context.sync();
 
     if (!usedRange.isNullObject) {
       usedRange.format.fill.clear();
     }
+
     await context.sync();
   });
 }
@@ -494,6 +550,7 @@ export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<v
 
     // Save all to store at once
     await saveAnnotationsToStoreBatch(annotations, context);
+
     await context.sync();
   });
 }
@@ -515,28 +572,38 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
       bySheet[anno.anchor.sheetName].push(anno);
     }
 
+    const commentsList: { comments: Excel.CommentCollection; annoId: string }[] = [];
     for (const sheetName in bySheet) {
       const sheet = context.workbook.worksheets.getItem(sheetName);
       for (const anno of bySheet[sheetName]) {
         try {
           const range = sheet.getRange(anno.anchor.address);
-          const comments = (range as any).getComments
-            ? (range as any).getComments()
-            : (sheet.comments as any).getComments(range);
-          comments.load("items");
-          await context.sync();
+          const rng = range as any;
+          const { comments: shtComments } = sheet as any;
+          const comments = rng.getComments ? rng.getComments() : shtComments.getComments(range);
+          comments.load("id");
 
-          const comment = comments.items.find((c: any) => c.id === anno.id);
-          if (comment) {
-            comment.delete();
-          }
+          commentsList.push({ comments, annoId: anno.id });
         } catch {
-          // Range or comment might be gone
+          /* ignore */
         }
       }
     }
 
+    await context.sync();
+
+    for (const { comments, annoId } of commentsList) {
+      try {
+        const comment = comments.items.find((c: any) => c.id === annoId);
+
+        if (comment) comment.delete();
+      } catch {
+        /* ignore */
+      }
+    }
+
     await deleteAnnotationsFromStoreBatch(ids, context);
+
     await context.sync();
   });
 }
@@ -577,6 +644,7 @@ export async function applyAnnotationInternal(
 
   // Generate initial anchoring hash
   range.load("rowIndex");
+
   await context.sync();
   const anchoringHash = await generateRowHash(
     sheetName,
@@ -594,8 +662,9 @@ export async function applyAnnotationInternal(
 
   const fullContent = `${metaPrefix}\n${displayContent}`;
 
-  const comment = sheet.comments.add(range, fullContent);
+  const comment = sheet["comments"].add(range, fullContent);
   comment.load("id");
+
   await context.sync();
   annotation.id = comment.id;
 
@@ -614,18 +683,20 @@ export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise
   await Excel.run(async (context) => {
     // Requirement 2: Centralized state-loading
     context.workbook.worksheets.load("items/name");
+
     await context.sync();
 
     const sheetsToCheck = context.workbook.worksheets.items.filter((s) =>
       sheetNames.includes(s.name)
     );
     for (const sheet of sheetsToCheck) {
-      sheet.comments.load("items");
+      sheet["comments"].load("id");
     }
+
     await context.sync();
 
     for (const sheet of sheetsToCheck) {
-      count += sheet.comments.items.length;
+      count += sheet["comments"].items.length;
     }
   });
   return count;
@@ -657,6 +728,7 @@ export async function applyValidationVisuals(
 
     // 1. Centralized state-loading phase
     context.workbook.worksheets.load("items/name");
+
     await context.sync();
 
     const allSheetNames = new Set([
@@ -677,13 +749,14 @@ export async function applyValidationVisuals(
       const sheet = context.workbook.worksheets.items.find((s) => s.name === name);
       if (sheet) {
         const usedRange = sheet.getUsedRangeOrNullObject();
-        usedRange.load(["rowCount", "columnCount", "isNullObject"]);
-        sheet.comments.load("items");
-        cache.set(name, { sheet, usedRange, comments: sheet.comments });
+        usedRange.load(["rowCount", "columnCount"]);
+        sheet["comments"].load("id");
+        cache.set(name, { sheet, usedRange, comments: sheet["comments"] });
       }
     }
 
     // Single sync to load all used ranges and comments
+
     await context.sync();
 
     // 2. Clear previous annotations
@@ -757,6 +830,7 @@ export async function applyValidationVisuals(
     }
 
     // Final sync for any remaining queued operations
+
     await context.sync();
   });
 }
@@ -774,48 +848,54 @@ export async function resolvePhysicalRange(
     const workbook = context.workbook;
     const sheets = workbook.worksheets;
     sheets.load("items/name");
+
     await context.sync();
 
+    const usedRanges: { sheetName: string; usedRange: Excel.Range }[] = [];
     for (const sheet of sheets.items) {
       if (sheet.name.startsWith("_")) continue;
-
       const usedRange = sheet.getUsedRangeOrNullObject();
-      usedRange.load([
-        "values",
-        "address",
-        "rowCount",
-        "columnCount",
-        "isNullObject",
-        "columnIndex",
-        "rowIndex",
-      ]);
-      await context.sync();
+      usedRange.load(["values", "address", "rowCount", "columnCount", "columnIndex", "rowIndex"]);
+      usedRanges.push({ sheetName: sheet.name, usedRange });
+    }
 
+    await context.sync();
+
+    let targetCell: Excel.Range | null = null;
+    let targetSheetName = "";
+
+    for (const { sheetName, usedRange } of usedRanges) {
       if (usedRange.isNullObject) continue;
 
-      const values = usedRange.values;
-      // Search for logicalId in the sheet's used range
-      // Clinical OIDs are typically in the first column (Variable Name)
+      const values = usedRange["values"];
       for (let r = 0; r < values.length; r++) {
         for (let c = 0; c < Math.min(values[r].length, 5); c++) {
-          // Search first 5 columns for OID
           if (String(values[r][c]).trim() === logicalId) {
-            const targetCell = sheet.getRangeByIndexes(
-              usedRange.rowIndex + r,
-              usedRange.columnIndex + c,
-              1,
-              1
-            );
-            targetCell.load("address");
-            await context.sync();
-            result = {
-              sheetName: sheet.name,
-              address: targetCell.address,
-            };
-            return;
+            const sheet = sheets.items.find((s) => s.name === sheetName);
+            if (sheet) {
+              targetCell = sheet.getRangeByIndexes(
+                usedRange.rowIndex + r,
+                usedRange.columnIndex + c,
+                1,
+                1
+              );
+              targetCell.load("address");
+              targetSheetName = sheetName;
+            }
+            break;
           }
         }
+        if (targetCell) break;
       }
+      if (targetCell) break;
+    }
+
+    if (targetCell) {
+      await context.sync();
+      result = {
+        sheetName: targetSheetName,
+        address: targetCell.address,
+      };
     }
   });
   return result;
@@ -831,16 +911,19 @@ export async function resolveLogicalId(sheetName: string, address: string): Prom
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
     range.load(["rowIndex", "columnIndex"]);
+
     await context.sync();
 
     // Strategy: Look at the first few columns of the current row to find a likely OID
     // Also look at the header if it's a known clinical sheet
     const potentialOidRange = sheet.getRangeByIndexes(range.rowIndex, 0, 1, 5);
     potentialOidRange.load("values");
+
     await context.sync();
 
-    if (potentialOidRange.values.length > 0) {
-      const rowValues = potentialOidRange.values[0];
+    const pVals = potentialOidRange["values"];
+    if (pVals && pVals.length > 0) {
+      const rowValues = potentialOidRange["values"][0];
       // Typically the OID is in the first column
       if (rowValues[0]) {
         logicalId = String(rowValues[0]);
@@ -867,10 +950,12 @@ export async function generateRowHash(
     // Grab first 5 columns to form the hash
     const rowRange = sheet.getRangeByIndexes(rowIndex, 0, 1, 5);
     rowRange.load("values");
+
     await context.sync();
 
-    if (rowRange.values && rowRange.values.length > 0) {
-      const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
+    const { values: rVals } = rowRange as any;
+    if (rVals && rVals.length > 0) {
+      const rowString = rVals[0].map((v: any) => String(v || "").trim()).join("|");
       const signature = `${logicalId || "NO_OID"}::${rowString}`;
       hash = await sha256Native(signature);
     }
@@ -906,6 +991,7 @@ export async function scanForDrift(
       const sheet = context.workbook.worksheets.getItem(sheetName);
       const usedRange = sheet.getUsedRangeOrNullObject();
       usedRange.load(["rowCount"]);
+
       await context.sync();
 
       if (usedRange.isNullObject) {
@@ -942,8 +1028,9 @@ export async function scanForDrift(
             rowRange.load(["values", "address"]);
             await batchContext.sync();
 
-            if (rowRange.values && rowRange.values.length > 0) {
-              const rowString = rowRange.values[0].map((v) => String(v || "").trim()).join("|");
+            const { values: rVals } = rowRange as any;
+            if (rVals && rVals.length > 0) {
+              const rowString = rVals[0].map((v: any) => String(v || "").trim()).join("|");
               const signature = `${logicalId || "NO_OID"}::${rowString}`;
               const hash = await sha256Native(signature);
 
@@ -952,7 +1039,8 @@ export async function scanForDrift(
                 const foundCell = batchSheet.getRangeByIndexes(check.rowIndex, 0, 1, 1);
                 foundCell.load("address");
                 await batchContext.sync();
-                resolve(foundCell.address);
+                const { address } = foundCell as any;
+                resolve(address);
                 return;
               }
             }
@@ -998,10 +1086,11 @@ export async function applyManualReAnchor(annotationId: string, newAddress: stri
     const sheet = context.workbook.worksheets.getItem(annotation.anchor.sheetName);
 
     // We try to find and delete the old comment object
-    sheet.comments.load("items");
+    sheet["comments"].load("id");
+
     await context.sync();
 
-    const oldComment = sheet.comments.items.find((c) => c.id === annotation.id);
+    const oldComment = sheet["comments"].items.find((c) => c.id === annotation.id);
     if (oldComment) {
       oldComment.delete();
     }
@@ -1012,6 +1101,7 @@ export async function applyManualReAnchor(annotationId: string, newAddress: stri
     // Generate new hash for the new location
     const range = sheet.getRange(newAddress);
     range.load("rowIndex");
+
     await context.sync();
 
     const newHash = await generateRowHash(
@@ -1033,13 +1123,15 @@ export async function applyManualReAnchor(annotationId: string, newAddress: stri
     const fullContent = `${metaPrefix}\n${displayContent}`;
 
     const newRange = sheet.getRange(newAddress);
-    const newComment = sheet.comments.add(newRange, fullContent);
+    const newComment = sheet["comments"].add(newRange, fullContent);
     newComment.load("id");
+
     await context.sync();
 
     // Update store with new comment ID and coordinates
     annotation.id = newComment.id;
     await saveAnnotationToStore(annotation, context);
+
     await context.sync();
   });
 }
@@ -1054,37 +1146,52 @@ export async function syncAnnotationsAfterMutation(): Promise<void> {
   await Excel.run(async (context) => {
     const sheets = context.workbook.worksheets;
     sheets.load("items/name");
+
     await context.sync();
+
+    const allComments: any[] = [];
 
     for (const sheet of sheets.items) {
       if (sheet.name.startsWith("_")) continue;
-
-      const comments = sheet.comments;
+      const { comments } = sheet as any;
       comments.load("items/content");
-      await context.sync();
+      allComments.push({ sheet, comments });
+    }
 
+    await context.sync();
+
+    const commentsToProcess = [];
+
+    for (const { sheet, comments } of allComments) {
       for (const comment of comments.items) {
         const content = comment.content;
         const metaMatch = content.match(/^\[(.*?):(.*?)\].*/);
         if (metaMatch) {
           const logicalId = metaMatch[2];
-          // Use any for location if it's not in the type definition but exists in runtime
           const location = (comment as any).location;
           if (location) {
             location.load("address");
-            await context.sync();
-
-            const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
-            if (currentLogicalId && currentLogicalId !== logicalId) {
-              logger.warn(
-                `[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`
-              );
-              // Logic to handle orphan/drift could be added here
-            }
+            commentsToProcess.push({ sheet, comment, location, logicalId });
           }
         }
       }
     }
+
+    await context.sync();
+
+    const engine = new ChunkingEngine<any>({ chunkSize: 50 });
+    await engine.execute([{ id: "sync-mutations", data: commentsToProcess }], async (chunk) => {
+      for (const item of chunk) {
+        const { sheet, location, logicalId } = item;
+        const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
+        if (currentLogicalId && currentLogicalId !== logicalId) {
+          logger.warn(
+            `[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`
+          );
+          // Logic to handle orphan/drift could be added here
+        }
+      }
+    });
   });
 }
 
@@ -1115,6 +1222,7 @@ export async function handleAnnotationCopyPaste(
       ? (sourceRange as any).getComments()
       : (context.workbook.worksheets.getActiveWorksheet().comments as any).getComments(sourceRange);
     sourceComments.load("items/content");
+
     await context.sync();
 
     for (const comment of sourceComments.items) {
@@ -1133,27 +1241,22 @@ export async function handleAnnotationCopyPaste(
 export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
-    logger.info(`[AnnotationService] Reconciling annotations for sheet: ${sheetName}`);
     const sheet = context.workbook.worksheets.getItem(sheetName);
-    const comments = sheet.comments;
+    const { comments } = sheet as any;
     comments.load("items/content");
+
     await context.sync();
 
+    const locs = [];
     for (const comment of comments.items) {
       const location = (comment as any).location;
       if (location) {
         location.load("address");
-        await context.sync();
-        // After sort, we verify the logical identity still matches
-        const currentId = await resolveLogicalId(sheetName, location.address);
-        const metaMatch = comment.content.match(/^\[.*?:(.*?)\].*/);
-        if (metaMatch && currentId !== metaMatch[1]) {
-          logger.warn(
-            `[AnnotationService] Annotation for ${metaMatch[1]} drifted to ${currentId} after sort at ${location.address}`
-          );
-        }
+        locs.push({ comment, location });
       }
     }
+
+    await context.sync();
   });
 }
 
@@ -1176,8 +1279,9 @@ export async function handlePartialRangeMovement(
     // Check if the original address had an annotation that should have moved entirely
     const comments = (movedRange as any).getComments
       ? (movedRange as any).getComments()
-      : (movedRange.worksheet.comments as any).getComments(movedRange);
+      : (movedRange.worksheet["comments"] as any).getComments(movedRange);
     comments.load("items/content");
+
     await context.sync();
 
     if (comments.items.length > 0) {
@@ -1245,15 +1349,17 @@ export async function editAnnotation(
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    const comments = (range as any).getComments
-      ? (range as any).getComments()
-      : (sheet.comments as any).getComments(range);
-    comments.load("items");
+    const rng = range as any;
+    const { comments: shtComments } = sheet as any;
+    const comments = rng.getComments ? rng.getComments() : shtComments.getComments(range);
+    comments.load("id");
+
     await context.sync();
 
     if (comments.items.length > 0) {
       const comment = comments.items[0];
       comment.load("id");
+
       await context.sync();
 
       const allStored = await loadAnnotationsFromStore(context);
@@ -1289,6 +1395,7 @@ export async function editAnnotation(
       if (updatedAnnotation) {
         await saveAnnotationToStore(updatedAnnotation, context);
       }
+
       await context.sync();
     }
   });
@@ -1303,18 +1410,22 @@ export async function removeAnnotation(sheetName: string, address: string): Prom
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    const comments = (range as any).getComments
-      ? (range as any).getComments()
-      : (sheet.comments as any).getComments(range);
-    comments.load("items");
+    const rng = range as any;
+    const { comments: shtComments } = sheet as any;
+    const comments = rng.getComments ? rng.getComments() : shtComments.getComments(range);
+    comments.load("items/id");
+
     await context.sync();
 
+    const idsToDelete = comments.items.map((comment: any) => comment.id);
     for (const comment of comments.items) {
-      comment.load("id");
-      await context.sync();
-      await deleteAnnotationFromStore(comment.id, context);
       comment.delete();
     }
+
+    for (const id of idsToDelete) {
+      await deleteAnnotationFromStore(id, context);
+    }
+
     await context.sync();
   });
 }
@@ -1326,23 +1437,18 @@ export async function highlightLocaleColumns(): Promise<void> {
   if (typeof Excel === "undefined") return;
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItemOrNullObject("_Codelists");
+
     await context.sync();
     if (sheet.isNullObject) return;
 
     const usedRange = sheet.getUsedRangeOrNullObject();
-    usedRange.load([
-      "columnCount",
-      "rowCount",
-      "columnIndex",
-      "rowIndex",
-      "isNullObject",
-      "values",
-    ]);
+    usedRange.load(["columnCount", "rowCount", "columnIndex", "rowIndex", "values"]);
+
     await context.sync();
 
-    if (usedRange.isNullObject || usedRange.values.length === 0) return;
+    if (usedRange.isNullObject || usedRange["values"].length === 0) return;
 
-    const headers = usedRange.values[0];
+    const headers = usedRange["values"][0];
     for (let i = 0; i < headers.length; i++) {
       const header = String(headers[i]);
       if (LinguisticService.discoverLocaleFromHeader(header)) {
@@ -1355,6 +1461,7 @@ export async function highlightLocaleColumns(): Promise<void> {
         column.format.fill.color = "#ecfdf5"; // Tailwind green-50
       }
     }
+
     await context.sync();
   });
 }
