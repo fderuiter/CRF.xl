@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@crf-xl/taskpane/*": ["src/*"],
+      "@crf-xl/core/*": ["../core/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
