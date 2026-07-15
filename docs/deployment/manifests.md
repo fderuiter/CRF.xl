@@ -1,4 +1,4 @@
-# Office Add-in Manifests by Environment
+# Office Add-in Manifest
 
 This repository maintains a unified Office add-in XML manifest for all deployment environments to enforce environment isolation and GxP compliance:
 
@@ -18,11 +18,7 @@ This repository maintains a unified Office add-in XML manifest for all deploymen
 
 > [!WARNING]
 > **Pending Infrastructure Provisioning:**
-> Until the corporate IT infrastructure group completes external host provisioning (Issue #135), the staging and production manifests utilize secure placeholder hosts:
-> * `REPLACE_WITH_STAGING_HOST`
-> * `REPLACE_WITH_PRODUCTION_HOST`
-> 
-> Sideloading staging or production manifests will fail to resolve until these placeholders are substituted with final HTTPS endpoints in your target deployment pipelines.
+> Until the corporate IT infrastructure group completes external host provisioning (Issue #135), the manifest utilizes secure placeholder hosts for production deployments.
 
 ---
 
@@ -31,19 +27,15 @@ This repository maintains a unified Office add-in XML manifest for all deploymen
 Every manifest change undergoes automated linting and validation via `scripts/validate-manifests.js` on checkouts and PR builds:
 
 ```bash
-npm run manifest:validate
+npm run validate
 ```
 
-The validation suite (`npm run manifest:validate`) automatically executes:
-1. **Developer Endpoint Guardrails:** Rejects any staging/production manifests containing `localhost` or dev-tunnel URLs.
-2. **Version Synchronization:** Enforces that `<Version>` tags match the root `package.json` version string exactly as `${version}.0`.
-3. **Identifier Isolation:** Verifies that the unique XML `<Id>` GUIDs differ across all three manifests to prevent environment conflicts in Excel clients.
-4. **Placeholder Checks:** Confirms the presence of staging/production placeholder hosts before release assembly.
+The validation suite (`npm run validate`) automatically executes checks like version synchronization and placeholder presence.
 
 To validate against Microsoft's schema validator, run:
 
 ```bash
-npm run manifest:validate:office
+npm run validate:office
 ```
 
 ---
@@ -64,7 +56,7 @@ This permission is **strictly limited** to the workbook context. It is required 
 
 1. Build and publish production web assets to the approved production host.
 2. Update `manifest.xml` placeholders with the final provisioned production URLs.
-3. Verify manifest integrity: `npm run manifest:validate`.
+3. Verify manifest integrity: `npm run validate`.
 4. Log in to the **Microsoft 365 Admin Center** as an Global Admin or Exchange Admin.
 5. Navigate to **Settings → Integrated apps**.
 6. Select **Upload custom apps** and upload your production `manifest.xml`.
@@ -72,7 +64,7 @@ This permission is **strictly limited** to the workbook context. It is required 
    - Stage 1: Pilot IT / QA validation group.
    - Stage 2: Clinical Data Management / UAT department rollout.
    - Stage 3: Global organization-wide deployment.
-8. Verify that the CRF.xl task pane appears in the Excel clients of the target users.
+7. Verify that the CRF.xl task pane appears in the Excel clients of the target users.
 
 ---
 
