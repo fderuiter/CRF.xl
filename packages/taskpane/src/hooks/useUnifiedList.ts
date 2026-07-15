@@ -1,7 +1,7 @@
 /**
  * @issue #335
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 export interface UseUnifiedListOptions<T> {
   data: T[];
@@ -20,10 +20,15 @@ export function useUnifiedList<T>({
 }: UseUnifiedListOptions<T>) {
   const [page, setPage] = useState(1);
 
-  // Reset page to 1 when specific filter dependencies change
-  useEffect(() => {
+  const [prevDeps, setPrevDeps] = useState(filterDependencies);
+
+  if (
+    prevDeps.length !== filterDependencies.length ||
+    prevDeps.some((dep, index) => dep !== filterDependencies[index])
+  ) {
     setPage(1);
-  }, filterDependencies);
+    setPrevDeps(filterDependencies);
+  }
 
   const { items, totalPages, overflowCount, boundedPage } = useMemo(() => {
     if (mode === "capped") {
