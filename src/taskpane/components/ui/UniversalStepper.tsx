@@ -10,6 +10,7 @@ import {
 } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { Spinner } from "./DesignSystem";
+import { useAnnouncer } from "../../hooks/useAnnouncer";
 
 // ---------------------------------------------------------------------------
 // 1. Universal Stepper (Visual Indicator)
@@ -33,6 +34,8 @@ const useStepperStyles = makeStyles({
     gap: "4px",
     padding: "16px 0",
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    listStyleType: "none",
+    margin: 0,
   },
   stage: {
     display: "flex",
@@ -70,10 +73,13 @@ const useStepperStyles = makeStyles({
 export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, className }) => {
   const styles = useStepperStyles();
   return (
-    <div className={`${styles.stagesContainer} ${className || ""}`}>
+    <ul className={`${styles.stagesContainer} ${className || ""}`}>
       {steps.map((stage, idx) => (
         <React.Fragment key={idx}>
-          <div className={styles.stage}>
+          <li 
+            className={styles.stage}
+            aria-current={stage.status === "active" ? "step" : undefined}
+          >
             <div
               className={`${styles.stageCircle} ${
                 stage.status === "active" ? styles.stageActive : ""
@@ -82,13 +88,15 @@ export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, class
               {stage.status === "complete" ? <CheckmarkCircleRegular /> : idx + 1}
             </div>
             <Text className={styles.stageLabel}>{stage.label}</Text>
-          </div>
+          </li>
           {idx < steps.length - 1 && (
-            <ChevronRightRegular style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }} />
+            <li aria-hidden="true" style={{ display: "flex", alignItems: "center" }}>
+              <ChevronRightRegular style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }} />
+            </li>
           )}
         </React.Fragment>
       ))}
-    </div>
+    </ul>
   );
 };
 
@@ -158,8 +166,22 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
   const styles = useWizardStyles();
   const [currentStepIndex, setCurrentStepIndex] = React.useState(0);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [justNavigated, setJustNavigated] = React.useState(false);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const { announce } = useAnnouncer();
 
   const activeStep = steps[currentStepIndex];
+
+  React.useEffect(() => {
+    if (justNavigated && activeStep) {
+      if (contentRef.current) {
+        contentRef.current.focus();
+      }
+      announce(`Step ${currentStepIndex + 1} of ${steps.length}: ${activeStep.label}`, "polite");
+      setJustNavigated(false);
+    }
+  }, [currentStepIndex, justNavigated, steps, activeStep, announce]);
+
   if (!activeStep) return null;
 
   const handleNext = async () => {
@@ -170,6 +192,7 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
       }
       if (currentStepIndex < steps.length - 1) {
         setCurrentStepIndex((prev) => prev + 1);
+        setJustNavigated(true);
       } else if (onComplete) {
         await onComplete();
       }
@@ -188,6 +211,7 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
       }
       if (currentStepIndex > 0) {
         setCurrentStepIndex((prev) => prev - 1);
+        setJustNavigated(true);
       }
     } finally {
       setIsProcessing(false);
@@ -206,7 +230,14 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
     <div className={`${styles.container} ${className || ""}`}>
       <UniversalStepper steps={mappedSteps} />
 
-      <div className={styles.content}>{activeStep.content}</div>
+      <div 
+        className={styles.content} 
+        ref={contentRef} 
+        tabIndex={-1} 
+        style={{ outline: "none" }}
+      >
+        {activeStep.content}
+      </div>
 
       <div className={styles.actions}>
         <div className={styles.actionGroup}>
