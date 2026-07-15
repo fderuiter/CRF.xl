@@ -278,7 +278,7 @@ export class ComplianceGovernanceService {
       const colIndex = usedRange.columnIndex;
 
       const justifications: Record<string, AuditJustification> = {};
-      
+
       const engine = new ChunkingEngine<number>({ chunkSize: 500 });
       engine.on("progress", (p: any) => {
         const pct = Math.round((p.completed / p.total) * 100);
@@ -287,11 +287,16 @@ export class ComplianceGovernanceService {
 
       const plan: ExecutionPlan<number> = {
         id: "load_justifications",
-        data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1)
+        data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1),
       };
 
       await engine.execute([plan], async (chunk) => {
-        const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+        const chunkRange = sheet.getRangeByIndexes(
+          rowIndex + chunk[0],
+          colIndex,
+          chunk.length,
+          colCount
+        );
         chunkRange.load("values");
         await context.sync();
 
@@ -340,11 +345,16 @@ export class ComplianceGovernanceService {
           const loadEngine = new ChunkingEngine<number>({ chunkSize: 500 });
           const plan: ExecutionPlan<number> = {
             id: "load_existing_justifications",
-            data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1)
+            data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1),
           };
 
           await loadEngine.execute([plan], async (chunk) => {
-            const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+            const chunkRange = sheet.getRangeByIndexes(
+              rowIndex + chunk[0],
+              colIndex,
+              chunk.length,
+              colCount
+            );
             chunkRange.load("values");
             await context.sync();
 
@@ -360,7 +370,7 @@ export class ComplianceGovernanceService {
             }
           });
         }
-        
+
         if (!usedRange.isNullObject) {
           usedRange.clear();
         }
@@ -389,7 +399,7 @@ export class ComplianceGovernanceService {
 
       const writePlan: ExecutionPlan<any[]> = {
         id: "write_justifications",
-        data
+        data,
       };
 
       let currentRowOffset = 1; // After header

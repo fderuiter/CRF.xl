@@ -95,18 +95,18 @@ export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
 
     const rowCount = usedRange.rowCount;
     const allRows: CrfCodelistsRow[] = [];
-    
+
     const engine = new ChunkingEngine<number>({ chunkSize: 500 });
     const plan: ExecutionPlan<number> = {
       id: "read_existing_ct",
-      data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1)
+      data: Array.from({ length: rowCount - 1 }, (_, i) => i + 1),
     };
 
     await engine.execute([plan], async (chunk) => {
       const chunkRange = sheet.getRangeByIndexes(chunk[0], 0, chunk.length, 4);
       chunkRange.load("values");
       await context.sync();
-      
+
       const chunkValues = chunkRange.values as (string | number | boolean)[][];
       for (const row of chunkValues) {
         const codelistId = String(row[0] ?? "").trim();
@@ -255,7 +255,7 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
 
     const plan: ExecutionPlan<any[]> = {
       id: "write_ct_rows",
-      data: newValues
+      data: newValues,
     };
 
     let currentRowOffset = 0;

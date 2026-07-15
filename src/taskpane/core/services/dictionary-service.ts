@@ -21,7 +21,10 @@ export interface CodelistGroup {
  */
 export async function fetchDictionaries(): Promise<CodelistGroup[]> {
   let allRows: any[] = [];
-  let idIdx = -1, nameIdx = -1, codeIdx = -1, decodeIdx = -1;
+  let idIdx = -1,
+    nameIdx = -1,
+    codeIdx = -1,
+    decodeIdx = -1;
   const localeMap = new Map<string, number>();
 
   await Excel.run(async (context) => {
@@ -72,7 +75,10 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
     });
 
     if (idIdx === -1) {
-      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
+      idIdx = 0;
+      nameIdx = 1;
+      codeIdx = 2;
+      decodeIdx = 3;
     }
 
     const engine = new ChunkingEngine<number>({ chunkSize: 500 });
@@ -84,11 +90,16 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
     const dataRowCount = rowCount - 1;
     const plan: ExecutionPlan<number> = {
       id: "fetch_dictionaries",
-      data: Array.from({ length: dataRowCount }, (_, i) => i + 1)
+      data: Array.from({ length: dataRowCount }, (_, i) => i + 1),
     };
 
     await engine.execute([plan], async (chunk) => {
-      const chunkRange = sheet.getRangeByIndexes(rowIndex + chunk[0], colIndex, chunk.length, colCount);
+      const chunkRange = sheet.getRangeByIndexes(
+        rowIndex + chunk[0],
+        colIndex,
+        chunk.length,
+        colCount
+      );
       chunkRange.load("values");
       await context.sync();
       allRows.push(...chunkRange.values);
@@ -194,7 +205,10 @@ export async function saveDictionary(
     });
 
     if (idIdx === -1) {
-      idIdx = 0; nameIdx = 1; codeIdx = 2; decodeIdx = 3;
+      idIdx = 0;
+      nameIdx = 1;
+      codeIdx = 2;
+      decodeIdx = 3;
     }
 
     const allLocales = new Set<string>();
@@ -234,9 +248,7 @@ export async function saveDictionary(
 
     const rowCount = items.length;
     const finalColCount = maxColIdx + 1;
-    const itemRows: any[][] = Array.from({ length: rowCount }, () =>
-      Array(finalColCount).fill("")
-    );
+    const itemRows: any[][] = Array.from({ length: rowCount }, () => Array(finalColCount).fill(""));
 
     items.forEach((item, idx) => {
       itemRows[idx][idIdx] = id.toUpperCase();
@@ -263,7 +275,7 @@ export async function saveDictionary(
 
     const plan: ExecutionPlan<any[]> = {
       id: "save_dictionary",
-      data: itemRows
+      data: itemRows,
     };
 
     if (isNew) {
