@@ -405,6 +405,27 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editItems, setEditItems] = useState<CodelistItem[]>([]);
 
+  const handleSelectCodelist = async (codelistId: string) => {
+    setIsEditing(false);
+    setEditItems([]);
+    try {
+      setView("loading");
+      const data = await fetchDictionaries();
+      setDictionaries(data);
+      const updated = data.find((d) => d.id === codelistId);
+      if (updated) {
+        setSelectedCodelist(updated);
+        setView("detail");
+      } else {
+        setView(search.trim() ? "searching" : "browse");
+      }
+    } catch (error) {
+      const diagnostic = createOfficeDiagnostic(error);
+      setGlobalError(diagnostic);
+      setView("error");
+    }
+  };
+
   const handleStartEdit = () => {
     if (!selectedCodelist) return;
     setEditItems(JSON.parse(JSON.stringify(selectedCodelist.items)));
@@ -632,7 +653,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 handleUseDictionary(original.id);
               } else {
                 setSelectedCodelist(original as CodelistGroup);
-                setView("detail");
+                setView("loading"); // Optional quick visual update before fetching fresh
+                handleSelectCodelist(original.id);
               }
             }
           }
@@ -640,6 +662,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       } else if (view === "detail") {
         if (e.key === "Escape") {
           e.preventDefault();
+          setIsEditing(false);
+          setEditItems([]);
           setView(search.trim() ? "searching" : "browse");
         } else if (e.key === "Enter" && e.altKey && selectedCodelist) {
           e.preventDefault();
@@ -833,7 +857,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <Button
                   appearance="subtle"
                   icon={<ArrowLeftRegular />}
-                  onClick={() => setView(search.trim() ? "searching" : "browse")}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditItems([]);
+                    setView(search.trim() ? "searching" : "browse");
+                  }}
                   aria-label="Back to results"
                 />
                 <Text weight="bold" size={400}>
@@ -1149,8 +1177,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           onClick={() => {
                             const original = dictionaries.find((d) => d.id === result.id);
                             if (original) {
-                              setSelectedCodelist(original);
-                              setView("detail");
+                              handleSelectCodelist(original.id);
                             }
                           }}
                         >
@@ -1264,8 +1291,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               : `1px solid ${tokens.colorNeutralStroke1}`,
                         }}
                         onClick={() => {
-                          setSelectedCodelist(item);
-                          setView("detail");
+                          handleSelectCodelist(item.id);
                         }}
                       >
                         <div
