@@ -96,9 +96,9 @@ class SpeculativeSyncManager {
 
     let snapshotFingerprints: Record<string, string> = {};
     await Excel.run(async (context) => {
-      snapshotFingerprints["_Study"] = await this.getSheetFingerprint(ctx, "_Study");
-      snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(ctx, "_Forms");
-      snapshotFingerprints["_Codelists"] = await this.getSheetFingerprint(ctx, "_Codelists");
+      snapshotFingerprints["_Study"] = await this.getSheetFingerprint(context, "_Study");
+      snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(context, "_Forms");
+      snapshotFingerprints["_Codelists"] = await this.getSheetFingerprint(context, "_Codelists");
     });
 
     this.currentOp = {
@@ -263,7 +263,7 @@ class SpeculativeSyncManager {
       await Excel.run(async (context) => {
         for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
           this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(
-            ctx,
+            context,
             sheetName
           );
         }
