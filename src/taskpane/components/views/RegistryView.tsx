@@ -20,7 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { StudyDesign, SubmissionMetadata } from "../../core";
 import { VaultService } from "../../core";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../../core/utils/crypto-utils";
 import { formatDate } from "../../core/utils/locale-utils";
 
 import { SubmissionMetadataView } from "./SubmissionMetadataView";
@@ -107,7 +107,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
   const handleFreeze = async () => {
     if (!study) return;
     const vaultService = new VaultService();
-    const studyHash = CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex);
+    const studyHash = await sha256Native(JSON.stringify(study));
     await vaultService.freezeVersion(
       study.metadata.protocolId || "UNKNOWN",
       study.metadata.version || "1.0",

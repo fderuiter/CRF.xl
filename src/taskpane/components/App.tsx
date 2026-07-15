@@ -10,7 +10,7 @@ import {
 } from "../core";
 import { createParseRuntime } from "../core";
 import * as React from "react";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../core/utils/crypto-utils";
 import { useState, useEffect, useRef } from "react";
 
 import {
@@ -305,13 +305,15 @@ export const App: React.FC<{ title?: string }> = () => {
 
       // 3. Vault Sync
       const vaultService = new VaultService();
-      vaultService
-        .syncValidationResults(
-          study.metadata.protocolId || "UNKNOWN",
-          study.metadata.version || "1.0",
-          issues,
-          CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex)
-        )
+      sha256Native(JSON.stringify(study))
+        .then((hash) => {
+          return vaultService.syncValidationResults(
+            study.metadata.protocolId || "UNKNOWN",
+            study.metadata.version || "1.0",
+            issues,
+            hash
+          );
+        })
         .catch(console.error);
 
       // 4. Environment Compliance

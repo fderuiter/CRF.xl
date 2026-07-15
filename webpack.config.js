@@ -40,7 +40,9 @@ module.exports = async (env, options) => {
         "util": require.resolve("util/"),
         "assert": require.resolve("assert/"),
         "buffer": require.resolve("buffer/"),
-        "fs": false
+        "fs": false,
+        "vm": false,
+        "encoding": false
       }
     },
     module: {
