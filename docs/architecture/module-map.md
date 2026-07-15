@@ -1,6 +1,6 @@
 # Module Map
 
-This document describes every module in `src/taskpane/core/`, its responsibility, primary public interface, upstream/downstream dependencies, and owning issue. Also lists expected-but-absent modules that are planned but not yet implemented.
+This document describes every module in `packages/core/src/`, its responsibility, primary public interface, upstream/downstream dependencies, and owning issue. Also lists expected-but-absent modules that are planned but not yet implemented.
 
 Related:
 - [`docs/github/codebase-alignment.md`](../github/codebase-alignment.md) — backlog-to-code alignment matrix.
@@ -8,7 +8,7 @@ Related:
 
 ---
 
-## Parser modules (`src/taskpane/core/parser/`)
+## Parser modules (`packages/core/src/parser/`)
 
 ### `excel-parser.ts`
 
@@ -111,7 +111,7 @@ Related:
 
 ---
 
-## Generator modules (`src/taskpane/core/generators/`)
+## Generator modules (`packages/core/src/generators/`)
 
 ### `annotated-crf-pipeline.ts`
 
@@ -169,7 +169,7 @@ Related:
 
 ---
 
-## Service modules (`src/taskpane/core/services/`)
+## Service modules (`packages/core/src/services/`)
 
 ### `binding-service.ts`
 
@@ -399,7 +399,7 @@ Related:
 
 ---
 
-## Registry and Factory modules (`src/taskpane/core/registry/`, `src/taskpane/core/factory/`)
+## Registry and Factory modules (`packages/core/src/registry/`, `packages/core/src/factory/`)
 
 ### `sheet-metadata-registry.ts`
 
@@ -421,7 +421,7 @@ Related:
 
 ---
 
-## Validator modules (`src/taskpane/core/validators/`)
+## Validator modules (`packages/core/src/validators/`)
 
 ### `acrf-output-validator.ts`
 
@@ -443,7 +443,7 @@ Related:
 
 ---
 
-## Utility modules (`src/taskpane/core/utils/`)
+## Utility modules (`packages/core/src/utils/`)
 
 ### `zip-writer.ts`
 
@@ -465,7 +465,7 @@ Related:
 
 ---
 
-## Type modules (`src/taskpane/core/types/`)
+## Type modules (`packages/core/src/types/`)
 
 ### `clinical.ts`
 Core CRF metadata types: `StudyDesign`, `CrfForm`, `CrfItem`, `CrfCodelist`.
@@ -501,7 +501,7 @@ Shared utility types: localized strings, OID references, generic result wrappers
 
 ## Legacy flat-file modules
 
-These files at `src/taskpane/core/` root are superseded by modular implementations.
+These files at `packages/core/src/` root are superseded by modular implementations.
 
 | File | Superseded by |
 | --- | --- |
@@ -514,8 +514,8 @@ These files at `src/taskpane/core/` root are superseded by modular implementatio
 
 | Expected module | Purpose | Blocking Issue | Planned Location |
 | --- | --- | --- | --- |
-| `services/rules-runtime.ts` | Real-time evaluation of CRF rules in the sidecar. | #137 | `src/taskpane/core/services/` |
-| `parser/vlm-parser.ts` | Parsing Value Level Metadata sheets. | #92 | `src/taskpane/core/parser/` |
+| `services/rules-runtime.ts` | Real-time evaluation of CRF rules in the sidecar. | #137 | `packages/core/src/services/` |
+| `parser/vlm-parser.ts` | Parsing Value Level Metadata sheets. | #92 | `packages/core/src/parser/` |
 
 ---
 
@@ -523,7 +523,7 @@ These files at `src/taskpane/core/` root are superseded by modular implementatio
 
 Update this document whenever:
 
-- A new module is added to `src/taskpane/core/`
+- A new module is added to `packages/core/src/`
 - An expected-but-absent module is implemented (move it to the present section)
 - A module's public interface changes materially
 - An owning issue changes

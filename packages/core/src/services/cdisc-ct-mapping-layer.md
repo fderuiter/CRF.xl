@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`src/taskpane/core/services/cdisc-ct-mapping-service.ts` is the isolated transform layer between:
+`packages/core/packages/taskpane/src/services/cdisc-ct-mapping-service.ts` is the isolated transform layer between:
 
 - fetch layer (`cdisc-api-service.ts`) and
 - import/write layer (`_Codelists` persistence and Sidecar UI flow).
@@ -83,7 +83,7 @@ The function returns explicit per-row decisions and warnings so UI/write layer c
 
 ## Test evidence
 
-`src/taskpane/core/services/__tests__/cdisc-ct-mapping-service.test.ts` covers:
+`packages/core/packages/taskpane/src/services/__tests__/cdisc-ct-mapping-service.test.ts` covers:
 
 - successful mapping with representative fixture (3 codelists + edge cases),
 - partial response handling,

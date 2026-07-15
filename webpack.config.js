@@ -30,6 +30,10 @@ module.exports = async (env, options) => {
       clean: true,
     },
     resolve: {
+      alias: {
+        "@crf-xl/taskpane": require("path").resolve(__dirname, "packages/taskpane/src"),
+        "@crf-xl/core": require("path").resolve(__dirname, "packages/core/src")
+      },
       extensions: [".ts", ".tsx", ".html", ".js"],
       alias: {
         "@crf-xl/core": path.resolve(__dirname, "packages/core/src/"),

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`src/taskpane/core/services/cdisc-api-service.ts` provides a typed, testable client for fetching CDISC controlled terminology artifacts from `api.cdisc.org`.
+`packages/core/packages/taskpane/src/services/cdisc-api-service.ts` provides a typed, testable client for fetching CDISC controlled terminology artifacts from `api.cdisc.org`.
 
 ## Supported endpoints
 
@@ -98,7 +98,7 @@ Committed fixtures:
 
 Fixture payloads track OpenAPI shapes from `docs/cdisc-library-api.yaml`, including `_links.packages`, `_links.codelists`, and `_links.terms`.
 
-Unit tests in `src/taskpane/core/services/__tests__/cdisc-api-service.test.ts` cover:
+Unit tests in `packages/core/packages/taskpane/src/services/__tests__/cdisc-api-service.test.ts` cover:
 
 - success
 - missing credentials/authentication failure

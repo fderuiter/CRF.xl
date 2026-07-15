@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 
-const SRC_DIR = path.join(__dirname, "../src");
+const PACKAGES_DIR = path.join(__dirname, "../packages");
 const REPORT_PATH = path.join(__dirname, "../docs/github/codebase-alignment.md");
 const MODULE_MAP_PATH = path.join(__dirname, "../docs/architecture/module-map.md");
 
@@ -45,7 +45,7 @@ function walk(dir) {
     if (stat && stat.isDirectory()) {
       results = results.concat(walk(filePath));
     } else {
-      if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
+      if ((filePath.endsWith(".ts") || filePath.endsWith(".tsx")) && !filePath.endsWith("index.ts") && !filePath.endsWith("index.tsx")) {
         results.push(filePath);
       }
     }
@@ -93,7 +93,10 @@ async function main() {
   console.log("Fetching issues from GitHub to validate...");
   const validIssues = await fetchAllIssues();
 
-  const files = walk(SRC_DIR);
+  const files = [
+    ...walk(path.join(PACKAGES_DIR, "core/src")),
+    ...walk(path.join(PACKAGES_DIR, "taskpane/src"))
+  ];
   const DOCS_DIR = path.join(__dirname, "../docs");
   const docFiles = [];
   const walkDocs = (dir) => {

@@ -40,7 +40,7 @@ Service adapters are responsible for raw data extraction. They isolate raw netwo
 * **Extraction bounds:** Extracts schema structures from non-scaffolded or legacy clinical excel sheets, converting them into loose metadata trees.
 
 ### 3. ODM XML Reverse Parser (v1 supported subset)
-* **Service Module:** `src/taskpane/core/services/odm-import-service.ts`
+* **Service Module:** `packages/core/packages/taskpane/src/services/odm-import-service.ts`
 * **Source contract:** CDISC ODM XML metadata files.
 * **Normalization target:** `StudyDesign` metadata with workbook projections for `_Study`, `_Forms`, and `_Codelists`.
 * **Supported ODM subset in v1:**

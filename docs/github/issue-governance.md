@@ -358,7 +358,7 @@ Do **not** use: plain unprefixed titles, `Feature:` colon-style, mixed bracket-a
 ## Codebase Alignment
 | Module / File | Change Type | Notes |
 |---------------|-------------|-------|
-| `src/...` | New / Modify / Read | <notes> |
+| `packages/taskpane/src/...` | New / Modify / Read | <notes> |
 ```
 
 ### Task body template
