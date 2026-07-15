@@ -4,8 +4,8 @@ import os from "os";
 import path from "path";
 import { execFileSync, spawnSync } from "child_process";
 import ExcelJS from "exceljs";
-import { generateOdmXml } from "../../src/taskpane/core/generators/cdisc/odm-builder";
-import { DataType, EventType, StudyDesign } from "../../src/taskpane/core/types";
+import { generateOdmXml } from "@crf-xl/core/generators/cdisc/odm-builder";
+import { DataType, EventType, StudyDesign } from "@crf-xl/core/types";
 
 const fixturePath = path.resolve(
   __dirname,

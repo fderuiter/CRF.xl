@@ -3,9 +3,9 @@ import os from "os";
 import path from "path";
 import { performance } from "perf_hooks";
 import ExcelJS from "exceljs";
-import { buildMatrixSearchIndex, filterMatrixSearchIndex } from "../../src/taskpane/components/views/matrix-view-utils";
-import { validateStudyDesign } from "../../src/taskpane/core/parser/validator";
-import { DataType, EventType, StudyDesign } from "../../src/taskpane/core/types";
+import { buildMatrixSearchIndex, filterMatrixSearchIndex } from "@crf-xl/taskpane/components/views/matrix-view-utils";
+import { validateStudyDesign } from "@crf-xl/taskpane/parser/validator";
+import { DataType, EventType, StudyDesign } from "@crf-xl/core/types";
 
 const fixturePath = path.resolve(
   __dirname,

@@ -6,7 +6,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { OnboardingTour } from "../OnboardingTour";
 
 // Mock onboardingService and the core module to avoid MSAL/crypto issues
-jest.mock("../../core", () => ({
+jest.mock("@crf-xl/core/services/onboarding-service", () => ({
   onboardingService: {
     getState: jest.fn(),
     subscribe: jest.fn(),

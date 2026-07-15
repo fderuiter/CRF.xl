@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@crf-xl/taskpane/*": ["packages/taskpane/src/*"],
+      "@crf-xl/core/*": ["packages/core/src/*"]
+    },
     "strict": true,
     "noImplicitAny": true,
     "allowUnusedLabels": false,
