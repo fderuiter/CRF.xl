@@ -7,7 +7,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const expectedVersion = `${packageJson.version}.0`;
 
 const manifests = [
-  { name: "main", file: "manifest.xml", forbidDevUrls: false, placeholder: null, clientPlaceholder: "REPLACE_WITH_DEV_CLIENT_ID" },
+  { name: "main", file: "manifest.xml", forbidDevUrls: false, placeholder: null, clientPlaceholder: "11111111-1111-1111-1111-111111111111" },
 ];
 
 const prohibitedPattern =

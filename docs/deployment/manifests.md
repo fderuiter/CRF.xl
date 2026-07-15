@@ -1,14 +1,16 @@
 # Office Add-in Manifest
 
-This repository maintains a single Office add-in XML manifest.
+This repository maintains a single, unified Office add-in XML manifest. Environment-specific URLs (development, staging, production) are injected during the CI/CD deployment pipeline to enforce environment isolation and GxP compliance:
 
-- **Manifest:** [manifest.xml](../../manifest.xml)
+- **Unified Manifest:** [manifest.xml](../../manifest.xml)
 
 ---
 
 ## 🛠️ Which manifest to use
 
-- **Local developer sideload:** `manifest.xml` (points to `localhost:3000` or dev-tunnel URLs).
+- **Local developer sideload:** `manifest.xml` (dev URLs are configured via `.env` or during setup).
+- **Department/UAT validation:** Injected in CI pipeline (points to secure UAT sandbox host).
+- **Centralized rollout in Microsoft 365 Admin Center:** Injected in CI pipeline (points to canonical production host).
 
 
 ---
@@ -17,7 +19,9 @@ This repository maintains a single Office add-in XML manifest.
 
 > [!WARNING]
 > **Pending Infrastructure Provisioning:**
-> Until the corporate IT infrastructure group completes external host provisioning (Issue #135), the manifest utilizes secure placeholder hosts for production deployments.
+> Until the corporate IT infrastructure group completes external host provisioning (Issue #135), the CI deployment pipeline utilizes placeholder variables.
+> 
+> Sideloading the manifest in non-development environments will fail to resolve until the final HTTPS endpoints are injected by your target deployment pipelines.
 
 ---
 
@@ -29,19 +33,16 @@ Every manifest change undergoes automated linting and validation via `scripts/va
 npm run validate
 ```
 
-The validation suite (`npm run validate`) automatically executes checks like version synchronization and placeholder presence.
-
-To validate against Microsoft's schema validator, run:
-
-```bash
-npm run validate:office
-```
+The validation suite (`npm run validate`) automatically executes:
+1. **Version Synchronization:** Enforces that the `<Version>` tag matches the root `package.json` version string exactly as `${version}.0`.
+2. **Identifier Check:** Verifies that the unique XML `<Id>` GUID is present.
+3. **Placeholder Checks:** Confirms the presence of client ID placeholders before release assembly.
 
 ---
 
 ## 🔑 Permissions Rationale
 
-All environment manifests request the following permission level:
+All environment deployments request the following permission level in the unified manifest:
 
 ```xml
 <Permissions>ReadWriteDocument</Permissions>
@@ -54,11 +55,12 @@ This permission is **strictly limited** to the workbook context. It is required 
 ## 🚀 Microsoft 365 Centralized Rollout (Production)
 
 1. Build and publish production web assets to the approved production host.
-2. Verify manifest integrity: `npm run validate`.
-3. Log in to the **Microsoft 365 Admin Center** as an Global Admin or Exchange Admin.
-4. Navigate to **Settings → Integrated apps**.
-5. Select **Upload custom apps** and upload your production `manifest.xml`.
-6. Configure deployment scope:
+2. The CI pipeline will update the `manifest.xml` placeholders with the final provisioned production URLs and Client IDs.
+3. Verify manifest integrity: `npm run validate`.
+4. Log in to the **Microsoft 365 Admin Center** as an Global Admin or Exchange Admin.
+5. Navigate to **Settings → Integrated apps**.
+6. Select **Upload custom apps** and upload your production-injected `manifest.xml`.
+7. Configure deployment scope:
    - Stage 1: Pilot IT / QA validation group.
    - Stage 2: Clinical Data Management / UAT department rollout.
    - Stage 3: Global organization-wide deployment.

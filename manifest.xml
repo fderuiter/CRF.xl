@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>96d77cf1-fe3c-4f18-9e7a-310fa8ae354e</Id>
-  <Version>0.0.1.0</Version>
+  <Version>1.0.0.0</Version>
   <ProviderName>CRF.xl</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="CRF.xl (Development)"/>
@@ -82,8 +82,8 @@
       </bt:LongStrings>
     </Resources>
     <WebApplicationInfo>
-      <Id>REPLACE_WITH_DEV_CLIENT_ID</Id>
-      <Resource>api://REPLACE_WITH_DEV_HOST/REPLACE_WITH_DEV_CLIENT_ID</Resource>
+      <Id>11111111-1111-1111-1111-111111111111</Id>
+      <Resource>api://REPLACE_WITH_DEV_HOST/11111111-1111-1111-1111-111111111111</Resource>
       <Scopes>
         <Scope>Files.Read.All</Scope>
         <Scope>offline_access</Scope>

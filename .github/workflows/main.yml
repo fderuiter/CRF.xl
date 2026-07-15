@@ -35,6 +35,9 @@ jobs:
     - name: 🧾 Validate Office add-in manifests
       run: npm run validate
 
+    - name: 🎨 Enforce Code Formatting
+      run: npm run lint
+
     - name: 📚 Validate Documentation Links
       run: npm run docs:validate
 
