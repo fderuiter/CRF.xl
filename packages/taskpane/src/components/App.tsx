@@ -380,7 +380,7 @@ export const App: React.FC<{ title?: string }> = () => {
         }
       });
     }
-  }, [study, issues, totalIsProcessing, activeSheet]);
+  }, [study, issues, totalIsProcessing, activeSheet, actions]);
 
   const [baselineStudy, setBaselineStudy] = useState<StudyDesign | null>(null);
   const [baselineError, setBaselineError] = useState<string | null>(null);
@@ -401,7 +401,7 @@ export const App: React.FC<{ title?: string }> = () => {
   // Push justifications to orchestrator
   useEffect(() => {
     actions.updateJustifications(justifications);
-  }, [justifications]);
+  }, [justifications, actions]);
 
   // Revert sign-off if study changes
   useEffect(() => {
@@ -409,7 +409,7 @@ export const App: React.FC<{ title?: string }> = () => {
       setIsSignedOff(false);
       setSignOffTimestamp(null);
     }
-  }, [study, issues]);
+  }, [study, issues, isSignedOff]);
 
   const errorContainerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
@@ -491,7 +491,7 @@ export const App: React.FC<{ title?: string }> = () => {
         "assertive"
       );
     }
-  }, [syncConflict]);
+  }, [syncConflict, announce]);
 
   // Startup Check: Does the Matrix architecture exist yet?
   useEffect(() => {
@@ -522,6 +522,7 @@ export const App: React.FC<{ title?: string }> = () => {
       }
     };
     checkInit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

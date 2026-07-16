@@ -698,6 +698,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       view,
       searchResults,
