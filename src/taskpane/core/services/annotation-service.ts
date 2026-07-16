@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 import { sha256Native } from "../utils/crypto-utils";
 import { logger } from "../utils/logger";
 /**

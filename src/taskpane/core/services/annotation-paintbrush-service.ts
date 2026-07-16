@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 import { SubscriptionManager } from "../utils/event-utility";
 import { logger } from "../utils/logger";
 /**

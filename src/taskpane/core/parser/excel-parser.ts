@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 /* global Excel, window, Worker, URL, MessageEvent */
 /**
  * @issue #53, #118, #137
