@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 /* global Excel */
 /**
  * @issue #292

@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 import { logger } from "../utils/logger";
 /* global window, btoa */
 /**

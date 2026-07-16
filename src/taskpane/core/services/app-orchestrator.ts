@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 /**
  * @issue #349
  */
