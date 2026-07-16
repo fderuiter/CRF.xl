@@ -6,7 +6,7 @@ import * as pdfMake from "pdfmake/build/pdfmake";
 const pdfFonts = require("pdfmake/build/vfs_fonts");
 import htmlToPdfmake from "html-to-pdfmake";
 
-(pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
+(pdfMake as any).vfs = pdfFonts?.pdfMake?.vfs || pdfFonts?.vfs || {};
 
 /**
  * Exports the provided HTML content to a PDF file.
