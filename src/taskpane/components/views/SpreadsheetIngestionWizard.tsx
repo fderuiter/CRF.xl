@@ -3,6 +3,42 @@
  * @issue #28
  */
 import * as React from "react";
+import { z } from "zod";
+
+const codelistRowSchema = z.object({
+  cl_codelist_id: z.string().min(1, "cl_codelist_id is required"),
+  cl_codelist_name: z.string().optional(),
+  cl_coded_value: z.string().min(1, "cl_coded_value is required"),
+  cl_decode: z.string().optional(),
+});
+
+const formsRegistryRowSchema = z.object({
+  form_oid: z.string().min(1, "form_oid is required"),
+  form_name: z.string().optional(),
+  repeating: z.string().optional(),
+  page_layout: z.string().optional(),
+});
+
+const formItemRowSchema = z.object({
+  variable_name: z.string()
+    .min(1, "variable_name is required")
+    .regex(/^[A-Za-z0-9_]+$/, "variable_name should be alphanumeric/underscores"),
+  label: z.string().optional(),
+  variable_type: z.string().optional(),
+  required: z.string().optional(),
+  length: z.string().optional(),
+  significant_digits: z.string().optional(),
+  minimum: z.string().optional(),
+  maximum: z.string().optional(),
+  show_if: z.string().optional(),
+  codelist_id: z.string().optional(),
+  origin: z.string().optional(),
+  method_oid: z.string().optional(),
+  sdtm_domain: z.string().optional(),
+  sdtm_variable: z.string().optional(),
+  comment: z.string().optional(),
+});
+
 import {
   Badge,
   Body1,
@@ -363,6 +399,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
         if (abortControllerRef.current?.signal.aborted) break;
 
         const currentChunkSize = Math.min(pageSize, totalRows - i);
+        let validationError: string | null = null;
 
         await Excel.run(async (ctx) => {
           const sheets = ctx.workbook.worksheets;
@@ -373,6 +410,40 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
 
           const sourceRows = sourceRange.values as string[][];
           const mappedRows = sourceRows.map((r) => mapRow(r, mappings, state.confirmedStructure!));
+
+          for (let rowIndex = 0; rowIndex < mappedRows.length; rowIndex++) {
+            const mappedRow = mappedRows[rowIndex];
+            let issues: z.ZodIssue[] = [];
+
+            if (state.confirmedStructure === "codelists") {
+              const [cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode] = mappedRow;
+              const res = codelistRowSchema.safeParse({ cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode });
+              if (!res.success) issues = res.error.issues;
+            } else if (state.confirmedStructure === "forms_registry") {
+              const [form_oid, form_name, repeating, page_layout] = mappedRow;
+              const res = formsRegistryRowSchema.safeParse({ form_oid, form_name, repeating, page_layout });
+              if (!res.success) issues = res.error.issues;
+            } else if (state.confirmedStructure === "form_item") {
+              const [
+                variable_name, label, variable_type, required, length,
+                significant_digits, minimum, maximum, show_if, codelist_id,
+                origin, method_oid, sdtm_domain, sdtm_variable, comment
+              ] = mappedRow;
+              const res = formItemRowSchema.safeParse({
+                variable_name, label, variable_type, required, length,
+                significant_digits, minimum, maximum, show_if, codelist_id,
+                origin, method_oid, sdtm_domain, sdtm_variable, comment
+              });
+              if (!res.success) issues = res.error.issues;
+            }
+
+            if (issues.length > 0) {
+              const excelRowNumber = i + rowIndex + 2; // 1-based index including header
+              const errorMsg = issues.map((e) => `'${e.path.join(".")}': ${e.message}`).join(", ");
+              validationError = `Row ${excelRowNumber}: ${errorMsg}`;
+              return; // abort this Excel.run execution
+            }
+          }
 
           if (state.confirmedStructure === "codelists") {
             const clSheet = sheets.getItem("_Codelists");
@@ -415,6 +486,12 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
           }
           await ctx.sync();
         });
+
+        if (validationError) {
+          patch({ error: validationError, syncProgress: null });
+          abortControllerRef.current?.abort();
+          return;
+        }
 
         rowsWritten += currentChunkSize;
         const percent = Math.round((rowsWritten / totalRows) * 100);
