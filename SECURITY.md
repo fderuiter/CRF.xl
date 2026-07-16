@@ -24,10 +24,10 @@ For a public-facing audit-trail walkthrough aligned to **21 CFR Part 11**, see `
 | --- | --- | --- |
 | Architecture narrative | `docs/specification/vision-system-architecture.md` | Defines component boundaries and data flow layers. |
 | CI and branch quality gates | `.github/workflows/main.yml`, `README.md` | Enforces reproducible install, typecheck, build, and tests on pull requests. |
-| Workbook protection implementation | `src/taskpane/core/parser/template-generator.ts` | Applies locked ranges and protected system sheet behavior. |
-| Parser and export handling | `src/taskpane/core/parser/excel-parser.ts`, `src/taskpane/core/generators/cdisc/odm-builder.ts` | Defines how workbook data is transformed into output artifacts. |
+| Workbook protection implementation | `packages/core/src/parser/template-generator.ts` | Applies locked ranges and protected system sheet behavior. |
+| Parser and export handling | `packages/core/src/parser/excel-parser.ts`, `packages/core/src/generators/cdisc/odm-builder.ts` | Defines how workbook data is transformed into output artifacts. |
 | Dependency stewardship policy | `package.json` scripts (`audit`, `audit:json`), this file | Captures recurring vulnerability review process and results. |
-| Validation tests | `src/taskpane/**/__tests__` | Verifies core transformation and validation paths for regression control. |
+| Validation tests | `packages/taskpane/src/**/__tests__` | Verifies core transformation and validation paths for regression control. |
 
 ## 3) CIS Control Mapping
 
@@ -37,14 +37,14 @@ For a public-facing audit-trail walkthrough aligned to **21 CFR Part 11**, see `
 | --- | --- | --- |
 | CIS Control 6 (Access Control Management) | Changes flow through pull requests with required CI checks before merge. | `.github/workflows/main.yml`, `README.md` branch protection notes |
 | CIS Control 16 (Application Software Security) | Static checks (`npx tsc --noEmit`), automated tests (`npm test`), and build validation run on PRs. | `.github/workflows/main.yml` |
-| Least-privilege workbook editing | Registry sheets `_Forms` and `_Schedule` apply locked header/formula ranges while leaving designated input ranges editable. | `src/taskpane/core/parser/template-generator.ts` (`getSheetProtectionConfigs`) |
+| Least-privilege workbook editing | Registry sheets `_Forms` and `_Schedule` apply locked header/formula ranges while leaving designated input ranges editable. | `packages/core/src/parser/template-generator.ts` (`getSheetProtectionConfigs`) |
 
 ### 3.2 Data Protection
 
 | CIS Area | Current Control in CRF.xl | Evidence |
 | --- | --- | --- |
-| CIS Control 3 (Data Protection) | Clinical metadata is processed from the active workbook in memory and transformed into structured objects before export. | `src/taskpane/core/parser/excel-parser.ts` |
-| Integrity of controlled fields | Workbook scaffolding enforces data validation for key columns (data type, required flag, codelist references). | `src/taskpane/core/parser/template-generator.ts` |
+| CIS Control 3 (Data Protection) | Clinical metadata is processed from the active workbook in memory and transformed into structured objects before export. | `packages/core/src/parser/excel-parser.ts` |
+| Integrity of controlled fields | Workbook scaffolding enforces data validation for key columns (data type, required flag, codelist references). | `packages/core/src/parser/template-generator.ts` |
 | Supply chain hygiene | Dependency audit process is tracked, and lockfile is committed for reproducible dependency states. | `package.json`, `package-lock.json`, Security Audit Log below |
 
 ### 3.3 Audit Log & Traceability
@@ -53,7 +53,7 @@ For a public-facing audit-trail walkthrough aligned to **21 CFR Part 11**, see `
 | --- | --- | --- |
 | CIS Control 8 (Audit Log Management) | Security audit actions are logged in this document with command, result, and follow-up action. | Security Audit Log section |
 | Change traceability | GitHub workflow runs provide PR-linked execution history for install, typecheck, build, and tests. | `.github/workflows/main.yml`, GitHub Actions run history |
-| Validation traceability | Validation issues are surfaced in the UI diagnostic log to support operator review and correction loops. | `src/taskpane/components/ValidationLog.tsx` |
+| Validation traceability | Validation issues are surfaced in the UI diagnostic log to support operator review and correction loops. | `packages/taskpane/src/components/ValidationLog.tsx` |
 
 ## 4) Security Audit Log
 

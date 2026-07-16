@@ -150,10 +150,10 @@ function validateFile(filePath) {
 info("Starting markdown documentation link validation...");
 
 // Find all documentation files
-const srcDir = path.join(projectRoot, "src");
+const packagesDir = path.join(projectRoot, "packages");
 const markdownFiles = [
   ...findMarkdownFiles(docsDir),
-  ...findMarkdownFiles(srcDir)
+  ...findMarkdownFiles(packagesDir)
 ];
 const rootReadme = path.join(projectRoot, "README.md");
 

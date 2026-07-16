@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Meets the project's node v16+ requirement
+          node-version: "22" # Meets the project's node v22+ requirement
           cache: "npm"       # Leverages native npm caching for speed
 
       - name: Install Project Dependencies

@@ -2,15 +2,15 @@
 import ExcelJS from "exceljs";
 import path from "path";
 import { execFileSync } from "child_process";
-import { mapRowToFormElement } from "../../src/taskpane/core/parser/form-element-utils";
-import { validateStudyDesign } from "../../src/taskpane/core/parser/validator";
+import { mapRowToFormElement } from "@crf-xl/core/parser/form-element-utils";
+import { validateStudyDesign } from "@crf-xl/taskpane/parser/validator";
 import {
   DataType,
   EventType,
   StudyDesign,
   isCrfDisplayBlock,
   isCrfItem,
-} from "../../src/taskpane/core/types";
+} from "@crf-xl/core/types";
 
 export const displayBlocksFixturePath = path.resolve(
   __dirname,

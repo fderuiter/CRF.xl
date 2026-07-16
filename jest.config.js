@@ -5,5 +5,9 @@ module.exports = {
   verbose: true,
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coveragePathIgnorePatterns: ['/node_modules/']
+  coveragePathIgnorePatterns: ['/node_modules/'],
+  moduleNameMapper: {
+    '^@crf-xl/taskpane/(.*)$': '<rootDir>/packages/taskpane/src/$1',
+    '^@crf-xl/core/(.*)$': '<rootDir>/packages/core/src/$1'
+  }
 };

@@ -1,0 +1,17 @@
+{
+  "name": "@crf-xl/taskpane",
+  "version": "1.0.0",
+  "main": "src/taskpane.ts",
+  "dependencies": {
+    "@crf-xl/core": "*",
+    "@fluentui/react-components": "^9.55.1",
+    "@fluentui/react-icons": "^2.0.264",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "core-js": "^3.36.0",
+    "es6-promise": "^4.2.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "regenerator-runtime": "^0.14.1",
+    "scheduler": "^0.27.0"
+  }
+}

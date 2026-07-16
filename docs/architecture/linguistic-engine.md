@@ -5,7 +5,7 @@ The Linguistic Engine provides a centralized mechanism for managing multi-langua
 
 ## Core Components
 
-### 1. Linguistic Service (`src/taskpane/core/services/linguistics-service.ts`)
+### 1. Linguistic Service (`packages/core/src/services/linguistics-service.ts`)
 The `LinguisticService` is the central logic hub. It provides:
 - **Normalization**: Standardizes locale tags to BCP 47 (e.g., `en-us` -> `en-US`).
 - **Discovery**: Regex-based detection of locale patterns in Excel headers (e.g., `Decode (es-ES)`, `Label (fr-FR)`).

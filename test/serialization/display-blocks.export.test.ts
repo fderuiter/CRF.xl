@@ -8,8 +8,8 @@ import {
   extractDocxDocumentXml,
   parseDisplayBlocksFixture,
 } from "./display-blocks.shared";
-import { generateDocxBuffer } from "../../src/taskpane/core/generators/docx/docx-builder";
-import { generateOdmXml } from "../../src/taskpane/core/generators/cdisc/odm-builder";
+import { generateDocxBuffer } from "@crf-xl/core/generators/docx/docx-builder";
+import { generateOdmXml } from "@crf-xl/core/generators/cdisc/odm-builder";
 
 describe("Display block export proofing", () => {
   it("drops display blocks from ODM ItemRef and ItemDef generation", async () => {

@@ -1,5 +1,9 @@
 {
-  "name": "office-addin-taskpane-react",
+  "name": "crf-xl-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "version": "1.0.0",
   "repository": {
     "type": "git",
@@ -16,9 +20,9 @@
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",
-    "lint": "office-addin-lint check",
-    "lint:fix": "office-addin-lint fix",
-    "prettier": "office-addin-lint prettier",
+    "lint": "office-addin-lint check --files \"packages/**/*.{ts,tsx,js,jsx}\"",
+    "lint:fix": "office-addin-lint fix --files \"packages/**/*.{ts,tsx,js,jsx}\"",
+    "prettier": "office-addin-lint prettier --files \"packages/**/*.{ts,tsx,js,jsx}\"",
     "signin": "office-addin-dev-settings m365-account login",
     "signout": "office-addin-dev-settings m365-account logout",
     "start": "office-addin-debugging start manifest.xml",
