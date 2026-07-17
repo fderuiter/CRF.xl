@@ -247,7 +247,14 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
 
       <div className={styles.filterGrid}>
         <Dropdown
-          value={changeClass === "all" ? "Change type" : changeClass}
+          aria-label="Change Class, filter dropdown"
+          value={
+            changeClass === "all"
+              ? "Change type"
+              : changeClass === "moved_or_renamed"
+              ? "Change: moved/renamed"
+              : `Change: ${changeClass}`
+          }
           selectedOptions={[changeClass]}
           onOptionSelect={(_, data) =>
             setChangeClass((data.optionValue as DiffChangeClass | "all") || "all")
@@ -260,7 +267,8 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
           <Option value="moved_or_renamed">moved/renamed</Option>
         </Dropdown>
         <Dropdown
-          value={severity === "all" ? "Severity / importance" : severity}
+          aria-label="Severity, filter dropdown"
+          value={severity === "all" ? "Severity / importance" : `Severity: ${severity}`}
           selectedOptions={[severity]}
           onOptionSelect={(_, data) =>
             setSeverity((data.optionValue as DiffSeverity | "all") || "all")
@@ -272,7 +280,8 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
           <Option value="low">low</Option>
         </Dropdown>
         <Dropdown
-          value={subsystem === "all" ? "Subsystem" : subsystem}
+          aria-label="Subsystem, filter dropdown"
+          value={subsystem === "all" ? "Subsystem" : `Subsystem: ${subsystem}`}
           selectedOptions={[subsystem]}
           onOptionSelect={(_, data) => setSubsystem(data.optionValue || "all")}
         >
@@ -284,7 +293,8 @@ export const StudyDiffView: React.FC<StudyDiffViewProps> = ({ report }) => {
           ))}
         </Dropdown>
         <Dropdown
-          value={area === "all" ? "Form / area" : area}
+          aria-label="Form / Area, filter dropdown"
+          value={area === "all" ? "Form / area" : `Area: ${area}`}
           selectedOptions={[area]}
           onOptionSelect={(_, data) => setArea(data.optionValue || "all")}
         >
