@@ -2,9 +2,7 @@
  * @issue #28
  */
 import * as React from "react";
-import {
-  Spinner as FluentSpinner,
-} from "@fluentui/react-components";
+import { Spinner as FluentSpinner } from "@fluentui/react-components";
 
 // ============================================================================
 // LOADING SPINNER
@@ -14,10 +12,7 @@ export const Spinner: React.FC<{ className?: string }> = () => <FluentSpinner si
 // ============================================================================
 // ACCESSIBLE WRAPPER
 // ============================================================================
-interface AccessibleWrapperProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "onClick"
-> {
+interface AccessibleWrapperProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   onClick?: (e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => void;
   role?: React.AriaRole;
   ariaLabel?: string;
@@ -63,4 +58,3 @@ export const AccessibleWrapper: React.FC<AccessibleWrapperProps> = ({
     </div>
   );
 };
-

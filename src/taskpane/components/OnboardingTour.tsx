@@ -121,7 +121,14 @@ export const OnboardingTour: React.FC = () => {
         </TeachingPopoverHeader>
         <TeachingPopoverTitle>{currentStep.title}</TeachingPopoverTitle>
         <TeachingPopoverBody>{currentStep.description}</TeachingPopoverBody>
-        <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px", marginTop: "4px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            paddingTop: "12px",
+            marginTop: "4px",
+          }}
+        >
           <Button appearance="subtle" onClick={handleSkip}>
             Skip
           </Button>

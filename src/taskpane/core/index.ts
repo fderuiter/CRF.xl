@@ -3,27 +3,27 @@
  */
 export {
   AdamDatasetClass,
-  AdamDatasetMetadata,
-  CodelistDiffEntry,
+  type AdamDatasetMetadata,
+  type CodelistDiffEntry,
   DataType,
   DatasetPurpose,
   EventType,
   ExportMode,
-  ExportOptions,
-  FormDiffEntry,
-  ItemDiffEntry,
-  RuleDiffEntry,
+  type ExportOptions,
+  type FormDiffEntry,
+  type ItemDiffEntry,
+  type RuleDiffEntry,
   RuleType,
   SdtmDatasetClass,
-  SdtmDatasetMetadata,
-  StudyDesign,
-  StudyDiffReport,
-  SubmissionMetadata,
+  type SdtmDatasetMetadata,
+  type StudyDesign,
+  type StudyDiffReport,
+  type SubmissionMetadata,
   isCrfItem,
-  ValidationIssue,
-  AuditJustification,
-  AcrfVerificationResult,
-  AcrfVerificationIssue,
+  type ValidationIssue,
+  type AuditJustification,
+  type AcrfVerificationResult,
+  type AcrfVerificationIssue,
 } from "./types";
 export {
   BaselineWorkbookParseError,
@@ -31,8 +31,8 @@ export {
 } from "./services/baseline-workbook-service";
 export {
   RECOVERY_APP_VERSION,
-  RecoverySnapshot,
-  WorkbookFingerprint,
+  type RecoverySnapshot,
+  type WorkbookFingerprint,
   createRecoverySnapshot,
   dismissRecoverySnapshot,
   hasWorkbookChanged,
@@ -40,82 +40,86 @@ export {
   readRecoverySnapshot,
   summarizeStudyDesign,
 } from "./services/recovery-storage";
-export { TerminologySearchResult } from "./types/terminology-search";
+export { type TerminologySearchResult } from "./types/terminology-search";
 export {
   applyValidationVisuals,
   getOrphanedAnnotationsCount,
   highlightLocaleColumns,
   refreshAnnotationHighlights,
   clearAnnotationHighlights,
-  DriftWarning,
+  type DriftWarning,
   detectDrifts,
   applyManualReAnchor,
 } from "./services/annotation-service";
 export { annotationPaintbrushService } from "./services/annotation-paintbrush-service";
 export {
-  ConflictResolution,
-  CtImportPlan,
-  ImportConflictItem,
-  ImportSummary,
+  type ConflictResolution,
+  type CtImportPlan,
+  type ImportConflictItem,
+  type ImportSummary,
   buildCtImportPlan,
   executeCtImport,
   readExistingCodelistRows,
 } from "./services/ct-import-service";
 export {
-  FieldMapping,
-  IngestionPreview,
-  SheetScanResult,
+  type FieldMapping,
+  type IngestionPreview,
+  type SheetScanResult,
   TARGET_FIELDS,
-  TargetField,
-  TargetSheet,
+  type TargetField,
+  type TargetSheet,
   buildIngestionPreview,
   buildSheetScanResult,
   detectColumnMappings,
   mapRow,
 } from "./services/spreadsheet-ingestion-service";
 export {
-  VersionUpdateMetadata,
+  type VersionUpdateMetadata,
   checkForVersionUpdate,
   dismissVersionNotification,
 } from "./services/version-update-service";
 export {
-  EnvironmentComplianceStatus,
+  type EnvironmentComplianceStatus,
   complianceGovernanceService,
 } from "./services/compliance-governance-service";
 export {
-  ImportManifest,
+  type ImportManifest,
   createImportManifest,
   createImportProvenance,
   loadImportManifest,
   persistImportManifest,
 } from "./services/migration-pipeline";
 export { createOfficeDiagnostic } from "./services/office-error-handling";
-export { Diagnostic, DiagnosticError, DiagnosticSeverity } from "./services/diagnostic-framework";
 export {
-  CodelistGroup,
-  CodelistItem,
+  type Diagnostic,
+  DiagnosticError,
+  type DiagnosticSeverity,
+} from "./services/diagnostic-framework";
+export {
+  type CodelistGroup,
+  type CodelistItem,
   fetchDictionaries,
   saveDictionary,
 } from "./services/dictionary-service";
-export { OdmImportPackage, importOdmXml } from "./services/odm-import-service";
+export { type OdmImportPackage, importOdmXml } from "./services/odm-import-service";
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";
 export { LinguisticService } from "./services/linguistics-service";
 export { TerminologySearchService } from "./services/terminology-search-service";
 export { validateStudyDesign } from "./parser/validator";
 export { VaultService } from "./services/vault-service";
 export { backgroundValidationEngine } from "./services/validation-engine";
-export { SelectionContext, bindingService } from "./services/binding-service";
+export { type SelectionContext, bindingService } from "./services/binding-service";
 export {
-  CdiscApiFailure,
-  CdiscCtPackage,
-  CdiscCtTerm,
+  type CdiscApiFailure,
+  type CdiscCtPackage,
+  type CdiscCtTerm,
   createCdiscApiService,
 } from "./services/cdisc-api-service";
 export { createParseRuntime } from "./parser/chunking-runtime";
 export { diffStudyDesigns } from "./services/diff-engine";
 export { insertAEBlock, insertDateBlock } from "./services/authoring-service";
 export {
-  CdiscCtMappingFailure,
+  type CdiscCtMappingFailure,
   mapCdiscApiResponseToCrfCodelists,
 } from "./services/cdisc-ct-mapping-service";
 export {
@@ -129,7 +133,7 @@ export {
   parseDate,
   formatCurrency,
 } from "./utils/locale-utils";
-export { onboardingService, OnboardingState } from "./services/onboarding-service";
+export { onboardingService, type OnboardingState } from "./services/onboarding-service";
 export {
   loadComments,
   saveComment,

@@ -20,10 +20,10 @@ module.exports = async (env, options) => {
     entry: {
       react: ["react", "react-dom"],
       taskpane: {
-        import: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
+        import: ["core-js", "regenerator-runtime/runtime", "./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
         dependOn: "react",
       },
-      commands: "./src/commands/commands.ts",
+      commands: ["core-js", "regenerator-runtime/runtime", "./src/commands/commands.ts"],
     },
     output: {
       clean: true,
@@ -48,16 +48,16 @@ module.exports = async (env, options) => {
     module: {
       rules: [
         {
-          test: /\.ts$/,
-          exclude: /node_modules/,
-          use: {
-            loader: "babel-loader",
-          },
-        },
-        {
           test: /\.tsx?$/,
           exclude: /node_modules/,
-          use: ["ts-loader"],
+          use: [
+            {
+              loader: "ts-loader",
+              options: {
+                transpileOnly: true,
+              },
+            },
+          ],
         },
         {
           test: /\.html$/,

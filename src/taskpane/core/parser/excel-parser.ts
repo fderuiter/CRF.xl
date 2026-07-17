@@ -2,7 +2,7 @@
 import { ChunkingEngine } from "../engine/chunking-engine";
 /* global Excel, window, Worker, URL, MessageEvent */
 /**
- * @issue #53, #118, #137
+ * @issue #53, #118, #137, #28
  */
 
 import { StudyDesign } from "../types/index";
