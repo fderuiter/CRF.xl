@@ -9,7 +9,6 @@ import {
   TeachingPopoverHeader,
   TeachingPopoverTitle,
   TeachingPopoverBody,
-  TeachingPopoverFooter,
   makeStyles,
 } from "@fluentui/react-components";
 import { onboardingService, OnboardingState } from "../core";
@@ -122,25 +121,21 @@ export const OnboardingTour: React.FC = () => {
         </TeachingPopoverHeader>
         <TeachingPopoverTitle>{currentStep.title}</TeachingPopoverTitle>
         <TeachingPopoverBody>{currentStep.description}</TeachingPopoverBody>
-        <TeachingPopoverFooter
-          primary={
+        <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px", marginTop: "4px" }}>
+          <Button appearance="subtle" onClick={handleSkip}>
+            Skip
+          </Button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {!isFirstStep && (
+              <Button appearance="outline" onClick={handleBack}>
+                Back
+              </Button>
+            )}
             <Button appearance="primary" onClick={handleNext}>
               {isLastStep ? "Finish" : "Next"}
             </Button>
-          }
-          secondary={
-            <div style={{ display: "flex", gap: "8px" }}>
-              {!isFirstStep && (
-                <Button appearance="outline" onClick={handleBack}>
-                  Back
-                </Button>
-              )}
-              <Button appearance="subtle" onClick={handleSkip}>
-                Skip
-              </Button>
-            </div>
-          }
-        />
+          </div>
+        </div>
       </TeachingPopoverSurface>
     </TeachingPopover>
   );
