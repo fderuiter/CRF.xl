@@ -290,22 +290,13 @@ function MatrixEntryCard({ entry, styles }: { entry: MatrixSearchEntry; styles: 
           <Text className={styles.resultTitle} block>
             {entry.formName}
           </Text>
-          <Text
-            className={styles.resultMeta}
-            block
-          >{`${entry.formOid} · ${entry.eventName}`}</Text>
+          <Text className={styles.resultMeta} block>{`${entry.formOid} · ${entry.eventName}`}</Text>
         </div>
         <Badge appearance="tint" color="brand">{`${entry.itemCount} vars`}</Badge>
       </div>
       <div className={styles.badgeRow}>
-        <Badge
-          appearance="outline"
-          color="success"
-        >{`${entry.requiredCount} required`}</Badge>
-        <Badge
-          appearance="outline"
-          color="warning"
-        >{`${entry.optionalCount} optional`}</Badge>
+        <Badge appearance="outline" color="success">{`${entry.requiredCount} required`}</Badge>
+        <Badge appearance="outline" color="warning">{`${entry.optionalCount} optional`}</Badge>
       </div>
       <Text className={styles.previewText}>{previewText}</Text>
     </div>
@@ -594,7 +585,9 @@ export const MatrixView: React.FC<MatrixProps> = ({
           <div className={styles.cardHeader}>
             <div className={styles.iconBox}>🔗</div>
             <div style={{ flexGrow: 1 }}>
-              <Body1 id="cross-form-dependency-title" className={styles.cardTitle}>Cross-Form Dependency Map</Body1>
+              <Body1 id="cross-form-dependency-title" className={styles.cardTitle}>
+                Cross-Form Dependency Map
+              </Body1>
               <Body1 className={styles.cardSubtitle}>
                 Traces rule-linked variables across forms
               </Body1>

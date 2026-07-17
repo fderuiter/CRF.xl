@@ -45,11 +45,7 @@ import { diffStudyDesigns } from "../core";
 import { initializeWorkbook, navigateToSource, syncRegistry } from "../core";
 import { StudyDesign, SubmissionMetadata, ExportMode, ExportOptions } from "../core";
 import { BaselineWorkbookParseError, parseBaselineWorkbookFile } from "../core";
-import {
-  RECOVERY_APP_VERSION,
-  summarizeStudyDesign,
-  formatDate,
-} from "../core";
+import { RECOVERY_APP_VERSION, summarizeStudyDesign, formatDate } from "../core";
 import { createOfficeDiagnostic } from "../core";
 import { VersionUpdateMetadata, checkForVersionUpdate, dismissVersionNotification } from "../core";
 import { loadImportManifest, onboardingService } from "../core";
@@ -217,7 +213,7 @@ const App: React.FC<{ title?: string }> = () => {
     recoverySnapshot,
     storageWarning,
     uiError,
-    isSyncing
+    isSyncing,
   } = state;
 
   const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
@@ -317,7 +313,7 @@ const App: React.FC<{ title?: string }> = () => {
       if (!complianceGovernanceService.isAuthenticated) {
         complianceGovernanceService.initialize().catch(console.error);
       }
-      
+
       // 5. Detect drifts
       detectDrifts().then(setDrifts).catch(console.error);
       Office.context.document.getFilePropertiesAsync((result) => {
@@ -388,7 +384,11 @@ const App: React.FC<{ title?: string }> = () => {
   useEffect(() => {
     if (uiError) {
       if (uiError.message) announce(uiError.message, "polite");
-      if (!previousFocusRef.current && document.activeElement && document.activeElement !== document.body) {
+      if (
+        !previousFocusRef.current &&
+        document.activeElement &&
+        document.activeElement !== document.body
+      ) {
         previousFocusRef.current = document.activeElement as HTMLElement;
       }
       setTimeout(() => {
@@ -414,47 +414,59 @@ const App: React.FC<{ title?: string }> = () => {
     actions.dismissUiError();
   }, [actions]);
 
-  const presentOfficeError = React.useCallback((error: unknown, retryAction?: () => Promise<void>) => {
-    const diagnostic = (error && typeof error === "object" && "category" in error && "severity" in error) ? error as any : createOfficeDiagnostic(error);
-    console.error(`[${diagnostic.category}]`, error);
-    // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
-    // For manual operation errors, we might still want local state, but we can just use Orchestrator state.
-    appOrchestrator["updateState"]({ 
-      uiError: {
-        ...((typeof diagnostic.toJSON === "function") ? diagnostic.toJSON() : diagnostic),
-        message: diagnostic.message,
-        retryAction: diagnostic.allowRetry ? retryAction : undefined,
-      } 
-    } as any);
-  }, []);
+  const presentOfficeError = React.useCallback(
+    (error: unknown, retryAction?: () => Promise<void>) => {
+      const diagnostic =
+        error && typeof error === "object" && "category" in error && "severity" in error
+          ? (error as any)
+          : createOfficeDiagnostic(error);
+      console.error(`[${diagnostic.category}]`, error);
+      // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
+      // For manual operation errors, we might still want local state, but we can just use Orchestrator state.
+      appOrchestrator["updateState"]({
+        uiError: {
+          ...(typeof diagnostic.toJSON === "function" ? diagnostic.toJSON() : diagnostic),
+          message: diagnostic.message,
+          retryAction: diagnostic.allowRetry ? retryAction : undefined,
+        },
+      } as any);
+    },
+    []
+  );
 
-  const runWithOfficeErrorHandling = React.useCallback(async <T,>(
-    operation: () => Promise<T>,
-    retryAction?: () => Promise<void>
-  ): Promise<T | null> => {
-    dismissUiError();
-    try {
-      return await operation();
-    } catch (error) {
-      const diagnostic = createOfficeDiagnostic(error);
+  const runWithOfficeErrorHandling = React.useCallback(
+    async <T,>(
+      operation: () => Promise<T>,
+      retryAction?: () => Promise<void>
+    ): Promise<T | null> => {
+      dismissUiError();
+      try {
+        return await operation();
+      } catch (error) {
+        const diagnostic = createOfficeDiagnostic(error);
 
-      if (diagnostic.category.includes("OFFICE_CONTEXT_SYNC_FAILURE")) {
-        try {
-          return await operation();
-        } catch (retryError) {
-          presentOfficeError(retryError, retryAction);
-          return null;
+        if (diagnostic.category.includes("OFFICE_CONTEXT_SYNC_FAILURE")) {
+          try {
+            return await operation();
+          } catch (retryError) {
+            presentOfficeError(retryError, retryAction);
+            return null;
+          }
         }
-      }
 
-      presentOfficeError(error, retryAction);
-      return null;
-    }
-  }, [dismissUiError, presentOfficeError]);
+        presentOfficeError(error, retryAction);
+        return null;
+      }
+    },
+    [dismissUiError, presentOfficeError]
+  );
 
   useEffect(() => {
     if (syncConflict) {
-      announce("Conflict Detected: The workbook was modified during a background sync.", "assertive");
+      announce(
+        "Conflict Detected: The workbook was modified during a background sync.",
+        "assertive"
+      );
     }
   }, [syncConflict, announce]);
 
@@ -869,7 +881,9 @@ const App: React.FC<{ title?: string }> = () => {
           onInit={handleInitialize}
           onSync={handleSync}
           onLoadSubmissionMetadata={async () => {
-            actions.requestValidation(activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined);
+            actions.requestValidation(
+              activeSheet && !activeSheet.startsWith("_") ? activeSheet : undefined
+            );
           }}
           onLoadBaselineWorkbook={handleLoadBaselineWorkbook}
           onSaveSubmissionMetadata={handleSaveSubmissionMetadata}
@@ -1015,7 +1029,11 @@ const App: React.FC<{ title?: string }> = () => {
                 <Button appearance="primary" size="small" onClick={handleRestoreSnapshot}>
                   Restore
                 </Button>
-                <Button appearance="secondary" size="small" onClick={actions.dismissRecoverySnapshot}>
+                <Button
+                  appearance="secondary"
+                  size="small"
+                  onClick={actions.dismissRecoverySnapshot}
+                >
                   Dismiss
                 </Button>
               </div>
@@ -1196,7 +1214,10 @@ const App: React.FC<{ title?: string }> = () => {
                         {lang}
                       </Option>
                     )) || (
-                      <Option value={study?.metadata.defaultLanguage} text={study?.metadata.defaultLanguage || ""}>
+                      <Option
+                        value={study?.metadata.defaultLanguage}
+                        text={study?.metadata.defaultLanguage || ""}
+                      >
                         {study?.metadata.defaultLanguage}
                       </Option>
                     )}

@@ -127,23 +127,23 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
 
   const updateIframeStyles = React.useCallback(() => {
     if (!rootRef.current || !iframeRef.current || !iframeRef.current.contentDocument) return;
-    
+
     const computedStyles = window.getComputedStyle(rootRef.current);
     const iframeDoc = iframeRef.current.contentDocument;
 
     const requiredTokens = [
-      '--colorStatusDangerBackground3',
-      '--colorStatusWarningBackground3',
-      '--colorPaletteRedBackground3',
-      '--colorPalettePurpleBackground3',
-      '--colorPaletteOrangeBackground3',
-      '--colorNeutralBackgroundInverted',
-      '--colorStatusSuccessBackground3',
-      '--colorBrandBackground'
+      "--colorStatusDangerBackground3",
+      "--colorStatusWarningBackground3",
+      "--colorPaletteRedBackground3",
+      "--colorPalettePurpleBackground3",
+      "--colorPaletteOrangeBackground3",
+      "--colorNeutralBackgroundInverted",
+      "--colorStatusSuccessBackground3",
+      "--colorBrandBackground",
     ];
 
-    let styleContent = ':root {\n';
-    requiredTokens.forEach(token => {
+    let styleContent = ":root {\n";
+    requiredTokens.forEach((token) => {
       const val = computedStyles.getPropertyValue(token);
       if (val) {
         styleContent += `  ${token}: ${val};\n`;
@@ -161,10 +161,10 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
       --colorStatusSuccessBackground3: var(--colorStatusSuccessBackground3, #107c10);
     }`;
 
-    let styleEl = iframeDoc.getElementById('acrf-theme-tokens');
+    let styleEl = iframeDoc.getElementById("acrf-theme-tokens");
     if (!styleEl) {
-      styleEl = iframeDoc.createElement('style');
-      styleEl.id = 'acrf-theme-tokens';
+      styleEl = iframeDoc.createElement("style");
+      styleEl.id = "acrf-theme-tokens";
       iframeDoc.head.appendChild(styleEl);
     }
     styleEl.textContent = styleContent;
@@ -172,13 +172,17 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
 
   React.useEffect(() => {
     if (!rootRef.current) return;
-    
-    const observerTarget = rootRef.current.closest('[class*="fui-FluentProvider"]') || document.body;
-    
+
+    const observerTarget =
+      rootRef.current.closest('[class*="fui-FluentProvider"]') || document.body;
+
     const observer = new MutationObserver((mutations) => {
       let shouldUpdate = false;
       for (const m of mutations) {
-        if (m.type === 'attributes' && (m.attributeName === 'class' || m.attributeName === 'style')) {
+        if (
+          m.type === "attributes" &&
+          (m.attributeName === "class" || m.attributeName === "style")
+        ) {
           shouldUpdate = true;
           break;
         }
@@ -188,7 +192,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
       }
     });
 
-    observer.observe(observerTarget, { attributes: true, attributeFilter: ['class', 'style'] });
+    observer.observe(observerTarget, { attributes: true, attributeFilter: ["class", "style"] });
 
     return () => observer.disconnect();
   }, [updateIframeStyles]);
@@ -314,7 +318,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
             sandbox="allow-same-origin"
             onLoad={(e) => {
               updateIframeStyles();
-              
+
               // Add click listeners to items in the iframe to select them for commenting
               const iframe = e.currentTarget;
               if (iframe.contentDocument) {

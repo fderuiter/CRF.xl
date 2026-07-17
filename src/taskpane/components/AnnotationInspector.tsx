@@ -41,7 +41,9 @@ const useStyles = makeStyles({
 
 export const AnnotationInspector: React.FC = () => {
   const styles = useStyles();
-  const [context, setContext] = React.useState<SelectionContext | null>(bindingService.getCurrentContext());
+  const [context, setContext] = React.useState<SelectionContext | null>(
+    bindingService.getCurrentContext()
+  );
   const [annotation, setAnnotation] = React.useState<Annotation | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -90,13 +92,13 @@ export const AnnotationInspector: React.FC = () => {
         ...annotation,
         metadata: updatedMeta,
       };
-      
+
       await editAnnotation(
         annotation.anchor.sheetName,
         annotation.anchor.address,
         updatedAnnotation
       );
-      
+
       setAnnotation(updatedAnnotation);
     } catch (e) {
       console.error("Failed to update lifecycle state", e);
