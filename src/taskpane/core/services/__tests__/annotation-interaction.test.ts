@@ -60,7 +60,10 @@ describe("Annotation Interaction Semantics", () => {
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext),
+      run: (callback: any) => {
+        const { createSafeMock } = require("../../utils/test-proxy");
+        return callback(createSafeMock(mockContext));
+      },
     };
 
     (global as any).DOMParser = class {
@@ -195,7 +198,10 @@ describe("Annotation Interaction Semantics", () => {
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext),
+      run: (callback: any) => {
+        const { createSafeMock } = require("../../utils/test-proxy");
+        return callback(createSafeMock(mockContext));
+      },
     };
 
     (mockContext.workbook as any).customXmlParts = {

@@ -107,9 +107,9 @@ function worksheetToValues(worksheet: ExcelJS.Worksheet): unknown[][] {
   const rows: unknown[][] = [];
 
   for (let rowNumber = 1; rowNumber <= worksheet.rowCount; rowNumber += 1) {
-    const worksheetRow = worksheet.getRow(rowNumber);
-    const values = Array.isArray(worksheetRow.values) ? worksheetRow.values.slice(1) : [];
-    const normalized = values.map((value) => normalizeCellValue(value));
+    const myRowData = worksheet.getRow(rowNumber) as any;
+    const values = Array.isArray(myRowData.values) ? myRowData.values.slice(1) : [];
+    const normalized = values.map((value: any) => normalizeCellValue(value));
     let lastNonEmpty = normalized.length - 1;
     while (lastNonEmpty >= 0 && isEmptyCellValue(normalized[lastNonEmpty])) {
       lastNonEmpty -= 1;
@@ -117,7 +117,7 @@ function worksheetToValues(worksheet: ExcelJS.Worksheet): unknown[][] {
     rows.push(normalized.slice(0, lastNonEmpty + 1));
   }
 
-  while (rows.length > 0 && rows[rows.length - 1].every((value) => isEmptyCellValue(value))) {
+  while (rows.length > 0 && rows[rows.length - 1].every((value: any) => isEmptyCellValue(value))) {
     rows.pop();
   }
 

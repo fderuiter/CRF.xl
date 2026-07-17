@@ -30,7 +30,10 @@ describe("Review Service Persistence", () => {
     };
 
     (global as any).Excel = {
-      run: (callback: any) => callback(mockContext),
+      run: (callback: any) => {
+        const { createSafeMock } = require("../../utils/test-proxy");
+        return callback(createSafeMock(mockContext));
+      },
     };
 
     // DOMParser/XMLSerializer mocks

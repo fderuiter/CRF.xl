@@ -212,7 +212,7 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
     } finally {
       setIsVerifying(false);
     }
-  }, []);
+  }, [onPipelineVerification]);
 
   React.useEffect(() => {
     runVerification();

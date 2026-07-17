@@ -48,7 +48,7 @@ function makeMockExcel(sheet: MockSheet | null) {
             isNullObject: false,
             load: () => {},
             protection: sheet.protection,
-            getUsedRange: () => ({
+            getUsedRangeOrNullObject: () => ({
               load: () => {},
               values: sheet.rows,
               rowCount: sheet.rows.length,
@@ -80,6 +80,7 @@ function makeMockExcel(sheet: MockSheet | null) {
         getItemOrNullObject: () => ({
           isNullObject: false,
           delete: () => {},
+          load: () => {},
         }),
         add: () => {},
       },
@@ -342,12 +343,15 @@ describe("ct-import-service", () => {
                   isNullObject: false,
                   load: () => {},
                   protection: { protected: false },
-                  getUsedRange: () => {
+                  getUsedRangeOrNullObject: () => {
                     throw new Error("Simulated Excel write failure");
                   },
                 }),
               },
-              names: { getItemOrNullObject: () => ({ isNullObject: true }), add: () => {} },
+              names: {
+                getItemOrNullObject: () => ({ isNullObject: true, load: () => {} }),
+                add: () => {},
+              },
             },
             sync: async () => {
               throw new Error("Simulated Excel write failure");
