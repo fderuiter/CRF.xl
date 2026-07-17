@@ -11,9 +11,153 @@ export const RECOVERY_SNAPSHOT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const RECOVERY_APP_VERSION = "0.0.1";
 
 export interface StorageLike {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
+  getItem(key: string): Promise<string | null> | string | null;
+  setItem(key: string, value: string): Promise<void> | void;
+  removeItem(key: string): Promise<void> | void;
+}
+
+class ExcelCustomXmlStorage implements StorageLike {
+  private readonly namespace = "http://schemas.crf-xl.com/recovery";
+
+  async getItem(key: string): Promise<string | null> {
+    if (typeof Excel === "undefined") return null;
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
+        parts.load("items");
+        parts.load("items/length");
+        await context.sync();
+
+        if (parts.items.length > 0) {
+          const part = parts.items[0];
+          (part as any).load("xml");
+          await context.sync();
+
+          const xml = (part as any).xml;
+          if (typeof DOMParser !== "undefined") {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xml, "text/xml");
+            const node = xmlDoc.getElementsByTagName(key)[0];
+            resolve(node ? node.textContent : null);
+          } else {
+            // Simple regex fallback for environments without DOMParser
+            const match = xml.match(new RegExp(`<${key}>(.*?)</${key}>`));
+            resolve(match ? match[1] : null);
+          }
+          return;
+        }
+        resolve(null);
+      }).catch(reject);
+    });
+  }
+
+  async setItem(key: string, value: string): Promise<void> {
+    if (typeof Excel === "undefined") return;
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
+        parts.load("items");
+        parts.load("items/length");
+        await context.sync();
+
+        let xmlDoc: Document | null = null;
+        let part: Excel.CustomXmlPart;
+        let xml: string = "";
+
+        if (parts.items.length === 0) {
+          const initialXml = `<Recovery xmlns="${this.namespace}"></Recovery>`;
+          part = context.workbook.customXmlParts.add(initialXml);
+          xml = initialXml;
+          if (typeof DOMParser !== "undefined") {
+            const parser = new DOMParser();
+            xmlDoc = parser.parseFromString(initialXml, "text/xml");
+          }
+        } else {
+          part = parts.items[0];
+          (part as any).load("xml");
+          await context.sync();
+          xml = (part as any).xml;
+          if (typeof DOMParser !== "undefined") {
+            const parser = new DOMParser();
+            xmlDoc = parser.parseFromString(xml, "text/xml");
+          }
+        }
+
+        if (xmlDoc && typeof XMLSerializer !== "undefined") {
+          const root = xmlDoc.getElementsByTagName("Recovery")[0];
+          let existingNode = xmlDoc.getElementsByTagName(key)[0];
+
+          const newNode = xmlDoc.createElement(key);
+          newNode.textContent = value;
+
+          if (existingNode) {
+            root.replaceChild(newNode, existingNode);
+          } else {
+            root.appendChild(newNode);
+          }
+
+          const serializer = new XMLSerializer();
+          part.setXml(serializer.serializeToString(xmlDoc));
+        } else if (parts.items.length > 0) {
+          // Simple regex replace for environments without DOMParser
+          const regex = new RegExp(`<${key}>.*?</${key}>`);
+          const newTag = `<${key}>${value}</${key}>`;
+          if (regex.test(xml)) {
+            xml = xml.replace(regex, newTag);
+          } else {
+            xml = xml.replace(`</Recovery>`, `${newTag}</Recovery>`);
+          }
+          part.setXml(xml);
+        }
+        await context.sync();
+        resolve();
+      }).catch(reject);
+    });
+  }
+
+  async removeItem(key: string): Promise<void> {
+    if (typeof Excel === "undefined") return;
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
+        parts.load("items");
+        parts.load("items/length");
+        await context.sync();
+
+        if (parts.items.length > 0) {
+          const part = parts.items[0];
+          (part as any).load("xml");
+          await context.sync();
+          const xml = (part as any).xml;
+
+          if (typeof DOMParser !== "undefined" && typeof XMLSerializer !== "undefined") {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xml, "text/xml");
+            const root = xmlDoc.getElementsByTagName("Recovery")[0];
+            const node = xmlDoc.getElementsByTagName(key)[0];
+            if (node) {
+              root.removeChild(node);
+              const serializer = new XMLSerializer();
+              part.setXml(serializer.serializeToString(xmlDoc));
+              await context.sync();
+            }
+          } else {
+            // Regex fallback
+            const regex = new RegExp(`<${key}>.*?</${key}>`);
+            if (regex.test(xml)) {
+              const newXml = xml.replace(regex, "");
+              part.setXml(newXml);
+              await context.sync();
+            }
+          }
+        }
+        resolve();
+      }).catch(reject);
+    });
+  }
 }
 
 export interface StudyDesignSummary {
@@ -122,6 +266,9 @@ type PersistResult =
 
 function resolveStorage(storage?: StorageLike): StorageLike | null {
   if (storage) return storage;
+  if (typeof Excel !== "undefined") {
+    return new ExcelCustomXmlStorage();
+  }
   if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) return null;
   try {
     return globalThis.localStorage;
@@ -219,16 +366,16 @@ export function createRecoverySnapshot({
   };
 }
 
-export function persistRecoverySnapshot(
+export async function persistRecoverySnapshot(
   snapshot: RecoverySnapshot,
   storage?: StorageLike
-): PersistResult {
+): Promise<PersistResult> {
   const resolvedStorage = resolveStorage(storage);
   if (!resolvedStorage) return { saved: false, reason: "storage-unavailable" };
 
   try {
     const validatedSnapshot = RecoverySnapshotSchema.parse(snapshot);
-    resolvedStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(validatedSnapshot));
+    await resolvedStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(validatedSnapshot));
     return { saved: true };
   } catch (error) {
     if (isQuotaError(error)) return { saved: false, reason: "quota-exceeded" };
@@ -236,17 +383,17 @@ export function persistRecoverySnapshot(
   }
 }
 
-export function dismissRecoverySnapshot(storage?: StorageLike): void {
+export async function dismissRecoverySnapshot(storage?: StorageLike): Promise<void> {
   const resolvedStorage = resolveStorage(storage);
   if (!resolvedStorage) return;
   try {
-    resolvedStorage.removeItem(RECOVERY_STORAGE_KEY);
+    await resolvedStorage.removeItem(RECOVERY_STORAGE_KEY);
   } catch {
     // no-op: storage cleanup failure should never crash UI
   }
 }
 
-export function readRecoverySnapshot({
+export async function readRecoverySnapshot({
   storage,
   now = Date.now(),
   ttlMs = RECOVERY_SNAPSHOT_TTL_MS,
@@ -254,13 +401,13 @@ export function readRecoverySnapshot({
   storage?: StorageLike;
   now?: number;
   ttlMs?: number;
-} = {}): RecoverySnapshot | null {
+} = {}): Promise<RecoverySnapshot | null> {
   const resolvedStorage = resolveStorage(storage);
   if (!resolvedStorage) return null;
 
   let raw: string | null = null;
   try {
-    raw = resolvedStorage.getItem(RECOVERY_STORAGE_KEY);
+    raw = await resolvedStorage.getItem(RECOVERY_STORAGE_KEY);
   } catch {
     return null;
   }
@@ -271,12 +418,12 @@ export function readRecoverySnapshot({
     const parsed = RecoverySnapshotSchema.parse(rawParsed);
 
     if (now - parsed.savedAt > ttlMs) {
-      dismissRecoverySnapshot(resolvedStorage);
+      await dismissRecoverySnapshot(resolvedStorage);
       return null;
     }
     return parsed;
   } catch {
-    dismissRecoverySnapshot(resolvedStorage);
+    await dismissRecoverySnapshot(resolvedStorage);
     return null;
   }
 }

@@ -192,7 +192,7 @@ function toSafeHttpUrl(url: string | undefined): string | null {
 import { useAnnouncer } from "../hooks/useAnnouncer";
 import { appOrchestrator } from "../core/services/app-orchestrator";
 
-export const App: React.FC<{ title?: string }> = () => {
+const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
   const { announcement, announce } = useAnnouncer();
@@ -387,6 +387,7 @@ export const App: React.FC<{ title?: string }> = () => {
 
   useEffect(() => {
     if (uiError) {
+      if (uiError.message) announce(uiError.message, "polite");
       if (!previousFocusRef.current && document.activeElement && document.activeElement !== document.body) {
         previousFocusRef.current = document.activeElement as HTMLElement;
       }
@@ -403,7 +404,7 @@ export const App: React.FC<{ title?: string }> = () => {
         previousFocusRef.current = null;
       }
     }
-  }, [uiError]);
+  }, [uiError, announce]);
 
   const dismissUiError = React.useCallback(() => {
     if (previousFocusRef.current) {
@@ -414,13 +415,14 @@ export const App: React.FC<{ title?: string }> = () => {
   }, [actions]);
 
   const presentOfficeError = React.useCallback((error: unknown, retryAction?: () => Promise<void>) => {
-    const diagnostic = createOfficeDiagnostic(error);
+    const diagnostic = (error && typeof error === "object" && "category" in error && "severity" in error) ? error as any : createOfficeDiagnostic(error);
     console.error(`[${diagnostic.category}]`, error);
     // Since UI Error is in Orchestrator now, wait... actually Orchestrator handles binding errors.
     // For manual operation errors, we might still want local state, but we can just use Orchestrator state.
     appOrchestrator["updateState"]({ 
       uiError: {
-        ...diagnostic.toJSON(),
+        ...((typeof diagnostic.toJSON === "function") ? diagnostic.toJSON() : diagnostic),
+        message: diagnostic.message,
         retryAction: diagnostic.allowRetry ? retryAction : undefined,
       } 
     } as any);

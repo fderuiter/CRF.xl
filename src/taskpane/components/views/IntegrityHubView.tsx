@@ -52,7 +52,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface IntegrityHubViewProps {
+interface IntegrityHubViewProps {
   issues: ValidationIssue[];
   diffReport: StudyDiffReport | null;
   onSignOff: () => void;
