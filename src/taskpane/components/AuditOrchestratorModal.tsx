@@ -95,7 +95,13 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = (e?: React.SyntheticEvent) => {
+    if (!allFilled) {
+      if (e) {
+        e.preventDefault();
+      }
+      return;
+    }
     onSaveJustifications(localJustifs);
     onOpenChange(false);
   };
@@ -177,7 +183,7 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
             <Button appearance="secondary" onClick={() => onOpenChange(false)}>
               Close (Save Progress)
             </Button>
-            <Button appearance="primary" disabled={!allFilled} onClick={handleSave}>
+            <Button appearance="primary" aria-disabled={!allFilled} onClick={handleSave}>
               Save Justifications
             </Button>
           </DialogActions>
