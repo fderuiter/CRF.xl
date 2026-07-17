@@ -65,15 +65,20 @@ class SpeculativeSyncManager {
     return this.state;
   }
 
-  public async getSheetFingerprint(ctx: Excel.RequestContext, sheetName: string): Promise<string> {
-    const sheet = ctx.workbook.worksheets.getItemOrNullObject(sheetName);
-    await ctx.sync();
+  public async getSheetFingerprint(
+    context: Excel.RequestContext,
+    sheetName: string
+  ): Promise<string> {
+    const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
+    sheet.load("isNullObject");
+    await context.sync();
     if (sheet.isNullObject) return "missing";
     const range = sheet.getUsedRangeOrNullObject();
-    await ctx.sync();
+    range.load("isNullObject");
+    await context.sync();
     if (range.isNullObject) return "empty";
     range.load("values");
-    await ctx.sync();
+    await context.sync();
     return await sha256Native(JSON.stringify(range.values));
   }
 
@@ -91,10 +96,10 @@ class SpeculativeSyncManager {
     ];
 
     let snapshotFingerprints: Record<string, string> = {};
-    await Excel.run(async (ctx) => {
-      snapshotFingerprints["_Study"] = await this.getSheetFingerprint(ctx, "_Study");
-      snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(ctx, "_Forms");
-      snapshotFingerprints["_Codelists"] = await this.getSheetFingerprint(ctx, "_Codelists");
+    await Excel.run(async (context) => {
+      snapshotFingerprints["_Study"] = await this.getSheetFingerprint(context, "_Study");
+      snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(context, "_Forms");
+      snapshotFingerprints["_Codelists"] = await this.getSheetFingerprint(context, "_Codelists");
     });
 
     this.currentOp = {
@@ -126,8 +131,8 @@ class SpeculativeSyncManager {
         throw new Error("CANCELLED");
       }
 
-      await Excel.run(async (excelCtx) => {
-        const currentFp = await this.getSheetFingerprint(excelCtx, sheetName);
+      await Excel.run(async (context) => {
+        const currentFp = await this.getSheetFingerprint(context, sheetName);
         if (currentFp !== this.currentOp!.snapshotFingerprints[sheetName]) {
           throw new Error("FINGERPRINT_MISMATCH");
         }
@@ -139,9 +144,9 @@ class SpeculativeSyncManager {
         throw new Error("CANCELLED");
       }
 
-      await Excel.run(async (excelCtx) => {
+      await Excel.run(async (context) => {
         this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(
-          excelCtx,
+          context,
           sheetName
         );
       });
@@ -195,14 +200,15 @@ class SpeculativeSyncManager {
 
     try {
       await engine.execute(plans, async (chunk, ctx) => {
-        await Excel.run(async (excelCtx) => {
-          const sheet = excelCtx.workbook.worksheets.getItemOrNullObject(ctx.id);
-          await excelCtx.sync();
-          const target = sheet.isNullObject ? excelCtx.workbook.worksheets.add(ctx.id) : sheet;
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getItemOrNullObject(ctx.id);
+          sheet.load("isNullObject");
+          await context.sync();
+          const target = sheet.isNullObject ? context.workbook.worksheets.add(ctx.id) : sheet;
 
           if (ctx.isFirstChunk && !sheet.isNullObject) {
             target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
-            await excelCtx.sync();
+            await context.sync();
           }
 
           if (chunk.length > 0) {
@@ -214,7 +220,7 @@ class SpeculativeSyncManager {
             );
             range.values = chunk;
           }
-          await excelCtx.sync();
+          await context.sync();
         });
       });
 
@@ -255,10 +261,10 @@ class SpeculativeSyncManager {
   private async forceResumeSync() {
     this.notify("syncing", { predictedStudy: this.currentOp?.predictedStudy });
     if (this.currentOp) {
-      await Excel.run(async (ctx) => {
+      await Excel.run(async (context) => {
         for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
           this.currentOp!.snapshotFingerprints[sheetName] = await this.getSheetFingerprint(
-            ctx,
+            context,
             sheetName
           );
         }

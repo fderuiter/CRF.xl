@@ -128,12 +128,26 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
   }
 
   // TASK 1.3: "Warp" Navigation Engine
+  const oids = [];
   for (let i = 1; i < rowCount; i++) {
     const oid = String(vals[i][0]).trim();
-    if (!oid) continue;
+    if (oid) oids.push({ oid, index: i });
+  }
 
-    let crfSheet = sheets.getItemOrNullObject(oid);
-    await context.sync();
+  const sheetInfos = oids.map((o) => ({
+    ...o,
+    crfSheet: sheets.getItemOrNullObject(o.oid),
+  }));
+
+  for (const info of sheetInfos) {
+    info.crfSheet.load("isNullObject");
+  }
+  await context.sync();
+
+  for (const info of sheetInfos) {
+    let crfSheet = info.crfSheet;
+    const oid = info.oid;
+    const i = info.index;
 
     // 3a. Spawn Missing Sheets
     if (crfSheet.isNullObject) {

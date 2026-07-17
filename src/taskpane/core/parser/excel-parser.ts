@@ -1,4 +1,5 @@
 /// <reference types="office-js" />
+import { ChunkingEngine } from "../engine/chunking-engine";
 /* global Excel, window, Worker, URL, MessageEvent */
 /**
  * @issue #53, #118, #137
@@ -70,7 +71,7 @@ async function fetchRawDataFromExcel(
       tables.load("count");
 
       const range = sheet.getUsedRangeOrNullObject();
-      range.load(["rowIndex", "columnIndex", "rowCount", "columnCount"]);
+      range.load(["rowIndex", "columnIndex", "rowCount", "columnCount", "isNullObject"]);
       rangesInfo.push({ name: sheet.name, sheet, range, tables });
     }
 
@@ -96,46 +97,60 @@ async function fetchRawDataFromExcel(
 
     let completedRows = 0;
 
-    for (const info of rangesInfo) {
-      if (info.range.isNullObject) {
-        continue;
-      }
+    const engine = new ChunkingEngine<null>({ chunkSize: PAGE_SIZE });
 
+    const fetchSheetData = async (
+      info: (typeof rangesInfo)[0],
+      totalRows: number,
+      completedRowsRef: { value: number }
+    ) => {
       const rows = info.range.rowCount;
       const cols = info.range.columnCount;
       const startR = info.range.rowIndex;
       const startC = info.range.columnIndex;
 
       const sheetData: unknown[][] = [];
+      const dummyData = new Array(rows).fill(null);
 
-      for (let i = 0; i < rows; i += PAGE_SIZE) {
+      await engine.execute([{ id: info.name, data: dummyData }], async (chunk, cCtx) => {
         if (options.signal?.aborted) {
           throw new Error("Parsing cancelled during Excel extraction");
         }
 
-        const pageRows = Math.min(PAGE_SIZE, rows - i);
-        const subRange = info.sheet.getRangeByIndexes(startR + i, startC, pageRows, cols);
+        const pageRows = chunk.length;
+        const subRange = info.sheet.getRangeByIndexes(
+          startR + cCtx.startIndex,
+          startC,
+          pageRows,
+          cols
+        );
         subRange.load("values");
 
         await context.sync();
 
         sheetData.push(...subRange.values);
-        completedRows += pageRows;
+        completedRowsRef.value += pageRows;
 
         if (options.onProgress) {
           options.onProgress({
             phase: "metadata",
-            completed: completedRows,
+            completed: completedRowsRef.value,
             total: totalRows || 1,
             message: `Extracting data from ${info.name}...`,
           });
         }
+      });
 
-        // Cooperative yield to keep UI thread responsive
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      return sheetData;
+    };
+
+    for (const info of rangesInfo) {
+      if (info.range.isNullObject || info.range.rowCount === 0 || info.range.columnCount === 0) {
+        continue;
       }
 
-      rawData[info.name] = sheetData;
+      rawData[info.name] = await fetchSheetData(info, totalRows, { value: completedRows });
+      completedRows += info.range.rowCount;
     }
 
     if (options.onProgress) {

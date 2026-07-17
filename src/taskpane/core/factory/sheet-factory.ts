@@ -6,33 +6,46 @@
 import { SHEET_HEADERS, SYSTEM_SHEETS } from "../registry/sheet-metadata-registry";
 
 export async function upgradeSystemSheetsToTables(context: Excel.RequestContext): Promise<void> {
-  for (const sheetName of SYSTEM_SHEETS) {
-    const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
-    await context.sync();
-    if (sheet.isNullObject) continue;
+  const sheetInfos = Array.from(SYSTEM_SHEETS).map((name) => ({
+    name,
+    sheet: context.workbook.worksheets.getItemOrNullObject(name),
+    tables: null as Excel.TableCollection | null,
+    usedRange: null as Excel.Range | null,
+  }));
 
-    const tables = sheet.tables;
-    tables.load("count");
-    await context.sync();
+  for (const info of sheetInfos) {
+    info.sheet.load("isNullObject");
+  }
+  await context.sync();
 
-    if (tables.count === 0) {
-      const usedRange = sheet.getUsedRange();
-      usedRange.load("address, rowCount");
-      await context.sync();
+  const activeSheets = sheetInfos.filter((i) => !i.sheet.isNullObject);
+  for (const info of activeSheets) {
+    info.tables = info.sheet.tables;
+    info.tables.load("count");
+  }
+  await context.sync();
 
-      if (usedRange.rowCount > 0) {
-        // Clear manual header styles before upgrading to let Table Style take over
-        const headerRange = usedRange.getRow(0);
-        headerRange.format.fill.clear();
-        headerRange.format.font.color = "Automatic";
+  const toUpgrade = activeSheets.filter((i) => i.tables && i.tables.count === 0);
+  for (const info of toUpgrade) {
+    info.usedRange = info.sheet.getUsedRange();
+    info.usedRange.load(["address", "rowCount"]);
+  }
+  await context.sync();
 
-        const table = sheet.tables.add(usedRange, true);
-        table.name = `${sheetName.replace(/[^A-Za-z0-9_]/g, "")}Table`;
-        table.style = "Slate 900";
+  for (const info of toUpgrade) {
+    if (info.usedRange && info.usedRange.rowCount > 0) {
+      // Clear manual header styles before upgrading to let Table Style take over
+      const headerRange = info.usedRange.getRow(0);
+      headerRange.format.fill.clear();
+      headerRange.format.font.color = "Automatic";
 
-        await context.sync();
-      }
+      const table = info.sheet.tables.add(info.usedRange, true);
+      table.name = `${info.name.replace(/[^A-Za-z0-9_]/g, "")}Table`;
+      table.style = "Slate 900";
     }
+  }
+  if (toUpgrade.length > 0) {
+    await context.sync();
   }
 }
 
@@ -43,6 +56,7 @@ export async function createOrClearSystemSheet(
 ): Promise<Excel.Worksheet> {
   const sheets = context.workbook.worksheets;
   let sheet = sheets.getItemOrNullObject(sheetName);
+  sheet.load("isNullObject");
   await context.sync();
 
   if (sheet.isNullObject) {
