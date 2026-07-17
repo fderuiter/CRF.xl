@@ -24,10 +24,11 @@ class ExcelCustomXmlStorage implements StorageLike {
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
         parts.load("items");
+        parts.load("items/length");
         await context.sync();
 
-        // eslint-disable-next-line office-addins/load-object-before-read
         if (parts.items.length > 0) {
           const part = parts.items[0];
           (part as any).load("xml");
@@ -56,14 +57,15 @@ class ExcelCustomXmlStorage implements StorageLike {
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
         parts.load("items");
+        parts.load("items/length");
         await context.sync();
 
         let xmlDoc: Document | null = null;
         let part: Excel.CustomXmlPart;
         let xml: string = "";
 
-        // eslint-disable-next-line office-addins/load-object-before-read
         if (parts.items.length === 0) {
           const initialXml = `<Recovery xmlns="${this.namespace}"></Recovery>`;
           part = context.workbook.customXmlParts.add(initialXml);
@@ -98,7 +100,6 @@ class ExcelCustomXmlStorage implements StorageLike {
 
           const serializer = new XMLSerializer();
           part.setXml(serializer.serializeToString(xmlDoc));
-          // eslint-disable-next-line office-addins/load-object-before-read
         } else if (parts.items.length > 0) {
           // Simple regex replace for environments without DOMParser
           const regex = new RegExp(`<${key}>.*?</${key}>`);
@@ -121,9 +122,11 @@ class ExcelCustomXmlStorage implements StorageLike {
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
+
         parts.load("items");
+        parts.load("items/length");
         await context.sync();
-        // eslint-disable-next-line office-addins/load-object-before-read
+
         if (parts.items.length > 0) {
           const part = parts.items[0];
           (part as any).load("xml");
