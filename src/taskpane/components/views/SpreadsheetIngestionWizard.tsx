@@ -285,7 +285,7 @@ const SYSTEM_SHEETS = new Set([
   "_Rules",
 ]);
 
-export interface SpreadsheetIngestionWizardProps {
+interface SpreadsheetIngestionWizardProps {
   onClose: () => void;
 }
 

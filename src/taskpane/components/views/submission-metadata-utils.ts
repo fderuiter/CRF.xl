@@ -16,7 +16,7 @@ export interface DatasetDraft<T> {
   readOnly: boolean;
 }
 
-export type SubmissionMetadataValidationErrors = Record<string, string>;
+type SubmissionMetadataValidationErrors = Record<string, string>;
 
 export function createSdtmDatasetDrafts(
   datasets: SdtmDatasetMetadata[] | undefined

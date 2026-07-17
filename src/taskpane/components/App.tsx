@@ -192,7 +192,7 @@ function toSafeHttpUrl(url: string | undefined): string | null {
 import { useAnnouncer } from "../hooks/useAnnouncer";
 import { appOrchestrator } from "../core/services/app-orchestrator";
 
-export const App: React.FC<{ title?: string }> = () => {
+const App: React.FC<{ title?: string }> = () => {
   const styles = useAppStyles();
   const isMountedRef = useRef(true);
   const { announcement, announce } = useAnnouncer();

@@ -266,7 +266,7 @@ const useStyles = makeStyles({
 
 const cdiscApi = createCdiscApiService();
 
-export interface DictionarySidecarProps {
+interface DictionarySidecarProps {
   selectedLanguage?: string;
   defaultLanguage?: string;
   supportedLanguages?: string[];
