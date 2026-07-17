@@ -202,7 +202,7 @@ export class AppOrchestrator {
     }));
   }
 
-  private saveCheckpoint() {
+  private async saveCheckpoint() {
     if (!this.state.study || this.state.isSyncing) return; // Don't snapshot if we don't have a stable state
     const studySummary = summarizeStudyDesign(this.state.study);
     const activeSheet = this.state.activeSheet;
@@ -217,7 +217,7 @@ export class AppOrchestrator {
       justifications: this.justifications,
     });
 
-    const saveResult = persistRecoverySnapshot(snapshot);
+    const saveResult = await persistRecoverySnapshot(snapshot);
     if ("reason" in saveResult && saveResult.reason === "quota-exceeded") {
       this.updateState({
         storageWarning: "Recovery checkpoint could not be saved (localStorage quota exceeded).",
@@ -228,7 +228,7 @@ export class AppOrchestrator {
   }
 
   private async detectRecoverableSnapshot() {
-    const snapshot = readRecoverySnapshot();
+    const snapshot = await readRecoverySnapshot();
     if (!snapshot) return;
 
     let currentFingerprint: WorkbookFingerprint | undefined = undefined;
@@ -255,8 +255,8 @@ export class AppOrchestrator {
   }
 
   // --- External Actions ---
-  public dismissRecoverySnapshot() {
-    dismissRecoverySnapshot();
+  public async dismissRecoverySnapshot() {
+    await dismissRecoverySnapshot();
     this.updateState({ recoverySnapshot: null });
   }
 

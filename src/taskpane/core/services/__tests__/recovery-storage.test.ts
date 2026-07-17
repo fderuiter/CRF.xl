@@ -104,14 +104,14 @@ describe("recovery-storage", () => {
     expect(snapshot.issues).toHaveLength(2);
   });
 
-  it("clears corrupt snapshots during load", () => {
+  it("clears corrupt snapshots during load", async () => {
     const storage = createMockStorage({ [RECOVERY_STORAGE_KEY]: "{not-json" });
-    const snapshot = readRecoverySnapshot({ storage });
+    const snapshot = await readRecoverySnapshot({ storage });
     expect(snapshot).toBeNull();
     expect(storage.getItem(RECOVERY_STORAGE_KEY)).toBeNull();
   });
 
-  it("expires old snapshots based on TTL", () => {
+  it("expires old snapshots based on TTL", async () => {
     const storage = createMockStorage();
     const snapshot = createRecoverySnapshot({
       issues,
@@ -125,37 +125,39 @@ describe("recovery-storage", () => {
       })
     );
 
-    const restored = readRecoverySnapshot({ storage });
+    const restored = await readRecoverySnapshot({ storage });
     expect(restored).toBeNull();
     expect(storage.getItem(RECOVERY_STORAGE_KEY)).toBeNull();
   });
 
-  it("reports quota failures without throwing", () => {
+  it("reports quota failures without throwing", async () => {
     const storage = {
-      getItem: () => null,
-      setItem: () => {
-        throw { name: "QuotaExceededError" };
+      getItem: async () => null,
+      setItem: async () => {
+        const error = new Error("QuotaExceededError");
+        error.name = "QuotaExceededError";
+        throw error;
       },
-      removeItem: () => undefined,
+      removeItem: async () => undefined,
     };
     const snapshot = createRecoverySnapshot({
       issues,
       studySummary: summarizeStudyDesign(mockStudy),
     });
-    const result = persistRecoverySnapshot(snapshot, storage);
+    const result = await persistRecoverySnapshot(snapshot, storage as any);
     expect(result).toEqual({ saved: false, reason: "quota-exceeded" });
   });
 
-  it("returns null when storage getItem throws", () => {
+  it("returns null when storage getItem throws", async () => {
     const storage = {
-      getItem: () => {
+      getItem: async () => {
         throw new Error("SecurityError");
       },
-      setItem: () => undefined,
-      removeItem: () => undefined,
+      setItem: async () => undefined,
+      removeItem: async () => undefined,
     };
 
-    expect(readRecoverySnapshot({ storage })).toBeNull();
+    expect(await readRecoverySnapshot({ storage: storage as any })).toBeNull();
   });
 
   it("sanitizes recovery messages containing clinical data before storage", () => {
@@ -183,7 +185,7 @@ describe("recovery-storage", () => {
     expect(snapshot.issues[1].message).toBe('Value "[REDACTED]" is not allowed here');
   });
 
-  it("rejects restoring a session when an unauthorized field is manually injected into storage", () => {
+  it("rejects restoring a session when an unauthorized field is manually injected into storage", async () => {
     const storage = createMockStorage();
     const snapshot = createRecoverySnapshot({
       issues,
@@ -198,7 +200,7 @@ describe("recovery-storage", () => {
 
     storage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(taintedSnapshot));
 
-    const restored = readRecoverySnapshot({ storage });
+    const restored = await readRecoverySnapshot({ storage });
     expect(restored).toBeNull();
     // Storage should be cleared because schema validation fails
     expect(storage.getItem(RECOVERY_STORAGE_KEY)).toBeNull();
