@@ -4,7 +4,7 @@
 
 import { ChunkingEngine, getDefaultYieldStrategy } from "../engine/chunking-engine";
 
-export type ParsePhase =
+type ParsePhase =
   | "metadata"
   | "codelists"
   | "forms"

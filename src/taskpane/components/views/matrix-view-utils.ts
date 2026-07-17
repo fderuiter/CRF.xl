@@ -5,7 +5,7 @@ import { StudyDesign, isCrfItem, DataType } from "../../core/types";
 
 export type MatrixRequiredFilter = "all" | "required" | "optional";
 
-export interface MatrixSearchFilters {
+interface MatrixSearchFilters {
   search: string;
   required: MatrixRequiredFilter;
   dataType: string;
@@ -35,7 +35,7 @@ export interface MatrixSearchEntry {
   items: MatrixIndexedItem[];
 }
 
-export function normalizeMatrixSearch(value: string): string {
+function normalizeMatrixSearch(value: string): string {
   return value.replace(/\s+/g, " ").trim().toLowerCase();
 }
 

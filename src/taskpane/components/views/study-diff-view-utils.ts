@@ -13,7 +13,7 @@ export type DiffEntityGroup = "forms" | "items" | "codelists" | "rules";
 export type DiffChangeClass = "added" | "removed" | "modified" | "moved_or_renamed";
 export type DiffSeverity = "low" | "medium" | "high";
 
-export interface StudyDiffListEntry {
+interface StudyDiffListEntry {
   id: string;
   group: DiffEntityGroup;
   key: string;
@@ -28,7 +28,7 @@ export interface StudyDiffListEntry {
   justification?: { reason: string; userId: string; timestamp: string };
 }
 
-export interface StudyDiffFilters {
+interface StudyDiffFilters {
   changeClass: DiffChangeClass | "all";
   subsystem: string | "all";
   severity: DiffSeverity | "all";

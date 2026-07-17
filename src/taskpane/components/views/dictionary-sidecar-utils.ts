@@ -3,7 +3,7 @@
  */
 import { CodelistGroup, CodelistItem } from "../../core";
 
-export interface DictionaryPreview {
+interface DictionaryPreview {
   previewItems: string[];
   overflowCount: number;
 }
