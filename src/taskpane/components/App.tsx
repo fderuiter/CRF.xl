@@ -404,7 +404,7 @@ export const App: React.FC<{ title?: string }> = () => {
         previousFocusRef.current = null;
       }
     }
-  }, [uiError]);
+  }, [uiError, announce]);
 
   const dismissUiError = React.useCallback(() => {
     if (previousFocusRef.current) {

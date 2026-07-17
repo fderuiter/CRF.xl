@@ -58,7 +58,12 @@ export class VaultService {
           allowRetry: true,
         },
       });
-      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
+      throw new DiagnosticError({
+        severity: "error",
+        category: "VAULT_ERROR",
+        message: `Vault operation failed: ${message}`,
+        allowRetry: true,
+      });
     }
   }
 
@@ -95,7 +100,12 @@ export class VaultService {
           allowRetry: true,
         },
       });
-      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
+      throw new DiagnosticError({
+        severity: "error",
+        category: "VAULT_ERROR",
+        message: `Vault operation failed: ${message}`,
+        allowRetry: true,
+      });
     }
   }
 
@@ -120,7 +130,12 @@ export class VaultService {
           allowRetry: true,
         },
       });
-      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
+      throw new DiagnosticError({
+        severity: "error",
+        category: "VAULT_ERROR",
+        message: `Vault operation failed: ${message}`,
+        allowRetry: true,
+      });
     }
   }
 }
