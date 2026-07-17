@@ -6,13 +6,13 @@ import { ImportManifest, WorkbookProjection } from "../types/migration";
 import { normalizeDataOrigin, parseReferencedVariables } from "./metadata-utils";
 import { studyDesignSchema as StudyDesignSchema } from "../types/schemas";
 
-export interface MigrationContext {
+interface MigrationContext {
   isDryRun?: boolean;
   manifest?: ImportManifest;
   projection?: WorkbookProjection;
 }
 
-export class MigrationError extends Error {
+class MigrationError extends Error {
   public manifest: ImportManifest;
   constructor(message: string, manifest: ImportManifest) {
     super(message);

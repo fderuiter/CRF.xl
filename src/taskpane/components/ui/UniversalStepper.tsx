@@ -16,12 +16,12 @@ import { useAnnouncer } from "../../hooks/useAnnouncer";
 // 1. Universal Stepper (Visual Indicator)
 // ---------------------------------------------------------------------------
 
-export interface StepperStep {
+interface StepperStep {
   label: string;
   status: "pending" | "active" | "complete";
 }
 
-export interface UniversalStepperProps {
+interface UniversalStepperProps {
   steps: StepperStep[];
   className?: string;
 }
@@ -119,7 +119,7 @@ export interface WizardStepDef {
   hideCancel?: boolean;
 }
 
-export interface UniversalWizardProps {
+interface UniversalWizardProps {
   steps: WizardStepDef[];
   onCancel?: () => void;
   cancelLabel?: string;

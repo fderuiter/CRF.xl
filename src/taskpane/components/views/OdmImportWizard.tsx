@@ -157,7 +157,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface OdmImportWizardProps {
+interface OdmImportWizardProps {
   onClose: () => void;
 }
 
