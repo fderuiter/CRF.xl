@@ -26,12 +26,13 @@ class ExcelCustomXmlStorage implements StorageLike {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
         parts.load("items");
         await context.sync();
-        
+
+        // eslint-disable-next-line office-addins/load-object-before-read
         if (parts.items.length > 0) {
           const part = parts.items[0];
           (part as any).load("xml");
           await context.sync();
-          
+
           const xml = (part as any).xml;
           if (typeof DOMParser !== "undefined") {
             const parser = new DOMParser();
@@ -57,11 +58,12 @@ class ExcelCustomXmlStorage implements StorageLike {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
         parts.load("items");
         await context.sync();
-        
+
         let xmlDoc: Document | null = null;
         let part: Excel.CustomXmlPart;
         let xml: string = "";
 
+        // eslint-disable-next-line office-addins/load-object-before-read
         if (parts.items.length === 0) {
           const initialXml = `<Recovery xmlns="${this.namespace}"></Recovery>`;
           part = context.workbook.customXmlParts.add(initialXml);
@@ -84,7 +86,7 @@ class ExcelCustomXmlStorage implements StorageLike {
         if (xmlDoc && typeof XMLSerializer !== "undefined") {
           const root = xmlDoc.getElementsByTagName("Recovery")[0];
           let existingNode = xmlDoc.getElementsByTagName(key)[0];
-          
+
           const newNode = xmlDoc.createElement(key);
           newNode.textContent = value;
 
@@ -96,6 +98,7 @@ class ExcelCustomXmlStorage implements StorageLike {
 
           const serializer = new XMLSerializer();
           part.setXml(serializer.serializeToString(xmlDoc));
+          // eslint-disable-next-line office-addins/load-object-before-read
         } else if (parts.items.length > 0) {
           // Simple regex replace for environments without DOMParser
           const regex = new RegExp(`<${key}>.*?</${key}>`);
@@ -120,12 +123,13 @@ class ExcelCustomXmlStorage implements StorageLike {
         const parts = context.workbook.customXmlParts.getByNamespace(this.namespace);
         parts.load("items");
         await context.sync();
+        // eslint-disable-next-line office-addins/load-object-before-read
         if (parts.items.length > 0) {
           const part = parts.items[0];
           (part as any).load("xml");
           await context.sync();
           const xml = (part as any).xml;
-          
+
           if (typeof DOMParser !== "undefined" && typeof XMLSerializer !== "undefined") {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xml, "text/xml");
