@@ -443,7 +443,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
 
               if (issues.length > 0) {
                 const excelRowNumber = cCtx.startIndex + rowIndex + 2; // 1-based index including header
-                const errorMsg = issues.map((e) => `'${e.path.join(".")}'`: ${e.message}`).join(", ");
+                const errorMsg = issues.map((e) => `'${e.path.join(".")}': ${e.message}`).join(", ");
                 validationError = `Row ${excelRowNumber}: ${errorMsg}`;
                 return; // abort this Excel.run execution
               }
@@ -509,6 +509,7 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
             }
             return current;
           });
+        });
       } catch (e: any) {
         if (e.message !== "CANCELLED") throw e;
       }
