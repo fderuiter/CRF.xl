@@ -1,4 +1,6 @@
 import { logger } from "../utils/logger";
+import { appOrchestrator } from "./app-orchestrator";
+import { DiagnosticError } from "./diagnostic-framework";
 /**
  * @issue #28
  */
@@ -31,7 +33,7 @@ export class VaultService {
   ) {
     if (!this.apiUrl) return;
     try {
-      await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/validation`, {
+      const response = await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/validation`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,8 +46,19 @@ export class VaultService {
           timestamp: new Date().toISOString(),
         }),
       });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch (e) {
       logger.error("Vault sync failed", e);
+      const message = e instanceof Error ? e.message : "Network error";
+      appOrchestrator.updateState({
+        uiError: {
+          severity: "error",
+          category: "VAULT_ERROR",
+          message: `Vault sync failed: ${message}`,
+          allowRetry: true,
+        },
+      });
+      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
     }
   }
 
@@ -57,7 +70,7 @@ export class VaultService {
   ) {
     if (!this.apiUrl) return;
     try {
-      await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/freeze`, {
+      const response = await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/freeze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,8 +83,19 @@ export class VaultService {
           timestamp: new Date().toISOString(),
         }),
       });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch (e) {
       logger.error("Vault freeze failed", e);
+      const message = e instanceof Error ? e.message : "Network error";
+      appOrchestrator.updateState({
+        uiError: {
+          severity: "error",
+          category: "VAULT_ERROR",
+          message: `Vault freeze failed: ${message}`,
+          allowRetry: true,
+        },
+      });
+      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
     }
   }
 
@@ -83,12 +107,20 @@ export class VaultService {
           Authorization: `Bearer ${this.apiKey}`,
         },
       });
-      if (response.ok) {
-        return await response.json();
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
     } catch (e) {
       logger.error("Vault history fetch failed", e);
+      const message = e instanceof Error ? e.message : "Network error";
+      appOrchestrator.updateState({
+        uiError: {
+          severity: "error",
+          category: "VAULT_ERROR",
+          message: `Vault history fetch failed: ${message}`,
+          allowRetry: true,
+        },
+      });
+      throw new DiagnosticError({ severity: "error", category: "VAULT_ERROR", message: `Vault operation failed: ${message}`, allowRetry: true });
     }
-    return [];
   }
 }
