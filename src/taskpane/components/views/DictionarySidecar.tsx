@@ -405,7 +405,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editItems, setEditItems] = useState<CodelistItem[]>([]);
 
-  const handleSelectCodelist = async (codelistId: string) => {
+  const handleSelectCodelist = React.useCallback(async (codelistId: string) => {
     setIsEditing(false);
     setEditItems([]);
     try {
@@ -424,7 +424,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       setGlobalError(diagnostic);
       setView("error");
     }
-  };
+  }, [search]);
 
   const handleStartEdit = () => {
     if (!selectedCodelist) return;
@@ -679,6 +679,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
       selectedCodelist,
       handleUseDictionary,
       search,
+      handleSelectCodelist,
     ]
   );
 

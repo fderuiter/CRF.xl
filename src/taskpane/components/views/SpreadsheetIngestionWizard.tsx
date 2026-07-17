@@ -1,4 +1,5 @@
 /// <reference types="office-js" />
+import { ChunkingEngine } from "../../core/engine/chunking-engine";
 /**
  * @issue #28
  */
@@ -322,10 +323,10 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     const loadSheets = async () => {
       patch({ error: null });
       try {
-        const sheets = await Excel.run(async (ctx) => {
-          const ws = ctx.workbook.worksheets;
+        const sheets = await Excel.run(async (context) => {
+          const ws = context.workbook.worksheets;
           ws.load("items/name");
-          await ctx.sync();
+          await context.sync();
           return ws.items.map((s) => s.name);
         });
         const nonSystem = sheets.filter((name) => !SYSTEM_SHEETS.has(name));
@@ -345,17 +346,17 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
     
     let rawRows: string[][] = [];
     let totalRows = 0;
-    await Excel.run(async (ctx) => {
-      const sheet = ctx.workbook.worksheets.getItem(state.selectedSheet!);
+    await Excel.run(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(state.selectedSheet!);
       const used = sheet.getUsedRange();
       used.load(["rowCount", "columnCount"]);
-      await ctx.sync();
+      await context.sync();
       totalRows = used.rowCount > 0 ? used.rowCount - 1 : 0;
       const rowsToRead = Math.min(50, used.rowCount);
       if (rowsToRead > 0) {
         const range = sheet.getRangeByIndexes(0, 0, rowsToRead, used.columnCount);
         range.load("values");
-        await ctx.sync();
+        await context.sync();
         rawRows = range.values as string[][];
       }
     });
@@ -394,115 +395,123 @@ export const SpreadsheetIngestionWizard: React.FC<SpreadsheetIngestionWizardProp
       const maxColIndex = Math.max(0, ...state.scanResult.columnCandidates.map((c) => c.columnIndex));
       const colCount = maxColIndex + 1;
 
-      for (let i = 0; i < totalRows; i += pageSize) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-        if (abortControllerRef.current?.signal.aborted) break;
+      const engine = new ChunkingEngine<null>({ chunkSize: pageSize });
+      const dummyData = new Array(totalRows).fill(null);
 
-        const currentChunkSize = Math.min(pageSize, totalRows - i);
-        let validationError: string | null = null;
+      try {
+        await engine.execute([{ id: "import", data: dummyData }], async (chunk, cCtx) => {
+          if (abortControllerRef.current?.signal.aborted) throw new Error("CANCELLED");
 
-        await Excel.run(async (ctx) => {
-          const sheets = ctx.workbook.worksheets;
-          const sourceSheet = sheets.getItem(state.selectedSheet!);
-          const sourceRange = sourceSheet.getRangeByIndexes(i + 1, 0, currentChunkSize, colCount);
-          sourceRange.load("values");
-          await ctx.sync();
+          let validationError: string | null = null;
+          const currentChunkSize = chunk.length;
 
-          const sourceRows = sourceRange.values as string[][];
-          const mappedRows = sourceRows.map((r) => mapRow(r, mappings, state.confirmedStructure!));
+          await Excel.run(async (context) => {
+            const sheets = context.workbook.worksheets;
+            const sourceSheet = sheets.getItem(state.selectedSheet!);
+            const sourceRange = sourceSheet.getRangeByIndexes(cCtx.startIndex + 1, 0, currentChunkSize, colCount);
+            sourceRange.load("values");
+            await context.sync();
 
-          for (let rowIndex = 0; rowIndex < mappedRows.length; rowIndex++) {
-            const mappedRow = mappedRows[rowIndex];
-            let issues: z.ZodIssue[] = [];
+            const sourceRows = sourceRange.values as string[][];
+            const mappedRows = sourceRows.map((r) => mapRow(r, mappings, state.confirmedStructure!));
+
+            for (let rowIndex = 0; rowIndex < mappedRows.length; rowIndex++) {
+              const mappedRow = mappedRows[rowIndex];
+              let issues: z.ZodIssue[] = [];
+
+              if (state.confirmedStructure === "codelists") {
+                const [cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode] = mappedRow;
+                const res = codelistRowSchema.safeParse({ cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode });
+                if (!res.success) issues = res.error.issues;
+              } else if (state.confirmedStructure === "forms_registry") {
+                const [form_oid, form_name, repeating, page_layout] = mappedRow;
+                const res = formsRegistryRowSchema.safeParse({ form_oid, form_name, repeating, page_layout });
+                if (!res.success) issues = res.error.issues;
+              } else if (state.confirmedStructure === "form_item") {
+                const [
+                  variable_name, label, variable_type, required, length,
+                  significant_digits, minimum, maximum, show_if, codelist_id,
+                  origin, method_oid, sdtm_domain, sdtm_variable, comment
+                ] = mappedRow;
+                const res = formItemRowSchema.safeParse({
+                  variable_name, label, variable_type, required, length,
+                  significant_digits, minimum, maximum, show_if, codelist_id,
+                  origin, method_oid, sdtm_domain, sdtm_variable, comment
+                });
+                if (!res.success) issues = res.error.issues;
+              }
+
+              if (issues.length > 0) {
+                const excelRowNumber = cCtx.startIndex + rowIndex + 2; // 1-based index including header
+                const errorMsg = issues.map((e) => `'${e.path.join(".")}': ${e.message}`).join(", ");
+                validationError = `Row ${excelRowNumber}: ${errorMsg}`;
+                return; // abort this Excel.run execution
+              }
+            }
+
+            if (validationError) return;
 
             if (state.confirmedStructure === "codelists") {
-              const [cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode] = mappedRow;
-              const res = codelistRowSchema.safeParse({ cl_codelist_id, cl_codelist_name, cl_coded_value, cl_decode });
-              if (!res.success) issues = res.error.issues;
+              const clSheet = sheets.getItem("_Codelists");
+              const used = clSheet.getUsedRange();
+              used.load("rowCount");
+              await context.sync();
+              const startRow = used.rowCount > 0 ? used.rowCount : 0;
+              const range = clSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
+              range.values = mappedRows as string[][];
+              targetSheetName = "_Codelists";
             } else if (state.confirmedStructure === "forms_registry") {
-              const [form_oid, form_name, repeating, page_layout] = mappedRow;
-              const res = formsRegistryRowSchema.safeParse({ form_oid, form_name, repeating, page_layout });
-              if (!res.success) issues = res.error.issues;
+              const formsSheet = sheets.getItem("_Forms");
+              const used = formsSheet.getUsedRange();
+              used.load("rowCount");
+              await context.sync();
+              const startRow = used.rowCount > 0 ? used.rowCount : 0;
+              const range = formsSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
+              range.values = mappedRows as string[][];
+              targetSheetName = "_Forms";
             } else if (state.confirmedStructure === "form_item") {
-              const [
-                variable_name, label, variable_type, required, length,
-                significant_digits, minimum, maximum, show_if, codelist_id,
-                origin, method_oid, sdtm_domain, sdtm_variable, comment
-              ] = mappedRow;
-              const res = formItemRowSchema.safeParse({
-                variable_name, label, variable_type, required, length,
-                significant_digits, minimum, maximum, show_if, codelist_id,
-                origin, method_oid, sdtm_domain, sdtm_variable, comment
-              });
-              if (!res.success) issues = res.error.issues;
+              const formSheetName = state.targetFormSheet ?? state.selectedSheet ?? "ImportedForm";
+              let formSheet = sheets.getItemOrNullObject(formSheetName);
+              await context.sync();
+              if (formSheet.isNullObject) {
+                formSheet = sheets.add(formSheetName);
+                const headers = [
+                  "Variable Name", "Label", "Variable Type", "Required", "Length",
+                  "Significant Digits", "Minimum", "Maximum", "Show If", "Codelist ID",
+                  "Origin", "Method OID", "SDTM Domain", "SDTM Variable", "Comment",
+                ];
+                formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
+              }
+              const used = formSheet.getUsedRange();
+              used.load("rowCount");
+              await context.sync();
+              const startRow = used.rowCount > 0 ? used.rowCount : 0;
+              const range = formSheet.getRangeByIndexes(startRow, 0, mappedRows.length, mappedRows[0].length);
+              range.values = mappedRows as string[][];
+              targetSheetName = formSheetName;
             }
+            await context.sync();
+          });
 
-            if (issues.length > 0) {
-              const excelRowNumber = i + rowIndex + 2; // 1-based index including header
-              const errorMsg = issues.map((e) => `'${e.path.join(".")}': ${e.message}`).join(", ");
-              validationError = `Row ${excelRowNumber}: ${errorMsg}`;
-              return; // abort this Excel.run execution
-            }
+          if (validationError) {
+            patch({ error: validationError, syncProgress: null });
+            abortControllerRef.current?.abort();
+            throw new Error("CANCELLED");
           }
 
-          if (state.confirmedStructure === "codelists") {
-            const clSheet = sheets.getItem("_Codelists");
-            const used = clSheet.getUsedRange();
-            used.load("rowCount");
-            await ctx.sync();
-            const startRow = used.rowCount > 0 ? used.rowCount : 0;
-            const range = clSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
-            range.values = mappedRows as string[][];
-            targetSheetName = "_Codelists";
-          } else if (state.confirmedStructure === "forms_registry") {
-            const formsSheet = sheets.getItem("_Forms");
-            const used = formsSheet.getUsedRange();
-            used.load("rowCount");
-            await ctx.sync();
-            const startRow = used.rowCount > 0 ? used.rowCount : 0;
-            const range = formsSheet.getRangeByIndexes(startRow, 0, mappedRows.length, 4);
-            range.values = mappedRows as string[][];
-            targetSheetName = "_Forms";
-          } else if (state.confirmedStructure === "form_item") {
-            const formSheetName = state.targetFormSheet ?? state.selectedSheet ?? "ImportedForm";
-            let formSheet = sheets.getItemOrNullObject(formSheetName);
-            await ctx.sync();
-            if (formSheet.isNullObject) {
-              formSheet = sheets.add(formSheetName);
-              const headers = [
-                "Variable Name", "Label", "Variable Type", "Required", "Length",
-                "Significant Digits", "Minimum", "Maximum", "Show If", "Codelist ID",
-                "Origin", "Method OID", "SDTM Domain", "SDTM Variable", "Comment",
-              ];
-              formSheet.getRangeByIndexes(0, 0, 1, headers.length).values = [headers];
+          rowsWritten += currentChunkSize;
+          const percent = Math.round((rowsWritten / totalRows) * 100);
+          announcer.announce(`Importing data: ${percent}%`);
+
+          setState((current) => {
+            if (current.syncProgress) {
+              return { ...current, syncProgress: { ...current.syncProgress, processed: rowsWritten } };
             }
-            const used = formSheet.getUsedRange();
-            used.load("rowCount");
-            await ctx.sync();
-            const startRow = used.rowCount > 0 ? used.rowCount : 0;
-            const range = formSheet.getRangeByIndexes(startRow, 0, mappedRows.length, mappedRows[0].length);
-            range.values = mappedRows as string[][];
-            targetSheetName = formSheetName;
-          }
-          await ctx.sync();
+            return current;
+          });
         });
-
-        if (validationError) {
-          patch({ error: validationError, syncProgress: null });
-          abortControllerRef.current?.abort();
-          return;
-        }
-
-        rowsWritten += currentChunkSize;
-        const percent = Math.round((rowsWritten / totalRows) * 100);
-        announcer.announce(`Importing data: ${percent}%`);
-        
-        setState((current) => {
-          if (current.syncProgress) {
-            return { ...current, syncProgress: { ...current.syncProgress, processed: rowsWritten } };
-          }
-          return current;
-        });
+      } catch (e: any) {
+        if (e.message !== "CANCELLED") throw e;
       }
 
       if (abortControllerRef.current?.signal.aborted) {
