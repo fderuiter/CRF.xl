@@ -90,7 +90,11 @@ export {
   persistImportManifest,
 } from "./services/migration-pipeline";
 export { createOfficeDiagnostic } from "./services/office-error-handling";
-export { type Diagnostic, DiagnosticError, type DiagnosticSeverity } from "./services/diagnostic-framework";
+export {
+  type Diagnostic,
+  DiagnosticError,
+  type DiagnosticSeverity,
+} from "./services/diagnostic-framework";
 export {
   type CodelistGroup,
   type CodelistItem,
