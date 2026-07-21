@@ -46,6 +46,7 @@ export class DiagnosticError extends Error implements Diagnostic {
 
   /**
    * Prepares the error for postMessage transfer.
+   * @returns
    */
   toJSON(): Diagnostic & { name: string } {
     return {
@@ -61,6 +62,8 @@ export class DiagnosticError extends Error implements Diagnostic {
 
   /**
    * Reconstructs a DiagnosticError from a serialised payload.
+   * @param data
+   * @returns
    */
   static fromJSON(data: any): DiagnosticError {
     return new DiagnosticError({

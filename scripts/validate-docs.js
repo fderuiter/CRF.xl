@@ -27,6 +27,7 @@ let totalLinksCount = 0;
 let brokenLinksCount = 0;
 let outOfBoundsCount = 0;
 let supersededErrorsCount = 0;
+let unescapedTagsCount = 0;
 
 const APPROVED_DOCS_FOLDERS = ["architecture", "specification", "compliance", "deployment", "qa-testing", "github"];
 
@@ -44,6 +45,10 @@ if (fs.existsSync(registryPath)) {
     }
   });
 }
+
+const allowedHtmlTags = new Set([
+  "a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend", "li", "link", "main", "map", "mark", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"
+]);
 
 const externalLinksToCheck = [];
 
@@ -195,6 +200,31 @@ function checkSuperseded(relativePath, content) {
   }
 }
 
+function getLineNumber(content, index) {
+  return content.substring(0, index).split("\n").length;
+}
+
+function validateTags(content, filePath, relativePath) {
+  // Strip fenced code blocks and inline code, preserving line numbers by replacing non-newlines with space
+  let cleanContent = content.replace(/```[\s\S]*?```/g, match => match.replace(/[^\n]/g, " "));
+  cleanContent = cleanContent.replace(/`[^`\n]+`/g, match => match.replace(/[^\n]/g, " "));
+
+  const tagRegex = /<\/?[A-Za-z][A-Za-z0-9-]*(?:\s+[^>]*)?>/g;
+  let match;
+  while ((match = tagRegex.exec(cleanContent)) !== null) {
+    const fullTag = match[0];
+    const tagNameMatch = fullTag.match(/<\/?([A-Za-z][A-Za-z0-9-]*)/);
+    if (tagNameMatch) {
+      const tagName = tagNameMatch[1].toLowerCase();
+      if (!allowedHtmlTags.has(tagName)) {
+        unescapedTagsCount++;
+        const lineNum = getLineNumber(content, match.index);
+        fail(`Unescaped XML/HTML tag "${fullTag}" found in "${relativePath}" at line ${lineNum}. Please wrap it in backticks.`);
+      }
+    }
+  }
+}
+
 function validateFile(filePath) {
   scannedFilesCount++;
   const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/');
@@ -205,7 +235,7 @@ function validateFile(filePath) {
   }
 
   const content = fs.readFileSync(filePath, "utf8");
-
+  validateTags(content, filePath, relativePath);
   checkFolderBoundaries(relativePath);
   checkSuperseded(relativePath, content);
 
@@ -305,15 +335,15 @@ async function main() {
     );
   }
 
-  const totalErrors = brokenLinksCount + outOfBoundsCount + supersededErrorsCount;
+  const totalErrors = brokenLinksCount + outOfBoundsCount + supersededErrorsCount + unescapedTagsCount;
   if (totalErrors > 0) {
     fail(
-      `Documentation validation FAILED. Scanned ${scannedFilesCount} files. Errors found: ${brokenLinksCount} broken link(s), ${outOfBoundsCount} out-of-bounds file(s), ${supersededErrorsCount} superseded rule violation(s).`
+      `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links. Errors found: ${brokenLinksCount} broken link(s), ${outOfBoundsCount} out-of-bounds file(s), ${supersededErrorsCount} superseded rule violation(s), ${unescapedTagsCount} unescaped tag(s).`
     );
     process.exit(1);
   } else {
     success(
-      `Documentation validation PASSED. Scanned ${scannedFilesCount} files, successfully checked ${totalLinksCount} links.`
+      `Documentation validation PASSED. Scanned ${scannedFilesCount} files, successfully checked ${totalLinksCount} links and verified all markdown formatting.`
     );
     process.exit(0);
   }

@@ -39,6 +39,7 @@ export function getSheetProtectionConfigs(): SheetProtectionConfig[] {
 /**
  * 1. INITIALIZE WORKBOOK (The Scaffolder)
  * Creates the locked System Control sheets and builds the Named Ranges.
+ * @returns
  */
 export async function initializeWorkbook(): Promise<void> {
   return await Excel.run(async (context) => {
@@ -84,6 +85,7 @@ export async function initializeWorkbook(): Promise<void> {
 /**
  * 2. SYNC REGISTRY (The Warp Navigation Engine)
  * Reads the _Forms registry, spawns missing CRF sheets, links formulas, and draws bi-directional hyperlinks.
+ * @returns
  */
 export async function syncRegistry(): Promise<void> {
   return await Excel.run(async (context) => {
@@ -239,6 +241,9 @@ async function syncRegistryInternal(context: Excel.RequestContext): Promise<void
 
 /**
  * Jump focus to a specific cell in Excel.
+ * @param sheetName
+ * @param rowIndex
+ * @returns
  */
 export async function navigateToSource(sheetName: string, rowIndex: number): Promise<void> {
   return await Excel.run(async (context) => {

@@ -6,6 +6,9 @@ import { getLocaleConfig } from "../locale-config";
 
 /**
  * Formats a number according to the current locale.
+ * @param value
+ * @param options
+ * @returns
  */
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
   const { currentLocale } = getLocaleConfig();
@@ -14,6 +17,8 @@ export function formatNumber(value: number, options?: Intl.NumberFormatOptions):
 
 /**
  * Parses a localized number string into a standard JavaScript number.
+ * @param value
+ * @returns
  */
 export function parseNumber(value: string | number | null | undefined): number | undefined {
   if (value === null || value === undefined || value === "") return undefined;
@@ -43,6 +48,9 @@ export function parseNumber(value: string | number | null | undefined): number |
 
 /**
  * Formats a date according to the current locale.
+ * @param value
+ * @param options
+ * @returns
  */
 export function formatDate(
   value: Date | string | number,
@@ -58,6 +66,8 @@ export function formatDate(
 /**
  * Parses a localized date string and checks for ambiguity.
  * Returns the parsed Date and any warnings if the format was ambiguous.
+ * @param value
+ * @returns
  */
 export function parseDate(value: string): { date: Date | null; warnings: string[] } {
   if (!value) return { date: null, warnings: [] };

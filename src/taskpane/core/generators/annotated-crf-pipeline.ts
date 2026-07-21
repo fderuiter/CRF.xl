@@ -41,6 +41,7 @@ export class AnnotatedCrfPipeline {
 
   /**
    * Executes the full pipeline.
+   * @returns
    */
   public async execute(): Promise<AnnotatedCrfPipelineResult> {
     try {

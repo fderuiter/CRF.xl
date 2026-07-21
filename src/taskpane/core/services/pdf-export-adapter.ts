@@ -10,6 +10,8 @@ import htmlToPdfmake from "html-to-pdfmake";
 
 /**
  * Exports the provided HTML content to a PDF file.
+ * @param html
+ * @param filename
  */
 export async function exportToPdf(html: string, filename: string): Promise<void> {
   const parsedHtml = htmlToPdfmake(html, {
@@ -45,6 +47,8 @@ export async function exportToPdf(html: string, filename: string): Promise<void>
 
 /**
  * Generates a PDF blob from the provided HTML content.
+ * @param html
+ * @returns
  */
 export async function generatePdfBlobFromHtml(html: string): Promise<Blob> {
   const parsedHtml = htmlToPdfmake(html, {

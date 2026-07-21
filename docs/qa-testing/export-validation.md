@@ -26,7 +26,7 @@ Objective: Ensure technical validity of the XML output.
 
 XSD Validation: Generated XML must pass validation against the official CDISC ODM1-3-2.xsd.
 
-Condition Logic: Verify that showIf logic is exported as <ConditionDef> and correctly referenced via CollectionExceptionConditionOID.
+Condition Logic: Verify that showIf logic is exported as `<ConditionDef>` and correctly referenced via CollectionExceptionConditionOID.
 
 Character Encoding: Ensure UTF-8 encoding and that special characters are escaped (e.g., & as &amp;).
 

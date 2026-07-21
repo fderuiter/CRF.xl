@@ -35,6 +35,9 @@ class BindingService {
 
   /**
    * Subscribes to selection changes. Returns an unsubscribe function.
+   * @param listener
+   * @param immediate
+   * @returns
    */
   public subscribe(listener: SelectionChangeListener, immediate = true): () => void {
     return this.selectionManager.subscribe(listener, { immediate });
@@ -42,6 +45,8 @@ class BindingService {
 
   /**
    * Subscribes to binding service errors.
+   * @param listener
+   * @returns
    */
   public subscribeError(listener: (error: DiagnosticError) => void): () => void {
     return this.errorManager.subscribe(listener);
@@ -106,6 +111,8 @@ class BindingService {
 
   /**
    * Performs an Excel operation and tags it as internal to prevent event loops.
+   * @param operation
+   * @returns
    */
   public async performInternalOperation<T>(
     operation: (context: Excel.RequestContext) => Promise<T>
