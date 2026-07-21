@@ -104,7 +104,9 @@ export class ComplianceGovernanceService {
 
   public async getEnvironmentStatus(documentUrl: string): Promise<EnvironmentComplianceStatus> {
     const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
-    const isLocalDevAddin = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    const isLocalDevAddin =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
     if (!isCloudHosted) {
       if (isLocalDevAddin) {
