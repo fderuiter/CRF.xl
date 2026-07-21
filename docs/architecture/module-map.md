@@ -415,7 +415,7 @@ Related:
 
 **Purpose:** Utility for workbook sheet creation and formatting.
 
-**Public interface:** `applyThemeToHeader(headerRange: Excel.Range): void`
+**Public interface:** `createOrClearSystemSheet`, `upgradeSystemSheetsToTables`
 
 **Owning issues:** #292
 
