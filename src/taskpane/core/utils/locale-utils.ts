@@ -139,4 +139,3 @@ export function parseDate(value: string): { date: Date | null; warnings: string[
 
   return { date: null, warnings: [...warnings, "Could not parse date."] };
 }
-
