@@ -1,12 +1,32 @@
 const fs = require("fs");
 const path = require("path");
+const http = require("http");
+const https = require("https");
 
 const projectRoot = path.resolve(__dirname, "..");
 const docsDir = path.join(projectRoot, "docs");
 
+const CHECK_EXTERNAL = process.argv.includes("--check-external");
+
+const REGULATORY_DOMAINS = [
+  "fda.gov",
+  "ema.europa.eu",
+  "cdisc.org",
+  "nih.gov",
+  "loinc.org"
+];
+
+function isWhitelisted(hostname) {
+  return REGULATORY_DOMAINS.some(
+    (domain) => hostname === domain || hostname.endsWith("." + domain)
+  );
+}
+
 let scannedFilesCount = 0;
 let totalLinksCount = 0;
 let brokenLinksCount = 0;
+
+const externalLinksToCheck = [];
 
 function fail(message) {
   console.error(`\x1b[31m[ERROR] ${message}\x1b[0m`);
@@ -68,10 +88,24 @@ function extractLinks(content) {
   return links;
 }
 
-// Normalize a link to an absolute filesystem path or return null if it should be skipped
+// Normalize a link to an absolute filesystem path or return an object if it should be checked externally
 function normalizeLink(link, currentFilePath) {
-  // Ignore external web links, email links, and protocols
-  if (/^(https?|mailto|ftp):/i.test(link)) {
+  // Ignore external web links unless flag is passed and domain is whitelisted
+  if (/^(https?):/i.test(link)) {
+    if (CHECK_EXTERNAL) {
+      try {
+        const urlObj = new URL(link);
+        if (isWhitelisted(urlObj.hostname)) {
+          return { type: "external", url: link };
+        }
+      } catch (e) {
+        // Invalid URL, ignore
+      }
+    }
+    return null;
+  }
+  
+  if (/^(mailto|ftp):/i.test(link)) {
     return null;
   }
 
@@ -109,10 +143,10 @@ function normalizeLink(link, currentFilePath) {
 
   // Resolve absolute vs relative paths
   if (path.isAbsolute(cleanLink)) {
-    return cleanLink;
+    return { type: "local", path: cleanLink };
   } else {
     // Resolve relative to the file we found it in
-    return path.resolve(path.dirname(currentFilePath), cleanLink);
+    return { type: "local", path: path.resolve(path.dirname(currentFilePath), cleanLink) };
   }
 }
 
@@ -129,51 +163,112 @@ function validateFile(filePath) {
   const rawLinks = extractLinks(content);
 
   for (const rawLink of rawLinks) {
-    const resolvedPath = normalizeLink(rawLink, filePath);
-    if (!resolvedPath) {
+    const resolved = normalizeLink(rawLink, filePath);
+    if (!resolved) {
       continue;
     }
 
     totalLinksCount++;
 
-    if (!fs.existsSync(resolvedPath)) {
-      brokenLinksCount++;
-      const resolvedRelative = path.relative(projectRoot, resolvedPath);
-      fail(
-        `Broken link in "${relativePath}": "${rawLink}" (Resolved to: "${resolvedRelative}")`
-      );
+    if (resolved.type === "external") {
+      externalLinksToCheck.push({ url: resolved.url, relativePath, rawLink });
+    } else if (resolved.type === "local") {
+      const resolvedPath = resolved.path;
+      if (!fs.existsSync(resolvedPath)) {
+        brokenLinksCount++;
+        const resolvedRelative = path.relative(projectRoot, resolvedPath);
+        fail(
+          `Broken link in "${relativePath}": "${rawLink}" (Resolved to: "${resolvedRelative}")`
+        );
+      }
     }
   }
 }
 
+function checkExternalUrl(urlStr, retries = 3) {
+  return new Promise((resolve) => {
+    const parsedUrl = new URL(urlStr);
+    const client = parsedUrl.protocol === "https:" ? https : http;
+
+    const req = client.request(parsedUrl, { 
+      method: "GET", 
+      timeout: 5000,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Node.js) DocumentationValidator/1.0"
+      }
+    }, (res) => {
+      res.resume(); // Free memory
+      if (res.statusCode >= 200 && res.statusCode < 400) {
+        resolve(true);
+      } else {
+        retry();
+      }
+    });
+
+    req.on("error", retry);
+    req.on("timeout", () => {
+      req.destroy();
+      retry();
+    });
+    
+    req.end();
+
+    function retry() {
+      if (retries > 0) {
+        resolve(checkExternalUrl(urlStr, retries - 1));
+      } else {
+        resolve(false);
+      }
+    }
+  });
+}
+
 // ---------------------- Main Execution ----------------------
-info("Starting markdown documentation link validation...");
+async function main() {
+  info("Starting markdown documentation link validation...");
 
-// Find all documentation files
-const srcDir = path.join(projectRoot, "src");
-const markdownFiles = [
-  ...findMarkdownFiles(docsDir),
-  ...findMarkdownFiles(srcDir)
-];
-const rootReadme = path.join(projectRoot, "README.md");
+  // Find all documentation files
+  const srcDir = path.join(projectRoot, "src");
+  const markdownFiles = [
+    ...findMarkdownFiles(docsDir),
+    ...findMarkdownFiles(srcDir)
+  ];
+  const rootReadme = path.join(projectRoot, "README.md");
 
-if (fs.existsSync(rootReadme)) {
-  markdownFiles.push(rootReadme);
+  if (fs.existsSync(rootReadme)) {
+    markdownFiles.push(rootReadme);
+  }
+
+  // Validate each file
+  for (const file of markdownFiles) {
+    validateFile(file);
+  }
+
+  if (externalLinksToCheck.length > 0) {
+    info(`Validating ${externalLinksToCheck.length} external regulatory links...`);
+    await Promise.all(
+      externalLinksToCheck.map(async ({ url, relativePath, rawLink }) => {
+        const isAlive = await checkExternalUrl(url, 3);
+        if (!isAlive) {
+          brokenLinksCount++;
+          fail(`Broken external link in "${relativePath}": "${rawLink}"`);
+        }
+      })
+    );
+  }
+
+  // Report results
+  if (brokenLinksCount > 0) {
+    fail(
+      `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links, found ${brokenLinksCount} broken link(s).`
+    );
+    process.exit(1);
+  } else {
+    success(
+      `Documentation validation PASSED. Scanned ${scannedFilesCount} files, successfully checked ${totalLinksCount} links.`
+    );
+    process.exit(0);
+  }
 }
 
-// Validate each file
-for (const file of markdownFiles) {
-  validateFile(file);
-}
-
-// Report results
-if (brokenLinksCount > 0) {
-  fail(
-    `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links, found ${brokenLinksCount} broken link(s).`
-  );
-  process.exit(1);
-} else {
-  success(
-    `Documentation validation PASSED. Scanned ${scannedFilesCount} files, successfully checked ${totalLinksCount} links.`
-  );
-}
+main();
