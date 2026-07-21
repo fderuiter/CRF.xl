@@ -47,6 +47,9 @@ jobs:
     - name: 📚 Validate Documentation Links
       run: npm run docs:validate
 
+    - name: 📚 Validate Documentation Code Blocks
+      run: npm run docs:validate-code
+
     - name: 🔗 Validate Codebase Traceability
       run: |
         npm run docs:traceability
