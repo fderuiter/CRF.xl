@@ -23,7 +23,6 @@ module.exports = async (env, options) => {
         import: ["core-js", "regenerator-runtime/runtime", "./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
         dependOn: "react",
       },
-      commands: ["core-js", "regenerator-runtime/runtime", "./src/commands/commands.ts"],
     },
     output: {
       clean: true,
@@ -114,11 +113,6 @@ module.exports = async (env, options) => {
             },
           },
         ],
-      }),
-      new HtmlWebpackPlugin({
-        filename: "commands.html",
-        template: "./src/commands/commands.html",
-        chunks: ["commands"],
       }),
       new webpack.ProvidePlugin({
         Buffer: ["buffer", "Buffer"],
