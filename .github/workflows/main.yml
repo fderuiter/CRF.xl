@@ -32,6 +32,9 @@ jobs:
     - name: 💀 Dead Code Check
       run: npm run dead-code
 
+    - name: 🔍 Check Production Dependencies
+      run: npm run check-prod-deps
+
     - name: 🔐 Audit Production Dependencies
       run: npm audit --omit=dev --audit-level=high
 

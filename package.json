@@ -33,19 +33,17 @@
     "benchmark:mega-study": "jest test/serialization/mega-study.benchmark.test.ts --runInBand",
     "audit": "npm audit",
     "audit:json": "npm audit --json",
-    "dead-code": "node scripts/dead-code.js"
+    "dead-code": "node scripts/dead-code.js",
+    "check-prod-deps": "node scripts/check-prod-deps.js"
   },
   "dependencies": {
-    "@axe-core/playwright": "^4.12.1",
     "@azure/msal-browser": "^5.11.0",
     "@fluentui/react-components": "^9.55.1",
     "@fluentui/react-icons": "^2.0.264",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@playwright/test": "^1.61.1",
     "core-js": "^3.36.0",
     "crypto-js": "^4.2.0",
     "docx": "^9.6.1",
-    "es6-promise": "^4.2.8",
     "exceljs": "^4.4.0",
     "html-to-docx": "^1.8.0",
     "html-to-pdfmake": "^2.5.33",
@@ -53,10 +51,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "regenerator-runtime": "^0.14.1",
-    "scheduler": "^0.27.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.61.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -76,6 +75,7 @@
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^14.0.0",
     "crypto-browserify": "^3.12.1",
+    "depcheck": "^1.4.7",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-office-addins": "^4.0.10",
     "eslint-plugin-react": "^7.28.0",
@@ -109,6 +109,12 @@
   "browserslist": [
     "last 2 versions"
   ],
+  "depcheck": {
+    "ignores": [
+      "core-js",
+      "regenerator-runtime"
+    ]
+  },
   "overrides": {
     "brace-expansion": "2.1.2",
     "minimatch": {
