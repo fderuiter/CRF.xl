@@ -17,6 +17,7 @@ import {
   Textarea,
   Tooltip,
   makeStyles,
+  mergeClasses,
   shorthands,
   tokens,
 } from "@fluentui/react-components";
@@ -99,6 +100,15 @@ const useStyles = makeStyles({
   fieldGrid: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" },
   full: { gridColumn: "1 / -1" },
   actions: { display: "flex", gap: "8px", justifyContent: "space-between", flexWrap: "wrap" },
+  labelContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+  },
+  infoIcon: {
+    fontSize: "12px",
+    cursor: "help",
+  }
 });
 
 type Scope = "SDTM" | "ADaM";
@@ -292,7 +302,7 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
             return (
               <div
                 key={draft.id}
-                className={`${styles.row} ${selected ? styles.selectedRow : ""}`}
+                className={mergeClasses(styles.row, selected && styles.selectedRow)}
                 onClick={() =>
                   scope === "SDTM" ? setSelectedSdtmId(draft.id) : setSelectedAdamId(draft.id)
                 }
@@ -351,13 +361,13 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field
                 label={{
                   children: (
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <div className={styles.labelContainer}>
                       SDTM Domain
                       <Tooltip
                         content="The two-character domain code (e.g., AE, DM, LB) as defined by CDISC SDTM."
                         relationship="label"
                       >
-                        <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
+                        <InfoRegular className={styles.infoIcon} />
                       </Tooltip>
                     </div>
                   ),
@@ -412,13 +422,13 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
               <Field
                 label={{
                   children: (
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <div className={styles.labelContainer}>
                       Key Variables (comma separated)
                       <Tooltip
                         content="Variables that uniquely identify a record in the dataset (e.g., USUBJID, AESEQ)."
                         relationship="label"
                       >
-                        <InfoRegular style={{ fontSize: "12px", cursor: "help" }} />
+                        <InfoRegular className={styles.infoIcon} />
                       </Tooltip>
                     </div>
                   ),

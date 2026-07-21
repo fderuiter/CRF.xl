@@ -5,7 +5,7 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App";
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import { ThemeProvider } from "./providers/ThemeProvider";
 import { initLocale } from "./core/locale-config";
 
 /* global document, Office, module, require, HTMLElement */
@@ -22,17 +22,17 @@ if (typeof Office !== "undefined") {
     initLocale(hostLocale);
 
     root?.render(
-      <FluentProvider theme={webLightTheme}>
+      <ThemeProvider>
         <App title={title} />
-      </FluentProvider>
+      </ThemeProvider>
     );
   });
 } else {
   // Fallback for standalone browser testing
   root?.render(
-    <FluentProvider theme={webLightTheme}>
+    <ThemeProvider>
       <App title={title} />
-    </FluentProvider>
+    </ThemeProvider>
   );
 }
 
@@ -40,9 +40,9 @@ if ((module as any).hot) {
   (module as any).hot.accept("./components/App", () => {
     const NextApp = require("./components/App").default;
     root?.render(
-      <FluentProvider theme={webLightTheme}>
+      <ThemeProvider>
         <NextApp title={title} />
-      </FluentProvider>
+      </ThemeProvider>
     );
   });
 }
