@@ -20,6 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { StudyDesign, SubmissionMetadata } from "../../core";
 import { VaultService } from "../../core";
+import { announcer } from "../../core/services/announcer";
 import { sha256Native } from "../../core/utils/crypto-utils";
 import { formatDate } from "../../core/utils/locale-utils";
 
@@ -104,17 +105,38 @@ export const RegistryView: React.FC<RegistryProps> = ({
   const [showHistory, setShowHistory] = React.useState(false);
   const [historyItems, setHistoryItems] = React.useState<any[]>([]);
 
+  const [freezeDialog, setFreezeDialog] = React.useState<{
+    isOpen: boolean;
+    status: "success" | "error" | null;
+    message: string;
+  }>({ isOpen: false, status: null, message: "" });
+
+  React.useEffect(() => {
+    if (freezeDialog.isOpen && freezeDialog.message) {
+      announcer.announce(
+        freezeDialog.status === "success" 
+          ? `Success: ${freezeDialog.message}` 
+          : `Error: ${freezeDialog.message}`, 
+        "assertive"
+      );
+    }
+  }, [freezeDialog.isOpen, freezeDialog.status, freezeDialog.message]);
+
   const handleFreeze = async () => {
     if (!study) return;
-    const vaultService = new VaultService();
-    const studyHash = await sha256Native(JSON.stringify(study));
-    await vaultService.freezeVersion(
-      study.metadata.protocolId || "UNKNOWN",
-      study.metadata.version || "1.0",
-      studyHash,
-      issues || []
-    );
-    alert("Version frozen in Vault!");
+    try {
+      const vaultService = new VaultService();
+      const studyHash = await sha256Native(JSON.stringify(study));
+      await vaultService.freezeVersion(
+        study.metadata.protocolId || "UNKNOWN",
+        study.metadata.version || "1.0",
+        studyHash,
+        issues || []
+      );
+      setFreezeDialog({ isOpen: true, status: "success", message: "Version frozen in Vault!" });
+    } catch (e: any) {
+      setFreezeDialog({ isOpen: true, status: "error", message: e.message || "Failed to freeze version." });
+    }
   };
 
   const handleHistory = async () => {
@@ -271,6 +293,23 @@ export const RegistryView: React.FC<RegistryProps> = ({
             <DialogActions>
               <Button appearance="primary" onClick={() => setShowHistory(false)}>
                 Close
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+      <Dialog modalType="alert" open={freezeDialog.isOpen}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>
+              {freezeDialog.status === "success" ? "Freeze Successful" : "Freeze Failed"}
+            </DialogTitle>
+            <DialogContent>
+              {freezeDialog.message}
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="primary" onClick={() => setFreezeDialog({ ...freezeDialog, isOpen: false })}>
+                Acknowledge
               </Button>
             </DialogActions>
           </DialogBody>
