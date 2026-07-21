@@ -5,8 +5,9 @@ import { logger } from "../utils/logger";
  * @issue #28
  */
 
-import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { InteractionRequiredAuthError, PublicClientApplication } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
+import { IAuthProvider, IGraphProvider, MockAuthProvider, MockGraphProvider, MSALAuthProvider, MSGraphProvider } from "./compliance-providers";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { applyThemeToHeader } from "../factory/sheet-factory";
 import { AuditJustification } from "../types";
@@ -28,8 +29,9 @@ export interface EnvironmentComplianceStatus {
 }
 
 export class ComplianceGovernanceService {
-  private msalInstance: PublicClientApplication;
-  private graphClient: Client | null = null;
+  private authProvider: IAuthProvider;
+  private graphProvider: IGraphProvider | null = null;
+  public isMock: boolean;
   private account: any = null;
   private pendingSync: {
     documentUrl: string;
@@ -37,21 +39,29 @@ export class ComplianceGovernanceService {
   } | null = null;
 
   constructor(clientId: string = "PLACEHOLDER_CLIENT_ID") {
-    this.msalInstance = new PublicClientApplication({
-      auth: {
-        clientId: clientId,
-        authority: "https://login.microsoftonline.com/common",
-        redirectUri: window.location.origin + "/taskpane.html",
-      },
-      cache: {
-        cacheLocation: "localStorage",
-      },
-    });
+    const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    this.isMock = isLocal;
+    
+    if (isLocal) {
+      this.authProvider = new MockAuthProvider();
+    } else {
+      const msalInstance = new PublicClientApplication({
+        auth: {
+          clientId: clientId,
+          authority: "https://login.microsoftonline.com/common",
+          redirectUri: typeof window !== "undefined" ? window.location.origin + "/taskpane.html" : "",
+        },
+        cache: {
+          cacheLocation: "localStorage",
+        },
+      });
+      this.authProvider = new MSALAuthProvider(msalInstance);
+    }
   }
 
   public async initialize() {
-    await this.msalInstance.initialize();
-    const accounts = this.msalInstance.getAllAccounts();
+    await this.authProvider.initialize();
+    const accounts = this.authProvider.getAllAccounts();
     if (accounts.length > 0) {
       this.account = accounts[0];
       this.setupGraphClient();
@@ -62,7 +72,7 @@ export class ComplianceGovernanceService {
   public async login() {
     const request = { scopes: ["Sites.ReadWrite.All", "Files.ReadWrite.All"] };
     try {
-      const response = await this.msalInstance.loginPopup(request);
+      const response = await this.authProvider.loginPopup(request);
       this.account = response.account;
       this.setupGraphClient();
       this.processPendingSync();
@@ -73,7 +83,12 @@ export class ComplianceGovernanceService {
   }
 
   private setupGraphClient() {
-    this.graphClient = Client.init({
+    if (this.isMock) {
+      this.graphProvider = new MockGraphProvider();
+      return;
+    }
+
+    const client = Client.init({
       authProvider: async (done) => {
         try {
           const request = {
@@ -82,10 +97,10 @@ export class ComplianceGovernanceService {
           };
           let response;
           try {
-            response = await this.msalInstance.acquireTokenSilent(request);
-          } catch (e) {
-            if (e instanceof InteractionRequiredAuthError) {
-              response = await this.msalInstance.acquireTokenPopup(request);
+            response = await this.authProvider.acquireTokenSilent(request);
+          } catch (e: any) {
+            if (e instanceof InteractionRequiredAuthError || e.name === "InteractionRequiredAuthError") {
+              response = await this.authProvider.acquireTokenPopup(request);
             } else {
               throw e;
             }
@@ -96,6 +111,7 @@ export class ComplianceGovernanceService {
         }
       },
     });
+    this.graphProvider = new MSGraphProvider(client);
   }
 
   public get isAuthenticated() {
@@ -105,7 +121,7 @@ export class ComplianceGovernanceService {
   public async getEnvironmentStatus(documentUrl: string): Promise<EnvironmentComplianceStatus> {
     const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
 
-    if (!isCloudHosted || !this.graphClient) {
+    if (!isCloudHosted || !this.graphProvider) {
       return {
         isCloudHosted,
         documentUrl,
@@ -133,7 +149,7 @@ export class ComplianceGovernanceService {
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/, "");
-      const driveItem = await this.graphClient
+      const driveItem = await this.graphProvider
         .api(`/shares/u!${encodedUrl}/driveItem`)
         .expand("drive")
         .get();
@@ -142,7 +158,7 @@ export class ComplianceGovernanceService {
       const siteId = driveItem.parentReference.siteId;
 
       // To get list settings (versioning, checkout), we need the list associated with the drive
-      const list = await this.graphClient.api(`/sites/${siteId}/drives/${driveId}/list`).get();
+      const list = await this.graphProvider.api(`/sites/${siteId}/drives/${driveId}/list`).get();
       const listId = list.id;
 
       // In Microsoft Graph, list settings like EnableVersioning and RequireCheckout are in list/list
@@ -157,7 +173,7 @@ export class ComplianceGovernanceService {
       let hasGovernanceSummaryColumn = false;
       let hasJustificationCountColumn = false;
       try {
-        const columns = await this.graphClient
+        const columns = await this.graphProvider
           .api(`/sites/${siteId}/lists/${listId}/columns`)
           .get();
         if (columns && columns.value) {
@@ -174,7 +190,7 @@ export class ComplianceGovernanceService {
 
       let isAdmin = false;
       try {
-        await this.graphClient.api(`/sites/${siteId}/permissions`).top(1).get();
+        await this.graphProvider.api(`/sites/${siteId}/permissions`).top(1).get();
         isAdmin = true;
       } catch {
         isAdmin = false;
@@ -222,10 +238,10 @@ export class ComplianceGovernanceService {
     missingGovernanceSummary: boolean = false,
     missingJustificationCount: boolean = false
   ) {
-    if (!this.graphClient) throw new Error("Graph client not initialized");
+    if (!this.graphProvider) throw new Error("Graph client not initialized");
 
     // Update the list to enable versioning and disable required checkout
-    await this.graphClient.api(`/sites/${siteId}/lists/${listId}`).patch({
+    await this.graphProvider.api(`/sites/${siteId}/lists/${listId}`).patch({
       list: {
         enableVersioning: true,
         requireCheckout: false,
@@ -234,7 +250,7 @@ export class ComplianceGovernanceService {
 
     if (missingGovernanceSummary) {
       try {
-        await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
+        await this.graphProvider.api(`/sites/${siteId}/lists/${listId}/columns`).post({
           name: "GovernanceSummary",
           text: {},
         });
@@ -245,7 +261,7 @@ export class ComplianceGovernanceService {
 
     if (missingJustificationCount) {
       try {
-        await this.graphClient.api(`/sites/${siteId}/lists/${listId}/columns`).post({
+        await this.graphProvider.api(`/sites/${siteId}/lists/${listId}/columns`).post({
           name: "JustificationCount",
           number: {},
         });
@@ -443,7 +459,7 @@ export class ComplianceGovernanceService {
 
     // Debounce to batch calls and not degrade performance
     this.syncTimeout = setTimeout(async () => {
-      if (!this.graphClient || !this.pendingSync) {
+      if (!this.graphProvider || !this.pendingSync) {
         return;
       }
 
@@ -459,10 +475,10 @@ export class ComplianceGovernanceService {
             : "No justifications.";
 
         const encodedUrl = btoa(url).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-        const driveItem = await this.graphClient.api(`/shares/u!${encodedUrl}/driveItem`).get();
+        const driveItem = await this.graphProvider.api(`/shares/u!${encodedUrl}/driveItem`).get();
 
         // Update listItem associated with this file
-        await this.graphClient
+        await this.graphProvider
           .api(`/drives/${driveItem.parentReference.driveId}/items/${driveItem.id}/listItem/fields`)
           .patch({
             GovernanceSummary: summaryText, // Custom column Name
@@ -479,7 +495,7 @@ export class ComplianceGovernanceService {
   }
 
   private async processPendingSync() {
-    if (this.pendingSync && this.graphClient) {
+    if (this.pendingSync && this.graphProvider) {
       const { documentUrl, justifications } = this.pendingSync;
       this.pendingSync = null; // Clear to prevent infinite loop on failure
       await this.syncSharePointMetadata(documentUrl, justifications);
