@@ -7,7 +7,7 @@ import { logger } from "../utils/logger";
 
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
+import { SHEET_NAMES } from "../registry/sheet-metadata-registry";
 import { createOrClearSystemSheet } from "../factory/sheet-factory";
 import { AuditJustification } from "../types";
 import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
