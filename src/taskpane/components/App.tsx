@@ -173,6 +173,54 @@ const useAppStyles = makeStyles({
     gap: "8px",
     justifyContent: "flex-end",
   },
+  welcomeButton: {
+    width: "100%",
+    backgroundColor: tokens.colorNeutralBackground1,
+    color: tokens.colorBrandForeground1,
+  },
+  languageSelector: {
+    marginLeft: "16px",
+  },
+  headerRight: {
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
+  },
+  tabList: {
+    marginBottom: "12px",
+  },
+  conflictActions: {
+    marginTop: "8px",
+    display: "flex",
+    gap: "8px",
+  },
+  errorContainerVisible: {
+    display: "block",
+    outline: "none",
+  },
+  errorContainerHidden: {
+    display: "none",
+    outline: "none",
+  },
+  exportDialogContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+  },
+  exportDropdown: {
+    width: "100%",
+  },
+  ariaLive: {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    padding: 0,
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+  }
 });
 
 function toSafeHttpUrl(url: string | undefined): string | null {
@@ -852,11 +900,7 @@ const App: React.FC<{ title?: string }> = () => {
             onClick={handleInitialize}
             disabled={totalIsProcessing}
             icon={totalIsProcessing ? <Spinner size="tiny" /> : undefined}
-            style={{
-              width: "100%",
-              backgroundColor: tokens.colorNeutralBackground1,
-              color: tokens.colorBrandForeground1,
-            }}
+            className={styles.welcomeButton}
           >
             ✨ Initialize Canvas
           </Button>
@@ -945,7 +989,7 @@ const App: React.FC<{ title?: string }> = () => {
           {isInitialized &&
             study?.metadata?.supportedLanguages &&
             study.metadata.supportedLanguages.length > 1 && (
-              <div style={{ marginLeft: "16px" }}>
+              <div className={styles.languageSelector}>
                 <Dropdown
                   size="small"
                   value={selectedLanguage || study.metadata.defaultLanguage}
@@ -961,7 +1005,7 @@ const App: React.FC<{ title?: string }> = () => {
               </div>
             )}
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <div className={styles.headerRight}>
           <Badge appearance="tint" color="informative">
             {displayStatus}
           </Badge>
@@ -981,7 +1025,7 @@ const App: React.FC<{ title?: string }> = () => {
         <TabList
           selectedValue={activeTab}
           onTabSelect={(_e, data) => setActiveTab(data.value as string)}
-          style={{ marginBottom: "12px" }}
+          className={styles.tabList}
         >
           <Tab value="design" id="tab-design">
             Design
@@ -1077,7 +1121,7 @@ const App: React.FC<{ title?: string }> = () => {
             <MessageBarBody>
               <strong>Conflict Detected:</strong> The workbook was modified during a background
               sync.
-              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+              <div className={styles.conflictActions}>
                 <Button
                   size="small"
                   onClick={() => {
@@ -1113,7 +1157,7 @@ const App: React.FC<{ title?: string }> = () => {
           ref={errorContainerRef}
           aria-live="polite"
           tabIndex={-1}
-          style={{ display: uiError ? "block" : "none", outline: "none" }}
+          className={uiError ? styles.errorContainerVisible : styles.errorContainerHidden}
         >
           {uiError && (
             <MessageBar
@@ -1176,7 +1220,7 @@ const App: React.FC<{ title?: string }> = () => {
           <DialogSurface>
             <DialogBody>
               <DialogTitle>Export Configuration</DialogTitle>
-              <DialogContent style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <DialogContent className={styles.exportDialogContent}>
                 <div>
                   <Text block weight="semibold">
                     Export Mode
@@ -1189,7 +1233,7 @@ const App: React.FC<{ title?: string }> = () => {
                         mode: data.optionValue as ExportMode,
                       }))
                     }
-                    style={{ width: "100%" }}
+                    className={styles.exportDropdown}
                   >
                     <Option value={ExportMode.PRIMARY_ONLY}>Primary Locale Only</Option>
                     <Option value={ExportMode.BILINGUAL}>Bilingual (Primary / Secondary)</Option>
@@ -1206,7 +1250,7 @@ const App: React.FC<{ title?: string }> = () => {
                     onOptionSelect={(_e, data) =>
                       setExportOptions((prev) => ({ ...prev, primaryLocale: data.optionValue! }))
                     }
-                    style={{ width: "100%" }}
+                    className={styles.exportDropdown}
                   >
                     {study?.metadata.supportedLanguages?.map((lang) => (
                       <Option key={lang} value={lang} text={lang}>
@@ -1236,7 +1280,7 @@ const App: React.FC<{ title?: string }> = () => {
                           secondaryLocale: data.optionValue!,
                         }))
                       }
-                      style={{ width: "100%" }}
+                      className={styles.exportDropdown}
                     >
                       {study?.metadata.supportedLanguages?.map((lang) => (
                         <Option key={lang} value={lang}>
@@ -1291,17 +1335,7 @@ const App: React.FC<{ title?: string }> = () => {
         <div
           aria-live={announcement ? announcement.priority : "polite"}
           aria-atomic="true"
-          style={{
-            position: "absolute",
-            width: "1px",
-            height: "1px",
-            padding: 0,
-            margin: "-1px",
-            overflow: "hidden",
-            clip: "rect(0, 0, 0, 0)",
-            whiteSpace: "nowrap",
-            border: 0,
-          }}
+          className={styles.ariaLive}
         >
           {announcement ? announcement.message : ""}
         </div>

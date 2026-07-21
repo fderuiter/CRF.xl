@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #78
  */
@@ -55,7 +56,7 @@ const useStyles = makeStyles({
     width: "100%",
     minHeight: "600px",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
-    backgroundColor: "white",
+    backgroundColor: tokens.colorNeutralBackground1,
     boxShadow: tokens.shadow4,
   },
   sidebar: {
@@ -140,6 +141,11 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
       "--colorNeutralBackgroundInverted",
       "--colorStatusSuccessBackground3",
       "--colorBrandBackground",
+      "--colorNeutralBackground1",
+      "--colorNeutralBackground2",
+      "--colorNeutralForeground1",
+      "--colorNeutralForeground2",
+      "--colorNeutralStroke1",
     ];
 
     let styleContent = ":root {\n";
@@ -159,6 +165,11 @@ export const AcrfPreview: React.FC<AcrfPreviewProps> = ({
       --colorPaletteOrangeBackground3: var(--colorPaletteOrangeBackground3, #ca5010);
       --colorNeutralBackgroundInverted: var(--colorNeutralBackgroundInverted, #323130);
       --colorStatusSuccessBackground3: var(--colorStatusSuccessBackground3, #107c10);
+      --colorNeutralBackground1: var(--colorNeutralBackground1, #ffffff);
+      --colorNeutralBackground2: var(--colorNeutralBackground2, #f0f0f0);
+      --colorNeutralForeground1: var(--colorNeutralForeground1, #333333);
+      --colorNeutralForeground2: var(--colorNeutralForeground2, #666666);
+      --colorNeutralStroke1: var(--colorNeutralStroke1, #cccccc);
     }`;
 
     let styleEl = iframeDoc.getElementById("acrf-theme-tokens");

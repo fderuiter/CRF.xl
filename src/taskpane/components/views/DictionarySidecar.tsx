@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #83, #159, #174, #165, #176, #46, #44
  */
@@ -5,6 +6,7 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import {
   Button,
+  Card,
   Input,
   Spinner,
   Badge,
@@ -19,8 +21,8 @@ import {
   Tab,
   Tooltip,
   mergeClasses,
+  OverlayDrawer,
 } from "@fluentui/react-components";
-import { AccessibleWrapper } from "../ui/DesignSystem";
 import { UniversalWizard } from "../ui/UniversalStepper";
 
 import {
@@ -52,13 +54,8 @@ import {
 
 const useStyles = makeStyles({
   root: {
-    position: "absolute",
-    inset: 0,
-    backgroundColor: tokens.colorNeutralBackground1,
-    zIndex: 50,
     display: "flex",
     flexDirection: "column",
-    boxShadow: tokens.shadow64,
   },
   header: {
     padding: "12px 16px",
@@ -282,6 +279,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     "loading" | "browse" | "create" | "import" | "detail" | "searching" | "error" | "no-selection"
   >("loading");
   const [localLanguage, setLocalLanguage] = useState(initialLanguage);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     setLocalLanguage(initialLanguage);
@@ -352,6 +350,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     } else if (selection?.isValid && view === "no-selection") {
       setView(search.trim() ? "searching" : "browse");
       setManualOverride(false);
+    }
+
+    if (selection?.isValid) {
+      setIsOpen(true);
     }
   }, [selection, view, search, manualOverride]);
 
@@ -772,7 +774,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const effectiveSelectedLanguage = localLanguage || initialLanguage;
 
   return (
-    <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
+    <OverlayDrawer
+      open={isOpen}
+      onOpenChange={(_, data) => setIsOpen(data.open)}
+      position="end"
+      className={styles.root}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       {/* Zone 1: Context Header */}
       <div className={mergeClasses(styles.header, styles.zone1)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1172,10 +1181,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         WORKBOOK MATCHES
                       </Text>
                       {searchResults.map((result, index) => (
-                        <AccessibleWrapper
+                        <Card
+                          role="button"
                           key={result.id}
                           className={styles.gridCard}
-                          ariaLabel={`View details for codelist ${result.id}: ${result.title}`}
+                          aria-label={`View details for codelist ${result.id}: ${result.title}`}
                           style={{
                             cursor: "pointer",
                             padding: "12px",
@@ -1211,7 +1221,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
                             {result.matchReason.replace("_", " ")}
                           </Text>
-                        </AccessibleWrapper>
+                        </Card>
                       ))}
                     </>
                   ) : (
@@ -1288,10 +1298,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {dictionaries.length > 0 ? (
                     dictionaries.map((item, index) => (
-                      <AccessibleWrapper
+                      <Card
+                        role="button"
                         key={item.id}
                         className={styles.gridCard}
-                        ariaLabel={`View details for codelist ${item.id}: ${item.name}`}
+                        aria-label={`View details for codelist ${item.id}: ${item.name}`}
                         style={{
                           cursor: "pointer",
                           padding: "12px",
@@ -1333,7 +1344,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             </span>
                           ))}
                         </div>
-                      </AccessibleWrapper>
+                      </Card>
                     ))
                   ) : (
                     <div className={styles.emptyText}>
@@ -1645,7 +1656,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                   .includes(importPackageSearch.toLowerCase())
                             )
                             .map((pkg) => (
-                              <AccessibleWrapper
+                              <Card
+                                role="button"
                                 key={pkg.packageOid}
                                 style={{
                                   padding: "8px",
@@ -1657,7 +1669,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                       : "transparent",
                                 }}
                                 onClick={() => setSelectedPackage(pkg)}
-                                ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
+                                aria-label={`Select package ${pkg.title || pkg.packageOid}`}
                               >
                                 <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                                   {pkg.title || pkg.packageOid}
@@ -1672,7 +1684,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                   OID: {pkg.packageOid}{" "}
                                   {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                                 </Text>
-                              </AccessibleWrapper>
+                              </Card>
                             ))}
                         </div>
                       )}
@@ -1867,6 +1879,6 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </OverlayDrawer>
   );
 };
