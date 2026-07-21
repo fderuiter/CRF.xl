@@ -7,7 +7,14 @@ import { logger } from "../utils/logger";
 
 import { InteractionRequiredAuthError, PublicClientApplication } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { IAuthProvider, IGraphProvider, MockAuthProvider, MockGraphProvider, MSALAuthProvider, MSGraphProvider } from "./compliance-providers";
+import {
+  IAuthProvider,
+  IGraphProvider,
+  MockAuthProvider,
+  MockGraphProvider,
+  MSALAuthProvider,
+  MSGraphProvider,
+} from "./compliance-providers";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
 import { applyThemeToHeader } from "../factory/sheet-factory";
 import { AuditJustification } from "../types";
@@ -39,9 +46,11 @@ export class ComplianceGovernanceService {
   } | null = null;
 
   constructor(clientId: string = "PLACEHOLDER_CLIENT_ID") {
-    const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    const isLocal =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
     this.isMock = isLocal;
-    
+
     if (isLocal) {
       this.authProvider = new MockAuthProvider();
     } else {
@@ -49,7 +58,8 @@ export class ComplianceGovernanceService {
         auth: {
           clientId: clientId,
           authority: "https://login.microsoftonline.com/common",
-          redirectUri: typeof window !== "undefined" ? window.location.origin + "/taskpane.html" : "",
+          redirectUri:
+            typeof window !== "undefined" ? window.location.origin + "/taskpane.html" : "",
         },
         cache: {
           cacheLocation: "localStorage",
@@ -99,7 +109,10 @@ export class ComplianceGovernanceService {
           try {
             response = await this.authProvider.acquireTokenSilent(request);
           } catch (e: any) {
-            if (e instanceof InteractionRequiredAuthError || e.name === "InteractionRequiredAuthError") {
+            if (
+              e instanceof InteractionRequiredAuthError ||
+              e.name === "InteractionRequiredAuthError"
+            ) {
               response = await this.authProvider.acquireTokenPopup(request);
             } else {
               throw e;

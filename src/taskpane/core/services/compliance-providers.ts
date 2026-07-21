@@ -26,7 +26,9 @@ export class MockAuthProvider implements IAuthProvider {
 
   public simulateLoginState(loggedIn: boolean) {
     if (loggedIn) {
-      this.accounts = [{ homeAccountId: "mock-id", name: "Mock User", username: "mock@example.com" }];
+      this.accounts = [
+        { homeAccountId: "mock-id", name: "Mock User", username: "mock@example.com" },
+      ];
     } else {
       this.accounts = [];
     }
@@ -87,8 +89,8 @@ export class MockGraphProvider implements IGraphProvider {
       get: async () => {
         if (path.includes("driveItem")) return this.mockData.driveItem;
         if (path.includes("/list")) {
-            if (path.includes("/lists/")) return undefined;
-            return this.mockData.list;
+          if (path.includes("/lists/")) return undefined;
+          return this.mockData.list;
         }
         if (path.includes("/columns")) return this.mockData.columns;
         if (path.includes("/permissions")) return this.mockData.permissions;
