@@ -18,6 +18,11 @@ import { getTranslation } from "../generators/shared-localization";
 
 /**
  * Builds an AnnotatedCrfDocument from a StudyDesign and optional annotations.
+ * @param study
+ * @param validationIssues
+ * @param storedAnnotations
+ * @param reviewerComments
+ * @returns
  */
 export function buildAnnotatedCrfDocument(
   study: StudyDesign,
@@ -172,6 +177,8 @@ export function buildAnnotatedCrfDocument(
 
 /**
  * Renders an AnnotatedCrfDocument to a submission-ready HTML string.
+ * @param doc
+ * @returns
  */
 export function renderToHtml(doc: AnnotatedCrfDocument): string {
   const styles = `

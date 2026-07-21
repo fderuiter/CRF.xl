@@ -19,6 +19,7 @@ export interface CodelistGroup {
 
 /**
  * Reads the _Codelists sheet and transforms flat rows into grouped JSON objects.
+ * @returns
  */
 export async function fetchDictionaries(): Promise<CodelistGroup[]> {
   let allRows: any[] = [];
@@ -140,6 +141,8 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
 
 /**
  * Injects the selected Codelist ID into the active Excel cell.
+ * @param codelistId
+ * @returns
  */
 export async function insertDictionaryToActiveCell(codelistId: string): Promise<void> {
   return await Excel.run(async (context) => {
@@ -155,6 +158,11 @@ export async function insertDictionaryToActiveCell(codelistId: string): Promise<
  */
 /**
  * Updates an existing dictionary or saves a new one.
+ * @param id
+ * @param name
+ * @param items
+ * @param isNew
+ * @returns
  */
 export async function saveDictionary(
   id: string,

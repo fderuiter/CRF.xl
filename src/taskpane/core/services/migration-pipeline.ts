@@ -143,6 +143,7 @@ export interface ImportManifest {
  * @param sourceType    Category of the import source.
  * @param sourceVersion Release label or file hash (optional).
  * @param importedBy    User identifier (optional).
+ * @returns
  */
 export function createImportProvenance(
   sourceId: string,
@@ -166,6 +167,7 @@ export function createImportProvenance(
  * @param summary       Gate summary (status, diagnostics, canCommit).
  * @param sheetsWritten Names of sheets that were written.
  * @param rowsWritten   Total data rows written.
+ * @returns
  */
 export function createImportManifest(
   provenance: ImportProvenance,
@@ -179,6 +181,7 @@ export function createImportManifest(
 /**
  * Persist an import manifest to sessionStorage.
  * Overwrites any previously stored manifest for the session.
+ * @param manifest
  */
 export function persistImportManifest(manifest: ImportManifest): void {
   try {
@@ -191,6 +194,7 @@ export function persistImportManifest(manifest: ImportManifest): void {
 /**
  * Load the most recent import manifest from sessionStorage.
  * Returns null if no manifest is stored or the stored value is malformed.
+ * @returns
  */
 export function loadImportManifest(): ImportManifest | null {
   try {

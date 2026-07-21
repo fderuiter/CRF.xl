@@ -4,6 +4,7 @@ import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
   ...officeAddins.configs.react,
@@ -49,6 +50,27 @@ export default [
       "react-hooks/rules-of-hooks": "warn",
       "react/forbid-dom-props": ["error", { "forbid": ["style"] }],
       "react/forbid-component-props": ["error", { "forbid": ["style"] }]
+    }
+  },
+  {
+    files: ["src/taskpane/core/**/*.ts", "src/taskpane/core/**/*.tsx"],
+    plugins: {
+      jsdoc: jsdoc
+    },
+    rules: {
+      "jsdoc/check-param-names": "error",
+      "jsdoc/require-param": "error",
+      "jsdoc/require-param-name": "error",
+      "jsdoc/require-param-type": "off",
+
+      "jsdoc/require-returns": "error",
+      "jsdoc/require-returns-check": "error",
+      "jsdoc/require-returns-type": "off"
+    },
+    settings: {
+      jsdoc: {
+        mode: "typescript"
+      }
     }
   }
 ];
