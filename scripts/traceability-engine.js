@@ -186,19 +186,26 @@ async function main() {
   for (const file of files) {
     const relPath = path.relative(path.join(__dirname, ".."), file).replace(/\\/g, "/");
     const content = fs.readFileSync(file, "utf8");
-    const tagMatch = content.match(/@issue\s+([^\n*]+)/);
+    const tagMatches = [...content.matchAll(/@issue\s+([^\n*]+)/g)];
 
-    if (!tagMatch) {
+    if (tagMatches.length === 0) {
       missingTags.push(relPath);
       continue;
     }
 
-    // Parse multiple issues e.g., #129, #85
-    const issueNumbers = [...tagMatch[1].matchAll(/#(\d+)/g)].map((m) => m[1]);
+    let issueNumbers = [];
+    for (const tagMatch of tagMatches) {
+      const matchIssues = [...tagMatch[1].matchAll(/#(\d+)/g)].map((m) => m[1]);
+      issueNumbers.push(...matchIssues);
+    }
+
     if (issueNumbers.length === 0) {
       missingTags.push(relPath);
       continue;
     }
+
+    // Remove duplicates
+    issueNumbers = [...new Set(issueNumbers)];
 
     for (const num of issueNumbers) {
       if (validIssues.size > 0 && !validIssues.has(num)) {
@@ -215,10 +222,18 @@ async function main() {
   for (const file of docFiles) {
     const relPath = path.relative(path.join(__dirname, ".."), file).replace(/\\/g, "/");
     const content = fs.readFileSync(file, "utf8");
-    const tagMatch = content.match(/@issue\s+([^\n*>-]+)/);
-    if (!tagMatch) continue;
+    const tagMatches = [...content.matchAll(/@issue\s+([^\n*>-]+)/g)];
+    if (tagMatches.length === 0) continue;
 
-    const issueNumbers = [...tagMatch[1].matchAll(/#(\d+)/g)].map((m) => m[1]);
+    let issueNumbers = [];
+    for (const tagMatch of tagMatches) {
+      const matchIssues = [...tagMatch[1].matchAll(/#(\d+)/g)].map((m) => m[1]);
+      issueNumbers.push(...matchIssues);
+    }
+
+    // Remove duplicates
+    issueNumbers = [...new Set(issueNumbers)];
+
     for (const num of issueNumbers) {
       if (validIssues.size > 0 && !validIssues.has(num)) {
         invalidIssues.push({ file: relPath, issue: num });

@@ -1,6 +1,12 @@
 /* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
- * @issue #83, #159, #174, #165, #176, #46, #44
+ * @issue #83
+ * @issue #159
+ * @issue #174
+ * @issue #165
+ * @issue #176
+ * @issue #46
+ * @issue #44
  */
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
