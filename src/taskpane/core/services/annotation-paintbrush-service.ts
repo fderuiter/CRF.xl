@@ -1,6 +1,5 @@
 /// <reference types="office-js" />
 import { SubscriptionManager } from "../utils/event-utility";
-import { logger } from "../utils/logger";
 /**
  * @issue #84
  */
@@ -230,56 +229,6 @@ class AnnotationPaintbrushService {
     await deleteAnnotationsBatch(lastIds);
 
     this.notify();
-  }
-
-  /**
-   * Applies the current paintbrush annotation to the specified cell immediately.
-   * @deprecated Use pending targets + executeBulkApply for better UX and transactional integrity.
-   */
-  public async applyToRange(sheetName: string, address: string): Promise<void> {
-    if (!this.state.isEnabled) return;
-
-    // Validation Check before applying
-    let isBlocked = false;
-    if (typeof Excel !== "undefined") {
-      await Excel.run(async (context) => {
-        const sheet = context.workbook.worksheets.getItem(sheetName);
-        const range = sheet.getRange(address);
-        const issues = await validateAnnotationTarget(range);
-
-        for (const issue of issues) {
-          const policy = getRepairPolicy(issue);
-          if (policy.action === "Block") {
-            logger.error(
-              `[AnnotationPaintbrush] Application blocked at ${address}: ${issue.message}`
-            );
-            isBlocked = true;
-            break;
-          }
-        }
-      });
-    }
-
-    if (isBlocked) return;
-
-    const { resolveLogicalId, applyAnnotation } = await import("./annotation-service");
-    const logicalId = await resolveLogicalId(sheetName, address);
-
-    const annotation: Annotation = {
-      id: "",
-      type: this.state.activeType,
-      targetType: AnnotationTargetType.CELL,
-      anchor: {
-        address,
-        sheetName,
-        logicalId: logicalId || undefined,
-      },
-      content: this.state.activeContent,
-      timestamp: new Date().toISOString(),
-      version: 1,
-    };
-
-    await applyAnnotation(sheetName, address, annotation);
   }
 }
 
