@@ -29,7 +29,17 @@ describe("chunking runtime", () => {
     expect(chunkedResult).toEqual(singlePassResult);
   });
 
-  it("emits cancellation and timeout errors from runtime checks", async () => {
+  it("emits cancellation and timeout errors from runtime checks", () => {
+    jest.useFakeTimers();
+    const originalTimeout = AbortSignal.timeout;
+    AbortSignal.timeout = (ms) => {
+      const controller = new AbortController();
+      const error = new Error("TimeoutError");
+      error.name = "TimeoutError";
+      setTimeout(() => controller.abort(error), ms);
+      return controller.signal;
+    };
+
     const controller = new AbortController();
     controller.abort();
     const cancelledRuntime = createParseRuntime({
@@ -42,9 +52,12 @@ describe("chunking runtime", () => {
     const timedOutRuntime = createParseRuntime({
       timeoutMs: 1,
     });
-    await new Promise((resolve) => setTimeout(resolve, 5));
+    jest.advanceTimersByTime(5);
     expect(() => timedOutRuntime.throwIfStopped("items")).toThrow(
       "Parsing timed out during items after 1ms"
     );
+
+    AbortSignal.timeout = originalTimeout;
+    jest.useRealTimers();
   });
 });
