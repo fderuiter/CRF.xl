@@ -674,7 +674,6 @@ export async function applyAnnotationInternal(
   }
 }
 
-
 /**
  * Transactional Performance Engine
  * Consolidates clear and highlight operations into a single logical transaction wrapper.
