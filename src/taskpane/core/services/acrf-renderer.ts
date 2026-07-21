@@ -175,22 +175,22 @@ export function buildAnnotatedCrfDocument(
  */
 export function renderToHtml(doc: AnnotatedCrfDocument): string {
   const styles = `
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #333; line-height: 1.5; }
-    .header { border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: var(--colorNeutralForeground1, #333); background-color: var(--colorNeutralBackground1, transparent); line-height: 1.5; }
+    .header { border-bottom: 2px solid var(--colorNeutralForeground1, #333); margin-bottom: 20px; padding-bottom: 10px; }
     .header h1 { margin: 0; font-size: 24px; }
-    .header-metadata { font-size: 14px; color: #666; margin-top: 5px; }
+    .header-metadata { font-size: 14px; color: var(--colorNeutralForeground2, #666); margin-top: 5px; }
 
-    .form-page { page-break-after: always; border: 1px solid #ccc; padding: 40px; margin-bottom: 40px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .clinical-header { background: #f0f0f0; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; font-weight: bold; font-size: 14px; }
+    .form-page { page-break-after: always; border: 1px solid var(--colorNeutralStroke1, #ccc); padding: 40px; margin-bottom: 40px; background: var(--colorNeutralBackground1, white); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .clinical-header { background: var(--colorNeutralBackground2, #f0f0f0); padding: 10px; margin-bottom: 20px; border: 1px solid var(--colorNeutralStroke1, #ddd); font-weight: bold; font-size: 14px; }
 
     .item-group { margin-bottom: 30px; }
-    .group-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    .group-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--colorNeutralStroke1, #eee); padding-bottom: 5px; }
 
     .item-row { display: flex; margin-bottom: 15px; align-items: flex-start; }
     .item-content { flex: 1; padding-right: 20px; }
     .item-label { font-weight: 500; margin-bottom: 4px; }
-    .item-affordance { border-bottom: 1px solid #999; height: 20px; width: 200px; margin-top: 5px; }
-    .item-instructions { font-size: 12px; font-style: italic; color: #777; margin-top: 4px; }
+    .item-affordance { border-bottom: 1px solid var(--colorNeutralForeground2, #999); height: 20px; width: 200px; margin-top: 5px; }
+    .item-instructions { font-size: 12px; font-style: italic; color: var(--colorNeutralForeground2, #777); margin-top: 4px; }
 
     .annotations-container { width: 250px; text-align: right; float: right; margin-left: 20px; }
     .annotation-box {
@@ -213,7 +213,7 @@ export function renderToHtml(doc: AnnotatedCrfDocument): string {
       margin-top: 5px;
     }
     .comb-cell {
-      border: 1px solid #333;
+      border: 1px solid var(--colorNeutralForeground1, #333);
       width: 15px;
       height: 20px;
     }
