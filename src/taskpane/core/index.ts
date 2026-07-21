@@ -131,7 +131,6 @@ export {
   parseNumber,
   formatDate,
   parseDate,
-  formatCurrency,
 } from "./utils/locale-utils";
 export { onboardingService, type OnboardingState } from "./services/onboarding-service";
 export {

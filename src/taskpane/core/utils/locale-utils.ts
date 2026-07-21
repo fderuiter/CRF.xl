@@ -140,13 +140,3 @@ export function parseDate(value: string): { date: Date | null; warnings: string[
   return { date: null, warnings: [...warnings, "Could not parse date."] };
 }
 
-/**
- * Formats a currency value.
- */
-export function formatCurrency(value: number, currency: string = "USD"): string {
-  const { currentLocale } = getLocaleConfig();
-  return new Intl.NumberFormat(currentLocale, {
-    style: "currency",
-    currency: currency,
-  }).format(value);
-}
