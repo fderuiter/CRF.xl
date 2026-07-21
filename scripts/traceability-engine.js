@@ -9,30 +9,99 @@ const MODULE_MAP_PATH = path.join(__dirname, "../docs/architecture/module-map.md
 // Fetch all issues from GitHub API
 function fetchPage(url) {
   return new Promise((resolve, reject) => {
-    https
-      .get(url, { headers: { "User-Agent": "Traceability-Engine" } }, (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => resolve(JSON.parse(data)));
-      })
-      .on("error", reject);
+    const headers = { "User-Agent": "Traceability-Engine" };
+    if (process.env.GITHUB_TOKEN) {
+      headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
+    }
+    const options = { headers, timeout: 5000 };
+    
+    const req = https.get(url, options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (err) {
+          reject(new Error("Failed to parse JSON response"));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(new Error(`Network error: ${err.message}`));
+    });
+
+    req.on("timeout", () => {
+      req.destroy();
+      reject(new Error("Request timed out"));
+    });
   });
+}
+
+function parseAlignmentDocument() {
+  const issues = new Map();
+  if (!fs.existsSync(REPORT_PATH)) return issues;
+  const content = fs.readFileSync(REPORT_PATH, "utf8");
+  const lines = content.split("\n");
+  for (const line of lines) {
+    if (line.trim().startsWith("| `#")) {
+      const parts = line.split("|").map(s => s.trim());
+      if (parts.length >= 3) {
+        const issueMatch = parts[1].match(/`#(\d+)`/);
+        if (issueMatch) {
+          issues.set(issueMatch[1], parts[2]);
+        }
+      }
+    }
+  }
+  return issues;
+}
+
+function maskToken(message) {
+  if (process.env.GITHUB_TOKEN && typeof message === "string") {
+    return message.split(process.env.GITHUB_TOKEN).join("***");
+  }
+  return message;
 }
 
 async function fetchAllIssues() {
   let page = 1;
   let allIssues = new Map();
+  let hasError = false;
+
   while (true) {
-    const data = await fetchPage(
-      `https://api.github.com/repos/fderuiter/CRF.xl/issues?state=all&per_page=100&page=${page}`
-    );
-    if (!data || data.length === 0 || data.message) {
-      if (data && data.message) console.warn("GitHub API error:", data.message);
+    try {
+      const data = await fetchPage(
+        `https://api.github.com/repos/fderuiter/CRF.xl/issues?state=all&per_page=100&page=${page}`
+      );
+      if (!data || data.message) {
+        if (data && data.message) {
+          console.warn("GitHub API error:", maskToken(data.message));
+          hasError = true;
+        }
+        break;
+      }
+      if (Array.isArray(data)) {
+        if (data.length === 0) break;
+        data.forEach((issue) => allIssues.set(issue.number.toString(), issue.title));
+        if (data.length < 100) break;
+      } else {
+        hasError = true;
+        break;
+      }
+      page++;
+    } catch (err) {
+      console.warn("GitHub API error:", maskToken(err.message));
+      hasError = true;
       break;
     }
-    data.forEach((issue) => allIssues.set(issue.number.toString(), issue.title));
-    page++;
   }
+
+  if (hasError) {
+    console.warn("WARNING: Falling back to parsed markdown cache due to API connectivity issues.");
+    return parseAlignmentDocument();
+  }
+
   return allIssues;
 }
 
