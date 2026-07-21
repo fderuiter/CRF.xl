@@ -104,8 +104,34 @@ export class ComplianceGovernanceService {
 
   public async getEnvironmentStatus(documentUrl: string): Promise<EnvironmentComplianceStatus> {
     const isCloudHosted = documentUrl.startsWith("http://") || documentUrl.startsWith("https://");
+    const isLocalDevAddin = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
-    if (!isCloudHosted || !this.graphClient) {
+    if (!isCloudHosted) {
+      if (isLocalDevAddin) {
+        return {
+          isCloudHosted,
+          documentUrl,
+          versionHistoryEnabled: true,
+          checkoutRequired: false,
+          hasGovernanceSummaryColumn: true,
+          hasJustificationCountColumn: true,
+          isAdmin: true,
+          isCompliant: true,
+        };
+      }
+      return {
+        isCloudHosted,
+        documentUrl,
+        versionHistoryEnabled: false,
+        checkoutRequired: false,
+        hasGovernanceSummaryColumn: false,
+        hasJustificationCountColumn: false,
+        isAdmin: false,
+        isCompliant: false,
+      };
+    }
+
+    if (!this.graphClient) {
       return {
         isCloudHosted,
         documentUrl,
@@ -181,11 +207,16 @@ export class ComplianceGovernanceService {
       }
 
       // Compliant if version history is enabled, check-out is NOT required, and required columns exist
-      const isCompliant =
-        versionHistoryEnabled &&
-        !checkoutRequired &&
-        hasGovernanceSummaryColumn &&
-        hasJustificationCountColumn;
+      let isCompliant = false;
+      if (isAdmin) {
+        isCompliant =
+          versionHistoryEnabled &&
+          !checkoutRequired &&
+          hasGovernanceSummaryColumn &&
+          hasJustificationCountColumn;
+      } else {
+        isCompliant = hasGovernanceSummaryColumn && hasJustificationCountColumn;
+      }
 
       return {
         isCloudHosted,
