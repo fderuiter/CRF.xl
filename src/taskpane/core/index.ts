@@ -43,7 +43,7 @@ export {
 export { type TerminologySearchResult } from "./types/terminology-search";
 export {
   applyValidationVisuals,
-  getOrphanedAnnotationsCount,
+  detectOrphans,
   highlightLocaleColumns,
   refreshAnnotationHighlights,
   clearAnnotationHighlights,
