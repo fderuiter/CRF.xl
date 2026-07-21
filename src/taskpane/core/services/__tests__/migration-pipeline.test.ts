@@ -23,12 +23,12 @@ describe("createImportProvenance", () => {
   });
 
   it("stamps importedAt as a valid ISO-8601 timestamp", () => {
-    const before = new Date().toISOString();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2023-01-01T12:00:00Z"));
     const prov = createImportProvenance("src", "spreadsheet");
-    const after = new Date().toISOString();
-    expect(prov.importedAt >= before).toBe(true);
-    expect(prov.importedAt <= after).toBe(true);
+    expect(prov.importedAt).toBe("2023-01-01T12:00:00.000Z");
     expect(() => new Date(prov.importedAt)).not.toThrow();
+    jest.useRealTimers();
   });
 
   it("propagates optional sourceVersion and importedBy", () => {
@@ -43,11 +43,17 @@ describe("createImportProvenance", () => {
     expect(prov.importedBy).toBeUndefined();
   });
 
-  it("creates unique timestamps for successive calls", async () => {
+  it("creates unique timestamps for successive calls", () => {
+    jest.useFakeTimers();
+    const initialTime = new Date("2023-01-01T00:00:00Z");
+    jest.setSystemTime(initialTime);
     const prov1 = createImportProvenance("a", "odm-xml");
-    await new Promise((r) => setTimeout(r, 5));
+    jest.advanceTimersByTime(5);
     const prov2 = createImportProvenance("b", "odm-xml");
-    expect(prov2.importedAt >= prov1.importedAt).toBe(true);
+    expect(prov2.importedAt > prov1.importedAt).toBe(true);
+    expect(prov1.importedAt).toBe("2023-01-01T00:00:00.000Z");
+    expect(prov2.importedAt).toBe("2023-01-01T00:00:00.005Z");
+    jest.useRealTimers();
   });
 });
 
