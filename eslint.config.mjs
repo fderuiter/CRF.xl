@@ -46,7 +46,9 @@ export default [
       "office-addins/call-sync-after-load": "error",
       "no-useless-escape": "off",
       "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/rules-of-hooks": "warn"
+      "react-hooks/rules-of-hooks": "warn",
+      "react/forbid-dom-props": ["error", { "forbid": ["style"] }],
+      "react/forbid-component-props": ["error", { "forbid": ["style"] }]
     }
   }
 ];
