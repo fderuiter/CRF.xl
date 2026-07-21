@@ -306,16 +306,38 @@ async function main() {
   info("Starting markdown documentation link validation...");
 
   // --- OpenAPI Documentation Compilation Check ---
-  const apiYamlPath = path.join(docsDir, "cdisc-library-api.yaml");
-  const apiHtmlPath = path.join(docsDir, "cdisc-library-api.html");
+  const apiYamlPath = path.join(docsDir, "specification", "cdisc-library-api.yaml");
+  const apiHtmlPath = path.join(docsDir, "specification", "cdisc-library-api.html");
 
   if (fs.existsSync(apiYamlPath)) {
     if (!fs.existsSync(apiHtmlPath)) {
       fail("Compiled HTML API documentation is missing. Please run `npm run docs:build-api`.");
     } else {
-      const yamlStat = fs.statSync(apiYamlPath);
-      const htmlStat = fs.statSync(apiHtmlPath);
-      if (yamlStat.mtime > htmlStat.mtime) {
+      let isOutOfSync = false;
+      try {
+        const { execSync } = require("child_process");
+        // If there are uncommitted changes to yaml, we check mtime
+        const status = execSync(`git status --porcelain "${apiYamlPath}"`).toString().trim();
+        if (status) {
+          isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+        } else {
+          // compare git commit times
+          const yamlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiYamlPath}"`).toString().trim();
+          const htmlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiHtmlPath}"`).toString().trim();
+          
+          if (yamlTimeStr && htmlTimeStr) {
+            isOutOfSync = parseInt(yamlTimeStr, 10) > parseInt(htmlTimeStr, 10);
+          } else {
+            // fallback if not in git (e.g., zip download)
+            isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+          }
+        }
+      } catch (e) {
+        // Fallback to mtime if git fails
+        isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+      }
+
+      if (isOutOfSync) {
         fail("Compiled HTML API documentation is out of sync with the source YAML. Please run `npm run docs:build-api`.");
       }
     }
