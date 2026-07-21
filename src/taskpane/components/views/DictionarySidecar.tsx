@@ -20,6 +20,7 @@ import {
   TabList,
   Tab,
   Tooltip,
+  OverlayDrawer,
 } from "@fluentui/react-components";
 import { UniversalWizard } from "../ui/UniversalStepper";
 
@@ -52,13 +53,8 @@ import {
 
 const useStyles = makeStyles({
   root: {
-    position: "absolute",
-    inset: 0,
-    backgroundColor: tokens.colorNeutralBackground1,
-    zIndex: 50,
     display: "flex",
     flexDirection: "column",
-    boxShadow: tokens.shadow64,
   },
   header: {
     padding: "12px 16px",
@@ -282,6 +278,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     "loading" | "browse" | "create" | "import" | "detail" | "searching" | "error" | "no-selection"
   >("loading");
   const [localLanguage, setLocalLanguage] = useState(initialLanguage);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     setLocalLanguage(initialLanguage);
@@ -352,6 +349,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     } else if (selection?.isValid && view === "no-selection") {
       setView(search.trim() ? "searching" : "browse");
       setManualOverride(false);
+    }
+
+    if (selection?.isValid) {
+      setIsOpen(true);
     }
   }, [selection, view, search, manualOverride]);
 
@@ -772,7 +773,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   const effectiveSelectedLanguage = localLanguage || initialLanguage;
 
   return (
-    <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
+    <OverlayDrawer
+      open={isOpen}
+      onOpenChange={(_, data) => setIsOpen(data.open)}
+      position="end"
+      className={styles.root}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       {/* Zone 1: Context Header */}
       <div className={`${styles.header} ${styles.zone1}`}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1870,6 +1878,6 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </OverlayDrawer>
   );
 };
