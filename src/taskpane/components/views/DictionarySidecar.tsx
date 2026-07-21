@@ -5,6 +5,7 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import {
   Button,
+  Card,
   Input,
   Spinner,
   Badge,
@@ -19,7 +20,6 @@ import {
   Tab,
   Tooltip,
 } from "@fluentui/react-components";
-import { AccessibleWrapper } from "../ui/DesignSystem";
 import { UniversalWizard } from "../ui/UniversalStepper";
 
 import {
@@ -1171,10 +1171,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         WORKBOOK MATCHES
                       </Text>
                       {searchResults.map((result, index) => (
-                        <AccessibleWrapper
+                        <Card
+                          as="button"
                           key={result.id}
                           className={styles.gridCard}
-                          ariaLabel={`View details for codelist ${result.id}: ${result.title}`}
+                          aria-label={`View details for codelist ${result.id}: ${result.title}`}
                           style={{
                             cursor: "pointer",
                             padding: "12px",
@@ -1210,7 +1211,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
                             {result.matchReason.replace("_", " ")}
                           </Text>
-                        </AccessibleWrapper>
+                        </Card>
                       ))}
                     </>
                   ) : (
@@ -1287,10 +1288,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {dictionaries.length > 0 ? (
                     dictionaries.map((item, index) => (
-                      <AccessibleWrapper
+                      <Card
+                        as="button"
                         key={item.id}
                         className={styles.gridCard}
-                        ariaLabel={`View details for codelist ${item.id}: ${item.name}`}
+                        aria-label={`View details for codelist ${item.id}: ${item.name}`}
                         style={{
                           cursor: "pointer",
                           padding: "12px",
@@ -1332,7 +1334,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             </span>
                           ))}
                         </div>
-                      </AccessibleWrapper>
+                      </Card>
                     ))
                   ) : (
                     <div className={styles.emptyText}>
@@ -1644,7 +1646,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                   .includes(importPackageSearch.toLowerCase())
                             )
                             .map((pkg) => (
-                              <AccessibleWrapper
+                              <Card
+                                as="button"
                                 key={pkg.packageOid}
                                 style={{
                                   padding: "8px",
@@ -1656,7 +1659,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                       : "transparent",
                                 }}
                                 onClick={() => setSelectedPackage(pkg)}
-                                ariaLabel={`Select package ${pkg.title || pkg.packageOid}`}
+                                aria-label={`Select package ${pkg.title || pkg.packageOid}`}
                               >
                                 <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
                                   {pkg.title || pkg.packageOid}
@@ -1671,7 +1674,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                   OID: {pkg.packageOid}{" "}
                                   {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
                                 </Text>
-                              </AccessibleWrapper>
+                              </Card>
                             ))}
                         </div>
                       )}
