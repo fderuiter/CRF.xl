@@ -45,7 +45,7 @@ jobs:
       run: npm run lint
 
     - name: 📚 Validate Documentation Links
-      run: npm run docs:validate
+      run: node ./scripts/validate-docs.js --check-external
 
     - name: 🔗 Validate Codebase Traceability
       run: |
