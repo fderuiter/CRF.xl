@@ -56,7 +56,7 @@ describe("chunking runtime", () => {
     expect(() => timedOutRuntime.throwIfStopped("items")).toThrow(
       "Parsing timed out during items after 1ms"
     );
-    
+
     AbortSignal.timeout = originalTimeout;
     jest.useRealTimers();
   });
