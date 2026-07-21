@@ -6,7 +6,10 @@ This document defines the storage structures, maintenance rules, and change poli
 
 ## 📁 Fixture Directory Inventory
 
-All test fixtures are stored in the `/test/fixtures/` directory of the repository:
+All test fixtures must be stored exclusively in the `/test/fixtures/` directory of the repository. This directory serves as the sole, authoritative, and centralized repository for all clinical test assets and integration test baselines.
+
+**Policy Note: Prohibited Local Fixtures**
+Developers and QA engineers are explicitly forbidden from creating, committing, or using nested/local fixture folders inside core generator folders (specifically under `src/taskpane/core/generators/`). All legacy local fixture folders have been removed to prevent duplicate asset creation and developer confusion.
 
 ### 1. `test/fixtures/reference-study/`
 * **Purpose:** The canonical clinical design baseline used to verify deterministic CDISC ODM XML serialization.
@@ -18,6 +21,9 @@ All test fixtures are stored in the `/test/fixtures/` directory of the repositor
 
 ### 3. `test/fixtures/cdisc-library/`
 * **Purpose:** Offline API payloads simulating CDISC standards responses (CDASH, SDTM, controlled terminology) to mock CDISC fetcher tests.
+
+### 4. `test/fixtures/display-blocks/`
+* **Purpose:** Workbook fixtures specifically used to test the parsing and rendering of non-variable rows (e.g., instructions and separators).
 
 ---
 
