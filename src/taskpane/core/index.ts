@@ -126,12 +126,7 @@ export {
   getPredictedStudyDesign,
   speculativeSyncManager,
 } from "./services/speculative-sync-service";
-export {
-  formatNumber,
-  parseNumber,
-  formatDate,
-  parseDate,
-} from "./utils/locale-utils";
+export { formatNumber, parseNumber, formatDate, parseDate } from "./utils/locale-utils";
 export { onboardingService, type OnboardingState } from "./services/onboarding-service";
 export {
   loadComments,
