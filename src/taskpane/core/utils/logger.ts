@@ -9,28 +9,19 @@ export enum LogLevel {
   ERROR = 3,
 }
 
-export interface LoggerConfig {
-  level: LogLevel;
-  environment: "development" | "production" | "test";
-  redactPatterns: RegExp[];
-}
-
 class Logger {
-  private config: LoggerConfig = {
-    level: LogLevel.INFO,
-    environment: "production",
-    redactPatterns: [
-      /(bearer\s+)[^\s"']+/gi,
-      /(password\s*[:=]\s*)[^\s,"']+/gi,
-      /(secret\s*[:=]\s*)[^\s,"']+/gi,
-      /(token\s*[:=]\s*)[^\s,"']+/gi,
-      /(clientSecret\s*[:=]\s*)[^\s,"']+/gi,
-      /"access_token"\s*:\s*"[^"]+"/gi,
-      /"password"\s*:\s*"[^"]+"/gi,
-      /"secret"\s*:\s*"[^"]+"/gi,
-      /"token"\s*:\s*"[^"]+"/gi,
-    ],
-  };
+  private level: LogLevel = LogLevel.INFO;
+  private redactPatterns: RegExp[] = [
+    /(bearer\s+)[^\s"']+/gi,
+    /(password\s*[:=]\s*)[^\s,"']+/gi,
+    /(secret\s*[:=]\s*)[^\s,"']+/gi,
+    /(token\s*[:=]\s*)[^\s,"']+/gi,
+    /(clientSecret\s*[:=]\s*)[^\s,"']+/gi,
+    /"access_token"\s*:\s*"[^"]+"/gi,
+    /"password"\s*:\s*"[^"]+"/gi,
+    /"secret"\s*:\s*"[^"]+"/gi,
+    /"token"\s*:\s*"[^"]+"/gi,
+  ];
 
   private isHostReady = false;
 
@@ -44,13 +35,9 @@ class Logger {
     }
   }
 
-  public configure(config: Partial<LoggerConfig>) {
-    this.config = { ...this.config, ...config };
-  }
-
   private redact(message: string): string {
     let redactedMessage = message;
-    for (const pattern of this.config.redactPatterns) {
+    for (const pattern of this.redactPatterns) {
       redactedMessage = redactedMessage.replace(pattern, (match, p1) => {
         if (p1) {
           return p1 + '"[REDACTED]"';
@@ -75,7 +62,7 @@ class Logger {
   }
 
   private log(level: LogLevel, ...args: any[]) {
-    if (level < this.config.level) return;
+    if (level < this.level) return;
     if (!this.isHostReady) return;
 
     const message = this.formatMessage(args);
