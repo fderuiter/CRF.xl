@@ -23,6 +23,6 @@ Check that FileOID is unique and follows the pattern: [ProtocolID]_[Version]_[Ti
 
 Variable Aliasing: Ensure that the sdtmMapping object correctly stores domain, variable, and sasLabel.
 
-NCI Terminology: Verify that nciCode fields are preserved during parsing and exported in the ODM <Alias> or <CodeListItem> tags.
+NCI Terminology: Verify that nciCode fields are preserved during parsing and exported in the ODM `<Alias>` or `<CodeListItem>` tags.
 
 CDASH Compliance: Ensure that required and requireIf flags are correctly mapped to indicate "Mandatory" status in the metadata.

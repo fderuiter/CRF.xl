@@ -26,7 +26,7 @@ Verification:
 
 Analysis completes without errors.
 
-ODM XML contains the <ConditionDef> for the branching logic.
+ODM XML contains the `<ConditionDef>` for the branching logic.
 
 Word Doc renders the skip instruction correctly.
 
@@ -58,6 +58,6 @@ Verification:
 
 XML opens in a browser/editor without parsing errors.
 
-SAS labels are visible in the <ItemDef> attributes.
+SAS labels are visible in the `<ItemDef>` attributes.
 
 File naming convention matches the protocol version.

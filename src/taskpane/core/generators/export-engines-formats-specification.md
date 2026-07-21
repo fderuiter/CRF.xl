@@ -40,9 +40,9 @@ ItemDef: Includes DataType, SASFieldName, and Question/TranslatedText.
 
 CodeList: Linked via CodeListRef. Includes CodeListItem/Decode.
 
-Branching: Logic from Show If is exported as <ConditionDef> and linked via CollectionExceptionConditionOID.
+Branching: Logic from Show If is exported as `<ConditionDef>` and linked via CollectionExceptionConditionOID.
 
-SDTM Mapping: Export SAS Label and Domain.Variable inside <Alias> tags for EDC auto-mapping.
+SDTM Mapping: Export SAS Label and Domain.Variable inside `<Alias>` tags for EDC auto-mapping.
 
 ## 3. Serialization Rules
 
