@@ -4,7 +4,7 @@
  */
 import {
   applyValidationVisuals,
-  getOrphanedAnnotationsCount,
+  detectOrphans,
   annotationPaintbrushService,
   refreshAnnotationHighlights,
   bindingService,
@@ -747,9 +747,8 @@ const App: React.FC<{ title?: string }> = () => {
     const s = study;
     if (!s) return;
 
-    const sheets = ["_Study", "_Schedule", "_Codelists", "_Dictionaries", "_Rules"];
-    Object.keys(s.forms).forEach((f) => sheets.push(f));
-    const count = await getOrphanedAnnotationsCount(sheets);
+    const orphans = await detectOrphans();
+    const count = orphans.length;
     if (count > 0) {
       setOrphanedCount(count);
       setShowGate(true);

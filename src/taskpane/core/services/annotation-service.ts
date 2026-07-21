@@ -674,34 +674,6 @@ export async function applyAnnotationInternal(
   }
 }
 
-/**
- * Checks for orphaned annotations (comments) across the active sheets.
- * @deprecated Use detectOrphans instead for structured orphan detection.
- */
-export async function getOrphanedAnnotationsCount(sheetNames: string[]): Promise<number> {
-  let count = 0;
-  if (typeof Excel === "undefined") return 0;
-  await Excel.run(async (context) => {
-    // Requirement 2: Centralized state-loading
-    context.workbook.worksheets.load("items/name");
-
-    await context.sync();
-
-    const sheetsToCheck = context.workbook.worksheets.items.filter((s) =>
-      sheetNames.includes(s.name)
-    );
-    for (const sheet of sheetsToCheck) {
-      sheet["comments"].load("id");
-    }
-
-    await context.sync();
-
-    for (const sheet of sheetsToCheck) {
-      count += sheet["comments"].items.length;
-    }
-  });
-  return count;
-}
 
 /**
  * Transactional Performance Engine
