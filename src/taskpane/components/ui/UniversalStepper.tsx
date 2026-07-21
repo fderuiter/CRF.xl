@@ -2,7 +2,7 @@
  * @issue #313
  */
 import * as React from "react";
-import { makeStyles, tokens, Text, Button } from "@fluentui/react-components";
+import { makeStyles, mergeClasses, tokens, Text, Button } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { Spinner } from "./DesignSystem";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
@@ -63,12 +63,20 @@ const useStepperStyles = makeStyles({
   stageLabel: {
     fontSize: tokens.fontSizeBase100,
   },
+  separatorItem: {
+    display: "flex",
+    alignItems: "center",
+  },
+  separatorIcon: {
+    color: tokens.colorNeutralStroke1,
+    fontSize: "12px",
+  },
 });
 
 export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, className }) => {
   const styles = useStepperStyles();
   return (
-    <ul className={`${styles.stagesContainer} ${className || ""}`}>
+    <ul className={mergeClasses(styles.stagesContainer, className)}>
       {steps.map((stage, idx) => (
         <React.Fragment key={idx}>
           <li
@@ -76,19 +84,19 @@ export const UniversalStepper: React.FC<UniversalStepperProps> = ({ steps, class
             aria-current={stage.status === "active" ? "step" : undefined}
           >
             <div
-              className={`${styles.stageCircle} ${
-                stage.status === "active" ? styles.stageActive : ""
-              } ${stage.status === "complete" ? styles.stageComplete : ""}`}
+              className={mergeClasses(
+                styles.stageCircle,
+                stage.status === "active" && styles.stageActive,
+                stage.status === "complete" && styles.stageComplete
+              )}
             >
               {stage.status === "complete" ? <CheckmarkCircleRegular /> : idx + 1}
             </div>
             <Text className={styles.stageLabel}>{stage.label}</Text>
           </li>
           {idx < steps.length - 1 && (
-            <li aria-hidden="true" style={{ display: "flex", alignItems: "center" }}>
-              <ChevronRightRegular
-                style={{ color: tokens.colorNeutralStroke1, fontSize: "12px" }}
-              />
+            <li aria-hidden="true" className={styles.separatorItem}>
+              <ChevronRightRegular className={styles.separatorIcon} />
             </li>
           )}
         </React.Fragment>
@@ -139,6 +147,7 @@ const useWizardStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: "16px",
+    outline: "none",
   },
   actions: {
     display: "flex",
@@ -224,10 +233,10 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
   }));
 
   return (
-    <div className={`${styles.container} ${className || ""}`}>
+    <div className={mergeClasses(styles.container, className)}>
       <UniversalStepper steps={mappedSteps} />
 
-      <div className={styles.content} ref={contentRef} tabIndex={-1} style={{ outline: "none" }}>
+      <div className={styles.content} ref={contentRef} tabIndex={-1}>
         {activeStep.content}
       </div>
 

@@ -18,6 +18,7 @@ import {
   TabList,
   Tab,
   Tooltip,
+  mergeClasses,
 } from "@fluentui/react-components";
 import { AccessibleWrapper } from "../ui/DesignSystem";
 import { UniversalWizard } from "../ui/UniversalStepper";
@@ -773,7 +774,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
   return (
     <div className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Zone 1: Context Header */}
-      <div className={`${styles.header} ${styles.zone1}`}>
+      <div className={mergeClasses(styles.header, styles.zone1)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div className={styles.headerBadge}>
             <Badge appearance="tint" color={selection?.isValid ? "success" : "warning"}>
