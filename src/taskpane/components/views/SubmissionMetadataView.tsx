@@ -17,6 +17,7 @@ import {
   Textarea,
   Tooltip,
   makeStyles,
+  mergeClasses,
   shorthands,
   tokens,
 } from "@fluentui/react-components";
@@ -301,7 +302,7 @@ export const SubmissionMetadataView: React.FC<SubmissionMetadataViewProps> = ({
             return (
               <div
                 key={draft.id}
-                className={`${styles.row} ${selected ? styles.selectedRow : ""}`}
+                className={mergeClasses(styles.row, selected && styles.selectedRow)}
                 onClick={() =>
                   scope === "SDTM" ? setSelectedSdtmId(draft.id) : setSelectedAdamId(draft.id)
                 }
