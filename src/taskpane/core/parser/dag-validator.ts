@@ -113,6 +113,8 @@ function evaluateStaticCondition(node: ASTNode): boolean | null {
 
 /**
  * Traverses an ASTNode to collect all unique Identifier names referenced in the expression.
+ * @param node
+ * @returns
  */
 export function collectIdentifiers(node: ASTNode): string[] {
   const idents = new Set<string>();
@@ -168,6 +170,9 @@ export function collectIdentifiers(node: ASTNode): string[] {
  * Checks if an identifier matches a reference (case-insensitively).
  * Matches either the exact name or the final dot-separated segment.
  * E.g., "VS.WT" matches "WT", and "VISIT_1.VS.WT" matches "WT".
+ * @param identifier
+ * @param ref
+ * @returns
  */
 function matchesRef(identifier: string, ref: string): boolean {
   const identLower = identifier.toLowerCase();
@@ -179,6 +184,14 @@ function matchesRef(identifier: string, ref: string): boolean {
 /**
  * Validates a dependency graph of rules, checks for cycles and broken references,
  * and computes the correct topological evaluation order.
+ * @param rules
+ * @param study
+ * @param options
+ * @param options.isExport
+ * @param options.yieldControl
+ * @param options.cancellationToken
+ * @param options.cancellationToken.isCancelled
+ * @returns
  */
 export async function validateRules(
   rules: RuleDefinition[],

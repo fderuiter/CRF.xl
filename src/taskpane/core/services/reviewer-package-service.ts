@@ -9,6 +9,8 @@ import { AnnotatedCrfPipelineResult } from "../types/annotated-crf";
 export class ReviewerPackageService {
   /**
    * Generates a ZIP file containing the Annotated CRF PDF, Manifest, Verification Report, and Metadata Summary.
+   * @param result
+   * @returns
    */
   static async createReviewerPackage(result: AnnotatedCrfPipelineResult): Promise<Blob> {
     const zip = new ZipWriter();

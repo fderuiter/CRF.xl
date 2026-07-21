@@ -44,6 +44,7 @@ class AnnotationPaintbrushService {
 
   /**
    * Returns the current state of the paintbrush.
+   * @returns
    */
   public getState(): PaintbrushState {
     return {
@@ -56,6 +57,8 @@ class AnnotationPaintbrushService {
 
   /**
    * Subscribes to paintbrush state changes.
+   * @param listener
+   * @returns
    */
   public subscribe(listener: (state: PaintbrushState) => void): () => void {
     return this.subscriptionManager.subscribe(listener, { immediate: true });
@@ -67,6 +70,7 @@ class AnnotationPaintbrushService {
 
   /**
    * Enables or disables the paintbrush mode.
+   * @param enabled
    */
   public setEnabled(enabled: boolean) {
     this.state.isEnabled = enabled;
@@ -78,6 +82,7 @@ class AnnotationPaintbrushService {
 
   /**
    * Sets the active annotation type for the paintbrush.
+   * @param type
    */
   public setType(type: AnnotationType) {
     this.state.activeType = type;
@@ -86,6 +91,7 @@ class AnnotationPaintbrushService {
 
   /**
    * Sets the content template for the paintbrush.
+   * @param content
    */
   public setContent(content: string) {
     this.state.activeContent = content;
@@ -94,6 +100,8 @@ class AnnotationPaintbrushService {
 
   /**
    * Loads the annotation from the current selection as the paintbrush template.
+   * @param sheetName
+   * @param address
    */
   public async pickSourceFromSelection(sheetName: string, address: string): Promise<void> {
     if (typeof Excel === "undefined") return;
@@ -135,6 +143,8 @@ class AnnotationPaintbrushService {
 
   /**
    * Toggles a target range in the pending list.
+   * @param sheetName
+   * @param address
    */
   public async toggleTarget(sheetName: string, address: string): Promise<void> {
     if (!this.state.isEnabled) return;

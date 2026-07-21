@@ -12,6 +12,9 @@ export class TerminologySearchService {
    * Performs a search across terminology sources and ranks results.
    * NOTE: This implementation currently ranks provided results. In a full system,
    * it would call the CDISC Library API or query local context.
+   * @param query
+   * @param candidates
+   * @returns
    */
   public static async search(
     query: TerminologySearchQuery,
@@ -94,6 +97,9 @@ export class TerminologySearchService {
    * 2. Exact user-context-relevant match (score: 0.8)
    * 3. Generic Exact Match (score: 0.75)
    * 4. Fuzzy/synonym match (score: 0.1 - 0.7)
+   * @param result
+   * @param context
+   * @returns
    */
   private static calculateFinalScore(
     result: TerminologySearchResult,

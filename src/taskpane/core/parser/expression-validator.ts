@@ -17,6 +17,8 @@ interface ExpressionDiagnostic {
 
 /**
  * Checks if a type is numeric (Integer or Float).
+ * @param type
+ * @returns
  */
 function isNumeric(type: string): boolean {
   return type === DataType.INTEGER || type === DataType.FLOAT;
@@ -25,6 +27,10 @@ function isNumeric(type: string): boolean {
 /**
  * Infers the output type of a rule expression ASTNode.
  * Returns DataType, "Null", "Unknown", or "Any".
+ * @param node
+ * @param variables
+ * @param knownRules
+ * @returns
  */
 export function inferExpressionType(
   node: ASTNode,
@@ -177,6 +183,10 @@ export function inferExpressionType(
 /**
  * Validates an ASTNode against known variables and rules.
  * Generates an array of structured ExpressionDiagnostic issues.
+ * @param node
+ * @param variables
+ * @param knownRules
+ * @returns
  */
 export function validateExpression(
   node: ASTNode,

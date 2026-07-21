@@ -10,6 +10,8 @@ const REVIEW_XML_NAMESPACE = "http://schemas.crf-xl.com/review";
 
 /**
  * Serializes a reviewer comment to XML string.
+ * @param comment
+ * @returns
  */
 function serializeComment(comment: ReviewerComment): string {
   return `<ReviewerComment>
@@ -26,6 +28,8 @@ function serializeComment(comment: ReviewerComment): string {
 
 /**
  * Deserializes a reviewer comment from an XML element.
+ * @param element
+ * @returns
  */
 function deserializeComment(element: Element): ReviewerComment {
   const getTagValue = (tagName: string) => {
@@ -47,6 +51,7 @@ function deserializeComment(element: Element): ReviewerComment {
 
 /**
  * Saves a single reviewer comment to the CustomXmlParts store.
+ * @param comment
  */
 export async function saveComment(comment: ReviewerComment): Promise<void> {
   await saveCommentsBatch([comment]);
@@ -54,6 +59,7 @@ export async function saveComment(comment: ReviewerComment): Promise<void> {
 
 /**
  * Saves multiple reviewer comments to the CustomXmlParts store.
+ * @param comments
  */
 export async function saveCommentsBatch(comments: ReviewerComment[]): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -113,6 +119,7 @@ export async function saveCommentsBatch(comments: ReviewerComment[]): Promise<vo
 
 /**
  * Loads all reviewer comments from the CustomXmlParts store.
+ * @returns
  */
 export async function loadComments(): Promise<ReviewerComment[]> {
   const comments: ReviewerComment[] = [];
@@ -143,6 +150,7 @@ export async function loadComments(): Promise<ReviewerComment[]> {
 
 /**
  * Deletes a comment from the store.
+ * @param id
  */
 export async function deleteComment(id: string): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -181,6 +189,9 @@ export async function deleteComment(id: string): Promise<void> {
 
 /**
  * Resolves or reopens a comment.
+ * @param id
+ * @param status
+ * @param reviewerName
  */
 export async function updateCommentStatus(
   id: string,

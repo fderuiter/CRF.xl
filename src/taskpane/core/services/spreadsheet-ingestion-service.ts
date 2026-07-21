@@ -551,6 +551,8 @@ const HEADER_ALIAS_MAP: Array<{
  * maps to `codelist_id` on form-item sheets and to `cl_codelist_id` on
  * codelist sheets).  The caller is responsible for filtering to the
  * relevant target sheet.
+ * @param headerName
+ * @returns
  */
 function resolveHeaderToFields(
   headerName: string
@@ -572,7 +574,11 @@ function resolveHeaderToFields(
 // Structure detection
 // ---------------------------------------------------------------------------
 
-/** Heuristically determine what kind of CRF data a sheet contains. */
+/**
+ * Heuristically determine what kind of CRF data a sheet contains.
+ * @param columns
+ * @returns
+ */
 function detectSheetStructure(columns: ColumnCandidate[]): SheetScanResult["detectedStructure"] {
   const headers = columns.map((c) => c.columnName.toLowerCase().trim());
 
@@ -604,6 +610,9 @@ function detectSheetStructure(columns: ColumnCandidate[]): SheetScanResult["dete
  * FieldMappings with auto-detected source columns and confidence scores.
  *
  * Only the target fields relevant to the requested `targetSheet` are returned.
+ * @param columns
+ * @param targetSheet
+ * @returns
  */
 export function detectColumnMappings(
   columns: ColumnCandidate[],
@@ -667,6 +676,9 @@ export function detectColumnMappings(
 /**
  * Validate a set of field mappings and return structured diagnostics.
  * Covers all diagnostic categories required by the acceptance criteria.
+ * @param mappings
+ * @param targetSheet
+ * @returns
  */
 export function validateMappings(
   mappings: FieldMapping[],
@@ -761,6 +773,9 @@ export function validateMappings(
 /**
  * Build a dry-run preview of what the import would write to each CRF.xl
  * system sheet.  No Excel.run / side-effects – pure data projection.
+ * @param scanResult
+ * @param mappings
+ * @returns
  */
 export function buildIngestionPreview(
   scanResult: SheetScanResult,
@@ -892,6 +907,8 @@ export function buildIngestionPreview(
  * @param sheetName   Name of the source sheet.
  * @param rows        2-D array where rows[0] is the header row.
  * @param sampleSize  Maximum number of body-row values to capture per column.
+ * @param totalRowCount
+ * @returns
  */
 export function buildSheetScanResult(
   sheetName: string,

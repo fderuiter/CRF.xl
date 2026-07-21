@@ -36,6 +36,9 @@ export class OdmSerializationError extends Error {
  * Helper to match a rule target against an item OID.
  * Matches case-insensitively, supporting either the exact variable name
  * or the final dot-separated segment (e.g., "VS.WT" matches "WT").
+ * @param target
+ * @param itemOid
+ * @returns
  */
 function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
   if (!target) return false;
@@ -88,6 +91,11 @@ export function serializeAST(node: ASTNode): string {
 /**
  * Main entry point for CDISC ODM v1.3.2 Metadata generation.
  * Produces a "Snapshot" metadata file for EDC system ingestion.
+ * @param study
+ * @param options
+ * @param options.bestEffort
+ * @param options.exportOptions
+ * @returns
  */
 export async function generateOdmXml(
   study: StudyDesign,
@@ -590,6 +598,12 @@ ${safeWarnings.map((w) => `  - ${w}`).join("\n")}
 
 /**
  * Renders an <ItemDef> block with clinical attributes and SDTM Aliases.
+ * @param item
+ * @param derivationMethodOid
+ * @param exportOptions
+ * @param defaultLanguage
+ * @param warnings
+ * @returns
  */
 function renderItemDef(
   item: CrfItem,
@@ -689,6 +703,8 @@ function renderItemDef(
 
 /**
  * Maps internal comparator signs to CDISC ODM standard comparators.
+ * @param comparator
+ * @returns
  */
 function mapComparatorToOdm(comparator: string): string {
   switch (comparator) {
@@ -711,6 +727,8 @@ function mapComparatorToOdm(comparator: string): string {
 
 /**
  * Maps internal DataType enum to CDISC ODM standard data types.
+ * @param type
+ * @returns
  */
 function mapDataTypeToOdm(type: DataType): string {
   switch (type) {
@@ -731,6 +749,12 @@ function mapDataTypeToOdm(type: DataType): string {
 
 /**
  * Helper to render localized ODM TranslatedText tags.
+ * @param text
+ * @param exportOptions
+ * @param defaultLanguage
+ * @param warnings
+ * @param context
+ * @returns
  */
 function renderTranslatedText(
   text: TranslatedText,
@@ -769,6 +793,8 @@ function renderTranslatedText(
 
 /**
  * Robust XML escaping for clinical labels.
+ * @param unsafe
+ * @returns
  */
 function escapeXml(unsafe: string): string {
   if (!unsafe) return "";

@@ -69,6 +69,7 @@ function groupByCodelistId(rows: CrfCodelistsRow[]): Map<string, CrfCodelistsRow
  * "unknown version" and prompt the user before overwriting.
  *
  * Throws if the worksheet is missing or protected.
+ * @returns
  */
 export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
   return await Excel.run(async (context) => {
@@ -138,6 +139,9 @@ export async function readExistingCodelistRows(): Promise<CrfCodelistsRow[]> {
  * conflict based on the lifecycle rules from `applyCodelistLifecycle`.
  *
  * This is a **pure function** — it has no side effects and does not touch Excel.
+ * @param existingRows
+ * @param incomingRows
+ * @returns
  */
 export function buildCtImportPlan(
   existingRows: CrfCodelistsRow[],
@@ -220,6 +224,7 @@ export function buildCtImportPlan(
  * Throws if:
  * - The `_Codelists` worksheet is missing.
  * - The worksheet is protected.
+ * @param rows
  */
 async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> {
   await Excel.run(async (context) => {
@@ -312,6 +317,7 @@ async function writeCodelistRowsToSheet(rows: CrfCodelistsRow[]): Promise<void> 
  * @param plan           The import plan produced by `buildCtImportPlan`.
  * @param conflictResolutions  Per-codelist conflict decisions keyed by `codelistId`.
  * @param onProgress     Optional progress callback (stage label, completed, total).
+ * @returns
  */
 export async function executeCtImport(
   existingRows: CrfCodelistsRow[],
