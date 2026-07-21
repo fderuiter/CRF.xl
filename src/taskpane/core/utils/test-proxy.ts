@@ -1,4 +1,9 @@
-/** @issue #369 */
+/**
+ * @param target
+ * @param initialLoadedProps
+ * @issue #369
+ * @returns
+ */
 export function createSafeMock<T extends object>(target: T, initialLoadedProps?: Set<string>): T {
   const loadedProps = initialLoadedProps || new Set<string>();
 

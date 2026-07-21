@@ -38,6 +38,9 @@ import { getTranslation } from "../shared-localization";
 /**
  * Main entry point for the Paper CRF Generation.
  * Orchestrates the conversion of clinical metadata into a handwriting-ready Word asset.
+ * @param study
+ * @param exportOptions
+ * @returns
  */
 export async function generateDocxBlob(
   study: StudyDesign,
@@ -116,6 +119,10 @@ export async function generateDocxBuffer(study: StudyDesign): Promise<Buffer> {
 
 /**
  * Renders the top block of every form (Protocol, Subject ID, Visit, Date).
+ * @param study
+ * @param eventName
+ * @param form
+ * @returns
  */
 function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfForm): any[] {
   return [
@@ -150,6 +157,10 @@ function renderClinicalHeader(study: StudyDesign, eventName: string, form: CrfFo
 
 /**
  * Iterates through ItemGroups and Items to generate questions and input areas.
+ * @param study
+ * @param form
+ * @param exportOptions
+ * @returns
  */
 async function renderFormContent(
   study: StudyDesign,
@@ -197,6 +208,10 @@ async function renderFormContent(
 
 /**
  * Renders an Item with physical handwriting affordances (lines, boxes, or scales).
+ * @param item
+ * @param study
+ * @param exportOptions
+ * @returns
  */
 async function renderFormElement(
   item: CrfFormElement,
@@ -308,6 +323,10 @@ function renderDisplayBlock(block: CrfDisplayBlock): any[] {
 /**
  * Advanced Affordance Logic: Combines DataType and PaperLayoutFormat
  * to determine the correct physical UI (e.g., date boxes vs. VAS lines).
+ * @param item
+ * @param study
+ * @param exportOptions
+ * @returns
  */
 function renderInputAffordance(
   item: CrfItem,
@@ -380,6 +399,10 @@ function renderInputAffordance(
 
 /**
  * Renders a Repeating Table for Logs (AE, ConMed, etc).
+ * @param group
+ * @param defaultLang
+ * @param exportOptions
+ * @returns
  */
 function renderRepeatingTable(
   group: ItemGroup,
@@ -426,6 +449,8 @@ function renderRepeatingTable(
 
 /**
  * Required FDA 21 CFR Part 11 footer for clinical forms.
+ * @param form
+ * @returns
  */
 function renderInvestigatorSignature(form: CrfForm): any[] {
   return [

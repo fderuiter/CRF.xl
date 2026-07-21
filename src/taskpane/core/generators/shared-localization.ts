@@ -5,6 +5,10 @@ import { LinguisticService } from "../services/linguistics-service";
 /**
  * Utility to safely fetch translated text with a fallback.
  * Supports BILINGUAL mode by joining translations with a slash.
+ * @param textObj
+ * @param lang
+ * @param exportOptions
+ * @returns
  */
 export function getTranslation(
   textObj: TranslatedText,

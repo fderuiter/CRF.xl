@@ -33,6 +33,9 @@ import {
  * Returns true when two values are deeply equal (JSON-serializable content).
  * Using JSON round-trip keeps the comparison deterministic and avoids
  * prototype-chain surprises from complex objects.
+ * @param a
+ * @param b
+ * @returns
  */
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
@@ -46,6 +49,9 @@ function deepEqual(a: unknown, b: unknown): boolean {
 /**
  * Returns the list of top-level scalar keys whose values differ between
  * `baseline` and `current`. Comparison is deep.
+ * @param baseline
+ * @param current
+ * @returns
  */
 function changedKeys<T extends object>(baseline: T, current: T): string[] {
   const allKeys = new Set([...Object.keys(baseline), ...Object.keys(current)]);
@@ -105,6 +111,8 @@ function diffForms(
 
 /**
  * Extracts all CrfItem nodes from a study, keyed by `formOid::itemOid`.
+ * @param study
+ * @returns
  */
 function collectItems(study: StudyDesign): Map<string, CrfItem> {
   const map = new Map<string, CrfItem>();

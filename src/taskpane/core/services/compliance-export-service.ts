@@ -28,6 +28,15 @@ export class ComplianceExportService {
   /**
    * Generates a ZIP file containing the DOCX, ODM XML, and verification-manifest.json.
    * Creates SHA-256 hashes for DOCX and ODM before generating the manifest.
+   * @param currentStudy
+   * @param baselineStudy
+   * @param validationIssues
+   * @param options
+   * @param options.source_provenance
+   * @param options.signedOffAt
+   * @param options.justifications
+   * @param options.exportOptions
+   * @returns
    */
   static async createExportPackage(
     currentStudy: StudyDesign,

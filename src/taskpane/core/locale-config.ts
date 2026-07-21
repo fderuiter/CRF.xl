@@ -16,6 +16,7 @@ let currentLocaleConfig: LocaleConfig = {
 /**
  * Initializes the locale configuration dynamically based on the detected environment locale.
  * Determines the localized argument separator and decimal separator.
+ * @param locale
  */
 export function initLocale(locale: string) {
   try {

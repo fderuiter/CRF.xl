@@ -11,6 +11,9 @@ import {
 
 /**
  * Verifies that the generated Annotated CRF document faithfully reflects the source study design.
+ * @param study
+ * @param doc
+ * @returns
  */
 export function verifyAnnotatedCrf(
   study: StudyDesign,

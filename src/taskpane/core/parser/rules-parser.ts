@@ -21,6 +21,8 @@ import { getLocaleConfig } from "../locale-config";
 
 /**
  * Tokenizes a raw rule expression string.
+ * @param expression
+ * @returns
  */
 export function tokenize(expression: string): Token[] {
   const tokens: Token[] = [];
@@ -557,6 +559,8 @@ class Parser {
 
 /**
  * Parses a single rule expression string into its corresponding ASTNode.
+ * @param expression
+ * @returns
  */
 export function parseRuleExpression(expression: string): ASTNode {
   const tokens = tokenize(expression);
@@ -566,6 +570,9 @@ export function parseRuleExpression(expression: string): ASTNode {
 
 /**
  * Parses workbook rows from the `_Rules` sheet into RuleDefinition[] structures.
+ * @param rows
+ * @param _studyVersion
+ * @returns
  */
 export function parseRulesSheetRows(
   rows: unknown[][],

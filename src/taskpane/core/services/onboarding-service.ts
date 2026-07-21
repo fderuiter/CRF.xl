@@ -31,6 +31,7 @@ class OnboardingService {
 
   /**
    * Returns the current onboarding state.
+   * @returns
    */
   public getState(): OnboardingState {
     return { ...this.state };
@@ -38,6 +39,8 @@ class OnboardingService {
 
   /**
    * Subscribes to onboarding state changes.
+   * @param listener
+   * @returns
    */
   public subscribe(listener: (state: OnboardingState) => void): () => void {
     return this.subscriptionManager.subscribe(listener, { immediate: true });

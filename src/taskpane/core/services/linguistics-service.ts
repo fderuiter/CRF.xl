@@ -16,6 +16,8 @@ import {
 export class LinguisticService {
   /**
    * Normalizes a locale string to BCP 47 format (e.g., "es-es" -> "es-ES").
+   * @param locale
+   * @returns
    */
   public static normalizeLocale(locale: string): string {
     if (!locale) return "";
@@ -62,6 +64,10 @@ export class LinguisticService {
 
   /**
    * Resolves content for a target locale with fallback logic.
+   * @param translations
+   * @param targetLocale
+   * @param defaultLocale
+   * @returns
    */
   public static resolveTranslation(
     translations: TranslatedText,
@@ -114,6 +120,9 @@ export class LinguisticService {
 
   /**
    * Checks if a translation is missing for a target locale.
+   * @param translations
+   * @param targetLocale
+   * @returns
    */
   public static isTranslationMissing(translations: TranslatedText, targetLocale: string): boolean {
     const normalized = this.normalizeLocale(targetLocale);
@@ -122,6 +131,9 @@ export class LinguisticService {
 
   /**
    * Calculates completeness metrics for a set of items across multiple locales.
+   * @param items
+   * @param supportedLocales
+   * @returns
    */
   public static calculateCompleteness(
     items: Array<{ oid: string; translations: TranslatedText }>,
@@ -157,6 +169,10 @@ export class LinguisticService {
   /**
    * Returns a filtered set of translations based on ExportOptions.
    * Leverages resolveTranslation to handle fallbacks for missing content.
+   * @param translations
+   * @param options
+   * @param defaultLocale
+   * @returns
    */
   public static getExportTranslations(
     translations: TranslatedText,

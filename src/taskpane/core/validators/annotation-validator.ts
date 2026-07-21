@@ -37,6 +37,8 @@ export interface RepairPolicy {
 /**
  * Validates if an annotation can be applied to the target range.
  * Checks for merged cells and protection.
+ * @param range
+ * @returns
  */
 export async function validateAnnotationTarget(
   range: Excel.Range
@@ -81,6 +83,9 @@ export async function validateAnnotationTarget(
 
 /**
  * Detects conflicts between a new candidate annotation and existing ones.
+ * @param existing
+ * @param candidate
+ * @returns
  */
 export function detectConflicts(
   existing: Annotation[],
@@ -119,6 +124,8 @@ export function detectConflicts(
 
 /**
  * Determines the repair policy based on the validation issue.
+ * @param issue
+ * @returns
  */
 export function getRepairPolicy(issue: AnnotationValidationIssue): RepairPolicy {
   switch (issue.confidence) {

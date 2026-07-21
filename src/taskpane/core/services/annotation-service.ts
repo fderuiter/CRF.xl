@@ -27,6 +27,8 @@ const ANNOTATION_XML_NAMESPACE = "http://schemas.crf-xl.com/annotations";
 
 /**
  * Serializes an annotation to XML string.
+ * @param annotation
+ * @returns
  */
 function serializeAnnotation(annotation: Annotation): string {
   const content =
@@ -54,6 +56,8 @@ function serializeAnnotation(annotation: Annotation): string {
 
 /**
  * Deserializes an annotation from an XML element.
+ * @param element
+ * @returns
  */
 function deserializeAnnotation(element: Element): Annotation {
   const getTagValue = (tagName: string) => {
@@ -98,6 +102,8 @@ function deserializeAnnotation(element: Element): Annotation {
 
 /**
  * Saves an annotation to the CustomXmlParts store.
+ * @param annotation
+ * @param existingContext
  */
 export async function saveAnnotationToStore(
   annotation: Annotation,
@@ -108,6 +114,8 @@ export async function saveAnnotationToStore(
 
 /**
  * Saves multiple annotations to the CustomXmlParts store in a single operation.
+ * @param annotations
+ * @param existingContext
  */
 export async function saveAnnotationsToStoreBatch(
   annotations: Annotation[],
@@ -179,6 +187,8 @@ export async function saveAnnotationsToStoreBatch(
 
 /**
  * Loads all annotations from the CustomXmlParts store.
+ * @param existingContext
+ * @returns
  */
 export async function loadAnnotationsFromStore(
   existingContext?: Excel.RequestContext
@@ -218,6 +228,8 @@ export async function loadAnnotationsFromStore(
 
 /**
  * Deletes an annotation from the CustomXmlParts store.
+ * @param id
+ * @param existingContext
  */
 export async function deleteAnnotationFromStore(
   id: string,
@@ -228,6 +240,8 @@ export async function deleteAnnotationFromStore(
 
 /**
  * Deletes multiple annotations from the CustomXmlParts store in a single operation.
+ * @param ids
+ * @param existingContext
  */
 export async function deleteAnnotationsFromStoreBatch(
   ids: string[],
@@ -281,6 +295,7 @@ export async function deleteAnnotationsFromStoreBatch(
 /**
  * Detects drifted annotations where the current row hash no longer matches the stored anchoringHash.
  * Uses the bi-directional scanner to propose a new address if found.
+ * @returns
  */
 export async function detectDrifts(): Promise<DriftWarning[]> {
   const drifts: DriftWarning[] = [];
@@ -377,6 +392,7 @@ export async function detectDrifts(): Promise<DriftWarning[]> {
 /**
  * Detects orphaned annotations in the store.
  * An annotation is orphaned if its physical address no longer contains a comment with its ID.
+ * @returns
  */
 export async function detectOrphans(): Promise<Annotation[]> {
   const orphans: Annotation[] = [];
@@ -435,6 +451,7 @@ export async function detectOrphans(): Promise<Annotation[]> {
 
 /**
  * Repairs orphaned annotations by attempting to re-anchor them using their logical ID.
+ * @param orphans
  */
 export async function repairOrphans(orphans: Annotation[]): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -473,6 +490,7 @@ export async function repairOrphans(orphans: Annotation[]): Promise<void> {
 
 /**
  * Refreshes visual highlights for all annotations in the specified sheet.
+ * @param sheetName
  */
 export async function refreshAnnotationHighlights(sheetName: string): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -506,6 +524,7 @@ export async function refreshAnnotationHighlights(sheetName: string): Promise<vo
 /**
  * Clears all annotation highlights from the specified sheet.
  * Only targets the used range to minimize performance impact.
+ * @param sheetName
  */
 export async function clearAnnotationHighlights(sheetName: string): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -528,6 +547,7 @@ export async function clearAnnotationHighlights(sheetName: string): Promise<void
 /**
  * Bulk applies annotations from the store to the workbook.
  * Optimized to load existing annotations once.
+ * @param annotations
  */
 export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -558,6 +578,7 @@ export async function bulkApplyAnnotations(annotations: Annotation[]): Promise<v
 
 /**
  * Bulk deletes annotations from the workbook and store.
+ * @param ids
  */
 export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -611,6 +632,11 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
 
 /**
  * Internal helper to apply annotation content to a cell.
+ * @param context
+ * @param sheetName
+ * @param address
+ * @param annotation
+ * @param existingAnnotationsCache
  */
 export async function applyAnnotationInternal(
   context: Excel.RequestContext,
@@ -682,6 +708,9 @@ export async function applyAnnotationInternal(
  * Requirement 3: Batched assignments.
  * Requirement 4: Automatic yielding.
  * Requirement 5: Collection-level deletion.
+ * @param sheetNamesToClear
+ * @param issuesToHighlight
+ * @param runtime
  */
 export async function applyValidationVisuals(
   sheetNamesToClear: string[],
@@ -810,6 +839,8 @@ export async function applyValidationVisuals(
 /**
  * Resolves a physical range from a logical OID.
  * Searches across the study's forms to find the OID.
+ * @param logicalId
+ * @returns
  */
 export async function resolvePhysicalRange(
   logicalId: string
@@ -875,6 +906,9 @@ export async function resolvePhysicalRange(
 
 /**
  * Resolves a logical OID from a physical address.
+ * @param sheetName
+ * @param address
+ * @returns
  */
 export async function resolveLogicalId(sheetName: string, address: string): Promise<string | null> {
   let logicalId: string | null = null;
@@ -908,6 +942,10 @@ export async function resolveLogicalId(sheetName: string, address: string): Prom
 /**
  * Generates a stable content hash for an annotation's anchor row.
  * Joins the logicalId with the first 5 columns of the row to create a unique signature.
+ * @param sheetName
+ * @param rowIndex
+ * @param logicalId
+ * @returns
  */
 export async function generateRowHash(
   sheetName: string,
@@ -949,6 +987,11 @@ export interface DriftWarning {
 
 /**
  * Scans up to 50 rows bi-directionally to find a matching anchoring hash using a cooperative, non-blocking interval.
+ * @param sheetName
+ * @param startRowIndex
+ * @param targetHash
+ * @param logicalId
+ * @returns
  */
 export async function scanForDrift(
   sheetName: string,
@@ -1040,6 +1083,8 @@ export async function scanForDrift(
 
 /**
  * Manually applies a user-approved re-anchor action for a drifted annotation.
+ * @param annotationId
+ * @param newAddress
  */
 export async function applyManualReAnchor(annotationId: string, newAddress: string): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -1170,6 +1215,8 @@ export async function syncAnnotationsAfterMutation(): Promise<void> {
 /**
  * Handles copy/paste operations by validating if the target cells should receive
  * the annotation and creating new candidates if necessary.
+ * @param sourceAddress
+ * @param targetAddress
  */
 export async function handleAnnotationCopyPaste(
   sourceAddress: string,
@@ -1209,6 +1256,7 @@ export async function handleAnnotationCopyPaste(
 
 /**
  * Ensures annotations follow the entity identity during sort/filter.
+ * @param sheetName
  */
 export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
   if (typeof Excel === "undefined") return;
@@ -1234,6 +1282,8 @@ export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<
 
 /**
  * Handles partial range movements that might split or orphan an annotation.
+ * @param movedAddress
+ * @param _originalAddress
  */
 export async function handlePartialRangeMovement(
   movedAddress: string,
@@ -1267,6 +1317,8 @@ export async function handlePartialRangeMovement(
 
 /**
  * Detects overlapping incompatible annotations and returns them as validation issues.
+ * @param sheetName
+ * @returns
  */
 export async function detectAnnotationConflicts(sheetName: string): Promise<ValidationIssue[]> {
   const issues: ValidationIssue[] = [];
@@ -1295,6 +1347,9 @@ export async function detectAnnotationConflicts(sheetName: string): Promise<Vali
 /**
  * Applies a clinical annotation to a range.
  * Uses a hybrid anchoring approach: physical address + logical context.
+ * @param sheetName
+ * @param address
+ * @param annotation
  */
 export async function applyAnnotation(
   sheetName: string,
@@ -1309,6 +1364,9 @@ export async function applyAnnotation(
 
 /**
  * Edits an existing annotation's content.
+ * @param sheetName
+ * @param address
+ * @param newContent
  */
 export async function editAnnotation(
   sheetName: string,
@@ -1375,6 +1433,8 @@ export async function editAnnotation(
 
 /**
  * Removes annotations from a specific range.
+ * @param sheetName
+ * @param address
  */
 export async function removeAnnotation(sheetName: string, address: string): Promise<void> {
   if (typeof Excel === "undefined") return;
