@@ -18,9 +18,7 @@ When a chunk is ready to be processed, it traverses the registered middlewares i
 ### Registration
 Middlewares are registered directly onto the engine instance:
 ```typescript
-engine
-  .use(createLoggingMiddleware(logger))
-  .use(createRetryMiddleware(policy))
+engine.use(createLoggingMiddleware(logger)).use(createRetryMiddleware(policy));
 ```
 
 ## 3. Standard Middlewares
@@ -41,7 +39,7 @@ While not present in the base engine implementation, custom middlewares often le
 
 ### `Middleware<T>` Signature
 ```typescript
-type Middleware<T> = (
+export type Middleware<T> = (
   ctx: ChunkContext,
   chunk: T[],
   next: () => Promise<void>
@@ -50,7 +48,7 @@ type Middleware<T> = (
 
 ### `RetryPolicy`
 ```typescript
-interface RetryPolicy {
+export interface RetryPolicy {
   maxRetries: number;
   delayMs: number;
   shouldRetry: (error: any) => boolean;
@@ -59,12 +57,12 @@ interface RetryPolicy {
 
 ### `createRetryMiddleware`
 ```typescript
-function createRetryMiddleware<T>(policy: RetryPolicy): Middleware<T>
+export declare function createRetryMiddleware<T>(policy: RetryPolicy): Middleware<T>;
 ```
 
 ### `createLoggingMiddleware`
 ```typescript
-function createLoggingMiddleware<T>(
+export declare function createLoggingMiddleware<T>(
   logger: (message: string, ...meta: any[]) => void
-): Middleware<T>
+): Middleware<T>;
 ```

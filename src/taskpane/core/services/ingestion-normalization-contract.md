@@ -80,8 +80,8 @@ Loose data types from external sources must map strictly to the internal type sy
 Before writing imported structures back to active Excel sheets, the Taskpane UI uses the **Ingestion Diagnostics Model** to preview modifications:
 
 ```typescript
-interface IngestionDiagnostics {
-  status: 'clean' | 'warnings' | 'conflicts';
+export interface IngestionDiagnostics {
+  status: "clean" | "warnings" | "conflicts";
   actionsCount: {
     addedItems: number;
     modifiedCodelists: number;
@@ -90,9 +90,9 @@ interface IngestionDiagnostics {
   details: Array<{
     sheet: string;
     location: string; // e.g., "ItemGroup: Demographic"
-    severity: 'warning' | 'conflict';
+    severity: "warning" | "conflict";
     message: string;
-    suggestedResolution: 'override' | 'rename' | 'ignore';
+    suggestedResolution: "override" | "rename" | "ignore";
   }>;
 }
 ```

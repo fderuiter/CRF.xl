@@ -26,11 +26,19 @@ After each chunk is processed, the engine invokes a `yieldStrategy()`.
 ### Progress Reporting
 The engine emits a `"progress"` event after completing each chunk. 
 ```typescript
-this.emit("progress", { 
-  completed: totalCompleted, 
-  total: totalItems, 
-  planId: plan.id 
-});
+export interface ProgressEvent {
+  completed: number;
+  total: number;
+  planId: string;
+}
+
+export function emitProgress(this: any, totalCompleted: number, totalItems: number, plan: any) {
+  this.emit("progress", {
+    completed: totalCompleted,
+    total: totalItems,
+    planId: plan.id,
+  });
+}
 ```
 This is consumed by the UI to update progress bars.
 
@@ -45,7 +53,7 @@ Each chunk passes a `ChunkContext` down the execution pipeline. This context inc
 
 ### `ChunkingEngineOptions`
 ```typescript
-interface ChunkingEngineOptions {
+export interface ChunkingEngineOptions {
   chunkSize?: number; // Default: 500
   yieldStrategy?: () => Promise<void>;
   abortSignal?: AbortSignal;
@@ -54,7 +62,7 @@ interface ChunkingEngineOptions {
 
 ### `ExecutionPlan<T>`
 ```typescript
-interface ExecutionPlan<T> {
+export interface ExecutionPlan<T> {
   id: string;
   data: T[];
 }
@@ -62,9 +70,19 @@ interface ExecutionPlan<T> {
 
 ### `execute` Method
 ```typescript
-async execute(
-  plans: ExecutionPlan<T>[],
-  processor: (chunk: T[], ctx: ChunkContext) => Promise<void>
-): Promise<void>
+export interface ChunkContext {
+  id: string;
+  chunkIndex: number;
+  isFirstChunk: boolean;
+  isLastChunk: boolean;
+  state: any;
+}
+
+export declare class Engine<T> {
+  execute(
+    plans: ExecutionPlan<T>[],
+    processor: (chunk: T[], ctx: ChunkContext) => Promise<void>
+  ): Promise<void>;
+}
 ```
 Executes the provided plans. The `processor` is the terminal function executed at the very center of the middleware pipeline.

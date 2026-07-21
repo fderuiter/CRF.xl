@@ -52,6 +52,9 @@ jobs:
     - name: 🔍 Semantic Interface Validation
       run: npm run docs:api-check
 
+    - name: 📚 Validate Documentation Code Blocks
+      run: npm run docs:validate-code
+
     - name: 🔗 Validate Codebase Traceability
       run: |
         npm run docs:traceability

@@ -37,7 +37,7 @@ If credentials are missing, callers receive a typed `auth` error with actionable
 ### Success shape
 
 ```ts
-interface CdiscApiSuccess<T> {
+export interface CdiscApiSuccess<T> {
   ok: true;
   endpoint: string;
   status: number;
@@ -48,13 +48,25 @@ interface CdiscApiSuccess<T> {
 ### Error shape
 
 ```ts
-type CdiscApiError =
+export type CdiscApiError =
   | { type: "configuration"; message: string; retriable: false }
-  | { type: "auth"; code: "missing_credentials" | "token_request_failed" | "unauthorized"; message: string; status?: number; retriable: boolean }
+  | {
+      type: "auth";
+      code: "missing_credentials" | "token_request_failed" | "unauthorized";
+      message: string;
+      status?: number;
+      retriable: boolean;
+    }
   | { type: "http"; message: string; status?: number; retriable: boolean }
   | { type: "network"; code: "timeout" | "request_failed"; message: string; retriable: boolean }
   | { type: "invalid_response"; message: string; status?: number; retriable: false }
-  | { type: "rate_limit"; message: string; status: 429; retryAfterMs: number | null; retriable: boolean };
+  | {
+      type: "rate_limit";
+      message: string;
+      status: 429;
+      retryAfterMs: number | null;
+      retriable: boolean;
+    };
 ```
 
 ## Timeout and retry behavior
@@ -123,12 +135,14 @@ Unit tests in `src/taskpane/core/services/__tests__/cdisc-api-service.test.ts` c
 ```ts
 import { createCdiscApiService } from "../services/cdisc-api-service";
 
-const service = createCdiscApiService();
+export async function main() {
+  const service = createCdiscApiService();
 
-const packages = await service.listCtPackages();
-if (!packages.ok) {
-  // present actionable error details to caller/UI
-  console.error(packages.error.type, packages.error.message);
+  const packages = await service.listCtPackages();
+  if (!packages.ok) {
+    // present actionable error details to caller/UI
+    console.error(packages.error.type, packages.error.message);
+  }
 }
 ```
 
