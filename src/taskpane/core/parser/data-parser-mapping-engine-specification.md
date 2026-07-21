@@ -38,7 +38,7 @@ Event Pass: Scan Events sheet. Map Forms comma-separated string to an array of E
 
 ## 4. Script & Expression Capture
 
-Show If: Capture as raw string (to be used in <ConditionDef> for ODM).
+Show If: Capture as raw string (to be used in `<ConditionDef>` for ODM).
 
 Derivation:
 
