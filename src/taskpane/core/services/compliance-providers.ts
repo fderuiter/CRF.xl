@@ -1,3 +1,7 @@
+/**
+ * @issue #387
+ */
+
 import { InteractionRequiredAuthError, PublicClientApplication } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
 

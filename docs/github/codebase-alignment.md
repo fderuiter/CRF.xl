@@ -8,6 +8,7 @@ Related: [`docs/architecture/module-map.md`](../architecture/module-map.md) — 
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
+| `#387` | Decouple compliance service with mock auth and Graph providers | Present | [`src/taskpane/core/services/compliance-providers.ts`](../../src/taskpane/core/services/compliance-providers.ts) |
 | `#369` | feat: Enforce Office JS static safety, chunking, and test-time proxies | Present | [`src/taskpane/core/utils/test-proxy.ts`](../../src/taskpane/core/utils/test-proxy.ts) |
 | `#351` | Consolidate document localization helpers for PDF and Word exports | Present | [`src/taskpane/core/generators/shared-localization.ts`](../../src/taskpane/core/generators/shared-localization.ts) |
 | `#349` | Implement Unified Application Orchestrator Service | Present | [`src/taskpane/core/services/app-orchestrator.ts`](../../src/taskpane/core/services/app-orchestrator.ts)<br>[`src/taskpane/hooks/useAppOrchestrator.ts`](../../src/taskpane/hooks/useAppOrchestrator.ts) |
