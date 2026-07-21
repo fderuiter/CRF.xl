@@ -38,12 +38,12 @@ Collision detection is case-insensitive and ignores leading/trailing whitespace.
 
 ### `EntityType`
 ```typescript
-type EntityType = "Form" | "Codelist" | "Item";
+export type EntityType = "Form" | "Codelist" | "Item";
 ```
 
 ### `OidCollision`
 ```typescript
-interface OidCollision {
+export interface OidCollision {
   oid: string;
   type: EntityType;
   existingType: EntityType;

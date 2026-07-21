@@ -25,50 +25,58 @@ Parsed expressions are represented as strongly-typed AST node structures. The co
 
 ```typescript
 export type ASTNode =
-  | ProgramNode
-  | BinaryExpressionNode
-  | UnaryExpressionNode
+  | LiteralNode
   | IdentifierNode
-  | StringLiteralNode
-  | NumericLiteralNode
-  | BooleanLiteralNode;
+  | UnaryExpressionNode
+  | BinaryExpressionNode
+  | ConditionalExpressionNode
+  | CallExpressionNode
+  | GroupedExpressionNode;
 
-export interface ProgramNode {
-  type: 'Program';
-  body: ASTNode;
+export interface BaseASTNode {
+  type: string;
 }
 
-export interface BinaryExpressionNode {
-  type: 'BinaryExpression';
-  operator: '==' | '!=' | '<' | '<=' | '>' | '>=' | 'and' | 'or' | '+' | '-' | '*' | '/';
+export interface LiteralNode extends BaseASTNode {
+  type: "Literal";
+  value: number | string | boolean | null;
+  raw: string;
+}
+
+export interface IdentifierNode extends BaseASTNode {
+  type: "Identifier";
+  name: string; // e.g. "WT", "VS.WT", "VISIT_1.VS.WT"
+}
+
+export interface UnaryExpressionNode extends BaseASTNode {
+  type: "UnaryExpression";
+  operator: string; // "-", "+", "!", "not"
+  argument: ASTNode;
+}
+
+export interface BinaryExpressionNode extends BaseASTNode {
+  type: "BinaryExpression";
+  operator: string; // "+", "-", "*", "/", "%", "==", "!=", "<>", "<", "<=", ">", ">=", "&&", "||", "and", "or"
   left: ASTNode;
   right: ASTNode;
 }
 
-export interface UnaryExpressionNode {
-  type: 'UnaryExpression';
-  operator: 'not' | '-';
-  argument: ASTNode;
+export interface ConditionalExpressionNode extends BaseASTNode {
+  type: "ConditionalExpression";
+  test: ASTNode;
+  consequent: ASTNode;
+  alternate: ASTNode;
 }
 
-export interface IdentifierNode {
-  type: 'Identifier';
-  name: string; // The Variable OID referenced
+export interface CallExpressionNode extends BaseASTNode {
+  type: "CallExpression";
+  callee: string; // case-insensitive function name, e.g. "isMissing", "mean", "sum"
+  arguments: ASTNode[];
 }
 
-export interface StringLiteralNode {
-  type: 'StringLiteral';
-  value: string;
-}
-
-export interface NumericLiteralNode {
-  type: 'NumericLiteral';
-  value: number;
-}
-
-export interface BooleanLiteralNode {
-  type: 'BooleanLiteral';
-  value: boolean;
+export interface GroupedExpressionNode extends BaseASTNode {
+  type: "GroupedExpression";
+  expression: ASTNode;
 }
 ```
 
@@ -78,12 +86,15 @@ export interface BooleanLiteralNode {
 
 To ensure referential and logical integrity across multi-sheet clinical studies, expressions undergo topological sort checks and cycle-detection runs.
 
-### 1. Topological Sorting
-Derivations are sorted using a Directed Acyclic Graph (DAG) validation parser (`dag-validator.ts`). This ensures that if Variable `B` is derived from Variable `A`, Variable `A` is parsed and evaluated before Variable `B`.
+### 1. Topological Sorting (Chronological Dependent-to-Provider Evaluation Order)
+Derivations are sorted using a Directed Acyclic Graph (DAG) validation parser (`dag-validator.ts`). This ensures a strict **chronological dependent-to-provider evaluation order**:
+* **Providers** (independent variables or source values) are computed and resolved *first*.
+* **Dependents** (variables containing expressions referencing those providers) are evaluated *after* their providers are completely calculated.
+This ensures that if Variable `B` is derived from Variable `A`, Variable `A` is parsed and evaluated before Variable `B`.
 
 ### 2. Cycle Detection
 * **Graph Definition:** Vertices represent variables; directed edges represent dependency references inside calculations (e.g., `A -> B` if `B` references `A` in its derivation expression).
-* **Algorithm:** The validator runs a depth-first search (DFS) with three-color marking (white/gray/black nodes) to detect cycles.
+* **Algorithm:** The validator runs a depth-first search (DFS) with a three-color marking scheme (white/gray/black nodes) to detect and block cyclical loops.
 * **Severity:** If a cycle is detected, the validator raises a **Critical Error** blocking export, providing a detailed location trace of the cyclical dependency (e.g., `Cycles detected: A -> B -> C -> A`).
 
 ---

@@ -19,20 +19,20 @@ export interface ClinicalAnnotation {
   id: string; // Globally unique identifier (UUID)
   studyOid: string; // Links annotation to a specific clinical study
   target: {
-    type: 'variable' | 'form' | 'event' | 'schedule';
+    type: "variable" | "form" | "event" | "schedule";
     oid: string; // The target clinical identifier (e.g., Variable OID)
     sheetName: string; // The physical sheet name at target creation
     rowIndex: number; // The row number when the annotation was added
     columnName?: string; // Target column (if variable-specific)
   };
   content: {
-    category: 'sdtm_mapping' | 'query' | 'instruction' | 'compliance_note';
+    category: "sdtm_mapping" | "query" | "instruction" | "compliance_note";
     text: string; // The annotation content
     author: string; // User initials or corporate account ID
     timestamp: string; // ISO 8601 creation date
   };
   lifecycle: {
-    status: 'draft' | 'under_review' | 'resolved';
+    status: "draft" | "under_review" | "resolved";
     reviewedBy?: string;
     reviewedTimestamp?: string;
   };

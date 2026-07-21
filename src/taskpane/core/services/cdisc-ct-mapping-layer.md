@@ -12,10 +12,10 @@ It is a pure mapping module: response bundle in, typed rows/warnings/errors out.
 ## Canonical input contract
 
 ```ts
-interface CdiscCtMappingInput {
-  package: CdiscCtPackage;
-  codelists: CdiscCtCodelist[];
-  termsByCodelistOid: Record<string, CdiscCtTerm[]>;
+export interface CdiscCtMappingInput {
+  package: any;
+  codelists: any[];
+  termsByCodelistOid: Record<string, any[]>;
   source?: string;
 }
 ```
@@ -25,7 +25,7 @@ The contract normalizes CDISC CT package/codelist/term responses into one determ
 ## Output contract
 
 ```ts
-interface CrfCodelistsRow {
+export interface CrfCodelistsRow {
   codelistId: string;
   codelistName: string;
   codedValue: string;

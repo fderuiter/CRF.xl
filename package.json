@@ -25,7 +25,9 @@
     "start": "office-addin-debugging start manifest.xml",
     "stop": "office-addin-debugging stop manifest.xml",
     "validate": "node ./scripts/validate-manifests.js",
+    "docs:build-api": "redocly build-docs docs/cdisc-library-api.yaml -o docs/cdisc-library-api.html",
     "docs:validate": "node ./scripts/validate-docs.js",
+    "docs:validate-code": "node ./scripts/validate-markdown-code.js",
     "docs:api-check": "node ./scripts/semantic-interface-checker.js",
     "docs:traceability": "node ./scripts/traceability-engine.js",
     "watch": "webpack --mode development --watch",
@@ -57,6 +59,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.61.1",
+    "@redocly/cli": "^2.40.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
