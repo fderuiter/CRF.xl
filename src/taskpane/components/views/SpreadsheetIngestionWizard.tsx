@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /// <reference types="office-js" />
 import { ChunkingEngine } from "../../core/engine/chunking-engine";
 /**

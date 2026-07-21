@@ -268,6 +268,44 @@ const useStyles = makeStyles({
     gap: "8px",
     marginTop: "4px",
   },
+  depItemSource: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px"
+  },
+  arrowIcon: {
+    fontSize: "12px"
+  },
+  targetType: {
+    fontSize: "11px",
+    opacity: 0.7
+  },
+  cardHeaderTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+  infoIcon: {
+    fontSize: "14px",
+    cursor: "help",
+    color: tokens.colorNeutralForeground3
+  },
+  messageBarMargin: {
+    marginTop: "12px"
+  },
+  flexGrow: {
+    flexGrow: 1
+  },
+  dataGridContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    marginTop: "12px"
+  },
+  expressionCode: {
+    fontFamily: "monospace",
+    wordBreak: "break-all"
+  }
 });
 
 const SEARCH_DEBOUNCE_MS = 150;
@@ -381,7 +419,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
         columnId: "source",
         renderHeaderCell: () => "Source",
         renderCell: (item) => (
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div className={styles.depItemSource}>
             <div className={styles.depItemTitle}>{item.sourceOid}</div>
             <div className={styles.badgeRow}>
               <Badge appearance="tint" color="brand">
@@ -402,13 +440,13 @@ export const MatrixView: React.FC<MatrixProps> = ({
         renderCell: (item) => (
           <div className={styles.depItemRelation}>
             <span>{item.sourceType}</span>
-            <ArrowRightRegular style={{ fontSize: "12px" }} aria-label="targets" />
+            <ArrowRightRegular className={styles.arrowIcon} aria-label="targets" />
             <span>
               {item.targetFormOid !== "Unknown"
                 ? `${item.targetFormOid}.${item.targetOid}`
                 : item.targetOid}
             </span>
-            <span style={{ fontSize: "11px", opacity: 0.7 }}>({item.targetType})</span>
+            <span className={styles.targetType}>({item.targetType})</span>
           </div>
         ),
       }),
@@ -426,14 +464,14 @@ export const MatrixView: React.FC<MatrixProps> = ({
       <Card className={styles.card}>
         <div className={styles.cardHeader}>
           <div className={styles.iconBox}>📅</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div className={styles.cardHeaderTitle}>
             <Body1 className={styles.cardTitle}>Visit Matrix</Body1>
             <Tooltip
               content="The schedule of events (SoE) mapping forms to visits/timepoints."
               relationship="label"
             >
               <InfoRegular
-                style={{ fontSize: "14px", cursor: "help", color: tokens.colorNeutralForeground3 }}
+                className={styles.infoIcon}
               />
             </Tooltip>
           </div>
@@ -461,7 +499,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
         </Button>
 
         {hasErrors && (
-          <MessageBar intent="error" style={{ marginTop: "12px" }}>
+          <MessageBar intent="error" className={styles.messageBarMargin}>
             <MessageBarBody>
               Critical errors detected. Resolve highlighted issues in Excel to unlock export.
             </MessageBarBody>
@@ -584,7 +622,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
         <Card className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.iconBox}>🔗</div>
-            <div style={{ flexGrow: 1 }}>
+            <div className={styles.flexGrow}>
               <Body1 id="cross-form-dependency-title" className={styles.cardTitle}>
                 Cross-Form Dependency Map
               </Body1>
@@ -609,7 +647,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
 
           <Divider />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "12px" }}>
+          <div className={styles.dataGridContainer}>
             <DataGrid
               aria-labelledby="cross-form-dependency-title"
               items={study.crossFormDependencies || []}
@@ -680,7 +718,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
                   <span className={styles.detailMetaVal}>{selectedDep.status}</span>
 
                   <span className={styles.detailMetaLabel}>Expression:</span>
-                  <code style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+                  <code className={styles.expressionCode}>
                     {selectedDep.expression}
                   </code>
 

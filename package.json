@@ -14,8 +14,8 @@
   "scripts": {
     "setup": "npm install && npm run validate",
     "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && webpack --mode production",
-    "build:dev": "webpack --mode development",
+    "build": "npm run lint && npm run typecheck && webpack --mode production",
+    "build:dev": "npm run lint && webpack --mode development",
     "dev-server": "webpack serve --mode development",
     "lint": "office-addin-lint check",
     "lint:fix": "office-addin-lint fix",
