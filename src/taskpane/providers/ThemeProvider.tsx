@@ -121,6 +121,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Unified context wrapping the Fluent UI Provider
   return (
     <ThemeContext.Provider value={{ themeType }}>
+      {/* eslint-disable-next-line react/forbid-component-props */}
       <FluentProvider theme={fluentTheme} style={{ minHeight: "100vh", backgroundColor: "transparent" }}>
         {children}
       </FluentProvider>

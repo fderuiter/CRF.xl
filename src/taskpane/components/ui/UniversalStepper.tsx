@@ -1,10 +1,10 @@
+/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #313
  */
 import * as React from "react";
-import { makeStyles, tokens, Text, Button } from "@fluentui/react-components";
+import { makeStyles, tokens, Text, Button, Spinner } from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
-import { Spinner } from "./DesignSystem";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 
 // ---------------------------------------------------------------------------
@@ -254,7 +254,7 @@ export const UniversalWizard: React.FC<UniversalWizardProps> = ({
               appearance="primary"
               disabled={isProcessing || activeStep.canNext === false}
               onClick={handleNext}
-              icon={isProcessing ? <Spinner /> : undefined}
+              icon={isProcessing ? <Spinner size="small" /> : undefined}
             >
               {activeStep.nextLabel || (isLastStep ? completeLabel : "Next →")}
             </Button>
