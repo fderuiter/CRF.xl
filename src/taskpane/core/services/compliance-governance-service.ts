@@ -8,7 +8,7 @@ import { logger } from "../utils/logger";
 import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { SHEET_NAMES, SHEET_HEADERS } from "../registry/sheet-metadata-registry";
-import { applyThemeToHeader } from "../factory/sheet-factory";
+import { createOrClearSystemSheet } from "../factory/sheet-factory";
 import { AuditJustification } from "../types";
 import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
 import { announcer } from "./announcer";
@@ -362,9 +362,7 @@ export class ComplianceGovernanceService {
 
       let existingJustifications: Record<string, AuditJustification> = {};
 
-      if (sheet.isNullObject) {
-        sheet = context.workbook.worksheets.add("_Justifications");
-      } else {
+      if (!sheet.isNullObject) {
         sheet.protection.unprotect(SHEET_PROTECTION_PASSWORD);
         const usedRange = sheet.getUsedRangeOrNullObject();
         usedRange.load(["rowCount", "columnCount", "rowIndex", "columnIndex", "isNullObject"]);
@@ -404,10 +402,6 @@ export class ComplianceGovernanceService {
             }
           });
         }
-
-        if (!usedRange.isNullObject) {
-          usedRange.clear();
-        }
       }
 
       const mergedJustifications = { ...existingJustifications, ...justifications };
@@ -419,11 +413,11 @@ export class ComplianceGovernanceService {
         data.push([key, j.reason, j.userId, j.timestamp]);
       }
 
-      // Write headers
-      const headerRange = sheet.getRangeByIndexes(0, 0, 1, 4);
-      headerRange.values = [[...SHEET_HEADERS[SHEET_NAMES.JUSTIFICATIONS]]];
-      applyThemeToHeader(headerRange);
-      sheet.freezePanes.freezeRows(1);
+      sheet = await createOrClearSystemSheet(context, SHEET_NAMES.JUSTIFICATIONS);
+      const tableName = `${SHEET_NAMES.JUSTIFICATIONS.replace(/[^A-Za-z0-9_]/g, "")}Table`;
+      const table = sheet.tables.getItem(tableName);
+      const totalRows = data.length > 0 ? data.length + 1 : 2;
+      table.resize(sheet.getRangeByIndexes(0, 0, totalRows, 4));
 
       const writeEngine = new ChunkingEngine<any[]>({ chunkSize: 500 });
       writeEngine.on("progress", (p: any) => {

@@ -95,6 +95,3 @@ export async function createOrClearSystemSheet(
   return sheet;
 }
 
-export function applyThemeToHeader(_headerRange: Excel.Range): void {
-  // Deprecated: Themes are now handled via native Table Styles.
-}
