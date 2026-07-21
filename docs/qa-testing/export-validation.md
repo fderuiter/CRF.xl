@@ -32,7 +32,7 @@ Character Encoding: Ensure UTF-8 encoding and that special characters are escape
 
 ### 2.1 Serialization Proof Fixture & Evidence
 
-See `docs/serialization-proofing.md` for fixture locations, deterministic generation details, regeneration command, and XSD validation instructions.
+See [export-serialization-requirements.md](../../src/taskpane/core/generators/cdisc/export-serialization-requirements.md) for technical requirements, mapping rules, architectural principles, and validation contracts.
 
 CI coverage:
 - `.github/workflows/main.yml` installs `libxml2-utils` and runs `npm test`, so ODM schema validation is enforced in CI.

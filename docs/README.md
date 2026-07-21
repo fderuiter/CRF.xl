@@ -55,15 +55,3 @@ Understand deployment environments, Office manifests, and release steps:
 | [deployment/](./deployment/) | DevOps | Add-in manifests, environment configs, deployment runbooks |
 | [qa-testing/](./qa-testing/) | Engineering / QA | Quality matrix, benchmarks, test strategies, fixture rules |
 | [github/](./github/) | Program Management | Backlog governance, milestones, issues taxonomy, taxonomy |
-
----
-
-## 🔄 Superseded / Replaced Registry
-
-The following documents have been retired and replaced to maintain high alignment between documentation and code:
-
-| Retired File | Replacement File | Purpose of Change |
-| --- | --- | --- |
-| `docs/mvp-specification.md` | [product-scope.md](../src/taskpane/product-scope.md) | Shift away from legacy MVP framing to multi-stream capability scope. |
-| `docs/qa-testing.md` | [qa-testing/README.md](./qa-testing/README.md) | Folderized and structured QA index linking to specific suites. |
-| `docs/serialization-proofing.md` | [specification/export-serialization-requirements.md](../src/taskpane/core/generators/cdisc/export-serialization-requirements.md) | Standardized contract for deterministic ODM XML serialization. |
