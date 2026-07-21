@@ -70,7 +70,7 @@ const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         (Office.context as any).addEventListener((Office as any).EventType.OfficeThemeChanged, (args: any) => {
           updateTheme(args.officeTheme);
         });
-      } catch (e) {
+      } catch {
         // Ignore fallback
       }
     }
