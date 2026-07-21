@@ -18,6 +18,7 @@ Learn about the architecture, module boundaries, technical decisions, and active
   * [Reviewer Export Contract](../src/taskpane/core/generators/reviewer-export-contract.md)
   * [Ingestion Normalization Contract](../src/taskpane/core/services/ingestion-normalization-contract.md)
   * [CDISC Library API Service Contract](../src/taskpane/core/services/cdisc-api-service.md)
+  * [CDISC Library Local API Reference](./cdisc-library-api.html)
 
 ### 📋 For Product & Delivery
 Understand platform capabilities, roadmap alignment, milestones, and issue tracking rules:

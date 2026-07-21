@@ -260,6 +260,23 @@ function checkExternalUrl(urlStr, retries = 3) {
 async function main() {
   info("Starting markdown documentation link validation...");
 
+  // --- OpenAPI Documentation Compilation Check ---
+  const apiYamlPath = path.join(docsDir, "cdisc-library-api.yaml");
+  const apiHtmlPath = path.join(docsDir, "cdisc-library-api.html");
+
+  if (fs.existsSync(apiYamlPath)) {
+    if (!fs.existsSync(apiHtmlPath)) {
+      fail("Compiled HTML API documentation is missing. Please run `npm run docs:build-api`.");
+    } else {
+      const yamlStat = fs.statSync(apiYamlPath);
+      const htmlStat = fs.statSync(apiHtmlPath);
+      if (yamlStat.mtime > htmlStat.mtime) {
+        fail("Compiled HTML API documentation is out of sync with the source YAML. Please run `npm run docs:build-api`.");
+      }
+    }
+  }
+  // -----------------------------------------------
+
   // Find all documentation files
   const srcDir = path.join(projectRoot, "src");
   const markdownFiles = [
@@ -291,7 +308,7 @@ async function main() {
   }
 
   // Report results
-  if (brokenLinksCount > 0 || unescapedTagsCount > 0) {
+  if (brokenLinksCount > 0 || unescapedTagsCount > 0 || process.exitCode === 1) {
     fail(
       `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links, found ${brokenLinksCount} broken link(s) and ${unescapedTagsCount} unescaped tag(s).`
     );
