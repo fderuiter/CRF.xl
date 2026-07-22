@@ -12,6 +12,7 @@
     "dev_server_port": 3000
   },
   "scripts": {
+    "prepare": "husky",
     "setup": "npm install && npm run validate",
     "typecheck": "tsc --noEmit",
     "build": "npm run lint && npm run typecheck && webpack --mode production",
@@ -88,9 +89,11 @@
     "html-loader": "^5.0.0",
     "html-webpack-plugin": "^5.6.0",
     "https-browserify": "^1.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "knip": "^5.43.6",
+    "lint-staged": "^17.1.1",
     "office-addin-cli": "^2.0.3",
     "office-addin-debugging": "^6.0.7",
     "office-addin-dev-certs": "^2.0.3",
@@ -112,6 +115,18 @@
     "webpack-dev-server": "^6.0.0"
   },
   "prettier": "office-addin-prettier-config",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,css,html,md}": [
+      "prettier --write"
+    ],
+    "manifest.xml": [
+      "npm run validate"
+    ]
+  },
   "browserslist": [
     "last 2 versions"
   ],
