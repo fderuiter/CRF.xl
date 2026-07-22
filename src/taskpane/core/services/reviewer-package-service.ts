@@ -16,8 +16,9 @@ export class ReviewerPackageService {
     const zip = new ZipWriter();
     const encoder = new TextEncoder();
 
-    const protocolId = result.document.protocolId || "UNKNOWN";
-    const version = result.document.version || "v1.0";
+    const rawProtocolId = result.document.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    const version = (result.document.version || "v1.0").replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
     const baseFilename = `${protocolId}_AnnotatedCRF_${version}`;
 
     // 1. Add PDF Artifact
