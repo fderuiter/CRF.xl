@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
+/* eslint-disable react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #28, #89
  */

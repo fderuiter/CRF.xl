@@ -25,10 +25,7 @@ export {
   BaselineWorkbookParseError,
   parseBaselineWorkbookFile,
 } from "./services/baseline-workbook-service";
-export {
-  RECOVERY_APP_VERSION,
-  summarizeStudyDesign,
-} from "./services/recovery-storage";
+export { RECOVERY_APP_VERSION, summarizeStudyDesign } from "./services/recovery-storage";
 export { type TerminologySearchResult } from "./types/terminology-search";
 export {
   applyValidationVisuals,
@@ -76,9 +73,7 @@ export {
   persistImportManifest,
 } from "./services/migration-pipeline";
 export { createOfficeDiagnostic } from "./services/office-error-handling";
-export {
-  type Diagnostic
-} from "./services/diagnostic-framework";
+export { type Diagnostic } from "./services/diagnostic-framework";
 export {
   type CodelistGroup,
   type CodelistItem,
@@ -89,7 +84,7 @@ export { type OdmImportPackage, importOdmXml } from "./services/odm-import-servi
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";
 export { LinguisticService } from "./services/linguistics-service";
 export { TerminologySearchService } from "./services/terminology-search-service";
-export { } from "./parser/validator";
+export {} from "./parser/validator";
 export { VaultService } from "./services/vault-service";
 export { backgroundValidationEngine } from "./services/validation-engine";
 export { type SelectionContext, bindingService } from "./services/binding-service";
@@ -112,5 +107,4 @@ export {
 } from "./services/speculative-sync-service";
 export { formatDate } from "./utils/locale-utils";
 export { onboardingService, type OnboardingState } from "./services/onboarding-service";
-export {
-} from "./services/review-service";
+export {} from "./services/review-service";
