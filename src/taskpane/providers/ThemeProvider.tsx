@@ -21,6 +21,7 @@ const ThemeContext = React.createContext<ThemeContextValue>({ themeType: "light"
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeType, setThemeType] = React.useState<ThemeType>("light");
+  const [isInitialized, setIsInitialized] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     // Media query for OS high contrast mode
@@ -91,9 +92,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             handleOfficeThemeChange
           );
         }
+        setIsInitialized(true);
       });
     } else {
       updateTheme();
+      setIsInitialized(true);
     }
 
     // Subscribe to High-Contrast Changes
@@ -138,7 +141,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <FluentProvider
         theme={fluentTheme}
         // eslint-disable-next-line react/forbid-component-props
-        style={{ minHeight: "100vh", backgroundColor: "transparent" }}
+        style={{
+          minHeight: "100vh",
+          ...(isInitialized ? {} : { backgroundColor: "transparent" }),
+        }}
       >
         {children}
       </FluentProvider>
