@@ -14,7 +14,8 @@ export class DocxExportAdapter implements ExportAdapter {
   async generate(context: ExportAdapterContext): Promise<ExportAdapterResult[]> {
     const blob = await generateDocxBlob(context.currentStudy, context.options?.exportOptions);
     const data = await blob.arrayBuffer();
-    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
     return [
       {
         fileName: `${protocolId}_Annotated_CRF.docx`,
@@ -33,7 +34,8 @@ export class PdfExportAdapter implements ExportAdapter {
       context.options?.exportOptions
     );
     const data = await blob.arrayBuffer();
-    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
     return [
       {
         fileName: `${protocolId}_Annotated_CRF.pdf`,
@@ -49,8 +51,8 @@ export class OdmXmlExportAdapter implements ExportAdapter {
       bestEffort: true,
       exportOptions: context.options?.exportOptions,
     });
-    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
-
+    const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
     const results: ExportAdapterResult[] = [
       {
         fileName: `${protocolId}_ODM_Specification.xml`,

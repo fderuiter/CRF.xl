@@ -582,7 +582,7 @@ Related:
 
 **Purpose:** Pure TypeScript implementation for generating ZIP archives without external native dependencies.
 
-**Public interface:** `ZipWriter.addFile(name, data)`, `ZipWriter.generate()`
+**Public interface:** `ZipWriter.addFile(name, data): Promise<void>`, `ZipWriter.generate(): Blob`
 
 **Owning issues:** #28
 

@@ -78,7 +78,8 @@ export class ComplianceExportService {
     }
   ): Promise<Blob> {
     const zip = new ZipWriter();
-    const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
+    const rawProtocolId = currentStudy.metadata.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
 
     let auditSummary: StudyDiffReport;
     if (baselineStudy) {

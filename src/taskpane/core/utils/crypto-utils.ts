@@ -16,21 +16,45 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
     const util =
       typeof __non_webpack_require__ !== "undefined"
         ? __non_webpack_require__("util")
-        : /* webpackIgnore: true */ require("util");
-    encoder = new util.TextEncoder();
+        : typeof require !== "undefined"
+          ? /* webpackIgnore: true */ require("util")
+          : null;
+    if (util) {
+      encoder = new util.TextEncoder();
+    }
   }
 
   let subtleCrypto;
-  if (typeof window !== "undefined" && window.crypto && window.crypto.subtle) {
+  if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.subtle) {
+    subtleCrypto = globalThis.crypto.subtle;
+  } else if (typeof window !== "undefined" && window.crypto && window.crypto.subtle) {
     subtleCrypto = window.crypto.subtle;
+  } else if (typeof self !== "undefined" && self.crypto && self.crypto.subtle) {
+    subtleCrypto = self.crypto.subtle;
   } else {
     // Hide require from Webpack to prevent polyfill warnings
     // @ts-ignore
     const cryptoNode =
       typeof __non_webpack_require__ !== "undefined"
         ? __non_webpack_require__("crypto")
-        : /* webpackIgnore: true */ require("crypto");
-    subtleCrypto = cryptoNode.webcrypto.subtle;
+        : typeof require !== "undefined"
+          ? /* webpackIgnore: true */ require("crypto")
+          : null;
+
+    if (cryptoNode) {
+      if (cryptoNode.webcrypto && cryptoNode.webcrypto.subtle) {
+        subtleCrypto = cryptoNode.webcrypto.subtle;
+      } else {
+        // Fallback for Node environments without webcrypto (e.g. older Jest JSDOM)
+        const hash = cryptoNode.createHash("sha256");
+        hash.update(typeof input === "string" ? input : Buffer.from(input));
+        return hash.digest("hex");
+      }
+    }
+  }
+
+  if (!subtleCrypto) {
+    throw new Error("No crypto implementation available in this environment.");
   }
 
   let data: BufferSource;

@@ -35,12 +35,39 @@ export async function exportToPdf(html: string, filename: string): Promise<void>
   };
 
   return new Promise((resolve, reject) => {
+    let isResolved = false;
+    const timeout = setTimeout(() => {
+      if (!isResolved) {
+        isResolved = true;
+        reject(new Error("PDF generation timed out after 15 seconds"));
+      }
+    }, 15000);
+
     try {
-      (pdfMake.createPdf(docDefinition) as any).download(filename);
-      resolve();
+      (pdfMake.createPdf(docDefinition) as any).download(filename, () => {
+        if (!isResolved) {
+          isResolved = true;
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+      // In case download does not support callbacks in this environment
+      if (!isResolved && typeof window !== "undefined") {
+        setTimeout(() => {
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timeout);
+            resolve();
+          }
+        }, 100);
+      }
     } catch (error) {
       logger.error("[PdfExportAdapter] Failed to export PDF", error);
-      reject(error);
+      if (!isResolved) {
+        isResolved = true;
+        clearTimeout(timeout);
+        reject(error);
+      }
     }
   });
 }
@@ -72,13 +99,29 @@ export async function generatePdfBlobFromHtml(html: string): Promise<Blob> {
   };
 
   return new Promise((resolve, reject) => {
+    let isResolved = false;
+    const timeout = setTimeout(() => {
+      if (!isResolved) {
+        isResolved = true;
+        reject(new Error("PDF generation timed out after 15 seconds"));
+      }
+    }, 15000);
+
     try {
       (pdfMake.createPdf(docDefinition) as any).getBlob((blob: Blob) => {
-        resolve(blob);
+        if (!isResolved) {
+          isResolved = true;
+          clearTimeout(timeout);
+          resolve(blob);
+        }
       });
     } catch (error) {
       logger.error("[PdfExportAdapter] Failed to generate PDF blob", error);
-      reject(error);
+      if (!isResolved) {
+        isResolved = true;
+        clearTimeout(timeout);
+        reject(error);
+      }
     }
   });
 }

@@ -3,26 +3,43 @@
  */
 export class ZipWriter {
   private files: { name: string; data: Uint8Array; compressedData: Uint8Array; crc: number }[] = [];
+  private addFileQueue: Promise<void> = Promise.resolve();
 
-  async addFile(name: string, data: Uint8Array) {
-    if (typeof (window as any).CompressionStream === "undefined") {
-      throw new Error("COMPRESSION_NOT_SUPPORTED");
-    }
+  async addFile(name: string, data: Uint8Array): Promise<void> {
+    const task = this.addFileQueue.then(async () => {
+      let compressionStreamClass: any = null;
+      if (typeof globalThis !== "undefined" && (globalThis as any).CompressionStream) {
+        compressionStreamClass = (globalThis as any).CompressionStream;
+      } else if (typeof window !== "undefined" && (window as any).CompressionStream) {
+        compressionStreamClass = (window as any).CompressionStream;
+      }
 
-    const crcTable = this.getCRCTable();
-    let crc = 0 ^ -1;
-    for (let i = 0; i < data.length; i++) {
-      crc = (crc >>> 8) ^ crcTable[(crc ^ data[i]) & 0xff];
-    }
-    crc = (crc ^ -1) >>> 0;
+      if (!compressionStreamClass) {
+        throw new Error("COMPRESSION_NOT_SUPPORTED");
+      }
 
-    const stream = new Response(new Blob([data as any])).body!.pipeThrough(
-      new (window as any).CompressionStream("deflate-raw")
-    );
-    const compressedBuffer = await new Response(stream).arrayBuffer();
-    const compressedData = new Uint8Array(compressedBuffer);
+      const crcTable = this.getCRCTable();
+      let crc = 0 ^ -1;
+      for (let i = 0; i < data.length; i++) {
+        crc = (crc >>> 8) ^ crcTable[(crc ^ data[i]) & 0xff];
+      }
+      crc = (crc ^ -1) >>> 0;
 
-    this.files.push({ name, data, compressedData, crc });
+      const stream = new Response(new Blob([data as any])).body!.pipeThrough(
+        new compressionStreamClass("deflate-raw")
+      );
+      const compressedBuffer = await new Response(stream).arrayBuffer();
+      const compressedData = new Uint8Array(compressedBuffer);
+
+      this.files.push({ name, data, compressedData, crc });
+    });
+
+    this.addFileQueue = task.catch((err) => {
+      // Don't block subsequent additions if one fails, but rethrow
+      throw err;
+    });
+
+    return task;
   }
 
   generate(): Blob {
@@ -53,7 +70,7 @@ export class ZipWriter {
       offset += 4;
       view.setUint16(offset, 20, true);
       offset += 2;
-      view.setUint16(offset, 0, true);
+      view.setUint16(offset, 0x0800, true); // Flag bit 11 for UTF-8 filenames
       offset += 2;
       view.setUint16(offset, 8, true);
       offset += 2;
@@ -91,7 +108,7 @@ export class ZipWriter {
       offset += 2;
       view.setUint16(offset, 20, true);
       offset += 2;
-      view.setUint16(offset, 0, true);
+      view.setUint16(offset, 0x0800, true); // Flag bit 11 for UTF-8 filenames
       offset += 2;
       view.setUint16(offset, 8, true);
       offset += 2;
