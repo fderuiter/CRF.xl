@@ -48,6 +48,7 @@ export class ComplianceExportService {
 
   /**
    * Register a new export adapter.
+   * @param adapter
    */
   static registerAdapter(adapter: ExportAdapter) {
     this.adapters.push(adapter);
@@ -55,6 +56,15 @@ export class ComplianceExportService {
 
   /**
    * Generates a ZIP file containing the outputs of all registered export adapters and verification-manifest.json.
+   * @param currentStudy
+   * @param baselineStudy
+   * @param validationIssues
+   * @param options
+   * @param options.source_provenance
+   * @param options.signedOffAt
+   * @param options.justifications
+   * @param options.exportOptions
+   * @returns {Promise<Blob>} A ZIP package containing export files
    */
   static async createExportPackage(
     currentStudy: StudyDesign,
@@ -82,7 +92,7 @@ export class ComplianceExportService {
       baselineStudy,
       validationIssues,
       auditSummary,
-      options
+      options,
     };
 
     const fileHashes: Record<string, string> = {};
@@ -92,7 +102,7 @@ export class ComplianceExportService {
       for (const result of results) {
         let buffer: ArrayBuffer;
         let uint8Array: Uint8Array;
-        
+
         if (result.data instanceof Uint8Array) {
           uint8Array = result.data;
           buffer = uint8Array.buffer.slice(
@@ -103,7 +113,7 @@ export class ComplianceExportService {
           buffer = result.data as ArrayBuffer;
           uint8Array = new Uint8Array(buffer);
         }
-        
+
         const hash = await sha256Native(buffer);
         fileHashes[result.fileName] = hash;
         await zip.addFile(result.fileName, uint8Array);
