@@ -195,31 +195,46 @@ export function validateExpression(
 ): ExpressionDiagnostic[] {
   const diagnostics: ExpressionDiagnostic[] = [];
 
-  function traverse(n: ASTNode) {
-    if (!n) return;
+  function traverseAndInfer(n: ASTNode): DataType | "Null" | "Unknown" | "Any" {
+    if (!n) return "Unknown";
 
     switch (n.type) {
+      case "Literal": {
+        if (n.value === null) return "Null";
+        if (typeof n.value === "boolean") return DataType.BOOLEAN;
+        if (typeof n.value === "number") {
+          return n.raw.includes(".") ? DataType.FLOAT : DataType.INTEGER;
+        }
+        return DataType.TEXT;
+      }
+
       case "Identifier": {
         const nameLower = n.name.toLowerCase();
-        let found = variables.has(n.name);
-        if (!found) {
-          variables.forEach((_, key) => {
+        let foundType: DataType | "Unknown" = "Unknown";
+        
+        if (variables.has(n.name)) {
+          foundType = variables.get(n.name)!;
+        } else {
+          variables.forEach((value, key) => {
             const keyLower = key.toLowerCase();
             if (keyLower === nameLower || nameLower.endsWith("." + keyLower)) {
-              found = true;
+              foundType = value;
             }
           });
         }
-        if (!found) {
+        
+        let matchesRule = false;
+        if (foundType === "Unknown") {
           knownRules.forEach((r) => {
             const rLower = r.toLowerCase();
             if (rLower === nameLower || nameLower.endsWith("." + rLower)) {
-              found = true;
+              matchesRule = true;
             }
           });
+          if (matchesRule) foundType = DataType.BOOLEAN;
         }
 
-        if (!found) {
+        if (foundType === "Unknown" && !matchesRule) {
           diagnostics.push({
             level: "Error",
             message: `Unresolved variable reference '${n.name}'.`,
@@ -227,13 +242,12 @@ export function validateExpression(
             loc: n.loc,
           });
         }
-        break;
+        return foundType;
       }
 
       case "UnaryExpression": {
         const op = n.operator.toLowerCase();
-        traverse(n.argument);
-        const argType = inferExpressionType(n.argument, variables, knownRules);
+        const argType = traverseAndInfer(n.argument);
 
         if (op === "!" || op === "not") {
           if (argType !== DataType.BOOLEAN && argType !== "Unknown" && argType !== "Any") {
@@ -244,6 +258,7 @@ export function validateExpression(
               loc: n.loc,
             });
           }
+          return DataType.BOOLEAN;
         } else if (op === "-" || op === "+") {
           if (
             !isNumeric(argType) &&
@@ -258,30 +273,20 @@ export function validateExpression(
               loc: n.loc,
             });
           }
+          if (argType === "Null") return "Null";
+          return argType === DataType.INTEGER ? DataType.INTEGER : DataType.FLOAT;
         }
-        break;
+        return "Unknown";
       }
 
       case "BinaryExpression": {
         const op = n.operator.toLowerCase();
-        traverse(n.left);
-        traverse(n.right);
-
-        const leftType = inferExpressionType(n.left, variables, knownRules);
-        const rightType = inferExpressionType(n.right, variables, knownRules);
+        const leftType = traverseAndInfer(n.left);
+        const rightType = traverseAndInfer(n.right);
 
         if (["+", "-", "*", "/", "%"].includes(op)) {
-          // Numeric check
-          const leftOk =
-            isNumeric(leftType) ||
-            leftType === "Null" ||
-            leftType === "Unknown" ||
-            leftType === "Any";
-          const rightOk =
-            isNumeric(rightType) ||
-            rightType === "Null" ||
-            rightType === "Unknown" ||
-            rightType === "Any";
+          const leftOk = isNumeric(leftType) || leftType === "Null" || leftType === "Unknown" || leftType === "Any";
+          const rightOk = isNumeric(rightType) || rightType === "Null" || rightType === "Unknown" || rightType === "Any";
 
           if (!leftOk || !rightOk) {
             diagnostics.push({
@@ -292,7 +297,6 @@ export function validateExpression(
             });
           }
 
-          // Division by zero check
           if (op === "/") {
             if (n.right.type === "Literal" && n.right.value === 0) {
               diagnostics.push({
@@ -303,11 +307,13 @@ export function validateExpression(
               });
             }
           }
+
+          if (leftType === "Null" || rightType === "Null") return "Null";
+          if (leftType === DataType.FLOAT || rightType === DataType.FLOAT) return DataType.FLOAT;
+          return DataType.INTEGER;
         } else if (["&&", "||", "and", "or"].includes(op)) {
-          const leftOk =
-            leftType === DataType.BOOLEAN || leftType === "Unknown" || leftType === "Any";
-          const rightOk =
-            rightType === DataType.BOOLEAN || rightType === "Unknown" || rightType === "Any";
+          const leftOk = leftType === DataType.BOOLEAN || leftType === "Unknown" || leftType === "Any";
+          const rightOk = rightType === DataType.BOOLEAN || rightType === "Unknown" || rightType === "Any";
 
           if (!leftOk || !rightOk) {
             diagnostics.push({
@@ -317,26 +323,18 @@ export function validateExpression(
               loc: n.loc,
             });
           }
+          return DataType.BOOLEAN;
         } else if (["<", "<=", ">", ">="].includes(op)) {
-          // Relational check
           const leftNumeric = isNumeric(leftType) || leftType === "Unknown" || leftType === "Any";
-          const rightNumeric =
-            isNumeric(rightType) || rightType === "Unknown" || rightType === "Any";
+          const rightNumeric = isNumeric(rightType) || rightType === "Unknown" || rightType === "Any";
 
-          const leftDate =
-            leftType === DataType.DATE ||
-            leftType === DataType.DATETIME ||
-            leftType === DataType.TIME;
-          const rightDate =
-            rightType === DataType.DATE ||
-            rightType === DataType.DATETIME ||
-            rightType === DataType.TIME;
+          const leftDate = leftType === DataType.DATE || leftType === DataType.DATETIME || leftType === DataType.TIME;
+          const rightDate = rightType === DataType.DATE || rightType === DataType.DATETIME || rightType === DataType.TIME;
 
           const leftText = leftType === DataType.TEXT;
           const rightText = rightType === DataType.TEXT;
 
-          const compatible =
-            (leftNumeric && rightNumeric) || (leftDate && rightDate) || (leftText && rightText);
+          const compatible = (leftNumeric && rightNumeric) || (leftDate && rightDate) || (leftText && rightText);
 
           if (
             !compatible &&
@@ -361,8 +359,8 @@ export function validateExpression(
               loc: n.loc,
             });
           }
+          return DataType.BOOLEAN;
         } else if (["==", "!=", "<>"].includes(op)) {
-          // Equality check
           if (n.left.type === "Literal" && n.left.value === null) {
             diagnostics.push({
               level: "Warning",
@@ -378,7 +376,6 @@ export function validateExpression(
               loc: n.loc,
             });
           } else {
-            // Check compatible types
             const leftNumeric = isNumeric(leftType);
             const rightNumeric = isNumeric(rightType);
             const leftText = leftType === DataType.TEXT;
@@ -386,7 +383,6 @@ export function validateExpression(
             const leftBool = leftType === DataType.BOOLEAN;
             const rightBool = rightType === DataType.BOOLEAN;
 
-            // Flag extreme incompatible types
             if (
               (leftNumeric && rightText) ||
               (rightNumeric && leftText) ||
@@ -401,18 +397,16 @@ export function validateExpression(
               });
             }
           }
+          return DataType.BOOLEAN;
         }
-        break;
+
+        return "Unknown";
       }
 
       case "ConditionalExpression": {
-        traverse(n.test);
-        traverse(n.consequent);
-        traverse(n.alternate);
-
-        const testType = inferExpressionType(n.test, variables, knownRules);
-        const consequentType = inferExpressionType(n.consequent, variables, knownRules);
-        const alternateType = inferExpressionType(n.alternate, variables, knownRules);
+        const testType = traverseAndInfer(n.test);
+        const consequentType = traverseAndInfer(n.consequent);
+        const alternateType = traverseAndInfer(n.alternate);
 
         if (testType !== DataType.BOOLEAN && testType !== "Unknown" && testType !== "Any") {
           diagnostics.push({
@@ -423,7 +417,6 @@ export function validateExpression(
           });
         }
 
-        // Branch type checking
         const bothNumeric = isNumeric(consequentType) && isNumeric(alternateType);
         const compatible =
           consequentType === alternateType ||
@@ -443,16 +436,18 @@ export function validateExpression(
             loc: n.loc,
           });
         }
-        break;
+
+        if (consequentType === alternateType) return consequentType;
+        if (consequentType === "Null") return alternateType;
+        if (alternateType === "Null") return consequentType;
+        if (bothNumeric) return DataType.FLOAT;
+        return "Any";
       }
 
       case "CallExpression": {
         const callee = n.callee.toLowerCase();
-        if (n.arguments) {
-          n.arguments.forEach(traverse);
-        }
-
         const args = n.arguments || [];
+        const argTypes = args.map(arg => traverseAndInfer(arg));
 
         switch (callee) {
           case "ismissing": {
@@ -464,7 +459,7 @@ export function validateExpression(
                 loc: n.loc,
               });
             }
-            break;
+            return DataType.BOOLEAN;
           }
           case "sum":
           case "mean":
@@ -478,8 +473,8 @@ export function validateExpression(
                 loc: n.loc,
               });
             }
-            args.forEach((arg) => {
-              const argType = inferExpressionType(arg, variables, knownRules);
+            args.forEach((arg, i) => {
+              const argType = argTypes[i];
               if (
                 !isNumeric(argType) &&
                 argType !== "Null" &&
@@ -494,7 +489,13 @@ export function validateExpression(
                 });
               }
             });
-            break;
+            
+            if (callee === "mean") return DataType.FLOAT;
+            if (args.length === 0) return DataType.FLOAT;
+            if (argTypes.some((t) => t === DataType.FLOAT)) {
+              return DataType.FLOAT;
+            }
+            return DataType.INTEGER;
           }
           case "count": {
             if (args.length === 0) {
@@ -505,7 +506,7 @@ export function validateExpression(
                 loc: n.loc,
               });
             }
-            break;
+            return DataType.INTEGER;
           }
           case "concat": {
             if (args.length === 0) {
@@ -516,8 +517,8 @@ export function validateExpression(
                 loc: n.loc,
               });
             }
-            args.forEach((arg) => {
-              const argType = inferExpressionType(arg, variables, knownRules);
+            args.forEach((arg, i) => {
+              const argType = argTypes[i];
               if (
                 argType !== DataType.TEXT &&
                 argType !== "Null" &&
@@ -532,7 +533,7 @@ export function validateExpression(
                 });
               }
             });
-            break;
+            return DataType.TEXT;
           }
           default: {
             diagnostics.push({
@@ -541,17 +542,19 @@ export function validateExpression(
               type: "UNSUPPORTED_FUNCTION",
               loc: n.loc,
             });
+            return "Unknown";
           }
         }
-        break;
       }
 
       case "GroupedExpression":
-        traverse(n.expression);
-        break;
+        return traverseAndInfer(n.expression);
+        
+      default:
+        return "Unknown";
     }
   }
 
-  traverse(node);
+  traverseAndInfer(node);
   return diagnostics;
 }
