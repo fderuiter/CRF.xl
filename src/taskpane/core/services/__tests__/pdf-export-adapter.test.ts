@@ -1,3 +1,6 @@
+/**
+ * @issue #78
+ */
 import { exportToPdf, generatePdfBlobFromHtml } from "../pdf-export-adapter";
 import * as pdfMake from "pdfmake/build/pdfmake";
 
