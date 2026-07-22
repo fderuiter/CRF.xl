@@ -7,9 +7,9 @@ import {
   mergeClasses,
   tokens,
   Text,
-  Button,
   Spinner,
 } from "@fluentui/react-components";
+import { Button } from "./Button";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 

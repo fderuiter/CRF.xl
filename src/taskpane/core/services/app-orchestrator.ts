@@ -60,6 +60,8 @@ class AppOrchestrator {
   private justifications: Record<string, AuditJustification> = {};
 
   public initialize() {
+    speculativeSyncManager.initialize();
+
     // Subscribe to Validation Engine
     backgroundValidationEngine.subscribe((valState) => {
       this.updateState({
@@ -276,3 +278,6 @@ class AppOrchestrator {
 }
 
 export const appOrchestrator = new AppOrchestrator();
+if (typeof window !== "undefined") {
+  (window as any).appOrchestrator = appOrchestrator;
+}

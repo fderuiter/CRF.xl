@@ -191,6 +191,7 @@ function matchesRef(identifier: string, ref: string): boolean {
  * @param options.yieldControl
  * @param options.cancellationToken
  * @param options.cancellationToken.isCancelled
+ * @param options.preCachedVariables
  * @returns
  */
 export async function validateRules(
@@ -200,6 +201,7 @@ export async function validateRules(
     isExport?: boolean;
     yieldControl?: () => Promise<void>;
     cancellationToken?: { isCancelled: () => boolean };
+    preCachedVariables?: Map<string, DataType>;
   }
 ): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
@@ -287,7 +289,11 @@ export async function validateRules(
 
   // 4. Extract form variables if StudyDesign is provided
   const knownFormVariables = new Set<string>();
-  if (study && study.forms) {
+  if (options?.preCachedVariables) {
+    for (const key of options.preCachedVariables.keys()) {
+      knownFormVariables.add(key.toLowerCase());
+    }
+  } else if (study && study.forms) {
     for (const form of Object.values(study.forms)) {
       if (form.itemGroups) {
         for (const group of form.itemGroups) {
@@ -309,8 +315,10 @@ export async function validateRules(
   // 5. Build Dependency Map and validate references
   const validRules = rules.filter((r) => !r.parseError && r.ruleId);
 
-  const variablesMap = new Map<string, DataType>();
-  if (study && study.forms) {
+  const variablesMap = options?.preCachedVariables
+    ? new Map(options.preCachedVariables)
+    : new Map<string, DataType>();
+  if (!options?.preCachedVariables && study && study.forms) {
     for (const form of Object.values(study.forms)) {
       if (form.itemGroups) {
         for (const group of form.itemGroups) {

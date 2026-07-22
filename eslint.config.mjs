@@ -72,5 +72,18 @@ export default [
         mode: "typescript"
       }
     }
+  },
+  {
+    files: ["src/taskpane/core/validators/**/*", "src/taskpane/core/generators/**/*"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        "patterns": [
+          {
+            "group": ["**/components/**", "**/hooks/**", "**/providers/**", "**/theme", "**/theme.*"],
+            "message": "Presentation/UI modules and themes are forbidden in core logic (Clean Architecture boundary)."
+          }
+        ]
+      }]
+    }
   }
 ];

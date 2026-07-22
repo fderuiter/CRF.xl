@@ -2,7 +2,6 @@
 /**
  * @issue #84
  */
-/* global Excel */
 import { Annotation } from "../types";
 
 export enum RepairConfidence {
@@ -34,47 +33,38 @@ interface RepairPolicy {
   description: string;
 }
 
+export interface ExcelRangeData {
+  address: string;
+  isLocked: boolean;
+  isWorksheetProtected: boolean;
+  isMerged: boolean;
+  mergedAddress?: string;
+}
+
 /**
  * Validates if an annotation can be applied to the target range.
  * Checks for merged cells and protection.
- * @param range
+ * @param rangeData
  * @returns
  */
-export async function validateAnnotationTarget(
-  range: Excel.Range
-): Promise<AnnotationValidationIssue[]> {
+export function validateAnnotationTarget(rangeData: ExcelRangeData): AnnotationValidationIssue[] {
   const issues: AnnotationValidationIssue[] = [];
 
-  if (typeof range.load === "function") {
-    range.load(["format/protection/locked", "address", "worksheet/protection/protected"]);
-  }
-
-  // We'll also try to load if it's merged. In some Office.js versions, this is via getMergedAreas
-  let mergedAreas: any = null;
-  if (typeof range.getMergedAreasOrNullObject === "function") {
-    mergedAreas = range.getMergedAreasOrNullObject();
-    mergedAreas.load(["address", "isNullObject"]);
-  }
-
-  if (typeof range.context?.sync === "function") {
-    await range.context.sync();
-  }
-
-  if (range.worksheet?.protection?.protected && range.format?.protection?.locked) {
+  if (rangeData.isWorksheetProtected && rangeData.isLocked) {
     issues.push({
       category: "ProtectedRange",
-      message: `The range ${range.address} is protected and cannot be annotated.`,
+      message: `The range ${rangeData.address} is protected and cannot be annotated.`,
       confidence: RepairConfidence.Low,
-      location: range.address,
+      location: rangeData.address,
     });
   }
 
-  if (mergedAreas && !mergedAreas.isNullObject && mergedAreas.address !== range.address) {
+  if (rangeData.isMerged && rangeData.mergedAddress !== rangeData.address) {
     issues.push({
       category: "MergedCell",
-      message: `The range ${range.address} is part of a merged cell. Annotations on merged cells may behave unexpectedly.`,
+      message: `The range ${rangeData.address} is part of a merged cell. Annotations on merged cells may behave unexpectedly.`,
       confidence: RepairConfidence.Medium,
-      location: range.address,
+      location: rangeData.address,
     });
   }
 

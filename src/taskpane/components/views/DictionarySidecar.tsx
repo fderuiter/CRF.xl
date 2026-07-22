@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #83
  * @issue #159
@@ -261,6 +260,203 @@ const useStyles = makeStyles({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  flexSpaceBetweenStart: {
+    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+  },
+  flexSpaceBetweenCenter: {
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+  },
+  marginTop8: {
+    marginTop: "8px",
+  },
+  marginTop16: {
+    marginTop: "16px",
+  },
+  marginTop24: {
+    marginTop: "24px",
+  },
+  marginBottom4: {
+    marginBottom: "4px",
+  },
+  marginBottom8: {
+    marginBottom: "8px",
+  },
+  marginBottom12: {
+    marginBottom: "12px",
+  },
+  marginBottom0: {
+    marginBottom: 0,
+  },
+  marginLeftAuto: {
+    marginLeft: "auto",
+  },
+  flexColumnGap4: {
+    display: "flex", flexDirection: "column", gap: "4px",
+  },
+  flexColumnGap8: {
+    display: "flex", flexDirection: "column", gap: "8px",
+  },
+  flexColumnGap12: {
+    display: "flex", flexDirection: "column", gap: "12px",
+  },
+  flexRowGap8: {
+    display: "flex", gap: "8px",
+  },
+  flexRowGap8Center: {
+    display: "flex", gap: "8px", alignItems: "center",
+  },
+  flexRowGap4Center: {
+    display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px",
+  },
+  flexRowGap6Center: {
+    display: "flex", alignItems: "center", gap: "6px",
+  },
+  flexRowGap8CenterMarginBottom8: {
+    display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px",
+  },
+  flexColumn: {
+    display: "flex", flexDirection: "column",
+  },
+  width100: {
+    width: "100%",
+  },
+  width100Upper: {
+    width: "100%", textTransform: "uppercase",
+  },
+  width80: {
+    width: "80px",
+  },
+  flexGrow1: {
+    flexGrow: 1,
+  },
+  textColorNeutral3: {
+    color: tokens.colorNeutralForeground3,
+  },
+  textColorMarigold: {
+    color: tokens.colorPaletteMarigoldForeground1,
+  },
+  fontWeightSemibold: {
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  fontSizeBase300: {
+    fontSize: tokens.fontSizeBase300,
+  },
+  fontSizeBase100Margin0: {
+    fontSize: tokens.fontSizeBase100, marginBottom: 0,
+  },
+  fontSize48Margin12: {
+    fontSize: "48px", marginBottom: "12px",
+  },
+  fontSize32Margin8: {
+    fontSize: "32px", marginBottom: "8px",
+  },
+  padding12Op80: {
+    padding: "12px", opacity: 0.8,
+  },
+  padding12Cursor: {
+    padding: "12px", cursor: "pointer",
+  },
+  padding80: {
+    padding: "8px 0",
+  },
+  minWidth30Center: {
+    minWidth: "30px", justifyContent: "center",
+  },
+  maxHeight300Auto: {
+    maxHeight: "300px", overflowY: "auto",
+  },
+  cursorPointerTransition: {
+    cursor: "pointer", transition: "background-color 0.2s",
+  },
+  cursorPointerTransitionOp60: {
+    cursor: "pointer", transition: "background-color 0.2s", opacity: 0.6,
+  },
+  helpTooltipIcon: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center", width: "16px", height: "16px", borderRadius: "50%", backgroundColor: tokens.colorNeutralBackground3, color: tokens.colorNeutralForeground3, fontSize: "10px", cursor: "help",
+  },
+  dictHeaderBorder: {
+    padding: "12px", borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, display: "flex", flexDirection: "column", gap: "8px",
+  },
+  borderBottomFlexSpaceBetween: {
+    display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${tokens.colorNeutralStroke1}`, paddingBottom: "8px", marginBottom: "8px",
+  },
+  borderBottomFlexSpaceBetween2: {
+    display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, paddingBottom: "8px",
+  },
+  bgNeutral3Rounded8: {
+    padding: "8px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: tokens.borderRadiusMedium,
+  },
+  bgNeutral2BorderRounded16: {
+    padding: "16px", backgroundColor: tokens.colorNeutralBackground2, borderRadius: tokens.borderRadiusMedium, border: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  bgRedBorderRounded12: {
+    padding: "12px", border: `1px solid ${tokens.colorPaletteRedBorder2}`, borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorPaletteRedBackground2,
+  },
+  emptyStateContainer: {
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: "24px", textAlign: "center", color: tokens.colorNeutralForeground3,
+  },
+  marginTop4: { marginTop: "4px" },
+  headerBtn: {
+    color: tokens.colorNeutralForegroundOnBrand,
+    borderTopColor: tokens.colorNeutralForegroundOnBrand,
+    borderBottomColor: tokens.colorNeutralForegroundOnBrand,
+    borderLeftColor: tokens.colorNeutralForegroundOnBrand,
+    borderRightColor: tokens.colorNeutralForegroundOnBrand,
+  },
+  flexGrowColumnGap8: {
+    flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden",
+  },
+  flexGrowColumnGap8Auto: {
+    flexGrow: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px",
+  },
+  flexColumnGap8Padding10: {
+    display: "flex", flexDirection: "column", gap: "8px", padding: "10px",
+  },
+  flexRowGap12CenterPadding10: {
+    display: "flex", gap: "12px", alignItems: "center", padding: "10px",
+  },
+  textColorNeutral3Margin4_16: {
+    color: tokens.colorNeutralForeground3, marginTop: "4px", marginBottom: "16px",
+  },
+  helpIcon12: {
+    fontSize: "12px", cursor: "help", color: tokens.colorNeutralForeground3,
+  },
+  helpIcon10: {
+    fontSize: "10px", cursor: "help", color: tokens.colorNeutralForeground3,
+  },
+  gridLanguages: {
+    display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+  },
+  gridLanguagesSingle: {
+    display: "grid", gridTemplateColumns: "1fr",
+  },
+  textColorNeutral3FontSize100: {
+    color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase100,
+  },
+  activeResultBorder: {
+    border: `2px solid ${tokens.colorBrandStroke1}`,
+  },
+  inactiveResultBorder: {
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  borderBottomSolid: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  borderBottomNone: {
+    borderBottom: "none",
+  },
+  packageItem: {
+    padding: "8px", cursor: "pointer", borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  packageItemActive: {
+    backgroundColor: tokens.colorNeutralBackground1Selected,
+  },
+  packageItemInactive: {
+    backgroundColor: "transparent",
+  },
+  marginBottom16: {
+    marginBottom: "16px",
   },
   summaryCount: {
     fontWeight: tokens.fontWeightBold,
@@ -790,7 +986,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
     >
       {/* Zone 1: Context Header */}
       <div className={mergeClasses(styles.header, styles.zone1)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div className={styles.flexSpaceBetweenStart}>
           <div className={styles.headerBadge}>
             <Badge appearance="tint" color={selection?.isValid ? "success" : "warning"}>
               {selection?.sheetName || "Excel"}{" "}
@@ -800,7 +996,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             </Badge>
           </div>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className={styles.flexSpaceBetweenCenter}>
           <Text className={styles.headerTitle}>
             <span>📚 {selection?.fieldName || "Codelist Library"}</span>
           </Text>
@@ -808,10 +1004,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             <Badge
               appearance="outline"
               color="brand"
-              style={{
-                color: tokens.colorNeutralForegroundOnBrand,
-                borderColor: tokens.colorNeutralForegroundOnBrand,
-              }}
+className={styles.headerBtn}
             >
               Value: {String(selection.value)}
             </Badge>
@@ -828,21 +1021,21 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
         {view === "error" && globalError && (
           <div className={styles.loadingState}>
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>⚠️</div>
+            <div className={styles.fontSize48Margin12}>⚠️</div>
             <Text weight="bold" size={400} block>
               {globalError.message}
             </Text>
-            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+            <Text size={200} className={styles.textColorNeutral3}>
               {globalError.recoveryAction}
             </Text>
             {globalError.allowRetry && (
-              <Button appearance="primary" style={{ marginTop: "16px" }} onClick={loadData}>
+              <Button appearance="primary" className={styles.marginTop16} onClick={loadData}>
                 Retry Sync
               </Button>
             )}
             <Button
               appearance="subtle"
-              style={{ marginTop: "8px" }}
+              className={styles.marginTop8}
               onClick={() => setView("browse")}
             >
               Cancel
@@ -852,16 +1045,16 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
 
         {view === "no-selection" && (
           <div className={styles.loadingState}>
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎯</div>
+            <div className={styles.fontSize48Margin12}>🎯</div>
             <Text weight="bold" size={400} block>
               No Active Context
             </Text>
-            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+            <Text size={200} className={styles.textColorNeutral3}>
               Select a single cell in a CRF sheet to enable dictionary synchronization.
             </Text>
             <Button
               appearance="outline"
-              style={{ marginTop: "16px" }}
+              className={styles.marginTop16}
               onClick={() => {
                 setManualOverride(true);
                 setView("browse");
@@ -877,7 +1070,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             {/* Zone 4: Selected Detail Panel */}
             <div className={styles.zone4}>
               <div
-                style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}
+                className={styles.flexRowGap8CenterMarginBottom8}
               >
                 <Button
                   appearance="subtle"
@@ -897,7 +1090,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     size="small"
                     appearance="subtle"
                     onClick={handleStartEdit}
-                    style={{ marginLeft: "auto" }}
+                    className={styles.marginLeftAuto}
                   >
                     Edit
                   </Button>
@@ -905,21 +1098,21 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               </div>
 
               <div className={styles.formCard}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div className={styles.flexColumnGap4}>
                   <Text
                     size={100}
                     weight="semibold"
-                    style={{ color: tokens.colorNeutralForeground3 }}
+                    className={styles.textColorNeutral3}
                   >
                     DISPLAY NAME
                   </Text>
                   <Text>{selectedCodelist.name || "—"}</Text>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div className={styles.flexColumnGap4}>
                   <Text
                     size={100}
                     weight="semibold"
-                    style={{ color: tokens.colorNeutralForeground3 }}
+                    className={styles.textColorNeutral3}
                   >
                     SOURCE
                   </Text>
@@ -928,16 +1121,10 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               </div>
 
               <div
-                style={{
-                  flexGrow: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  overflow: "hidden",
-                }}
+className={styles.flexGrowColumnGap8}
               >
                 <div
-                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                  className={styles.flexSpaceBetweenCenter}
                 >
                   <Text weight="semibold">Values & Decodes</Text>
                   {!isEditing && supportedLanguages.length > 1 && (
@@ -956,28 +1143,16 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 </div>
 
                 <div
-                  style={{
-                    flexGrow: 1,
-                    overflowY: "auto",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
+className={styles.flexGrowColumnGap8Auto}
                 >
                   {(isEditing ? editItems : selectedCodelist.items).map((item, idx) => {
                     if (isEditing) {
                       return (
                         <div
                           key={idx}
-                          className={styles.gridCard}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px",
-                            padding: "10px",
-                          }}
+                          className={mergeClasses(styles.gridCard, styles.flexColumnGap8Padding10)}
                         >
-                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <div className={styles.flexRowGap8Center}>
                             <Input
                               size="small"
                               placeholder="Value"
@@ -987,7 +1162,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                                 next[idx].codedValue = d.value;
                                 setEditItems(next);
                               }}
-                              style={{ width: "80px" }}
+                              className={styles.width80}
                             />
                             <Button
                               size="small"
@@ -1001,7 +1176,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               Del
                             </Button>
                           </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <div className={styles.flexColumnGap4}>
                             {supportedLanguages.map((lang) => (
                               <Input
                                 key={lang}
@@ -1031,28 +1206,22 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     return (
                       <div
                         key={idx}
-                        className={styles.gridCard}
-                        style={{
-                          display: "flex",
-                          gap: "12px",
-                          alignItems: "center",
-                          padding: "10px",
-                        }}
+                        className={mergeClasses(styles.gridCard, styles.flexRowGap12CenterPadding10)}
                       >
                         <Badge
                           appearance="filled"
                           color="brand"
-                          style={{ minWidth: "30px", justifyContent: "center" }}
+                          className={styles.minWidth30Center}
                         >
                           {item.codedValue}
                         </Badge>
-                        <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div className={styles.flexColumn}>
                           <Text>{translation.content}</Text>
                           {translation.isFallback && (
                             <Text
                               size={100}
                               italic
-                              style={{ color: tokens.colorPaletteMarigoldForeground1 }}
+                              className={styles.textColorMarigold}
                             >
                               Showing fallback ({translation.locale})
                             </Text>
@@ -1091,11 +1260,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <MessageBar intent="error">
                   <MessageBarBody>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
+className={styles.flexSpaceBetweenStart}
                     >
                       <div>
                         <Text weight="bold">{globalError.message}</Text>
@@ -1110,17 +1275,17 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 </MessageBar>
               )}
               {isEditing ? (
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div className={styles.flexRowGap8}>
                   <Button
                     appearance="secondary"
-                    style={{ flexGrow: 1 }}
+                    className={styles.flexGrow1}
                     onClick={() => setIsEditing(false)}
                   >
                     Cancel
                   </Button>
                   <Button
                     appearance="primary"
-                    style={{ flexGrow: 1 }}
+                    className={styles.flexGrow1}
                     onClick={handleSaveEdit}
                     disabled={editItems.length === 0 || editItems.some((i) => !i.codedValue)}
                   >
@@ -1176,13 +1341,13 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
               </div>
 
               {view === "searching" ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.flexColumnGap12}>
                   {searchResults.length > 0 ? (
                     <>
                       <Text
                         weight="semibold"
                         size={100}
-                        style={{ color: tokens.colorNeutralForeground3 }}
+                        className={styles.textColorNeutral3}
                       >
                         WORKBOOK MATCHES
                       </Text>
@@ -1190,16 +1355,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         <Card
                           role="button"
                           key={result.id}
-                          className={styles.gridCard}
                           aria-label={`View details for codelist ${result.id}: ${result.title}`}
-                          style={{
-                            cursor: "pointer",
-                            padding: "12px",
-                            border:
-                              activeResultIndex === index
-                                ? `2px solid ${tokens.colorBrandStroke1}`
-                                : `1px solid ${tokens.colorNeutralStroke1}`,
-                          }}
+                          className={mergeClasses(styles.gridCard, styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
                           onClick={() => {
                             const original = dictionaries.find((d) => d.id === result.id);
                             if (original) {
@@ -1208,23 +1365,19 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           }}
                         >
                           <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "flex-start",
-                            }}
+className={styles.flexSpaceBetweenStart}
                           >
-                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                            <Text weight="bold" className={styles.fontSizeBase300}>
                               {result.id}
                             </Text>
                             <Badge size="small" color="brand" appearance="tint">
                               {Math.round(result.score * 100)}%
                             </Badge>
                           </div>
-                          <Text size={100} block style={{ marginBottom: "4px" }}>
+                          <Text size={100} block className={styles.marginBottom4}>
                             {result.title}
                           </Text>
-                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
+                          <Text size={100} italic className={styles.textColorNeutral3}>
                             {result.matchReason.replace("_", " ")}
                           </Text>
                         </Card>
@@ -1233,7 +1386,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   ) : (
                     !isSearching && (
                       <div className={styles.emptyText}>
-                        <Text block size={100} style={{ marginBottom: "12px" }}>
+                        <Text block size={100} className={styles.marginBottom12}>
                           No workbook matches found for "{search}".
                         </Text>
                         <Button
@@ -1257,40 +1410,35 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       <Text
                         weight="semibold"
                         size={100}
-                        style={{ color: tokens.colorNeutralForeground3 }}
+                        className={styles.textColorNeutral3}
                       >
                         STANDARD MATCHES (CDISC)
                       </Text>
                       {standardResults.map((result) => (
                         <div
                           key={result.id}
-                          className={styles.gridCard}
-                          style={{ padding: "12px", opacity: 0.8 }}
+                          className={mergeClasses(styles.gridCard, styles.padding12Op80)}
                         >
                           <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "flex-start",
-                            }}
+className={styles.flexSpaceBetweenStart}
                           >
-                            <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                            <Text weight="bold" className={styles.fontSizeBase300}>
                               {result.id}
                             </Text>
                             <Badge size="small" appearance="tint">
                               Standard
                             </Badge>
                           </div>
-                          <Text size={100} block style={{ marginBottom: "4px" }}>
+                          <Text size={100} block className={styles.marginBottom4}>
                             {result.title}
                           </Text>
-                          <Text size={100} italic style={{ color: tokens.colorNeutralForeground3 }}>
+                          <Text size={100} italic className={styles.textColorNeutral3}>
                             Source: {result.source}
                           </Text>
                           <Button
                             size="small"
                             appearance="subtle"
-                            style={{ marginTop: "4px" }}
+                            className={styles.marginTop4}
                             disabled
                           >
                             Import to Workbook
@@ -1301,41 +1449,29 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   )}
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className={styles.flexColumnGap8}>
                   {dictionaries.length > 0 ? (
                     dictionaries.map((item, index) => (
                       <Card
                         role="button"
                         key={item.id}
-                        className={styles.gridCard}
                         aria-label={`View details for codelist ${item.id}: ${item.name}`}
-                        style={{
-                          cursor: "pointer",
-                          padding: "12px",
-                          border:
-                            activeResultIndex === index
-                              ? `2px solid ${tokens.colorBrandStroke1}`
-                              : `1px solid ${tokens.colorNeutralStroke1}`,
-                        }}
+                        className={mergeClasses(styles.gridCard, styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
                         onClick={() => {
                           handleSelectCodelist(item.id);
                         }}
                       >
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                          }}
+className={styles.flexSpaceBetweenStart}
                         >
-                          <Text weight="bold" style={{ fontSize: tokens.fontSizeBase300 }}>
+                          <Text weight="bold" className={styles.fontSizeBase300}>
                             {item.id}
                           </Text>
                           <Badge size="small" appearance="outline">
                             {item.items.length} items
                           </Badge>
                         </div>
-                        <Text size={100} block style={{ marginBottom: "4px" }}>
+                        <Text size={100} block className={styles.marginBottom4}>
                           {item.name}
                         </Text>
 
@@ -1354,18 +1490,14 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     ))
                   ) : (
                     <div className={styles.emptyText}>
-                      <div style={{ fontSize: "32px", marginBottom: "8px" }}>📖</div>
+                      <div className={styles.fontSize32Margin8}>📖</div>
                       <Text block size={200} weight="semibold">
                         Workbook Library is Empty
                       </Text>
                       <Text
                         block
                         size={100}
-                        style={{
-                          color: tokens.colorNeutralForeground3,
-                          marginTop: "4px",
-                          marginBottom: "16px",
-                        }}
+className={styles.textColorNeutral3Margin4_16}
                       >
                         You haven't defined any codelists in this workbook yet.
                       </Text>
@@ -1393,11 +1525,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <MessageBar intent="error">
                   <MessageBarBody>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
+className={styles.flexSpaceBetweenStart}
                     >
                       <div>
                         <Text weight="bold">{globalError.message}</Text>
@@ -1411,11 +1539,11 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   </MessageBarBody>
                 </MessageBar>
               )}
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div className={styles.flexRowGap8}>
                 <Button
                   appearance="secondary"
                   size="small"
-                  style={{ flexGrow: 1 }}
+                  className={styles.flexGrow1}
                   icon={<ArrowDownloadRegular />}
                   onClick={handleOpenImport}
                 >
@@ -1424,7 +1552,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 <Button
                   appearance="primary"
                   size="small"
-                  style={{ flexGrow: 1 }}
+                  className={styles.flexGrow1}
                   icon={<AddRegular />}
                   onClick={() => setView("create")}
                 >
@@ -1450,9 +1578,9 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
             <div className={styles.formCard}>
               <div>
                 <div
-                  style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}
+                  className={styles.flexRowGap4Center}
                 >
-                  <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>
+                  <label className={mergeClasses(styles.fieldLabel, styles.marginBottom0)}>
                     Codelist ID
                   </label>
                   <Tooltip
@@ -1460,11 +1588,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                     relationship="label"
                   >
                     <InfoRegular
-                      style={{
-                        fontSize: "12px",
-                        cursor: "help",
-                        color: tokens.colorNeutralForeground3,
-                      }}
+className={styles.helpIcon12}
                     />
                   </Tooltip>
                 </div>
@@ -1472,7 +1596,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   value={newId}
                   onChange={(_, d) => setNewId(d.value.toUpperCase())}
                   placeholder="e.g. SEV_DICT"
-                  style={{ width: "100%", textTransform: "uppercase" }}
+                  className={styles.width100Upper}
                 />
               </div>
               <div>
@@ -1481,7 +1605,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   value={newName}
                   onChange={(_, d) => setNewName(d.value)}
                   placeholder="e.g. Severity Scale"
-                  style={{ width: "100%" }}
+                  className={styles.width100}
                 />
               </div>
 
@@ -1492,16 +1616,9 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                 {newItems.map((item, idx) => (
                   <div
                     key={idx}
-                    style={{
-                      marginBottom: "16px",
-                      borderBottom:
-                        idx < newItems.length - 1
-                          ? `1px solid ${tokens.colorNeutralStroke2}`
-                          : "none",
-                      paddingBottom: "8px",
-                    }}
+className={mergeClasses(styles.marginBottom16, idx < newItems.length - 1 ? styles.borderBottomSolid : styles.borderBottomNone)}
                   >
-                    <div className={styles.valueRow} style={{ marginBottom: "8px" }}>
+                    <div className={mergeClasses(styles.valueRow, styles.marginBottom8)}>
                       <Input
                         placeholder="Value (e.g. 1)"
                         value={item.codedValue}
@@ -1510,32 +1627,19 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                           updated[idx].codedValue = d.value;
                           setNewItems(updated);
                         }}
-                        style={{ width: "100%" }}
+                        className={styles.width100}
                       />
                     </div>
                     <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          supportedLanguages.length > 1
-                            ? "repeat(auto-fit, minmax(200px, 1fr))"
-                            : "1fr",
-                        gap: "12px",
-                      }}
+className={mergeClasses(styles.flexColumnGap12, supportedLanguages.length > 1 ? styles.gridLanguages : styles.gridLanguagesSingle)}
                     >
                       {supportedLanguages.map((lang) => (
-                        <div key={lang} style={{ marginBottom: "4px" }}>
+                        <div key={lang} className={styles.marginBottom4}>
                           <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              marginBottom: "4px",
-                            }}
+className={styles.flexRowGap4Center}
                           >
                             <label
-                              className={styles.fieldLabel}
-                              style={{ fontSize: tokens.fontSizeBase100, marginBottom: 0 }}
+                              className={mergeClasses(styles.fieldLabel, styles.fontSizeBase100Margin0)}
                             >
                               Decode ({lang}) {lang === defaultLanguage && "(Default)"}
                             </label>
@@ -1544,11 +1648,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               relationship="label"
                             >
                               <InfoRegular
-                                style={{
-                                  fontSize: "10px",
-                                  cursor: "help",
-                                  color: tokens.colorNeutralForeground3,
-                                }}
+className={styles.helpIcon10}
                               />
                             </Tooltip>
                           </div>
@@ -1563,8 +1663,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               };
                               setNewItems(updated);
                             }}
-                            className={styles.valueInput}
-                            style={{ width: "100%" }}
+                            className={mergeClasses(styles.valueInput, styles.width100)}
                           />
                         </div>
                       ))}
@@ -1622,15 +1721,12 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   },
                   content: (
                     <div className={styles.formCard}>
-                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                      <Text block className={styles.fontWeightSemibold}>
                         Import Controlled Terminology
                       </Text>
                       <Text
                         block
-                        style={{
-                          color: tokens.colorNeutralForeground3,
-                          fontSize: tokens.fontSizeBase100,
-                        }}
+className={styles.textColorNeutral3FontSize100}
                       >
                         Search and browse CDISC Controlled Terminology packages to import into your
                         workbook.
@@ -1648,8 +1744,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         </div>
                       ) : (
                         <div
-                          className={styles.gridCard}
-                          style={{ maxHeight: "300px", overflowY: "auto" }}
+                          className={mergeClasses(styles.gridCard, styles.maxHeight300Auto)}
                         >
                           {importPackages
                             .filter(
@@ -1665,27 +1760,16 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                               <Card
                                 role="button"
                                 key={pkg.packageOid}
-                                style={{
-                                  padding: "8px",
-                                  cursor: "pointer",
-                                  borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-                                  backgroundColor:
-                                    selectedPackage?.packageOid === pkg.packageOid
-                                      ? tokens.colorNeutralBackground1Selected
-                                      : "transparent",
-                                }}
+className={mergeClasses(styles.packageItem, selectedPackage?.packageOid === pkg.packageOid ? styles.packageItemActive : styles.packageItemInactive)}
                                 onClick={() => setSelectedPackage(pkg)}
                                 aria-label={`Select package ${pkg.title || pkg.packageOid}`}
                               >
-                                <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                                <Text block className={styles.fontWeightSemibold}>
                                   {pkg.title || pkg.packageOid}
                                 </Text>
                                 <Text
                                   block
-                                  style={{
-                                    fontSize: tokens.fontSizeBase100,
-                                    color: tokens.colorNeutralForeground3,
-                                  }}
+className={styles.textColorNeutral3FontSize100}
                                 >
                                   OID: {pkg.packageOid}{" "}
                                   {pkg.effectiveDate && `| Effective: ${pkg.effectiveDate}`}
@@ -1712,7 +1796,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   content: importPlan ? (
                     <>
                       <div className={styles.formCard}>
-                        <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                        <Text block className={styles.fontWeightSemibold}>
                           Import Plan
                         </Text>
                         <div className={styles.summaryRow}>
@@ -1740,12 +1824,12 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       </div>
                       {importPlan.conflicts.length > 0 && (
                         <div className={styles.conflictCard}>
-                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                          <Text block className={styles.fontWeightSemibold}>
                             Resolve Conflicts
                           </Text>
                           {importPlan.conflicts.map((conflict) => (
                             <div key={conflict.codelistId} className={styles.conflictItem}>
-                              <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                              <Text block className={styles.fontWeightSemibold}>
                                 {conflict.codelistId}
                               </Text>
                               <div className={styles.conflictActions}>
@@ -1784,8 +1868,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         </MessageBar>
                       )}
                       {importProgress && (
-                        <div className={styles.progressCard} style={{ marginTop: "16px" }}>
-                          <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                        <div className={mergeClasses(styles.progressCard, styles.marginTop16)}>
+                          <Text block className={styles.fontWeightSemibold}>
                             {importProgress.stage}
                           </Text>
                           <ProgressBar
@@ -1796,10 +1880,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                             }
                           />
                           <Text
-                            style={{
-                              fontSize: tokens.fontSizeBase100,
-                              color: tokens.colorNeutralForeground3,
-                            }}
+className={styles.textColorNeutral3FontSize100}
                           >
                             {importProgress.total > 0
                               ? `${importProgress.completed} / ${importProgress.total}`
@@ -1809,8 +1890,8 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                       )}
                     </>
                   ) : importProgress ? (
-                    <div className={styles.progressCard} style={{ marginTop: "16px" }}>
-                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                    <div className={mergeClasses(styles.progressCard, styles.marginTop16)}>
+                      <Text block className={styles.fontWeightSemibold}>
                         {importProgress.stage}
                       </Text>
                       <ProgressBar
@@ -1821,10 +1902,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                         }
                       />
                       <Text
-                        style={{
-                          fontSize: tokens.fontSizeBase100,
-                          color: tokens.colorNeutralForeground3,
-                        }}
+                        className={styles.textColorNeutral3FontSize100}
                       >
                         {importProgress.total > 0
                           ? `${importProgress.completed} / ${importProgress.total}`
@@ -1846,7 +1924,7 @@ export const DictionarySidecar: React.FC<DictionarySidecarProps> = ({
                   },
                   content: importSummary ? (
                     <div className={styles.summaryCard}>
-                      <Text block style={{ fontWeight: tokens.fontWeightSemibold }}>
+                      <Text block className={styles.fontWeightSemibold}>
                         {importSummary.errors.length > 0 ? "⚠ Import Failed" : "✅ Import Complete"}
                       </Text>
                       <div className={styles.summaryRow}>

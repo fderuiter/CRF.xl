@@ -12,6 +12,7 @@
     "dev_server_port": 3000
   },
   "scripts": {
+    "prepare": "husky",
     "setup": "npm install && npm run validate",
     "typecheck": "tsc --noEmit",
     "build": "npm run lint && npm run typecheck && webpack --mode production",
@@ -37,7 +38,9 @@
     "audit": "npm audit",
     "audit:json": "npm audit --json",
     "dead-code": "knip",
-    "check-prod-deps": "node scripts/check-prod-deps.js"
+    "check-prod-deps": "node scripts/check-prod-deps.js",
+    "test:visual": "docker run --rm --network host -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.61.1-jammy bash -c 'npm ci && npx playwright test tests/e2e/visual.spec.ts'",
+    "test:visual:update": "docker run --rm --network host -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.61.1-jammy bash -c 'npm ci && npx playwright test tests/e2e/visual.spec.ts --update-snapshots'"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.11.0",
@@ -45,7 +48,6 @@
     "@fluentui/react-icons": "^2.0.264",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "core-js": "^3.36.0",
-    "crypto-js": "^4.2.0",
     "docx": "^9.6.1",
     "exceljs": "^4.4.0",
     "html-to-docx": "^1.8.0",
@@ -64,7 +66,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/crypto-js": "^4.2.2",
     "@types/html-to-docx": "^1.8.1",
     "@types/html-to-pdfmake": "^2.4.5",
     "@types/jest": "^30.0.0",
@@ -88,9 +89,11 @@
     "html-loader": "^5.0.0",
     "html-webpack-plugin": "^5.6.0",
     "https-browserify": "^1.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "knip": "^5.43.6",
+    "lint-staged": "^17.1.1",
     "office-addin-cli": "^2.0.3",
     "office-addin-debugging": "^6.0.7",
     "office-addin-dev-certs": "^2.0.3",
@@ -112,6 +115,18 @@
     "webpack-dev-server": "^6.0.0"
   },
   "prettier": "office-addin-prettier-config",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,css,html,md}": [
+      "prettier --write"
+    ],
+    "manifest.xml": [
+      "npm run validate"
+    ]
+  },
   "browserslist": [
     "last 2 versions"
   ],

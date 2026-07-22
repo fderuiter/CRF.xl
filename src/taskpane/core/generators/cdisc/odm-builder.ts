@@ -111,7 +111,11 @@ export async function generateOdmXml(
   // Gather synthetic rules from inline showIf and methods
   const iterator = new ClinicalIterator({ sortStrategy: SortStrategy.NATURAL });
   const syntheticRules: RuleDefinition[] = [];
+  const preCachedVariables = new Map<string, DataType>();
   for (const { item } of iterator.walkForms(study)) {
+    if (isCrfItem(item) && item.itemOid) {
+      preCachedVariables.set(item.itemOid, item.dataType as DataType);
+    }
     if (!isCrfItem(item)) continue;
     if (item.showIf) {
       const hasCentralRule = study.rules?.some(
@@ -166,7 +170,10 @@ export async function generateOdmXml(
   // Run pre-serialization validation if rules are present
   let topOrder: string[] = [];
   if (allRules.length > 0) {
-    const validationResult = await validateRules(allRules, study, { isExport: true });
+    const validationResult = await validateRules(allRules, study, {
+      isExport: true,
+      preCachedVariables,
+    });
     topOrder = validationResult.topologicalOrder;
 
     const criticalErrors = validationResult.errors.filter((e) => e.type === "CYCLE");

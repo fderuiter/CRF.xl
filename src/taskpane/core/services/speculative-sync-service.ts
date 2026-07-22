@@ -22,6 +22,7 @@ interface SpeculativeSyncOperation {
   predictedStudy: StudyDesign;
   snapshotFingerprints: Record<string, string>;
   recoverySnapshot: StudyDesign | null; // For rollback
+  baselineProjection: WorkbookProjection;
 }
 
 export type SyncState = "idle" | "syncing" | "conflict" | "error";
@@ -55,10 +56,36 @@ class SpeculativeSyncManager {
     return this.subscriptionManager.subscribe(listener, { immediate: true });
   }
 
+  public initialize() {
+    if (typeof Excel !== "undefined") {
+      this.unlockSheets().catch(err => logger.error("Failed to unlock sheets on initialization", err));
+    }
+  }
+
+  private async unlockSheets() {
+    if (typeof Excel === "undefined") return;
+    await Excel.run(async (context) => {
+      for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
+        const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
+        sheet.load("isNullObject, protection/protected");
+        await context.sync();
+        if (!sheet.isNullObject && sheet.protection.protected) {
+          sheet.protection.unprotect();
+        }
+      }
+      await context.sync();
+    });
+  }
+
   private notify(state: SyncState, details?: any) {
+    const previousState = this.state;
     this.state = state;
     this.currentDetails = details;
     this.subscriptionManager.notify({ state, details });
+
+    if (previousState === "syncing" && state !== "syncing") {
+      this.unlockSheets().catch(err => logger.error("Failed to unlock sheets on state transition", err));
+    }
   }
 
   public getState() {
@@ -97,6 +124,15 @@ class SpeculativeSyncManager {
 
     let snapshotFingerprints: Record<string, string> = {};
     await Excel.run(async (context) => {
+      for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
+        const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
+        sheet.load("isNullObject, protection/protected");
+        await context.sync();
+        if (!sheet.isNullObject && !sheet.protection.protected) {
+          sheet.protection.protect({ selectionMode: "Unlocked" });
+        }
+      }
+
       snapshotFingerprints["_Study"] = await this.getSheetFingerprint(context, "_Study");
       snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(context, "_Forms");
       snapshotFingerprints["_Codelists"] = await this.getSheetFingerprint(context, "_Codelists");
@@ -108,6 +144,7 @@ class SpeculativeSyncManager {
       predictedStudy,
       snapshotFingerprints,
       recoverySnapshot: baselineStudy,
+      baselineProjection: projection,
     };
 
     this.notify("syncing", { predictedStudy });
@@ -202,9 +239,17 @@ class SpeculativeSyncManager {
       await engine.execute(plans, async (chunk, ctx) => {
         await Excel.run(async (context) => {
           const sheet = context.workbook.worksheets.getItemOrNullObject(ctx.id);
-          sheet.load("isNullObject");
+          sheet.load("isNullObject, protection/protected");
           await context.sync();
+          
+          let wasProtected = false;
           const target = sheet.isNullObject ? context.workbook.worksheets.add(ctx.id) : sheet;
+
+          if (!sheet.isNullObject && sheet.protection.protected) {
+            wasProtected = true;
+            sheet.protection.unprotect();
+            await context.sync();
+          }
 
           if (ctx.isFirstChunk && !sheet.isNullObject) {
             target.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
@@ -220,6 +265,10 @@ class SpeculativeSyncManager {
             );
             range.values = chunk;
           }
+          
+          if (wasProtected) {
+            target.protection.protect({ selectionMode: "Unlocked" });
+          }
           await context.sync();
         });
       });
@@ -234,15 +283,61 @@ class SpeculativeSyncManager {
   }
 
   public async rollback() {
-    if (!this.currentOp || !this.currentOp.recoverySnapshot) {
+    if (!this.currentOp || !this.currentOp.baselineProjection) {
       this.notify("idle");
       return;
     }
-    // Simulate rollback by ending sync. Real rollback would restore the actual Excel values.
-    // However, since rollback logic states "restore the UI state to the pre-operation snapshot",
-    // just emitting "idle" with the recoverySnapshot works. We might also need to restore Excel.
 
-    // For now, emit a special state or just emit idle and let the host reload.
+    const projection = this.currentOp.baselineProjection;
+    const plans: ExecutionPlan<string[]>[] = [
+      { id: "_Study", data: (projection.studyRows as string[][]) || [] },
+      { id: "_Forms", data: (projection.formsRows as string[][]) || [] },
+      { id: "_Codelists", data: (projection.codelistRows as string[][]) || [] },
+    ];
+
+    const engine = new ChunkingEngine<string[]>({ chunkSize: 500 });
+    
+    try {
+      await engine.execute(plans, async (chunk, ctx) => {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getItemOrNullObject(ctx.id);
+          sheet.load("isNullObject, protection/protected");
+          await context.sync();
+          
+          if (sheet.isNullObject) return;
+          
+          let wasProtected = false;
+          if (sheet.protection.protected) {
+            wasProtected = true;
+            sheet.protection.unprotect();
+            await context.sync();
+          }
+
+          if (ctx.isFirstChunk) {
+            sheet.getUsedRangeOrNullObject().delete(Excel.DeleteShiftDirection.up);
+            await context.sync();
+          }
+
+          if (chunk.length > 0) {
+            const range = sheet.getRangeByIndexes(
+              ctx.startIndex,
+              0,
+              chunk.length,
+              chunk[0].length
+            );
+            range.values = chunk;
+          }
+          
+          if (wasProtected) {
+             sheet.protection.protect({ selectionMode: "Unlocked" });
+          }
+          await context.sync();
+        });
+      });
+    } catch (err) {
+      logger.error("Rollback failed to restore physical cells", err);
+    }
+
     this.notify("idle", { study: this.currentOp.recoverySnapshot });
     this.currentOp = null;
   }

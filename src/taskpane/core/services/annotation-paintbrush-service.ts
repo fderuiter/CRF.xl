@@ -165,7 +165,26 @@ class AnnotationPaintbrushService {
         await Excel.run(async (context) => {
           const sheet = context.workbook.worksheets.getItem(sheetName);
           const range = sheet.getRange(address);
-          const issues = await validateAnnotationTarget(range);
+
+          range.load(["format/protection/locked", "address", "worksheet/protection/protected"]);
+          let mergedAreas: any = null;
+          // eslint-disable-next-line office-addins/load-object-before-read
+          if (typeof (range as any).getMergedAreasOrNullObject === "function") {
+            mergedAreas = (range as any).getMergedAreasOrNullObject();
+            mergedAreas.load(["address", "isNullObject"]);
+          }
+          await context.sync();
+
+          const rangeData = {
+            address: range.address,
+            isLocked: range.format?.protection?.locked || false,
+            isWorksheetProtected: range.worksheet?.protection?.protected || false,
+            isMerged: !!(mergedAreas && !mergedAreas.isNullObject),
+            mergedAddress:
+              mergedAreas && !mergedAreas.isNullObject ? mergedAreas.address : undefined,
+          };
+
+          const issues = validateAnnotationTarget(rangeData);
           if (issues.length > 0) {
             this.state.validationIssues[key] = issues;
           }

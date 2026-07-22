@@ -557,15 +557,29 @@ class Parser {
   }
 }
 
+const formulaCache = new Map<string, ASTNode>();
+
+export function clearFormulaCache() {
+  formulaCache.clear();
+}
+
 /**
  * Parses a single rule expression string into its corresponding ASTNode.
  * @param expression
  * @returns
  */
 export function parseRuleExpression(expression: string): ASTNode {
+  if (formulaCache.has(expression)) {
+    return formulaCache.get(expression)!;
+  }
   const tokens = tokenize(expression);
   const parser = new Parser(tokens);
-  return parser.parse();
+  const ast = parser.parse();
+  if (formulaCache.size > 50000) {
+    formulaCache.clear();
+  }
+  formulaCache.set(expression, ast);
+  return ast;
 }
 
 /**

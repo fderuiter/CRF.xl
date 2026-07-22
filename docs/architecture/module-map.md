@@ -45,7 +45,7 @@ Related:
 
 **Public interface:**
 
-- `validateRules(rules: RuleDefinition[], study?: StudyDesign): RuleValidationResult`
+- `validateRules(rules: RuleDefinition[], study?: StudyDesign, options?: { isExport?: boolean; yieldControl?: () => Promise<void>; cancellationToken?: { isCancelled: () => boolean }; preCachedVariables?: Map<string, DataType> }): Promise<RuleValidationResult>`
 
 **Upstream:** `rules-parser.ts`, `expression-validator.ts`, `core/types/`
 **Downstream:** `validator.ts`, `odm-builder.ts`
@@ -55,13 +55,14 @@ Related:
 
 ### `rules-parser.ts`
 
-**Purpose:** Tokenizer and recursive descent parser for the rules logic grammar. Parses raw rule expressions into AST nodes, and workbook rows from the `_Rules` sheet into a standard `RuleDefinition[]` array.
+**Purpose:** Tokenizer and recursive descent parser for the rules logic grammar. Parses raw rule expressions into AST nodes, and workbook rows from the `_Rules` sheet into a standard `RuleDefinition[]` array. Includes caching mechanisms for parsed formulas to optimize repetitive evaluation.
 
 **Public interface:**
 
 - `tokenize(expression: string): Token[]`
 - `parseRuleExpression(expression: string): ASTNode`
 - `parseRulesSheetRows(rows: any[][], _studyVersion: string): { rules: RuleDefinition[]; errors: ParseError[] }`
+- `clearFormulaCache(): void`
 
 **Upstream:** `core/types/index.ts`
 **Downstream:** `excel-parser.ts`, graph validator (`#138`), serialization
@@ -555,6 +556,28 @@ Related:
 
 ## Utility modules (`src/taskpane/core/utils/`)
 
+## UI Component modules (`src/taskpane/components/ui/`)
+
+### `Button.tsx`
+
+**Purpose:** Centralized button wrapper.
+
+**Public interface:** `Button`
+
+**Owning issues:** #313
+
+---
+
+### `UniversalStepper.tsx`
+
+**Purpose:** Navigation architecture for multi-step flows.
+
+**Public interface:** `UniversalStepper`
+
+**Owning issues:** #313
+
+---
+
 ### `zip-writer.ts`
 
 **Purpose:** Pure TypeScript implementation for generating ZIP archives without external native dependencies.
@@ -637,3 +660,4 @@ Update this document whenever:
 - An expected-but-absent module is implemented (move it to the present section)
 - A module's public interface changes materially
 - An owning issue changes
+

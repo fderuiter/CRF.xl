@@ -10,7 +10,7 @@ import {
   isCrfDisplayBlock,
 } from "../types/index";
 import { createParseRuntime, ParseRuntimeOptions, processRowsInChunks } from "./chunking-runtime";
-import { parseRulesSheetRows } from "./rules-parser";
+import { parseRulesSheetRows, clearFormulaCache } from "./rules-parser";
 import { migrateStudyDesign } from "./migration";
 import { getLocaleConfig } from "../locale-config";
 import { LinguisticService } from "../services/linguistics-service";
@@ -26,6 +26,7 @@ export async function parseRawDataToStudyDesign(
   rawData: Record<string, unknown[][]>,
   options: ParseExcelToStudyDesignOptions = {}
 ): Promise<StudyDesign> {
+  clearFormulaCache();
   const runtime = createParseRuntime(options);
   const oidRegistry = new GlobalOidRegistry();
   const study: StudyDesign = {

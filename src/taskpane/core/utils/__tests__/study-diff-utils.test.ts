@@ -3,8 +3,8 @@
  * @issue #28
  */
 
-import { DataType, RuleType, StudyDiffReport } from "../../../core/types";
-import { buildStudyDiffList, filterStudyDiffList } from "../study-diff-view-utils";
+import { DataType, RuleType, StudyDiffReport } from "../../types";
+import { buildStudyDiffList, filterStudyDiffList } from "../study-diff-utils";
 
 function createReport(): StudyDiffReport {
   return {
@@ -98,7 +98,10 @@ function createReport(): StudyDiffReport {
   };
 }
 
-/** Report with added/removed pairs that share identical content (triggering moved/renamed detection for items, codelists, and rules). */
+/**
+ * Report with added/removed pairs that share identical content (triggering moved/renamed detection for items, codelists, and rules).
+ * @returns A mock StudyDiffReport with moved entries.
+ */
 function createMovedReport(): StudyDiffReport {
   const sharedItem = {
     name: "SYSBP",
