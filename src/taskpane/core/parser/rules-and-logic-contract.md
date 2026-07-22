@@ -8,7 +8,8 @@ This document defines the formal syntax, grammar, Abstract Syntax Tree (AST) sch
 
 The rules parser parses clinical expressions entered into the `Show If` and `Derivation` columns of form sheets. Expressions refer to variables and values to evaluate logical visibility or calculations.
 
-### 1. Tokenizer Specification
+### 1. Tokenizer & Formula Caching Specification
+* **Formula Cache:** To optimize validation latency across large studies, the parser caches compiled AST representations of rule conditions based on their literal string signatures. This cache (`formulaCache`) skips redundant lexical analysis for identical formulas.
 * **Identifiers:** Variables are referenced by their OIDs. Variable tokens match: `[A-Za-z_][A-Za-z0-9_]*`.
 * **String Literals:** Single or double-quoted strings (e.g., `'Yes'`, `"No"`).
 * **Numeric Literals:** Floats or integers (e.g., `10`, `3.14`).
