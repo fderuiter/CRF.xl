@@ -98,8 +98,8 @@ async function fetchAllIssues() {
   }
 
   if (hasError) {
-    console.warn("WARNING: Falling back to parsed markdown cache due to API connectivity issues.");
-    return parseAlignmentDocument();
+    console.error("ERROR: GitHub API connectivity issues or rate limits encountered. Failing loudly to prevent silent bypass.");
+    process.exit(1);
   }
 
   return allIssues;

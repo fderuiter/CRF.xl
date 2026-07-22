@@ -56,9 +56,36 @@ jobs:
       run: npm run docs:validate-code
 
     - name: 🔗 Validate Codebase Traceability
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         npm run docs:traceability
-        git diff --exit-code docs/github/codebase-alignment.md || { echo "Traceability report is out of sync. Please run 'npm run docs:traceability' and commit the changes."; exit 1; }
+        if ! git diff --quiet docs/github/codebase-alignment.md; then
+          echo "Drift detected in docs/github/codebase-alignment.md."
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.head_ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          
+          if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "develop" ]; then
+            echo "Cannot automatically commit to protected branch $BRANCH. Failing loudly."
+            exit 1
+          fi
+          
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            cp docs/github/codebase-alignment.md /tmp/codebase-alignment.md
+            git checkout --force "$BRANCH"
+            mv /tmp/codebase-alignment.md docs/github/codebase-alignment.md
+          fi
+          
+          git add docs/github/codebase-alignment.md
+          git commit -m "chore: auto-regenerate traceability report [skip ci]"
+          git push origin HEAD:"refs/heads/$BRANCH"
+        fi
     - name: 🔎 Type Checking
       run: npx tsc --noEmit
 
