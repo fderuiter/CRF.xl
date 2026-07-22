@@ -586,8 +586,24 @@ async function applyAnnotationInternal(
   const sheet = context.workbook.worksheets.getItem(sheetName);
   const range = sheet.getRange(address);
 
+  range.load(["format/protection/locked", "address", "worksheet/protection/protected"]);
+  let mergedAreas: any = null;
+  if (typeof (range as any).getMergedAreasOrNullObject === "function") {
+    mergedAreas = (range as any).getMergedAreasOrNullObject();
+    mergedAreas.load(["address", "isNullObject"]);
+  }
+  await context.sync();
+
+  const rangeData = {
+    address: range.address,
+    isLocked: range.format?.protection?.locked || false,
+    isWorksheetProtected: range.worksheet?.protection?.protected || false,
+    isMerged: !!(mergedAreas && !mergedAreas.isNullObject),
+    mergedAddress: mergedAreas && !mergedAreas.isNullObject ? mergedAreas.address : undefined,
+  };
+
   // 1. Validate Target Range (Merged cells, Protection)
-  const targetIssues = await validateAnnotationTarget(range);
+  const targetIssues = validateAnnotationTarget(rangeData);
   for (const issue of targetIssues) {
     const policy = getRepairPolicy(issue);
     if (policy.action === "Block") {
