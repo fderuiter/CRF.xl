@@ -276,3 +276,4 @@ class AppOrchestrator {
 }
 
 export const appOrchestrator = new AppOrchestrator();
+if (typeof window !== "undefined") { (window as any).appOrchestrator = appOrchestrator; }

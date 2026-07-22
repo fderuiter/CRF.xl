@@ -37,7 +37,9 @@
     "audit": "npm audit",
     "audit:json": "npm audit --json",
     "dead-code": "knip",
-    "check-prod-deps": "node scripts/check-prod-deps.js"
+    "check-prod-deps": "node scripts/check-prod-deps.js",
+    "test:visual": "docker run --rm --network host -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.61.1-jammy bash -c 'npm ci && npx playwright test tests/e2e/visual.spec.ts'",
+    "test:visual:update": "docker run --rm --network host -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.61.1-jammy bash -c 'npm ci && npx playwright test tests/e2e/visual.spec.ts --update-snapshots'"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.11.0",

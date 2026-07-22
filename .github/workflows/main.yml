@@ -98,6 +98,9 @@ jobs:
     - name: ♿ Run Accessibility & E2E Tests
       run: npm run test:e2e
 
+    - name: 📸 Run Visual Regression Tests
+      run: npm run test:visual
+
     - name: 📁 Upload Playwright Report
       uses: actions/upload-artifact@v4
       if: failure()
