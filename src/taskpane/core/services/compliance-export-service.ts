@@ -13,7 +13,7 @@ import { ImportProvenance } from "./migration-pipeline";
 
 import { diffStudyDesigns } from "./diff-engine";
 
-export interface VerificationManifest {
+interface VerificationManifest {
   manifestVersion: string;
   protocolId: string;
   exportedAt: string;

@@ -22,7 +22,7 @@ import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 /**
  * Error thrown when rules pre-serialization validation fails.
  */
-export class OdmSerializationError extends Error {
+class OdmSerializationError extends Error {
   public readonly errors: RuleValidationError[];
   constructor(message: string, errors: RuleValidationError[]) {
     super(message);
@@ -48,12 +48,12 @@ function targetMatchesItem(target: string | undefined, itemOid: string): boolean
   return targetLower.endsWith("." + itemLower);
 }
 
-export interface OdmExportResult {
+interface OdmExportResult {
   xml: string;
   diagnostics?: string;
 }
 
-export function serializeAST(node: ASTNode): string {
+function serializeAST(node: ASTNode): string {
   if (!node) return "";
   switch (node.type) {
     case "Literal":

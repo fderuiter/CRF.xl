@@ -11,12 +11,12 @@ import {
   AnnotationValidationIssue,
 } from "../validators/annotation-validator";
 
-export interface PaintbrushTarget {
+interface PaintbrushTarget {
   address: string;
   sheetName: string;
 }
 
-export interface PaintbrushState {
+interface PaintbrushState {
   isEnabled: boolean;
   activeType: AnnotationType;
   activeContent: string;

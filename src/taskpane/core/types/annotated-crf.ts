@@ -157,12 +157,3 @@ export interface AnnotatedCrfPipelineResult {
   humanReadableReport?: string;
   metadataSummary?: string;
 }
-
-/**
- * Interface for the export handoff stage.
- */
-export interface AcrfExportHandoff {
-  document: AnnotatedCrfDocument;
-  format: "pdf" | "html";
-  options?: any;
-}

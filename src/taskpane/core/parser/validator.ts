@@ -14,8 +14,9 @@ import { parseRuleExpression } from "./rules-parser";
 import { detectAnnotationConflicts } from "../services/annotation-service";
 import { parseNumber } from "../utils/locale-utils";
 import { normalizeOid } from "./metadata-utils";
+import { OidCollision } from "../registry/oid-registry";
 
-export interface CrossFormDependency {
+interface CrossFormDependency {
   id: string;
   sourceFormOid: string;
   sourceOid: string; // itemOid, groupOid, or ruleId
@@ -45,7 +46,7 @@ export async function validateStudyDesign(
 
   // 0. Inject OID Collisions from parsing
   const oidCollisions = study.metadata.customProperties?.oidCollisions as
-    | import("../registry/oid-registry").OidCollision[]
+    | OidCollision[]
     | undefined;
   if (oidCollisions && oidCollisions.length > 0) {
     oidCollisions.forEach((col) => {
@@ -313,7 +314,7 @@ export async function validateStudyDesign(
   return issues;
 }
 
-export function validateCrossFormDependencies(
+function validateCrossFormDependencies(
   study: StudyDesign,
   options?: { isExport?: boolean }
 ): {

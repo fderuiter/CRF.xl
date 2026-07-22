@@ -4,7 +4,7 @@ import { DiagnosticError } from "./diagnostic-framework";
 /**
  * @issue #28
  */
-export interface VaultCredentials {
+interface VaultCredentials {
   apiKey?: string;
   apiUrl?: string;
 }

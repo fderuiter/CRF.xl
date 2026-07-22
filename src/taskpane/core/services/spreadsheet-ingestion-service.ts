@@ -65,7 +65,7 @@ export type TargetField =
 export type TargetSheet = "form_item" | "forms_registry" | "codelists";
 
 /** Metadata descriptor for a target field. */
-export interface TargetFieldDescriptor {
+interface TargetFieldDescriptor {
   field: TargetField;
   label: string;
   required: boolean;
@@ -93,7 +93,7 @@ export interface FieldMapping {
 }
 
 /** Diagnostic categories aligned with the issue acceptance criteria. */
-export type DiagnosticCategory =
+type DiagnosticCategory =
   | "missing-required"
   | "ambiguous"
   | "unsupported"

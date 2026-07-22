@@ -105,7 +105,7 @@ function deserializeAnnotation(element: Element): Annotation {
  * @param annotation
  * @param existingContext
  */
-export async function saveAnnotationToStore(
+async function saveAnnotationToStore(
   annotation: Annotation,
   existingContext?: Excel.RequestContext
 ): Promise<void> {
@@ -117,7 +117,7 @@ export async function saveAnnotationToStore(
  * @param annotations
  * @param existingContext
  */
-export async function saveAnnotationsToStoreBatch(
+async function saveAnnotationsToStoreBatch(
   annotations: Annotation[],
   existingContext?: Excel.RequestContext
 ): Promise<void> {
@@ -243,7 +243,7 @@ export async function deleteAnnotationFromStore(
  * @param ids
  * @param existingContext
  */
-export async function deleteAnnotationsFromStoreBatch(
+async function deleteAnnotationsFromStoreBatch(
   ids: string[],
   existingContext?: Excel.RequestContext
 ): Promise<void> {
@@ -450,45 +450,6 @@ export async function detectOrphans(): Promise<Annotation[]> {
 }
 
 /**
- * Repairs orphaned annotations by attempting to re-anchor them using their logical ID.
- * @param orphans
- */
-export async function repairOrphans(orphans: Annotation[]): Promise<void> {
-  if (typeof Excel === "undefined") return;
-
-  await Excel.run(async (context) => {
-    for (const orphan of orphans) {
-      if (orphan.anchor.logicalId) {
-        const newLocation = await resolvePhysicalRange(orphan.anchor.logicalId);
-        if (newLocation) {
-          // Repair Policy: High confidence (Auto-heal) when logical mapping is certain
-          orphan.anchor.address = newLocation.address;
-          orphan.anchor.sheetName = newLocation.sheetName;
-
-          const policy = getRepairPolicy({
-            category: "Orphaned",
-            message: `Auto-healing orphaned annotation for ${orphan.anchor.logicalId}`,
-            confidence: RepairConfidence.High,
-          });
-
-          if (policy.action === "AutoHeal") {
-            logger.info(`[AnnotationService] ${policy.description}`);
-            await applyAnnotationInternal(
-              context,
-              newLocation.sheetName,
-              newLocation.address,
-              orphan
-            );
-          }
-        }
-      }
-    }
-
-    await context.sync();
-  });
-}
-
-/**
  * Refreshes visual highlights for all annotations in the specified sheet.
  * @param sheetName
  */
@@ -515,29 +476,6 @@ export async function refreshAnnotationHighlights(sheetName: string): Promise<vo
       } catch {
         // Range might be invalid if rows/cols deleted
       }
-    }
-
-    await context.sync();
-  });
-}
-
-/**
- * Clears all annotation highlights from the specified sheet.
- * Only targets the used range to minimize performance impact.
- * @param sheetName
- */
-export async function clearAnnotationHighlights(sheetName: string): Promise<void> {
-  if (typeof Excel === "undefined") return;
-
-  await Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getItem(sheetName);
-    const usedRange = sheet.getUsedRangeOrNullObject();
-    usedRange.load("name");
-
-    await context.sync();
-
-    if (!usedRange.isNullObject) {
-      usedRange.format.fill.clear();
     }
 
     await context.sync();
@@ -638,7 +576,7 @@ export async function deleteAnnotationsBatch(ids: string[]): Promise<void> {
  * @param annotation
  * @param existingAnnotationsCache
  */
-export async function applyAnnotationInternal(
+async function applyAnnotationInternal(
   context: Excel.RequestContext,
   sheetName: string,
   address: string,
@@ -837,74 +775,6 @@ export async function applyValidationVisuals(
 }
 
 /**
- * Resolves a physical range from a logical OID.
- * Searches across the study's forms to find the OID.
- * @param logicalId
- * @returns
- */
-export async function resolvePhysicalRange(
-  logicalId: string
-): Promise<{ sheetName: string; address: string } | null> {
-  let result: { sheetName: string; address: string } | null = null;
-  if (typeof Excel === "undefined") return null;
-  await Excel.run(async (context) => {
-    const workbook = context.workbook;
-    const sheets = workbook.worksheets;
-    sheets.load("items/name");
-
-    await context.sync();
-
-    const usedRanges: { sheetName: string; usedRange: Excel.Range }[] = [];
-    for (const sheet of sheets.items) {
-      if (sheet.name.startsWith("_")) continue;
-      const usedRange = sheet.getUsedRangeOrNullObject();
-      usedRange.load(["values", "address", "rowCount", "columnCount", "columnIndex", "rowIndex"]);
-      usedRanges.push({ sheetName: sheet.name, usedRange });
-    }
-
-    await context.sync();
-
-    let targetCell: Excel.Range | null = null;
-    let targetSheetName = "";
-
-    for (const { sheetName, usedRange } of usedRanges) {
-      if (usedRange.isNullObject) continue;
-
-      const values = usedRange["values"];
-      for (let r = 0; r < values.length; r++) {
-        for (let c = 0; c < Math.min(values[r].length, 5); c++) {
-          if (String(values[r][c]).trim() === logicalId) {
-            const sheet = sheets.items.find((s) => s.name === sheetName);
-            if (sheet) {
-              targetCell = sheet.getRangeByIndexes(
-                usedRange.rowIndex + r,
-                usedRange.columnIndex + c,
-                1,
-                1
-              );
-              targetCell.load("address");
-              targetSheetName = sheetName;
-            }
-            break;
-          }
-        }
-        if (targetCell) break;
-      }
-      if (targetCell) break;
-    }
-
-    if (targetCell) {
-      await context.sync();
-      result = {
-        sheetName: targetSheetName,
-        address: targetCell.address,
-      };
-    }
-  });
-  return result;
-}
-
-/**
  * Resolves a logical OID from a physical address.
  * @param sheetName
  * @param address
@@ -947,7 +817,7 @@ export async function resolveLogicalId(sheetName: string, address: string): Prom
  * @param logicalId
  * @returns
  */
-export async function generateRowHash(
+async function generateRowHash(
   sheetName: string,
   rowIndex: number,
   logicalId?: string
@@ -993,7 +863,7 @@ export interface DriftWarning {
  * @param logicalId
  * @returns
  */
-export async function scanForDrift(
+async function scanForDrift(
   sheetName: string,
   startRowIndex: number,
   targetHash: string,
@@ -1150,168 +1020,6 @@ export async function applyManualReAnchor(annotationId: string, newAddress: stri
     await saveAnnotationToStore(annotation, context);
 
     await context.sync();
-  });
-}
-
-/**
- * Handles workbook mutations like sheet renames or row/column insertions.
- * Office.js comments follow cells automatically, but we ensure our hybrid
- * model stays in sync by refreshing logical-to-physical mappings.
- */
-export async function syncAnnotationsAfterMutation(): Promise<void> {
-  if (typeof Excel === "undefined") return;
-  await Excel.run(async (context) => {
-    const sheets = context.workbook.worksheets;
-    sheets.load("items/name");
-
-    await context.sync();
-
-    const allComments: any[] = [];
-
-    for (const sheet of sheets.items) {
-      if (sheet.name.startsWith("_")) continue;
-      const { comments } = sheet as any;
-      comments.load("items/content");
-      allComments.push({ sheet, comments });
-    }
-
-    await context.sync();
-
-    const commentsToProcess = [];
-
-    for (const { sheet, comments } of allComments) {
-      for (const comment of comments.items) {
-        const content = comment.content;
-        const metaMatch = content.match(/^\[(.*?):(.*?)\].*/);
-        if (metaMatch) {
-          const logicalId = metaMatch[2];
-          const location = (comment as any).location;
-          if (location) {
-            location.load("address");
-            commentsToProcess.push({ sheet, comment, location, logicalId });
-          }
-        }
-      }
-    }
-
-    await context.sync();
-
-    const engine = new ChunkingEngine<any>({ chunkSize: 50 });
-    await engine.execute([{ id: "sync-mutations", data: commentsToProcess }], async (chunk) => {
-      for (const item of chunk) {
-        const { sheet, location, logicalId } = item;
-        const currentLogicalId = await resolveLogicalId(sheet.name, location.address);
-        if (currentLogicalId && currentLogicalId !== logicalId) {
-          logger.warn(
-            `[AnnotationService] Anchor mismatch at ${location.address}: Expected ${logicalId}, found ${currentLogicalId}`
-          );
-          // Logic to handle orphan/drift could be added here
-        }
-      }
-    });
-  });
-}
-
-/**
- * Handles copy/paste operations by validating if the target cells should receive
- * the annotation and creating new candidates if necessary.
- * @param sourceAddress
- * @param targetAddress
- */
-export async function handleAnnotationCopyPaste(
-  sourceAddress: string,
-  targetAddress: string
-): Promise<void> {
-  if (typeof Excel === "undefined") return;
-  await Excel.run(async (context) => {
-    logger.info(`[AnnotationService] Handling copy from ${sourceAddress} to ${targetAddress}`);
-
-    const resolveRange = (addr: string) => {
-      if (addr.includes("!")) {
-        const [sName, rAddr] = addr.split("!");
-        return context.workbook.worksheets.getItem(sName).getRange(rAddr);
-      }
-      return context.workbook.worksheets.getActiveWorksheet().getRange(addr);
-    };
-
-    const sourceRange = resolveRange(sourceAddress);
-    const targetRange = resolveRange(targetAddress);
-
-    const sourceComments = (sourceRange as any).getComments
-      ? (sourceRange as any).getComments()
-      : (context.workbook.worksheets.getActiveWorksheet().comments as any).getComments(sourceRange);
-    sourceComments.load("items/content");
-
-    await context.sync();
-
-    for (const comment of sourceComments.items) {
-      // Propagation policy: copy creates new annotation candidate requiring confirmation
-      // We mark it with a "[CANDIDATE]" flag in the content
-      const candidateContent = `[CANDIDATE] ${comment.content}`;
-      const targetSheet = targetRange.worksheet;
-      targetSheet.comments.add(targetRange, candidateContent);
-    }
-  });
-}
-
-/**
- * Ensures annotations follow the entity identity during sort/filter.
- * @param sheetName
- */
-export async function reconcileAnnotationsAfterSort(sheetName: string): Promise<void> {
-  if (typeof Excel === "undefined") return;
-  await Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getItem(sheetName);
-    const { comments } = sheet as any;
-    comments.load("items/content");
-
-    await context.sync();
-
-    const locs = [];
-    for (const comment of comments.items) {
-      const location = (comment as any).location;
-      if (location) {
-        location.load("address");
-        locs.push({ comment, location });
-      }
-    }
-
-    await context.sync();
-  });
-}
-
-/**
- * Handles partial range movements that might split or orphan an annotation.
- * @param movedAddress
- * @param _originalAddress
- */
-export async function handlePartialRangeMovement(
-  movedAddress: string,
-  _originalAddress: string
-): Promise<void> {
-  if (typeof Excel === "undefined") return;
-  await Excel.run(async (context) => {
-    logger.info(`[AnnotationService] Partial move to ${movedAddress}`);
-    const movedRange = movedAddress.includes("!")
-      ? context.workbook.worksheets
-          .getItem(movedAddress.split("!")[0])
-          .getRange(movedAddress.split("!")[1])
-      : context.workbook.worksheets.getActiveWorksheet().getRange(movedAddress);
-
-    // Check if the original address had an annotation that should have moved entirely
-    const comments = (movedRange as any).getComments
-      ? (movedRange as any).getComments()
-      : (movedRange.worksheet["comments"] as any).getComments(movedRange);
-    comments.load("items/content");
-
-    await context.sync();
-
-    if (comments.items.length > 0) {
-      // If it moved but was part of a larger range, flag it
-      logger.info(
-        `[AnnotationService] Moved range ${movedAddress} contains annotations. Checking for splits...`
-      );
-    }
   });
 }
 

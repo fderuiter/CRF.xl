@@ -21,9 +21,9 @@ export interface ExecutionPlan<T> {
   data: T[];
 }
 
-export type EngineEvent = "progress" | "state" | "error";
+type EngineEvent = "progress" | "state" | "error";
 
-export interface ChunkingEngineOptions {
+interface ChunkingEngineOptions {
   chunkSize?: number;
   yieldStrategy?: () => Promise<void>;
   abortSignal?: AbortSignal;

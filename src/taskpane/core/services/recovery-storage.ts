@@ -10,7 +10,7 @@ export const RECOVERY_STORAGE_KEY = "crf-xl-recovery-snapshot-v1";
 export const RECOVERY_SNAPSHOT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const RECOVERY_APP_VERSION = "0.0.1";
 
-export interface StorageLike {
+interface StorageLike {
   getItem(key: string): Promise<string | null> | string | null;
   setItem(key: string, value: string): Promise<void> | void;
   removeItem(key: string): Promise<void> | void;
@@ -242,7 +242,7 @@ const JustificationSchema = z
   })
   .strict();
 
-export const RecoverySnapshotSchema = z
+const RecoverySnapshotSchema = z
   .object({
     appVersion: z.string(),
     savedAt: z.number(),
@@ -304,7 +304,7 @@ export function summarizeStudyDesign(study: StudyDesign): StudyDesignSummary {
   };
 }
 
-export function summarizeValidation(
+function summarizeValidation(
   issues: ValidationIssue[],
   analyzedAt: number = Date.now()
 ): ValidationSummary {
@@ -322,7 +322,7 @@ function sanitizeMessage(message: string): string {
   return message.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
 }
 
-export function toRecoveryIssues(issues: ValidationIssue[]): RecoveryIssue[] {
+function toRecoveryIssues(issues: ValidationIssue[]): RecoveryIssue[] {
   return issues.map((issue) => ({
     level: issue.level,
     message: sanitizeMessage(issue.message),

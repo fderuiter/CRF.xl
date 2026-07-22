@@ -19,7 +19,7 @@ export class BaselineWorkbookParseError extends Error {
   }
 }
 
-export interface BaselineWorkbookFileLike {
+interface BaselineWorkbookFileLike {
   name: string;
   size: number;
   arrayBuffer: () => Promise<ArrayBuffer>;

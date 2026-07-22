@@ -1,8 +1,3 @@
-/**
- * @issue #28
- */
-import { StudyDesign } from "./hierarchy";
-
 export interface RowChange {
   sheet: string;
   rowIndex: number;
@@ -35,10 +30,4 @@ export interface ImportManifest {
     formsProcessed: number;
     itemsProcessed: number;
   };
-}
-
-export interface MigrationResult {
-  study: StudyDesign;
-  manifest: ImportManifest;
-  projection: WorkbookProjection;
 }

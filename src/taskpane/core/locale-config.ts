@@ -1,7 +1,7 @@
 /**
  * @issue #28
  */
-export interface LocaleConfig {
+interface LocaleConfig {
   argSeparator: string;
   decimalSeparator: string;
   currentLocale: string;

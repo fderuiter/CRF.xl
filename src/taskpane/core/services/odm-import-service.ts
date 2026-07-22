@@ -19,8 +19,8 @@ import { normalizeDataType, normalizeOid } from "../parser/metadata-utils";
  * Normalised severity for ODM import diagnostics.
  * Lowercase to align with the shared ImportSeverity contract.
  */
-export type OdmImportDiagnosticSeverity = "error" | "warning";
-export type OdmImportDiagnosticCategory = "Parse" | "Semantic" | "Unsupported";
+type OdmImportDiagnosticSeverity = "error" | "warning";
+type OdmImportDiagnosticCategory = "Parse" | "Semantic" | "Unsupported";
 
 /**
  * ODM-specific diagnostic record.  Extends the shared ImportDiagnostic so
@@ -310,7 +310,7 @@ export async function importOdmXml(xml: string): Promise<OdmImportPackage> {
   return buildImportPackage(study, diagnostics);
 }
 
-export function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProjection {
+function projectOdmImportToWorkbook(study: StudyDesign): OdmWorkbookProjection {
   const formRows = Object.values(study.forms)
     .slice()
     .sort((left, right) => (left.orderNumber ?? 0) - (right.orderNumber ?? 0))
