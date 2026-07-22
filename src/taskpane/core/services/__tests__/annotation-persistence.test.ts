@@ -74,7 +74,7 @@ describe("Annotation Persistence & Lifecycle", () => {
 
     (global as any).Excel = {
       run: (callback: any) => {
-        const { createSafeMock } = require("../../utils/test-proxy");
+        const { createSafeMock } = require("../../test-helpers/test-proxy");
         return callback(createSafeMock(mockContext));
       },
     };
