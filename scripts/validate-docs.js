@@ -3,7 +3,7 @@ const path = require("path");
 const http = require("http");
 const https = require("https");
 
-const projectRoot = path.resolve(__dirname, "..");
+const projectRoot = "/app";
 const docsDir = path.join(projectRoot, "docs");
 
 const CHECK_EXTERNAL = process.argv.includes("--check-external");
@@ -25,7 +25,26 @@ function isWhitelisted(hostname) {
 let scannedFilesCount = 0;
 let totalLinksCount = 0;
 let brokenLinksCount = 0;
+let outOfBoundsCount = 0;
+let supersededErrorsCount = 0;
 let unescapedTagsCount = 0;
+
+const APPROVED_DOCS_FOLDERS = ["architecture", "specification", "compliance", "deployment", "qa-testing", "github"];
+
+let registryEntries = new Map();
+const registryPath = path.join(docsDir, "github", "superseded-registry.md");
+if (fs.existsSync(registryPath)) {
+  const content = fs.readFileSync(registryPath, "utf8");
+  const lines = content.split('\n');
+  lines.forEach(line => {
+    if (line.startsWith('|')) {
+      const parts = line.split('|').map(s => s.trim());
+      if (parts.length > 2 && parts[1] !== 'File Path' && !parts[1].startsWith('---')) {
+        registryEntries.set(parts[1], parts[2]);
+      }
+    }
+  });
+}
 
 const allowedHtmlTags = new Set([
   "a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend", "li", "link", "main", "map", "mark", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"
@@ -46,7 +65,6 @@ function info(message) {
   console.log(`[INFO] ${message}`);
 }
 
-// Recursively find all markdown files
 function findMarkdownFiles(dir, filesList = []) {
   if (!fs.existsSync(dir)) {
     return filesList;
@@ -64,27 +82,21 @@ function findMarkdownFiles(dir, filesList = []) {
   return filesList;
 }
 
-// Extract links from markdown content, stripping code blocks
 function extractLinks(content) {
-  // Strip fenced code blocks to prevent validating links inside code samples
   let cleanContent = content.replace(/```[\s\S]*?```/g, "");
-  // Strip inline code blocks
   cleanContent = cleanContent.replace(/`[^`\n]+`/g, "");
 
   const links = [];
   let match;
 
-  // 1. Match inline links/images: [text](url) or ![alt](url)
   const inlineRegex = /!?\[([^\]]*)\]\(([^)]+)\)/g;
   while ((match = inlineRegex.exec(cleanContent)) !== null) {
     const url = match[2].trim();
-    // Strip optional title from markdown link: [text](url "title") or [text](url 'title')
     const titleMatch = url.match(/^([^\s"']+)(?:\s+["'].*?["'])?$/);
     const cleanUrl = titleMatch ? titleMatch[1] : url;
     links.push(cleanUrl);
   }
 
-  // 2. Match reference definitions at the bottom: [ref]: url
   const refRegex = /^\s*\[([^\]]+)\]:\s*(\S+)/gm;
   while ((match = refRegex.exec(cleanContent)) !== null) {
     links.push(match[2].trim());
@@ -95,6 +107,8 @@ function extractLinks(content) {
 
 // Normalize a link to an absolute filesystem path or return an object if it should be checked externally
 function normalizeLink(link, currentFilePath) {
+  if (link.startsWith("#")) return null;
+
   // Ignore external web links unless flag is passed and domain is whitelisted
   if (/^(https?):/i.test(link)) {
     if (CHECK_EXTERNAL) {
@@ -114,44 +128,75 @@ function normalizeLink(link, currentFilePath) {
     return null;
   }
 
-  // Ignore page-local anchor links (e.g. #some-header)
-  if (link.startsWith("#")) {
-    return null;
-  }
-
-  // Strip fragment selectors (e.g., file.md#section-name -> file.md)
   const hashIndex = link.indexOf("#");
   let cleanLink = hashIndex !== -1 ? link.slice(0, hashIndex) : link;
+  if (!cleanLink) return null;
 
-  if (!cleanLink) {
-    return null;
-  }
+  try { cleanLink = decodeURIComponent(cleanLink); } catch (e) {}
 
-  // Decode URI components (e.g., %20 -> space)
-  try {
-    cleanLink = decodeURIComponent(cleanLink);
-  } catch (e) {
-    // Ignore decode errors
-  }
-
-  // Strip system-specific file:/// prefix
   if (cleanLink.startsWith("file://")) {
     cleanLink = cleanLink.slice(7);
   }
 
-  // Handle system-specific absolute paths ending in CRF.xl (or containing CRF.xl)
   const crfIndex = cleanLink.indexOf("CRF.xl");
   if (crfIndex !== -1) {
-    const suffix = cleanLink.slice(crfIndex + 6); // Skip "CRF.xl"
+    const suffix = cleanLink.slice(crfIndex + 6);
     cleanLink = path.join(projectRoot, suffix);
   }
 
-  // Resolve absolute vs relative paths
   if (path.isAbsolute(cleanLink)) {
     return { type: "local", path: cleanLink };
   } else {
     // Resolve relative to the file we found it in
     return { type: "local", path: path.resolve(path.dirname(currentFilePath), cleanLink) };
+  }
+}
+
+function checkFolderBoundaries(relativePath) {
+  if (relativePath.startsWith("docs/")) {
+    const parts = relativePath.split("/");
+    if (parts.length === 2 && parts[1] !== "README.md") {
+      fail(`Out-of-bounds file in docs root: ${relativePath}`);
+      outOfBoundsCount++;
+    } else if (parts.length > 2) {
+      const topLevelFolder = parts[1];
+      if (!APPROVED_DOCS_FOLDERS.includes(topLevelFolder)) {
+        fail(`Unapproved top-level docs folder: ${relativePath}`);
+        outOfBoundsCount++;
+      }
+    }
+  }
+}
+
+function checkSuperseded(relativePath, content) {
+  let cleanContent = content.replace(/```[\s\S]*?```/g, "");
+  cleanContent = cleanContent.replace(/`[^`\n]+`/g, "");
+
+  const isSupersededDir = relativePath.includes("/superseded/");
+  const isSupersededStatus = cleanContent.includes("**Status:** Superseded");
+
+  if (isSupersededStatus && !isSupersededDir) {
+    fail(`Retired document not in a superseded directory: ${relativePath}`);
+    supersededErrorsCount++;
+  }
+  
+  if (isSupersededDir) {
+    if (!isSupersededStatus) {
+      fail(`File in superseded directory missing warning banner: ${relativePath}`);
+      supersededErrorsCount++;
+    } else {
+      const replacedByRegex = /\*\*Replaced by:\*\*\s*(.+)/;
+      const match = replacedByRegex.exec(cleanContent);
+      if (!match) {
+        fail(`Superseded file missing 'Replaced by:' in banner: ${relativePath}`);
+        supersededErrorsCount++;
+      }
+      
+      if (!registryEntries.has(relativePath)) {
+        fail(`Superseded file not registered in central registry: ${relativePath}`);
+        supersededErrorsCount++;
+      }
+    }
   }
 }
 
@@ -182,7 +227,7 @@ function validateTags(content, filePath, relativePath) {
 
 function validateFile(filePath) {
   scannedFilesCount++;
-  const relativePath = path.relative(projectRoot, filePath);
+  const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/');
   
   if (!fs.existsSync(filePath)) {
     fail(`File does not exist: ${relativePath}`);
@@ -190,11 +235,11 @@ function validateFile(filePath) {
   }
 
   const content = fs.readFileSync(filePath, "utf8");
-  
   validateTags(content, filePath, relativePath);
+  checkFolderBoundaries(relativePath);
+  checkSuperseded(relativePath, content);
 
   const rawLinks = extractLinks(content);
-
   for (const rawLink of rawLinks) {
     const resolved = normalizeLink(rawLink, filePath);
     if (!resolved) {
@@ -209,7 +254,7 @@ function validateFile(filePath) {
       const resolvedPath = resolved.path;
       if (!fs.existsSync(resolvedPath)) {
         brokenLinksCount++;
-        const resolvedRelative = path.relative(projectRoot, resolvedPath);
+        const resolvedRelative = path.relative(projectRoot, resolvedPath).replace(/\\/g, '/');
         fail(
           `Broken link in "${relativePath}": "${rawLink}" (Resolved to: "${resolvedRelative}")`
         );
@@ -261,16 +306,38 @@ async function main() {
   info("Starting markdown documentation link validation...");
 
   // --- OpenAPI Documentation Compilation Check ---
-  const apiYamlPath = path.join(docsDir, "cdisc-library-api.yaml");
-  const apiHtmlPath = path.join(docsDir, "cdisc-library-api.html");
+  const apiYamlPath = path.join(docsDir, "specification", "cdisc-library-api.yaml");
+  const apiHtmlPath = path.join(docsDir, "specification", "cdisc-library-api.html");
 
   if (fs.existsSync(apiYamlPath)) {
     if (!fs.existsSync(apiHtmlPath)) {
       fail("Compiled HTML API documentation is missing. Please run `npm run docs:build-api`.");
     } else {
-      const yamlStat = fs.statSync(apiYamlPath);
-      const htmlStat = fs.statSync(apiHtmlPath);
-      if (yamlStat.mtime > htmlStat.mtime) {
+      let isOutOfSync = false;
+      try {
+        const { execSync } = require("child_process");
+        // If there are uncommitted changes to yaml, we check mtime
+        const status = execSync(`git status --porcelain "${apiYamlPath}"`).toString().trim();
+        if (status) {
+          isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+        } else {
+          // compare git commit times
+          const yamlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiYamlPath}"`).toString().trim();
+          const htmlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiHtmlPath}"`).toString().trim();
+          
+          if (yamlTimeStr && htmlTimeStr) {
+            isOutOfSync = parseInt(yamlTimeStr, 10) > parseInt(htmlTimeStr, 10);
+          } else {
+            // fallback if not in git (e.g., zip download)
+            isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+          }
+        }
+      } catch (e) {
+        // Fallback to mtime if git fails
+        isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
+      }
+
+      if (isOutOfSync) {
         fail("Compiled HTML API documentation is out of sync with the source YAML. Please run `npm run docs:build-api`.");
       }
     }
@@ -308,9 +375,10 @@ async function main() {
   }
 
   // Report results
-  if (brokenLinksCount > 0 || unescapedTagsCount > 0 || process.exitCode === 1) {
+  const totalErrors = brokenLinksCount + outOfBoundsCount + supersededErrorsCount + unescapedTagsCount;
+  if (totalErrors > 0 || process.exitCode === 1) {
     fail(
-      `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links, found ${brokenLinksCount} broken link(s) and ${unescapedTagsCount} unescaped tag(s).`
+      `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links. Errors found: ${brokenLinksCount} broken link(s), ${outOfBoundsCount} out-of-bounds file(s), ${supersededErrorsCount} superseded rule violation(s), ${unescapedTagsCount} unescaped tag(s).`
     );
     process.exit(1);
   } else {

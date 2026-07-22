@@ -94,7 +94,7 @@ See [`docs/architecture/module-map.md`](./docs/architecture/module-map.md) for t
 
 All project documentation is structured and maintained under the [docs/](./docs/) directory. To explore specific documents, consult the canonical [CRF.xl Documentation Map](./docs/README.md).
 
-For interactive documentation of the external CDISC Library data models and integration endpoints, refer to the [CDISC Library Local API Reference](./docs/cdisc-library-api.html).
+For interactive documentation of the external CDISC Library data models and integration endpoints, refer to the [CDISC Library Local API Reference](./docs/specification/cdisc-library-api.html).
 
 ### 🔍 Documentation Source of Truth Guidelines
 To maintain alignment across teams and prevent drift, developers must consult the appropriate documentation directory based on the nature of their work:

@@ -25,7 +25,7 @@
     "start": "office-addin-debugging start manifest.xml",
     "stop": "office-addin-debugging stop manifest.xml",
     "validate": "node ./scripts/validate-manifests.js",
-    "docs:build-api": "redocly build-docs docs/cdisc-library-api.yaml -o docs/cdisc-library-api.html",
+    "docs:build-api": "redocly build-docs docs/specification/cdisc-library-api.yaml -o docs/specification/cdisc-library-api.html",
     "docs:validate": "node ./scripts/validate-docs.js",
     "docs:validate-code": "node ./scripts/validate-markdown-code.js",
     "docs:api-check": "node ./scripts/semantic-interface-checker.js",

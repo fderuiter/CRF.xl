@@ -108,7 +108,7 @@ Committed fixtures:
 - `test/fixtures/cdisc-library/ct-codelist-terms.response.json`
 - `test/fixtures/cdisc-library/ct-mapping-bundle.response.json` (consumed by mapping-layer tests)
 
-Fixture payloads track OpenAPI shapes from `docs/cdisc-library-api.yaml`, including `_links.packages`, `_links.codelists`, and `_links.terms`.
+Fixture payloads track OpenAPI shapes from `docs/specification/cdisc-library-api.yaml`, including `_links.packages`, `_links.codelists`, and `_links.terms`.
 
 Unit tests in `src/taskpane/core/services/__tests__/cdisc-api-service.test.ts` cover:
 
