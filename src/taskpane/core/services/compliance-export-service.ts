@@ -61,7 +61,9 @@ export class ComplianceExportService {
     });
     const docxHash = await sha256Native(docxArrayBuffer);
 
-    const protocolId = currentStudy.metadata.protocolId || "UNKNOWN";
+    const rawProtocolId = currentStudy.metadata.protocolId || "UNKNOWN";
+    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    
     await zip.addFile(
       `${protocolId}_Annotated_CRF.docx`,
       new Uint8Array(docxArrayBuffer as ArrayBuffer)
