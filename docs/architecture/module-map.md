@@ -534,6 +534,28 @@ Related:
 
 ## Utility modules (`src/taskpane/core/utils/`)
 
+## UI Component modules (`src/taskpane/components/ui/`)
+
+### `Button.tsx`
+
+**Purpose:** Centralized button wrapper.
+
+**Public interface:** `Button`
+
+**Owning issues:** #313
+
+---
+
+### `UniversalStepper.tsx`
+
+**Purpose:** Navigation architecture for multi-step flows.
+
+**Public interface:** `UniversalStepper`
+
+**Owning issues:** #313
+
+---
+
 ### `zip-writer.ts`
 
 **Purpose:** Pure TypeScript implementation for generating ZIP archives without external native dependencies.
