@@ -11,15 +11,29 @@ import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
 import { generatePdfBlobFromHtml } from "../../services/pdf-export-adapter";
-import { Theme } from "../../../theme";
 import { getTranslation } from "../shared-localization";
+
+export interface PdfThemeColors {
+  primary: string;
+  success: string;
+  warning: string;
+  background: string;
+}
+
+const DEFAULT_THEME_COLORS: PdfThemeColors = {
+  primary: "#1F77B4",
+  success: "#2CA02C",
+  warning: "#FF7F0E",
+  background: "#eeeeee",
+};
 
 export async function generatePdfBlob(
   study: StudyDesign,
   validationIssues: any[] = [],
   auditSummary?: StudyDiffReport,
   exportOptions?: ExportOptions,
-  annotatedCrfDoc?: AnnotatedCrfDocument
+  annotatedCrfDoc?: AnnotatedCrfDocument,
+  themeColors: PdfThemeColors = DEFAULT_THEME_COLORS
 ): Promise<Blob> {
   const protocolId = study.metadata.protocolId || "UNKNOWN";
   const timestamp = new Date().toISOString();
@@ -97,7 +111,7 @@ export async function generatePdfBlob(
   html += `<div style="page-break-after: always; clear: both;"></div>`;
 
   for (const [formOid, form] of Object.entries(study.forms)) {
-    html += `<h2 style="font-size: 12px; font-weight: bold; background-color: ${Theme.colors.background}; margin: 0 0 20px 0; padding: 5px;">Protocol ID: ${escapeHtml(protocolId)} | Form: ${escapeHtml(formOid)} (${escapeHtml(form.formName)}) | Subject: ____ | Visit: ____</h2>`;
+    html += `<h2 style="font-size: 12px; font-weight: bold; background-color: ${themeColors.background}; margin: 0 0 20px 0; padding: 5px;">Protocol ID: ${escapeHtml(protocolId)} | Form: ${escapeHtml(formOid)} (${escapeHtml(form.formName)}) | Subject: ____ | Visit: ____</h2>`;
 
     form.itemGroups.forEach((group) => {
       let groupHtml = `<div style="margin-bottom: 10px;">`;
@@ -112,11 +126,11 @@ export async function generatePdfBlob(
             affordanceText = "|--------------------------------------------------|";
           }
 
-          let bubbleColor = Theme.colors.primary;
+          let bubbleColor = themeColors.primary;
           if (item.codelistId) {
-            bubbleColor = Theme.colors.success;
+            bubbleColor = themeColors.success;
           } else if (item.showIf || item.enableIf) {
-            bubbleColor = Theme.colors.warning;
+            bubbleColor = themeColors.warning;
           }
 
           const sasName = item.sdtmMapping?.sasFieldName || item.itemOid;

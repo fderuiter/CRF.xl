@@ -1,7 +1,7 @@
 /**
  * @issue #84
  */
-import { detectConflicts, getRepairPolicy, RepairConfidence } from "../annotation-validator";
+import { detectConflicts, getRepairPolicy, RepairConfidence, validateAnnotationTarget, ExcelRangeData } from "../annotation-validator";
 import { Annotation, AnnotationType, AnnotationTargetType } from "../../types";
 
 describe("AnnotationValidator", () => {
@@ -17,6 +17,44 @@ describe("AnnotationValidator", () => {
     content: "Test Content",
     timestamp: new Date().toISOString(),
     version: 1,
+  });
+
+  describe("validateAnnotationTarget", () => {
+    it("should return ProtectedRange issue when range is locked and worksheet is protected", () => {
+      const rangeData: ExcelRangeData = {
+        address: "A1",
+        isLocked: true,
+        isWorksheetProtected: true,
+        isMerged: false,
+      };
+      const issues = validateAnnotationTarget(rangeData);
+      expect(issues.length).toBe(1);
+      expect(issues[0].category).toBe("ProtectedRange");
+    });
+
+    it("should return MergedCell issue when range is part of a merged cell and address differs", () => {
+      const rangeData: ExcelRangeData = {
+        address: "A1",
+        isLocked: false,
+        isWorksheetProtected: false,
+        isMerged: true,
+        mergedAddress: "A1:B2",
+      };
+      const issues = validateAnnotationTarget(rangeData);
+      expect(issues.length).toBe(1);
+      expect(issues[0].category).toBe("MergedCell");
+    });
+
+    it("should return empty issues array when range is valid", () => {
+      const rangeData: ExcelRangeData = {
+        address: "A1",
+        isLocked: false,
+        isWorksheetProtected: false,
+        isMerged: false,
+      };
+      const issues = validateAnnotationTarget(rangeData);
+      expect(issues.length).toBe(0);
+    });
   });
 
   describe("detectConflicts", () => {
