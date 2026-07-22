@@ -812,6 +812,15 @@ const App: React.FC<{ title?: string }> = () => {
       const manifest = loadImportManifest();
       const { ComplianceExportService } =
         await import("../core/services/compliance-export-service");
+      const { DocxExportAdapter, PdfExportAdapter, OdmXmlExportAdapter } =
+        await import("../core/services/standard-export-adapters");
+      
+      if ((ComplianceExportService as any).adapters.length === 0) {
+        ComplianceExportService.registerAdapter(new DocxExportAdapter());
+        ComplianceExportService.registerAdapter(new PdfExportAdapter());
+        ComplianceExportService.registerAdapter(new OdmXmlExportAdapter());
+      }
+
       const zipBlob = await ComplianceExportService.createExportPackage(
         currentStudy,
         baselineStudy,

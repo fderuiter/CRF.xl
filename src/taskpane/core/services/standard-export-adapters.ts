@@ -1,0 +1,73 @@
+import { StudyDesign } from "../types/hierarchy";
+import { StudyDiffReport } from "../types/diff";
+import { ExportOptions } from "../types/linguistics";
+import { ImportProvenance } from "./migration-pipeline";
+import { generateOdmXml } from "../generators/cdisc/odm-builder";
+import { generateDocxBlob } from "../generators/docx/docx-builder";
+import { generatePdfBlob } from "../generators/pdf/pdf-builder";
+import { ExportAdapter, ExportAdapterContext, ExportAdapterResult } from "./compliance-export-service";
+
+export class DocxExportAdapter implements ExportAdapter {
+  async generate(context: ExportAdapterContext): Promise<ExportAdapterResult[]> {
+    const blob = await generateDocxBlob(context.currentStudy, context.options?.exportOptions);
+    const data = await blob.arrayBuffer();
+    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    return [{
+      fileName: `${protocolId}_Annotated_CRF.docx`,
+      data
+    }];
+  }
+}
+
+export class PdfExportAdapter implements ExportAdapter {
+  async generate(context: ExportAdapterContext): Promise<ExportAdapterResult[]> {
+    const blob = await generatePdfBlob(
+      context.currentStudy,
+      context.validationIssues,
+      context.auditSummary,
+      context.options?.exportOptions
+    );
+    const data = await blob.arrayBuffer();
+    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    return [{
+      fileName: `${protocolId}_Annotated_CRF.pdf`,
+      data
+    }];
+  }
+}
+
+export class OdmXmlExportAdapter implements ExportAdapter {
+  async generate(context: ExportAdapterContext): Promise<ExportAdapterResult[]> {
+    const { xml, diagnostics } = await generateOdmXml(context.currentStudy, {
+      bestEffort: true,
+      exportOptions: context.options?.exportOptions,
+    });
+    const protocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
+    
+    const results: ExportAdapterResult[] = [
+      {
+        fileName: `${protocolId}_ODM_Specification.xml`,
+        data: await new Blob([xml]).arrayBuffer()
+      }
+    ];
+
+    if (diagnostics) {
+      results.push({
+        fileName: `${protocolId}_ODM_Diagnostics.txt`,
+        data: await new Blob([diagnostics]).arrayBuffer()
+      });
+    }
+
+    return results;
+  }
+}
+
+export function registerStandardAdapters() {
+  const { ComplianceExportService } = require("./compliance-export-service");
+  // Prevent duplicate registration in case of hot-reloading or multiple calls
+  if ((ComplianceExportService as any).adapters?.length > 0) return;
+  
+  ComplianceExportService.registerAdapter(new DocxExportAdapter());
+  ComplianceExportService.registerAdapter(new PdfExportAdapter());
+  ComplianceExportService.registerAdapter(new OdmXmlExportAdapter());
+}
