@@ -11,26 +11,10 @@ import {
   RuleType,
   isCrfItem,
   ASTNode,
-  RuleDefinition,
   ExportOptions,
 } from "../../types/index";
-import { validateRules, RuleValidationError } from "../../parser/dag-validator";
-import { parseRuleExpression } from "../../parser/rules-parser";
 import { LinguisticService } from "../../services/linguistics-service";
 import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
-
-/**
- * Error thrown when rules pre-serialization validation fails.
- */
-class OdmSerializationError extends Error {
-  public readonly errors: RuleValidationError[];
-  constructor(message: string, errors: RuleValidationError[]) {
-    super(message);
-    this.name = "OdmSerializationError";
-    this.errors = errors;
-    Object.setPrototypeOf(this, OdmSerializationError.prototype);
-  }
-}
 
 /**
  * Helper to match a rule target against an item OID.
@@ -108,96 +92,11 @@ export async function generateOdmXml(
   const diagnosticsLines: string[] = [];
   let finalDiagnostics: string | undefined = undefined;
 
-  // Gather synthetic rules from inline showIf and methods
   const iterator = new ClinicalIterator({ sortStrategy: SortStrategy.NATURAL });
-  const syntheticRules: RuleDefinition[] = [];
-  for (const { item } of iterator.walkForms(study)) {
-    if (!isCrfItem(item)) continue;
-    if (item.showIf) {
-      const hasCentralRule = study.rules?.some(
-        (r) =>
-          r.ruleType === RuleType.SHOW_IF && r.target && targetMatchesItem(r.target, item.itemOid)
-      );
-      if (!hasCentralRule) {
-        const ruleId = `COND.${item.itemOid}`;
-        const syntheticRule: RuleDefinition = {
-          ruleId,
-          ruleType: RuleType.SHOW_IF,
-          target: item.itemOid,
-          expression: item.showIf,
-          _sourceRowIndex: -1, // Indicates it's not from a sheet row directly
-        };
-        try {
-          syntheticRule.ast = parseRuleExpression(item.showIf);
-        } catch (e) {
-          syntheticRule.parseError = e instanceof Error ? e.message : String(e);
-        }
-        syntheticRules.push(syntheticRule);
-      }
-    }
-  }
+  const allRules = study.rules || [];
+  const topOrder: string[] = study.metadata.customProperties?.ruleOrder || [];
 
-  if (study.methods) {
-    Object.values(study.methods).forEach((method) => {
-      if (method.expression) {
-        const ruleId = method.methodOid.trim();
-        if (!study.rules?.some((r) => r.ruleId === ruleId)) {
-          const syntheticRule: RuleDefinition = {
-            ruleId,
-            name: method.name,
-            description: method.description,
-            ruleType: RuleType.DERIVATION,
-            expression: method.expression,
-            _sourceRowIndex: -1,
-          };
-          try {
-            syntheticRule.ast = parseRuleExpression(method.expression);
-          } catch (e) {
-            syntheticRule.parseError = e instanceof Error ? e.message : String(e);
-          }
-          syntheticRules.push(syntheticRule);
-        }
-      }
-    });
-  }
-
-  const allRules = [...(study.rules || []), ...syntheticRules];
-
-  // Run pre-serialization validation if rules are present
-  let topOrder: string[] = [];
   if (allRules.length > 0) {
-    const validationResult = await validateRules(allRules, study, { isExport: true });
-    topOrder = validationResult.topologicalOrder;
-
-    const criticalErrors = validationResult.errors.filter((e) => e.type === "CYCLE");
-    const errors = validationResult.errors.filter((e) => e.level === "Error");
-
-    if (criticalErrors.length > 0) {
-      throw new OdmSerializationError("Rule pre-serialization validation failed", criticalErrors);
-    }
-
-    if (errors.length > 0 && !options.bestEffort) {
-      throw new OdmSerializationError("Rule pre-serialization validation failed", errors);
-    }
-
-    if (errors.length > 0 && options.bestEffort) {
-      diagnosticsLines.push("=== Export Diagnostic Report ===");
-      diagnosticsLines.push("Best-Effort mode active. The following logic errors were ignored:");
-      errors.forEach((e) => {
-        diagnosticsLines.push(
-          `- Rule '${e.ruleId}'${e.rowIndex && e.rowIndex > 0 ? ` (Row ${e.rowIndex})` : ""}: ${e.message}`
-        );
-      });
-    }
-
-    // Collect validation warnings
-    const warnings = validationResult.errors.filter((e) => e.level === "Warning");
-    warnings.forEach((w) => {
-      const warningMsg = `Rule '${w.ruleId}': ${w.message}`;
-      logger.warn(warningMsg);
-      serializationWarnings.push(warningMsg);
-    });
-
     // Check if targets exist in study design for SHOW_IF and DERIVATION rules
     const studyItemOids = new Set<string>();
     for (const { item } of iterator.walkForms(study)) {
@@ -476,12 +375,6 @@ export async function generateOdmXml(
     processedConditions.add(conditionOid);
 
     let formalExpressionString = item.showIf;
-    try {
-      const ast = parseRuleExpression(item.showIf);
-      formalExpressionString = serializeAST(ast);
-    } catch {
-      // ignore
-    }
 
     xml += `
       <ConditionDef OID="${escapeXml(conditionOid)}" Name="Show condition for ${escapeXml(item.name)}">
@@ -556,12 +449,6 @@ export async function generateOdmXml(
       let formalExpressionElement = "";
       if (method.expression) {
         let formalExpressionString = method.expression;
-        try {
-          const ast = parseRuleExpression(method.expression);
-          formalExpressionString = serializeAST(ast);
-        } catch {
-          // ignore
-        }
         formalExpressionElement = `
         <FormalExpression Context="CRF.xl">${escapeXml(formalExpressionString)}</FormalExpression>`;
       }

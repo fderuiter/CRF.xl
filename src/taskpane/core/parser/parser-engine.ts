@@ -17,6 +17,7 @@ import { LinguisticService } from "../services/linguistics-service";
 import { mapRowToFormElement } from "./form-element-utils";
 import { parseReferencedVariables, normalizeOid } from "./metadata-utils";
 import { GlobalOidRegistry } from "../registry/oid-registry";
+import { compileSyntheticRules } from "./rule-compiler";
 
 interface ParseExcelToStudyDesignOptions extends ParseRuntimeOptions {
   allowPartialSheetFailures?: boolean;
@@ -460,6 +461,8 @@ export async function parseRawDataToStudyDesign(
     total: 1,
     message: "Workbook analysis completed",
   });
+
+  compileSyntheticRules(study);
 
   return migrateStudyDesign(study);
 }

@@ -103,59 +103,6 @@ describe("CDISC ODM XML Builder", () => {
     expect(xml).toContain('CollectionExceptionConditionOID="COND.IT_WT"');
   });
 
-  describe("Rule pre-serialization validation", () => {
-    it("should throw OdmSerializationError on circular rule dependencies", async () => {
-      mockStudy.rules = [
-        {
-          ruleId: "RULE_A",
-          ruleType: RuleType.VALIDATION,
-          expression: "RULE_B == 1",
-          _sourceRowIndex: 2,
-        },
-        {
-          ruleId: "RULE_B",
-          ruleType: RuleType.VALIDATION,
-          expression: "RULE_A == 1",
-          _sourceRowIndex: 3,
-        },
-      ];
-
-      // Parse the rule expressions to generate their ASTs so dependency validator can traverse them
-      const { parseRuleExpression } = require("../../../parser/rules-parser");
-      mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
-      mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
-
-      await expect(generateOdmXml(mockStudy)).rejects.toThrow(
-        "Rule pre-serialization validation failed"
-      );
-    });
-
-    it("should throw OdmSerializationError on duplicate rule IDs", async () => {
-      mockStudy.rules = [
-        {
-          ruleId: "R1",
-          ruleType: RuleType.VALIDATION,
-          expression: "IT_WT > 0",
-          _sourceRowIndex: 2,
-        },
-        {
-          ruleId: "R1",
-          ruleType: RuleType.VALIDATION,
-          expression: "IT_WT < 300",
-          _sourceRowIndex: 3,
-        },
-      ];
-
-      const { parseRuleExpression } = require("../../../parser/rules-parser");
-      mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
-      mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
-
-      await expect(generateOdmXml(mockStudy)).rejects.toThrow(
-        "Rule pre-serialization validation failed"
-      );
-    });
-  });
-
   describe("Rule CDISC Element Mapping", () => {
     it("should serialize VALIDATION and SHOW_IF rules to ConditionDef and DERIVATION rules to MethodDef", async () => {
       mockStudy.forms.F1.itemGroups[0].items.push(
@@ -226,6 +173,11 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
 
+      mockStudy.metadata.customProperties = {
+        ...mockStudy.metadata.customProperties,
+        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"]
+      };
+
       const { xml } = await generateOdmXml(mockStudy);
 
       // Check ConditionDefs
@@ -278,6 +230,11 @@ describe("CDISC ODM XML Builder", () => {
       mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
       mockStudy.rules[1].ast = parseRuleExpression(mockStudy.rules[1].expression);
       mockStudy.rules[2].ast = parseRuleExpression(mockStudy.rules[2].expression);
+
+      mockStudy.metadata.customProperties = {
+        ...mockStudy.metadata.customProperties,
+        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"]
+      };
 
       const { xml } = await generateOdmXml(mockStudy);
 
@@ -399,7 +356,7 @@ describe("CDISC ODM XML Builder", () => {
       expect(xml).toContain("<Description>");
       expect(xml).toContain('<TranslatedText xml:lang="en-US">Calculates BMI</TranslatedText>');
       expect(xml).toContain(
-        '<FormalExpression Context="CRF.xl">WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100))</FormalExpression>'
+        '<FormalExpression Context="CRF.xl">WEIGHT / ((HEIGHT/100) * (HEIGHT/100))</FormalExpression>'
       );
     });
 

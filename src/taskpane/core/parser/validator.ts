@@ -283,6 +283,12 @@ export async function validateStudyDesign(
     if (options?.cancellationToken?.isCancelled?.()) return issues;
     const rulesResult = await validateRules(study.rules, study, options);
     if (options?.cancellationToken?.isCancelled?.()) return issues;
+    
+    if (!study.metadata.customProperties) {
+      study.metadata.customProperties = {};
+    }
+    study.metadata.customProperties.ruleOrder = rulesResult.topologicalOrder;
+    
     rulesResult.errors.forEach((err) => {
       issues.push({
         level: err.level,
