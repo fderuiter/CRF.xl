@@ -12,7 +12,9 @@ jest.mock("html-to-pdfmake", () => {
 jest.mock("pdfmake/build/pdfmake", () => {
   return {
     createPdf: jest.fn(() => ({
-      download: jest.fn(),
+      download: jest.fn((_filename, cb) => {
+        if (typeof cb === "function") cb();
+      }),
       getBlob: jest.fn((cb) => cb(new Blob())),
     })),
   };

@@ -13,7 +13,7 @@ export class ZipWriter {
       } else if (typeof window !== "undefined" && (window as any).CompressionStream) {
         compressionStreamClass = (window as any).CompressionStream;
       }
-      
+
       if (!compressionStreamClass) {
         throw new Error("COMPRESSION_NOT_SUPPORTED");
       }
@@ -38,7 +38,7 @@ export class ZipWriter {
       // Don't block subsequent additions if one fails, but rethrow
       throw err;
     });
-    
+
     return task;
   }
 

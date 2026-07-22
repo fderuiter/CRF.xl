@@ -63,7 +63,7 @@ export class ComplianceExportService {
 
     const rawProtocolId = currentStudy.metadata.protocolId || "UNKNOWN";
     const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
-    
+
     await zip.addFile(
       `${protocolId}_Annotated_CRF.docx`,
       new Uint8Array(docxArrayBuffer as ArrayBuffer)
