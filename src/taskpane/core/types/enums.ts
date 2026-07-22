@@ -35,8 +35,7 @@ export enum GroupLayout {
   MATRIX = "Matrix",
 }
 
-export enum FormLayout {
-}
+export enum FormLayout {}
 
 export enum PageLayout {
   LANDSCAPE = "Landscape",
@@ -46,20 +45,15 @@ export enum EventType {
   SCHEDULED = "Scheduled",
 }
 
-export enum SdtmCore {
-}
+export enum SdtmCore {}
 
-export enum FormType {
-}
+export enum FormType {}
 
-export enum RangeValueType {
-}
+export enum RangeValueType {}
 
-export enum DictionaryType {
-}
+export enum DictionaryType {}
 
-export enum CodingTermType {
-}
+export enum CodingTermType {}
 
 export enum DataOrigin {
   COLLECTED = "Collected",
@@ -70,32 +64,23 @@ export enum DataOrigin {
   OTHER = "Other",
 }
 
-export enum CollectionMethod {
-}
+export enum CollectionMethod {}
 
-export enum QuerySeverity {
-}
+export enum QuerySeverity {}
 
-export enum SignatureMeaning {
-}
+export enum SignatureMeaning {}
 
-export enum SdvTier {
-}
+export enum SdvTier {}
 
-export enum LabType {
-}
+export enum LabType {}
 
-export enum SystemTriggerType {
-}
+export enum SystemTriggerType {}
 
-export enum AggregateFunction {
-}
+export enum AggregateFunction {}
 
-export enum VasOrientation {
-}
+export enum VasOrientation {}
 
-export enum DateImputationRule {
-}
+export enum DateImputationRule {}
 
 export enum AdamCore {
   REQUIRED = "Required",
@@ -111,8 +96,7 @@ export enum DatasetPurpose {
  * Distinct from DataOrigin (CRF collection context) — this reflects the
  * dataset-level origin element used in a regulatory submission define file.
  */
-export enum VariableOrigin {
-}
+export enum VariableOrigin {}
 
 /**
  * SDTM dataset class vocabulary per SDTMIG.
