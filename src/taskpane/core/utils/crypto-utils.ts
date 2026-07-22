@@ -17,8 +17,8 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
       typeof __non_webpack_require__ !== "undefined"
         ? __non_webpack_require__("util")
         : typeof require !== "undefined"
-        ? /* webpackIgnore: true */ require("util")
-        : null;
+          ? /* webpackIgnore: true */ require("util")
+          : null;
     if (util) {
       encoder = new util.TextEncoder();
     }
@@ -38,9 +38,9 @@ export async function sha256Native(input: string | ArrayBuffer): Promise<string>
       typeof __non_webpack_require__ !== "undefined"
         ? __non_webpack_require__("crypto")
         : typeof require !== "undefined"
-        ? /* webpackIgnore: true */ require("crypto")
-        : null;
-        
+          ? /* webpackIgnore: true */ require("crypto")
+          : null;
+
     if (cryptoNode) {
       if (cryptoNode.webcrypto && cryptoNode.webcrypto.subtle) {
         subtleCrypto = cryptoNode.webcrypto.subtle;

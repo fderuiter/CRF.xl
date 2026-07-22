@@ -55,9 +55,9 @@ export async function exportToPdf(html: string, filename: string): Promise<void>
       if (!isResolved && typeof window !== "undefined") {
         setTimeout(() => {
           if (!isResolved) {
-             isResolved = true;
-             clearTimeout(timeout);
-             resolve();
+            isResolved = true;
+            clearTimeout(timeout);
+            resolve();
           }
         }, 100);
       }

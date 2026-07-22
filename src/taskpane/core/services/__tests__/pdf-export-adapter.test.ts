@@ -24,10 +24,10 @@ describe("PdfExportAdapter", () => {
     });
 
     const promise = exportToPdf("<h1>Test</h1>", "test.pdf");
-    
+
     // Advance time by 15 seconds
     jest.advanceTimersByTime(15000);
-    
+
     await expect(promise).rejects.toThrow("PDF generation timed out after 15 seconds");
   });
 
@@ -38,7 +38,7 @@ describe("PdfExportAdapter", () => {
     });
 
     const promise = generatePdfBlobFromHtml("<h1>Test</h1>");
-    
+
     await expect(promise).rejects.toThrow("Layout generation failed");
   });
 });
