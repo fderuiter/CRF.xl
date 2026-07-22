@@ -191,6 +191,7 @@ function matchesRef(identifier: string, ref: string): boolean {
  * @param options.yieldControl
  * @param options.cancellationToken
  * @param options.cancellationToken.isCancelled
+ * @param options.preCachedVariables
  * @returns
  */
 export async function validateRules(
@@ -314,7 +315,9 @@ export async function validateRules(
   // 5. Build Dependency Map and validate references
   const validRules = rules.filter((r) => !r.parseError && r.ruleId);
 
-  const variablesMap = options?.preCachedVariables ? new Map(options.preCachedVariables) : new Map<string, DataType>();
+  const variablesMap = options?.preCachedVariables
+    ? new Map(options.preCachedVariables)
+    : new Map<string, DataType>();
   if (!options?.preCachedVariables && study && study.forms) {
     for (const form of Object.values(study.forms)) {
       if (form.itemGroups) {

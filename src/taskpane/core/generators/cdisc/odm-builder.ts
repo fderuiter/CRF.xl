@@ -170,7 +170,10 @@ export async function generateOdmXml(
   // Run pre-serialization validation if rules are present
   let topOrder: string[] = [];
   if (allRules.length > 0) {
-    const validationResult = await validateRules(allRules, study, { isExport: true, preCachedVariables });
+    const validationResult = await validateRules(allRules, study, {
+      isExport: true,
+      preCachedVariables,
+    });
     topOrder = validationResult.topologicalOrder;
 
     const criticalErrors = validationResult.errors.filter((e) => e.type === "CYCLE");
