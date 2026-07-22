@@ -58,21 +58,26 @@ class SpeculativeSyncManager {
 
   public initialize() {
     if (typeof Excel !== "undefined") {
-      this.unlockSheets().catch(err => logger.error("Failed to unlock sheets on initialization", err));
+      this.unlockSheets().catch((err) =>
+        logger.error("Failed to unlock sheets on initialization", err)
+      );
     }
   }
 
   private async unlockSheets() {
     if (typeof Excel === "undefined") return;
     await Excel.run(async (context) => {
-      for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
-        const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
-        sheet.load("isNullObject, protection/protected");
-        await context.sync();
+      const sheets = ["_Study", "_Forms", "_Codelists"].map((sheetName) =>
+        context.workbook.worksheets.getItemOrNullObject(sheetName)
+      );
+      sheets.forEach((sheet) => sheet.load("isNullObject, protection/protected"));
+      await context.sync();
+
+      sheets.forEach((sheet) => {
         if (!sheet.isNullObject && sheet.protection.protected) {
           sheet.protection.unprotect();
         }
-      }
+      });
       await context.sync();
     });
   }
@@ -84,7 +89,9 @@ class SpeculativeSyncManager {
     this.subscriptionManager.notify({ state, details });
 
     if (previousState === "syncing" && state !== "syncing") {
-      this.unlockSheets().catch(err => logger.error("Failed to unlock sheets on state transition", err));
+      this.unlockSheets().catch((err) =>
+        logger.error("Failed to unlock sheets on state transition", err)
+      );
     }
   }
 
@@ -124,14 +131,18 @@ class SpeculativeSyncManager {
 
     let snapshotFingerprints: Record<string, string> = {};
     await Excel.run(async (context) => {
-      for (const sheetName of ["_Study", "_Forms", "_Codelists"]) {
-        const sheet = context.workbook.worksheets.getItemOrNullObject(sheetName);
-        sheet.load("isNullObject, protection/protected");
-        await context.sync();
+      const sheets = ["_Study", "_Forms", "_Codelists"].map((sheetName) =>
+        context.workbook.worksheets.getItemOrNullObject(sheetName)
+      );
+      sheets.forEach((sheet) => sheet.load("isNullObject, protection/protected"));
+      await context.sync();
+
+      sheets.forEach((sheet) => {
         if (!sheet.isNullObject && !sheet.protection.protected) {
           sheet.protection.protect({ selectionMode: "Unlocked" });
         }
-      }
+      });
+      await context.sync();
 
       snapshotFingerprints["_Study"] = await this.getSheetFingerprint(context, "_Study");
       snapshotFingerprints["_Forms"] = await this.getSheetFingerprint(context, "_Forms");
@@ -241,7 +252,7 @@ class SpeculativeSyncManager {
           const sheet = context.workbook.worksheets.getItemOrNullObject(ctx.id);
           sheet.load("isNullObject, protection/protected");
           await context.sync();
-          
+
           let wasProtected = false;
           const target = sheet.isNullObject ? context.workbook.worksheets.add(ctx.id) : sheet;
 
@@ -265,7 +276,7 @@ class SpeculativeSyncManager {
             );
             range.values = chunk;
           }
-          
+
           if (wasProtected) {
             target.protection.protect({ selectionMode: "Unlocked" });
           }
@@ -296,16 +307,16 @@ class SpeculativeSyncManager {
     ];
 
     const engine = new ChunkingEngine<string[]>({ chunkSize: 500 });
-    
+
     try {
       await engine.execute(plans, async (chunk, ctx) => {
         await Excel.run(async (context) => {
           const sheet = context.workbook.worksheets.getItemOrNullObject(ctx.id);
           sheet.load("isNullObject, protection/protected");
           await context.sync();
-          
+
           if (sheet.isNullObject) return;
-          
+
           let wasProtected = false;
           if (sheet.protection.protected) {
             wasProtected = true;
@@ -319,17 +330,12 @@ class SpeculativeSyncManager {
           }
 
           if (chunk.length > 0) {
-            const range = sheet.getRangeByIndexes(
-              ctx.startIndex,
-              0,
-              chunk.length,
-              chunk[0].length
-            );
+            const range = sheet.getRangeByIndexes(ctx.startIndex, 0, chunk.length, chunk[0].length);
             range.values = chunk;
           }
-          
+
           if (wasProtected) {
-             sheet.protection.protect({ selectionMode: "Unlocked" });
+            sheet.protection.protect({ selectionMode: "Unlocked" });
           }
           await context.sync();
         });
