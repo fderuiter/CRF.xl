@@ -442,9 +442,6 @@ const useStyles = makeStyles({
   borderBottomNone: {
     borderBottom: "none",
   },
-  padding12Cursor: {
-    cursor: "pointer", padding: "12px",
-  },
   packageItem: {
     padding: "8px", cursor: "pointer", borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
   },
@@ -456,9 +453,6 @@ const useStyles = makeStyles({
   },
   marginBottom16: {
     marginBottom: "16px",
-  },
-  flexSpaceBetweenStart: {
-    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
   },
   summaryCount: {
     fontWeight: tokens.fontWeightBold,
@@ -1152,8 +1146,7 @@ className={styles.flexGrowColumnGap8Auto}
                       return (
                         <div
                           key={idx}
-                          className={styles.gridCard}
-className={styles.flexColumnGap8Padding10}
+                          className={mergeClasses(styles.gridCard, styles.flexColumnGap8Padding10)}
                         >
                           <div className={styles.flexRowGap8Center}>
                             <Input
@@ -1209,8 +1202,7 @@ className={styles.flexColumnGap8Padding10}
                     return (
                       <div
                         key={idx}
-                        className={styles.gridCard}
-className={styles.flexRowGap12CenterPadding10}
+                        className={mergeClasses(styles.gridCard, styles.flexRowGap12CenterPadding10)}
                       >
                         <Badge
                           appearance="filled"
@@ -1359,9 +1351,8 @@ className={styles.flexSpaceBetweenStart}
                         <Card
                           role="button"
                           key={result.id}
-                          className={styles.gridCard}
                           aria-label={`View details for codelist ${result.id}: ${result.title}`}
-className={mergeClasses(styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
+                          className={mergeClasses(styles.gridCard, styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
                           onClick={() => {
                             const original = dictionaries.find((d) => d.id === result.id);
                             if (original) {
@@ -1460,9 +1451,8 @@ className={styles.flexSpaceBetweenStart}
                       <Card
                         role="button"
                         key={item.id}
-                        className={styles.gridCard}
                         aria-label={`View details for codelist ${item.id}: ${item.name}`}
-className={mergeClasses(styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
+                        className={mergeClasses(styles.gridCard, styles.padding12Cursor, activeResultIndex === index ? styles.activeResultBorder : styles.inactiveResultBorder)}
                         onClick={() => {
                           handleSelectCodelist(item.id);
                         }}
