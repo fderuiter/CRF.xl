@@ -169,6 +169,33 @@ Related:
 
 ---
 
+## Engine modules (`src/taskpane/core/engine/`)
+
+### `chunking-engine.ts`
+
+**Purpose:** Engine for chunking large operations.
+
+**Public interface:**
+
+- `ChunkingEngine`
+
+**Owning issues:** #68
+
+---
+
+### `middlewares.ts`
+
+**Purpose:** Middleware pipeline implementation.
+
+**Public interface:**
+
+- `createRetryMiddleware`
+- `createLoggingMiddleware`
+
+**Owning issues:** #68
+
+---
+
 ## Service modules (`src/taskpane/core/services/`)
 
 ### `binding-service.ts`
@@ -256,6 +283,34 @@ Related:
 
 ---
 
+### `migration-pipeline.ts`
+
+**Purpose:** Orchestrates imports from multiple sources (ODM, spreadsheets, etc.) into the current workspace.
+
+**Public interface:**
+
+- `createImportManifest`
+- `createImportProvenance`
+- `persistImportManifest`
+- `loadImportManifest`
+
+**Owning issues:** #139
+
+---
+
+### `odm-import-service.ts`
+
+**Purpose:** Handles CDISC ODM XML import processing and projection.
+
+**Public interface:**
+
+- `projectOdmImportToWorkbook`
+- `applyOdmImportToWorkbook`
+
+**Owning issues:** #139
+
+---
+
 ### `review-service.ts`
 
 **Purpose:** Manages clinical reviewer comments using `CustomXmlParts` with namespace `http://schemas.crf-xl.com/review`.
@@ -264,6 +319,7 @@ Related:
 
 - `saveComment(comment: ReviewerComment): Promise<void>`
 - `loadComments(): Promise<ReviewerComment[]>`
+- `ReviewService`
 
 **Upstream:** Office.js Excel API, `core/types/reviewer.ts`
 **Downstream:** `ReviewView.tsx`, `AnnotatedCrfPipeline`
@@ -313,6 +369,18 @@ Related:
 
 ---
 
+### `compliance-governance-service.ts`
+
+**Purpose:** Environment compliance status and governance orchestration.
+
+**Public interface:**
+
+- `complianceGovernanceService`
+
+**Owning issues:** #28
+
+---
+
 ### `dictionary-service.ts`
 
 **Purpose:** Manages codelist and dictionary write-back to the `_Codelists` sheet.
@@ -320,6 +388,8 @@ Related:
 **Public interface:**
 
 - `saveDictionary(context: Excel.RequestContext, codelist: CdiscCodelist): Promise<void>`
+- `CodelistItem`
+- `CodelistGroup`
 
 **Upstream:** Office.js Excel API
 **Downstream:** `DictionarySidecar.tsx`
@@ -364,6 +434,11 @@ Related:
 - `saveRecoverySnapshot(snapshot: RecoverySnapshot): void`
 - `loadRecoverySnapshot(): RecoverySnapshot | null`
 - `clearExpiredSnapshots(): void`
+- `summarizeStudyDesign`
+- `summarizeValidation`
+- `toRecoveryIssues`
+- `createRecoverySnapshot`
+- `hasWorkbookChanged`
 
 **Upstream:** Browser localStorage API
 **Downstream:** `App.tsx`
@@ -392,6 +467,8 @@ Related:
 **Public interface:**
 
 - `handleOfficeError(error: unknown): AppError`
+- `classifyOfficeError`
+- `createOfficeDiagnostic`
 
 **Upstream:** Office.js API
 **Downstream:** All Excel-interacting services
@@ -422,6 +499,18 @@ Related:
 ---
 
 ## Validator modules (`src/taskpane/core/validators/`)
+
+### `clinical-pipeline.ts`
+
+**Purpose:** Clinical validation pipeline orchestrator.
+
+**Public interface:**
+
+- `ClinicalValidationPipeline`
+
+**Owning issues:** #184
+
+---
 
 ### `acrf-output-validator.ts`
 
