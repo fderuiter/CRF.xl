@@ -1,9 +1,15 @@
- 
 /**
  * @issue #313
  */
 import * as React from "react";
-import { makeStyles, mergeClasses, tokens, Text, Button, Spinner } from "@fluentui/react-components";
+import {
+  makeStyles,
+  mergeClasses,
+  tokens,
+  Text,
+  Button,
+  Spinner,
+} from "@fluentui/react-components";
 import { CheckmarkCircleRegular, ChevronRightRegular } from "@fluentui/react-icons";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 

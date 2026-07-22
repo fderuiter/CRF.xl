@@ -220,7 +220,7 @@ const useAppStyles = makeStyles({
     clip: "rect(0, 0, 0, 0)",
     whiteSpace: "nowrap",
     border: 0,
-  }
+  },
 });
 
 function toSafeHttpUrl(url: string | undefined): string | null {

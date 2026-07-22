@@ -271,41 +271,41 @@ const useStyles = makeStyles({
   depItemSource: {
     display: "flex",
     flexDirection: "column",
-    gap: "4px"
+    gap: "4px",
   },
   arrowIcon: {
-    fontSize: "12px"
+    fontSize: "12px",
   },
   targetType: {
     fontSize: "11px",
-    opacity: 0.7
+    opacity: 0.7,
   },
   cardHeaderTitle: {
     display: "flex",
     alignItems: "center",
-    gap: "6px"
+    gap: "6px",
   },
   infoIcon: {
     fontSize: "14px",
     cursor: "help",
-    color: tokens.colorNeutralForeground3
+    color: tokens.colorNeutralForeground3,
   },
   messageBarMargin: {
-    marginTop: "12px"
+    marginTop: "12px",
   },
   flexGrow: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   dataGridContainer: {
     display: "flex",
     flexDirection: "column",
     gap: "16px",
-    marginTop: "12px"
+    marginTop: "12px",
   },
   expressionCode: {
     fontFamily: "monospace",
-    wordBreak: "break-all"
-  }
+    wordBreak: "break-all",
+  },
 });
 
 const SEARCH_DEBOUNCE_MS = 150;
@@ -470,9 +470,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
               content="The schedule of events (SoE) mapping forms to visits/timepoints."
               relationship="label"
             >
-              <InfoRegular
-                className={styles.infoIcon}
-              />
+              <InfoRegular className={styles.infoIcon} />
             </Tooltip>
           </div>
           <div>
@@ -718,9 +716,7 @@ export const MatrixView: React.FC<MatrixProps> = ({
                   <span className={styles.detailMetaVal}>{selectedDep.status}</span>
 
                   <span className={styles.detailMetaLabel}>Expression:</span>
-                  <code className={styles.expressionCode}>
-                    {selectedDep.expression}
-                  </code>
+                  <code className={styles.expressionCode}>{selectedDep.expression}</code>
 
                   <span className={styles.detailMetaLabel}>Description:</span>
                   <span className={styles.detailMetaVal}>{selectedDep.message}</span>

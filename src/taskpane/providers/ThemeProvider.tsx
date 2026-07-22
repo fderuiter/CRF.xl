@@ -1,9 +1,15 @@
-/** 
- * @issue #28 
+/**
+ * @issue #28
  * @issue #331
  */
 import * as React from "react";
-import { FluentProvider, webLightTheme, webDarkTheme, teamsHighContrastTheme, Theme } from "@fluentui/react-components";
+import {
+  FluentProvider,
+  webLightTheme,
+  webDarkTheme,
+  teamsHighContrastTheme,
+  Theme,
+} from "@fluentui/react-components";
 
 type ThemeType = "light" | "dark" | "high-contrast";
 
@@ -19,10 +25,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   React.useEffect(() => {
     // Media query for OS high contrast mode
     const hcQuery = window.matchMedia("(forced-colors: active)");
-    
+
     // Check if the current Office theme is dark based on its bodyBackgroundColor
     const isDarkColor = (color: string) => {
-      if (!color || color[0] !== '#') return false;
+      if (!color || color[0] !== "#") return false;
       const hex = color.slice(1);
       if (hex.length === 3 || hex.length === 6) {
         const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
@@ -99,7 +105,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return () => {
       // Clean up Office listener
-      if (typeof Office !== "undefined" && Office.context && (Office.context as any).removeEventListener) {
+      if (
+        typeof Office !== "undefined" &&
+        Office.context &&
+        (Office.context as any).removeEventListener
+      ) {
         (Office.context as any).removeEventListener(
           (Office as any).EventType.OfficeThemeChanged,
           handleOfficeThemeChange
@@ -125,8 +135,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Unified context wrapping the Fluent UI Provider
   return (
     <ThemeContext.Provider value={{ themeType }}>
-      {/* eslint-disable-next-line react/forbid-component-props */}
-      <FluentProvider theme={fluentTheme} style={{ minHeight: "100vh", backgroundColor: "transparent" }}>
+      <FluentProvider
+        theme={fluentTheme}
+        // eslint-disable-next-line react/forbid-component-props
+        style={{ minHeight: "100vh", backgroundColor: "transparent" }}
+      >
         {children}
       </FluentProvider>
     </ThemeContext.Provider>

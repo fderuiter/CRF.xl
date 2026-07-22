@@ -108,7 +108,7 @@ const useStyles = makeStyles({
   infoIcon: {
     fontSize: "12px",
     cursor: "help",
-  }
+  },
 });
 
 type Scope = "SDTM" | "ADaM";

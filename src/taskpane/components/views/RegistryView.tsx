@@ -115,9 +115,9 @@ export const RegistryView: React.FC<RegistryProps> = ({
   React.useEffect(() => {
     if (freezeDialog.isOpen && freezeDialog.message) {
       announcer.announce(
-        freezeDialog.status === "success" 
-          ? `Success: ${freezeDialog.message}` 
-          : `Error: ${freezeDialog.message}`, 
+        freezeDialog.status === "success"
+          ? `Success: ${freezeDialog.message}`
+          : `Error: ${freezeDialog.message}`,
         "assertive"
       );
     }
@@ -136,7 +136,11 @@ export const RegistryView: React.FC<RegistryProps> = ({
       );
       setFreezeDialog({ isOpen: true, status: "success", message: "Version frozen in Vault!" });
     } catch (e: any) {
-      setFreezeDialog({ isOpen: true, status: "error", message: e.message || "Failed to freeze version." });
+      setFreezeDialog({
+        isOpen: true,
+        status: "error",
+        message: e.message || "Failed to freeze version.",
+      });
     }
   };
 
@@ -305,11 +309,12 @@ export const RegistryView: React.FC<RegistryProps> = ({
             <DialogTitle>
               {freezeDialog.status === "success" ? "Freeze Successful" : "Freeze Failed"}
             </DialogTitle>
-            <DialogContent>
-              {freezeDialog.message}
-            </DialogContent>
+            <DialogContent>{freezeDialog.message}</DialogContent>
             <DialogActions>
-              <Button appearance="primary" onClick={() => setFreezeDialog({ ...freezeDialog, isOpen: false })}>
+              <Button
+                appearance="primary"
+                onClick={() => setFreezeDialog({ ...freezeDialog, isOpen: false })}
+              >
                 Acknowledge
               </Button>
             </DialogActions>
