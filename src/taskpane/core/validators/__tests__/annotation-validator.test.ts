@@ -1,7 +1,13 @@
 /**
  * @issue #84
  */
-import { detectConflicts, getRepairPolicy, RepairConfidence, validateAnnotationTarget, ExcelRangeData } from "../annotation-validator";
+import {
+  detectConflicts,
+  getRepairPolicy,
+  RepairConfidence,
+  validateAnnotationTarget,
+  ExcelRangeData,
+} from "../annotation-validator";
 import { Annotation, AnnotationType, AnnotationTargetType } from "../../types";
 
 describe("AnnotationValidator", () => {

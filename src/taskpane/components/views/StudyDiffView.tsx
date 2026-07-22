@@ -26,7 +26,7 @@ import {
   DiffSeverity,
   buildStudyDiffList,
   filterStudyDiffList,
-} from "./study-diff-view-utils";
+} from "../../core/utils/study-diff-utils";
 import { formatDate } from "../../core/utils/locale-utils";
 
 interface StudyDiffViewProps {
