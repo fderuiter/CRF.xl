@@ -6,12 +6,31 @@ import { sha256Native } from "../utils/crypto-utils";
 import { StudyDesign } from "../types/hierarchy";
 import { ExportOptions } from "../types/linguistics";
 import { StudyDiffReport } from "../types/diff";
-import { generateOdmXml } from "../generators/cdisc/odm-builder";
-import { generateDocxBlob } from "../generators/docx/docx-builder";
-import { generatePdfBlob } from "../generators/pdf/pdf-builder";
 import { ImportProvenance } from "./migration-pipeline";
 
 import { diffStudyDesigns } from "./diff-engine";
+
+export interface ExportAdapterContext {
+  currentStudy: StudyDesign;
+  baselineStudy: StudyDesign | null;
+  validationIssues: any[];
+  auditSummary: StudyDiffReport;
+  options?: {
+    source_provenance?: ImportProvenance;
+    signedOffAt?: string | null;
+    justifications?: Record<string, { reason: string; userId: string; timestamp: string }>;
+    exportOptions?: ExportOptions;
+  };
+}
+
+export interface ExportAdapterResult {
+  fileName: string;
+  data: ArrayBuffer | Uint8Array;
+}
+
+export interface ExportAdapter {
+  generate(context: ExportAdapterContext): Promise<ExportAdapterResult[]>;
+}
 
 interface VerificationManifest {
   manifestVersion: string;
@@ -25,9 +44,18 @@ interface VerificationManifest {
 }
 
 export class ComplianceExportService {
+  private static adapters: ExportAdapter[] = [];
+
   /**
-   * Generates a ZIP file containing the DOCX, ODM XML, and verification-manifest.json.
-   * Creates SHA-256 hashes for DOCX and ODM before generating the manifest.
+   * Register a new export adapter.
+   * @param adapter
+   */
+  static registerAdapter(adapter: ExportAdapter) {
+    this.adapters.push(adapter);
+  }
+
+  /**
+   * Generates a ZIP file containing the outputs of all registered export adapters and verification-manifest.json.
    * @param currentStudy
    * @param baselineStudy
    * @param validationIssues
@@ -36,7 +64,7 @@ export class ComplianceExportService {
    * @param options.signedOffAt
    * @param options.justifications
    * @param options.exportOptions
-   * @returns
+   * @returns {Promise<Blob>} A ZIP package containing export files
    */
   static async createExportPackage(
     currentStudy: StudyDesign,
@@ -50,26 +78,9 @@ export class ComplianceExportService {
     }
   ): Promise<Blob> {
     const zip = new ZipWriter();
-
-    // 1. Generate DOCX
-    const docxBlob = await generateDocxBlob(currentStudy, options?.exportOptions);
-    const docxArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(docxBlob);
-    });
-    const docxHash = await sha256Native(docxArrayBuffer);
-
     const rawProtocolId = currentStudy.metadata.protocolId || "UNKNOWN";
     const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
 
-    await zip.addFile(
-      `${protocolId}_Annotated_CRF.docx`,
-      new Uint8Array(docxArrayBuffer as ArrayBuffer)
-    );
-
-    // 2. Generate Audit Summary
     let auditSummary: StudyDiffReport;
     if (baselineStudy) {
       auditSummary = diffStudyDesigns(baselineStudy, currentStudy);
@@ -77,62 +88,54 @@ export class ComplianceExportService {
       auditSummary = diffStudyDesigns(currentStudy, currentStudy);
     }
 
-    // PDF Generation
-    const pdfBlob = await generatePdfBlob(
+    const context: ExportAdapterContext = {
       currentStudy,
+      baselineStudy,
       validationIssues,
       auditSummary,
-      options?.exportOptions
-    );
-    const pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(pdfBlob);
-    });
-    const pdfHash = await sha256Native(pdfArrayBuffer);
-    await zip.addFile(
-      `${protocolId}_Annotated_CRF.pdf`,
-      new Uint8Array(pdfArrayBuffer as ArrayBuffer)
-    );
+      options,
+    };
 
-    // 3. Generate ODM XML
-    const { xml: odmXml, diagnostics } = await generateOdmXml(currentStudy, {
-      bestEffort: true,
-      exportOptions: options?.exportOptions,
-    });
-    const odmHash = await sha256Native(odmXml);
+    const fileHashes: Record<string, string> = {};
 
-    const encoder = new TextEncoder();
-    await zip.addFile(`${protocolId || "UNKNOWN"}_ODM_Specification.xml`, encoder.encode(odmXml));
-    if (diagnostics) {
-      await zip.addFile(
-        `${protocolId || "UNKNOWN"}_ODM_Diagnostics.txt`,
-        encoder.encode(diagnostics)
-      );
+    for (const adapter of this.adapters) {
+      const results = await adapter.generate(context);
+      for (const result of results) {
+        let buffer: ArrayBuffer;
+        let uint8Array: Uint8Array;
+
+        if (result.data instanceof Uint8Array) {
+          uint8Array = result.data;
+          buffer = uint8Array.buffer.slice(
+            uint8Array.byteOffset,
+            uint8Array.byteOffset + uint8Array.byteLength
+          ) as ArrayBuffer;
+        } else {
+          buffer = result.data as ArrayBuffer;
+          uint8Array = new Uint8Array(buffer);
+        }
+
+        const hash = await sha256Native(buffer);
+        fileHashes[result.fileName] = hash;
+        await zip.addFile(result.fileName, uint8Array);
+      }
     }
 
-    // 4. Create Verification Manifest
     const manifest: VerificationManifest = {
       manifestVersion: "1.0",
-      protocolId: currentStudy.metadata.protocolId || "UNKNOWN",
+      protocolId,
       exportedAt: new Date().toISOString(),
       signedOffAt: options?.signedOffAt ?? undefined,
       source_provenance: options?.source_provenance,
-      fileHashes: {
-        [`${protocolId || "UNKNOWN"}_Annotated_CRF.docx`]: docxHash,
-        [`${protocolId || "UNKNOWN"}_Annotated_CRF.pdf`]: pdfHash,
-        [`${protocolId || "UNKNOWN"}_ODM_Specification.xml`]: odmHash,
-      },
+      fileHashes,
       auditSummary,
       justifications: options?.justifications,
     };
 
+    const encoder = new TextEncoder();
     const manifestJson = JSON.stringify(manifest, null, 2);
     await zip.addFile("verification-manifest.json", encoder.encode(manifestJson));
 
-    // 5. Package as ZIP
-    const zipBlob = zip.generate();
-    return zipBlob;
+    return zip.generate();
   }
 }

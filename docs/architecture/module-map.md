@@ -418,10 +418,31 @@ Related:
 
 **Public interface:**
 
-- `ComplianceExportService.exportCompliancePackage(study: StudyDesign, ...): Promise<Blob>`
+- `ComplianceExportService.createExportPackage(currentStudy: StudyDesign, baselineStudy: StudyDesign | null, validationIssues: any[], options?: any): Promise<Blob>`
+- `ComplianceExportService.registerAdapter(adapter: ExportAdapter)`
+- `ExportAdapterContext`
+- `ExportAdapterResult`
+- `ExportAdapter`
 
 **Upstream:** `odm-builder.ts`, `pdf-builder.ts`, `docx-builder.ts`, `zip-writer.ts`
 **Downstream:** `ComplianceGovernanceView.tsx`
+**Owning issues:** #28
+
+---
+
+### `standard-export-adapters.ts`
+
+**Purpose:** Provides format-specific export adapters (Docx, Pdf, OdmXml) for the compliance export service orchestration loop.
+
+**Public interface:**
+
+- `DocxExportAdapter`
+- `PdfExportAdapter`
+- `OdmXmlExportAdapter`
+- `registerStandardAdapters()`
+
+**Upstream:** `compliance-export-service.ts`, `odm-builder.ts`, `pdf-builder.ts`, `docx-builder.ts`
+**Downstream:** `App.tsx`
 **Owning issues:** #28
 
 ---

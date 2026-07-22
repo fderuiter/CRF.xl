@@ -8,6 +8,11 @@ import { generateOdmXml } from "../../generators/cdisc/odm-builder";
 import { sha256Native } from "../../utils/crypto-utils";
 
 import { diffStudyDesigns } from "../../services/diff-engine";
+import {
+  DocxExportAdapter,
+  PdfExportAdapter,
+  OdmXmlExportAdapter,
+} from "../standard-export-adapters";
 
 jest.mock("../../generators/docx/docx-builder");
 jest.mock("../../generators/pdf/pdf-builder");
@@ -23,6 +28,10 @@ describe("ComplianceExportService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (ComplianceExportService as any).adapters = [];
+    ComplianceExportService.registerAdapter(new DocxExportAdapter());
+    ComplianceExportService.registerAdapter(new PdfExportAdapter());
+    ComplianceExportService.registerAdapter(new OdmXmlExportAdapter());
 
     // Default mocks
     (generateDocxBlob as jest.Mock).mockResolvedValue(new Blob(["docx data"]));
@@ -52,6 +61,9 @@ describe("ComplianceExportService", () => {
       ) {}
       get type() {
         return this.options?.type;
+      }
+      async arrayBuffer() {
+        return new Uint8Array([1, 2, 3]).buffer;
       }
     } as any;
     (globalThis as any).Response = class {
