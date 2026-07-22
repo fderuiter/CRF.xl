@@ -1,3 +1,7 @@
+/**
+ * @issue #28, #40
+ */
+
 import { StudyDesign, isCrfItem } from "../types/index";
 import { RuleDefinition, RuleType } from "../types/rules-ast";
 import { parseRuleExpression } from "./rules-parser";
