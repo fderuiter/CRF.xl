@@ -175,7 +175,7 @@ describe("CDISC ODM XML Builder", () => {
 
       mockStudy.metadata.customProperties = {
         ...mockStudy.metadata.customProperties,
-        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"]
+        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"],
       };
 
       const { xml } = await generateOdmXml(mockStudy);
@@ -233,7 +233,7 @@ describe("CDISC ODM XML Builder", () => {
 
       mockStudy.metadata.customProperties = {
         ...mockStudy.metadata.customProperties,
-        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"]
+        ruleOrder: ["RULE_C", "RULE_B", "RULE_A"],
       };
 
       const { xml } = await generateOdmXml(mockStudy);
