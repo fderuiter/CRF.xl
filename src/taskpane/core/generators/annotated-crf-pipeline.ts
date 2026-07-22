@@ -26,7 +26,7 @@ import { loadComments } from "../services/review-service";
 import { buildAnnotatedCrfDocument, renderToHtml } from "../services/acrf-renderer";
 import { generatePdfBlobFromHtml } from "../services/pdf-export-adapter";
 import { verifyAnnotatedCrf } from "../validators/acrf-output-validator";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../utils/crypto-utils";
 // @ts-ignore
 import HTMLtoDOCX from "html-to-docx";
 
@@ -118,7 +118,7 @@ export class AnnotatedCrfPipeline {
       }
 
       // Stage 7: Verification manifest generation
-      const manifest = this.generateManifest(stage1.data.studyDesign);
+      const manifest = await this.generateManifest(stage1.data.studyDesign);
 
       // Final: Generate Human Readable Reports
       const humanReadableReport = this.generateHumanReadableReport(verification.data);
@@ -185,8 +185,9 @@ export class AnnotatedCrfPipeline {
     });
   }
 
-  private generateManifest(study: StudyDesign): AnnotatedCrfPipelineManifest {
-    const artifactHash = CryptoJS.SHA256(JSON.stringify(study)).toString(CryptoJS.enc.Hex);
+  private async generateManifest(study: StudyDesign): Promise<AnnotatedCrfPipelineManifest> {
+    const artifactHashInput = JSON.stringify(study);
+    const artifactHash = await sha256Native(artifactHashInput);
 
     return {
       pipelineVersion: "1.0.0",
