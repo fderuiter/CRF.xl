@@ -8,7 +8,7 @@ Related: [`docs/architecture/module-map.md`](../architecture/module-map.md) — 
 
 | Issue | Title | Status in code | Strongest evidence |
 | --- | --- | --- | --- |
-| `#369` | feat: Enforce Office JS static safety, chunking, and test-time proxies | Present | [`src/taskpane/core/utils/test-proxy.ts`](../../src/taskpane/core/utils/test-proxy.ts) |
+| `#369` | feat: Enforce Office JS static safety, chunking, and test-time proxies | Present | [`src/taskpane/core/test-helpers/test-proxy.ts`](../../src/taskpane/core/test-helpers/test-proxy.ts) |
 | `#351` | Consolidate document localization helpers for PDF and Word exports | Present | [`src/taskpane/core/generators/shared-localization.ts`](../../src/taskpane/core/generators/shared-localization.ts) |
 | `#349` | Implement Unified Application Orchestrator Service | Present | [`src/taskpane/core/services/app-orchestrator.ts`](../../src/taskpane/core/services/app-orchestrator.ts)<br>[`src/taskpane/hooks/useAppOrchestrator.ts`](../../src/taskpane/hooks/useAppOrchestrator.ts) |
 | `#347` | Implement standardized, stage-based clinical validation pipeline | Present | [`src/taskpane/core/validators/clinical-pipeline.ts`](../../src/taskpane/core/validators/clinical-pipeline.ts) |
