@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-dom-props, react/forbid-component-props -- Temporary layout style exemption for legacy view */
 /**
  * @issue #28
  */
@@ -44,6 +43,22 @@ const useStyles = makeStyles({
     padding: "8px",
     backgroundColor: tokens.colorNeutralBackground2,
     borderRadius: "4px",
+  },
+  badgeContainer: {
+    display: "flex",
+    gap: "8px",
+  },
+  driftMessage: {
+    marginTop: "4px",
+  },
+  driftLostHash: {
+    color: tokens.colorPaletteRedBorderActive,
+  },
+  driftProposed: {
+    marginTop: "8px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
   },
   footer: {
     display: "flex",
@@ -97,7 +112,7 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
       {/* Integrity Score Summary */}
       <div className={styles.section}>
         <Text weight="semibold">Integrity Score</Text>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className={styles.badgeContainer}>
           <Badge color={criticalIssues.length === 0 ? "success" : "danger"}>
             {criticalIssues.length} Critical Errors
           </Badge>
@@ -118,15 +133,15 @@ export const IntegrityHubView: React.FC<IntegrityHubViewProps> = ({
             {drifts.map((drift, idx) => (
               <div key={`drift-${idx}`} className={styles.feedItem}>
                 <Badge color="danger">Drift</Badge>
-                <Text block size={200} weight="semibold" style={{ marginTop: 4 }}>
+                <Text block size={200} weight="semibold" className={styles.driftMessage}>
                   {drift.message}
                 </Text>
                 {drift.lostHash ? (
-                  <Text block size={200} style={{ color: tokens.colorPaletteRedBorderActive }}>
+                  <Text block size={200} className={styles.driftLostHash}>
                     Hash mismatch could not be resolved. Physical data might be lost.
                   </Text>
                 ) : drift.proposedAddress ? (
-                  <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div className={styles.driftProposed}>
                     <Text block size={200}>
                       Proposed new coordinates: {drift.proposedAddress}
                     </Text>
