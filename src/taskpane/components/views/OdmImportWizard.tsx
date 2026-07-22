@@ -5,7 +5,6 @@
 import * as React from "react";
 import {
   Body1,
-  Button,
   Card,
   MessageBar,
   MessageBarBody,
@@ -13,6 +12,7 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
+import { Button } from "../ui/Button";
 import { importOdmXml, OdmImportPackage } from "../../core";
 import { formatNumber } from "../../core/utils/locale-utils";
 import {

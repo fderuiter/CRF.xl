@@ -6,7 +6,7 @@ import { StudyDesign, isCrfItem } from "../../types/hierarchy";
 import { AnnotatedCrfDocument } from "../../types/annotated-crf";
 import { ExportOptions } from "../../types/linguistics";
 import { DataType } from "../../types/enums";
-import * as CryptoJS from "crypto-js";
+import { sha256Native } from "../../utils/crypto-utils";
 import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
@@ -25,7 +25,7 @@ export async function generatePdfBlob(
   const timestamp = new Date().toISOString();
 
   const studyHashInput = JSON.stringify(study);
-  const studyHash = CryptoJS.SHA256(studyHashInput).toString(CryptoJS.enc.Hex);
+  const studyHash = await sha256Native(studyHashInput);
 
   const escapeHtml = (unsafe: string): string => {
     return (unsafe || "").toString().replace(/[&<"']/g, function (m) {

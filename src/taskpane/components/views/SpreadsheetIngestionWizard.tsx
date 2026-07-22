@@ -45,7 +45,6 @@ const formItemRowSchema = z.object({
 import {
   Badge,
   Body1,
-  Button,
   Card,
   Dropdown,
   Field,
@@ -62,6 +61,7 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
+import { Button } from "../ui/Button";
 import {
   buildIngestionPreview,
   buildSheetScanResult,
