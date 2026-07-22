@@ -2,6 +2,7 @@
 
 This directory contains service-layer public exports.
 
+- `ComplianceExportService`
 - `ComplianceGovernanceService`
 - `DictionaryService`
 - `MigrationPipeline`
@@ -9,3 +10,4 @@ This directory contains service-layer public exports.
 - `OfficeErrorHandling`
 - `RecoveryStorage`
 - `ReviewService`
+- `StandardExportAdapters`
