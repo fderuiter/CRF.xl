@@ -37,7 +37,7 @@ export interface OrchestratorState {
   uiError: any | null;
 }
 
-export class AppOrchestrator {
+class AppOrchestrator {
   private state: OrchestratorState = {
     isProcessing: false,
     study: null,

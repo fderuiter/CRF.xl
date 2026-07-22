@@ -14,9 +14,3 @@ export interface ReviewerComment {
   resolvedBy?: string;
   resolvedAt?: string;
 }
-
-export interface ReviewSessionState {
-  reviewerName: string;
-  comments: ReviewerComment[];
-  isReviewModeActive: boolean;
-}

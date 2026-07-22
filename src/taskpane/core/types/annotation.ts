@@ -19,8 +19,6 @@ export enum AnnotationType {
  */
 export enum AnnotationTargetType {
   CELL = "Cell",
-  RANGE = "Range",
-  REGION = "Region",
 }
 
 /**

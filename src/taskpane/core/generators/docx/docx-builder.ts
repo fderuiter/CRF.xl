@@ -50,23 +50,7 @@ export async function generateDocxBlob(
   return await Packer.toBlob(doc);
 }
 
-export async function generateDocx(
-  study: StudyDesign,
-  exportOptions?: ExportOptions
-): Promise<void> {
-  const doc = await buildDocxDocument(study, exportOptions);
-
-  // Finalize as Blob and trigger browser download
-  const blob = await Packer.toBlob(doc);
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${study.metadata.protocolId}_PaperCRF_v${study.metadata.version}.docx`;
-  a.click();
-  window.URL.revokeObjectURL(url);
-}
-
-export async function buildDocxDocument(
+async function buildDocxDocument(
   study: StudyDesign,
   exportOptions?: ExportOptions
 ): Promise<Document> {

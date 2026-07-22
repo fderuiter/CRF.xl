@@ -140,19 +140,6 @@ export async function fetchDictionaries(): Promise<CodelistGroup[]> {
 }
 
 /**
- * Injects the selected Codelist ID into the active Excel cell.
- * @param codelistId
- * @returns
- */
-export async function insertDictionaryToActiveCell(codelistId: string): Promise<void> {
-  return await Excel.run(async (context) => {
-    const range = context.workbook.getSelectedRange();
-    range.values = [[codelistId]];
-    await context.sync();
-  });
-}
-
-/**
  * Writes a newly created dictionary to the bottom of the _Codelists sheet
  * and updates the Named Range for Data Validation dropdowns.
  */

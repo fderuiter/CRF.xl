@@ -7,7 +7,7 @@ import { parseExcelToStudyDesign } from "../parser/excel-parser";
 import { announcer } from "./announcer";
 import { SubscriptionManager } from "../utils/event-utility";
 
-export interface ValidationState {
+interface ValidationState {
   isProcessing: boolean;
   study: StudyDesign | null;
   issues: ValidationIssue[];

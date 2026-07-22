@@ -2,12 +2,12 @@
  * @issue #44, #45
  */
 
-export interface CdiscCredentials {
+interface CdiscCredentials {
   clientId: string;
   clientSecret: string;
 }
 
-export interface CdiscApiServiceConfig {
+interface CdiscApiServiceConfig {
   baseUrl?: string;
   tokenUrl?: string;
   timeoutMs?: number;
@@ -17,7 +17,7 @@ export interface CdiscApiServiceConfig {
   credentials?: CdiscCredentials;
 }
 
-export interface CdiscHttpClient {
+interface CdiscHttpClient {
   fetch(input: string, init?: RequestInit): Promise<Response>;
 }
 
@@ -62,7 +62,7 @@ export interface CdiscApiFailure {
 
 export type CdiscApiResult<T> = CdiscApiSuccess<T> | CdiscApiFailure;
 
-export interface CdiscApiErrorBase {
+interface CdiscApiErrorBase {
   type: "configuration" | "auth" | "http" | "network" | "invalid_response" | "rate_limit";
   message: string;
   endpoint?: string;
@@ -70,29 +70,29 @@ export interface CdiscApiErrorBase {
   retriable: boolean;
 }
 
-export interface CdiscApiConfigurationError extends CdiscApiErrorBase {
+interface CdiscApiConfigurationError extends CdiscApiErrorBase {
   type: "configuration";
 }
 
-export interface CdiscApiAuthError extends CdiscApiErrorBase {
+interface CdiscApiAuthError extends CdiscApiErrorBase {
   type: "auth";
   code: "missing_credentials" | "token_request_failed" | "unauthorized";
 }
 
-export interface CdiscApiHttpError extends CdiscApiErrorBase {
+interface CdiscApiHttpError extends CdiscApiErrorBase {
   type: "http";
 }
 
-export interface CdiscApiNetworkError extends CdiscApiErrorBase {
+interface CdiscApiNetworkError extends CdiscApiErrorBase {
   type: "network";
   code: "timeout" | "request_failed";
 }
 
-export interface CdiscApiInvalidResponseError extends CdiscApiErrorBase {
+interface CdiscApiInvalidResponseError extends CdiscApiErrorBase {
   type: "invalid_response";
 }
 
-export interface CdiscApiRateLimitError extends CdiscApiErrorBase {
+interface CdiscApiRateLimitError extends CdiscApiErrorBase {
   type: "rate_limit";
   retryAfterMs: number | null;
 }
@@ -105,7 +105,7 @@ export type CdiscApiError =
   | CdiscApiInvalidResponseError
   | CdiscApiRateLimitError;
 
-export interface CdiscApiService {
+interface CdiscApiService {
   listCtPackages(): Promise<CdiscApiResult<CdiscCtPackage[]>>;
   listPackageCodelists(packageOid: string): Promise<CdiscApiResult<CdiscCtCodelist[]>>;
   listCodelistTerms(

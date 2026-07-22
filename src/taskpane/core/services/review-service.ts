@@ -61,7 +61,7 @@ export async function saveComment(comment: ReviewerComment): Promise<void> {
  * Saves multiple reviewer comments to the CustomXmlParts store.
  * @param comments
  */
-export async function saveCommentsBatch(comments: ReviewerComment[]): Promise<void> {
+async function saveCommentsBatch(comments: ReviewerComment[]): Promise<void> {
   if (typeof Excel === "undefined") return;
 
   await Excel.run(async (context) => {

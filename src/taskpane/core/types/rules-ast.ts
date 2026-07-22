@@ -39,7 +39,7 @@ export interface Token {
   end: SourcePosition;
 }
 
-export interface BaseASTNode {
+interface BaseASTNode {
   type: string;
   loc: SourceLocation;
 }

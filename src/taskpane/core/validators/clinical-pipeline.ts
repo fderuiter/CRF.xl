@@ -11,7 +11,7 @@ import {
   AdamMapping,
 } from "../types";
 
-export interface ClinicalValidationIssue {
+interface ClinicalValidationIssue {
   level: "Error" | "Warning";
   message: string;
   path?: string;
@@ -19,7 +19,7 @@ export interface ClinicalValidationIssue {
   variableName?: string;
 }
 
-export interface ClinicalValidationResult {
+interface ClinicalValidationResult {
   issues: ClinicalValidationIssue[];
   isValid: boolean;
 }

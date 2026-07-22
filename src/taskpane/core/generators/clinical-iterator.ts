@@ -16,7 +16,7 @@ export enum SortStrategy {
   OID = "oid",
 }
 
-export interface IteratorConfig {
+interface IteratorConfig {
   sortStrategy?: SortStrategy;
 }
 

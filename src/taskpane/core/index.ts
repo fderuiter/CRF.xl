@@ -5,21 +5,17 @@ export {
   AdamDatasetClass,
   type AdamDatasetMetadata,
   type CodelistDiffEntry,
-  DataType,
   DatasetPurpose,
-  EventType,
   ExportMode,
   type ExportOptions,
   type FormDiffEntry,
   type ItemDiffEntry,
   type RuleDiffEntry,
-  RuleType,
   SdtmDatasetClass,
   type SdtmDatasetMetadata,
   type StudyDesign,
   type StudyDiffReport,
   type SubmissionMetadata,
-  isCrfItem,
   type ValidationIssue,
   type AuditJustification,
   type AcrfVerificationResult,
@@ -31,13 +27,6 @@ export {
 } from "./services/baseline-workbook-service";
 export {
   RECOVERY_APP_VERSION,
-  type RecoverySnapshot,
-  type WorkbookFingerprint,
-  createRecoverySnapshot,
-  dismissRecoverySnapshot,
-  hasWorkbookChanged,
-  persistRecoverySnapshot,
-  readRecoverySnapshot,
   summarizeStudyDesign,
 } from "./services/recovery-storage";
 export { type TerminologySearchResult } from "./types/terminology-search";
@@ -46,7 +35,6 @@ export {
   detectOrphans,
   highlightLocaleColumns,
   refreshAnnotationHighlights,
-  clearAnnotationHighlights,
   type DriftWarning,
   detectDrifts,
   applyManualReAnchor,
@@ -55,7 +43,6 @@ export { annotationPaintbrushService } from "./services/annotation-paintbrush-se
 export {
   type ConflictResolution,
   type CtImportPlan,
-  type ImportConflictItem,
   type ImportSummary,
   buildCtImportPlan,
   executeCtImport,
@@ -66,7 +53,6 @@ export {
   type IngestionPreview,
   type SheetScanResult,
   TARGET_FIELDS,
-  type TargetField,
   type TargetSheet,
   buildIngestionPreview,
   buildSheetScanResult,
@@ -91,9 +77,7 @@ export {
 } from "./services/migration-pipeline";
 export { createOfficeDiagnostic } from "./services/office-error-handling";
 export {
-  type Diagnostic,
-  DiagnosticError,
-  type DiagnosticSeverity,
+  type Diagnostic
 } from "./services/diagnostic-framework";
 export {
   type CodelistGroup,
@@ -105,7 +89,7 @@ export { type OdmImportPackage, importOdmXml } from "./services/odm-import-servi
 export { initializeWorkbook, navigateToSource, syncRegistry } from "./parser/template-generator";
 export { LinguisticService } from "./services/linguistics-service";
 export { TerminologySearchService } from "./services/terminology-search-service";
-export { validateStudyDesign } from "./parser/validator";
+export { } from "./parser/validator";
 export { VaultService } from "./services/vault-service";
 export { backgroundValidationEngine } from "./services/validation-engine";
 export { type SelectionContext, bindingService } from "./services/binding-service";
@@ -126,11 +110,7 @@ export {
   getPredictedStudyDesign,
   speculativeSyncManager,
 } from "./services/speculative-sync-service";
-export { formatNumber, parseNumber, formatDate, parseDate } from "./utils/locale-utils";
+export { formatDate } from "./utils/locale-utils";
 export { onboardingService, type OnboardingState } from "./services/onboarding-service";
 export {
-  loadComments,
-  saveComment,
-  updateCommentStatus,
-  deleteComment,
 } from "./services/review-service";

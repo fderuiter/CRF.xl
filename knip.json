@@ -1,0 +1,20 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/taskpane/index.tsx"],
+  "project": [
+    "src/taskpane/components/**/*.{ts,tsx}",
+    "src/taskpane/core/**/*.{ts,tsx}",
+    "src/taskpane/hooks/**/*.{ts,tsx}",
+    "src/taskpane/providers/**/*.{ts,tsx}"
+  ],
+  "rules": {
+    "files": "error",
+    "exports": "error",
+    "types": "error",
+    "dependencies": "off",
+    "devDependencies": "off",
+    "unlisted": "off",
+    "binaries": "off",
+    "unresolved": "off"
+  }
+}

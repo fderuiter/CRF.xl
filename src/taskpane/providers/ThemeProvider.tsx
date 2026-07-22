@@ -5,13 +5,13 @@
 import * as React from "react";
 import { FluentProvider, webLightTheme, webDarkTheme, teamsHighContrastTheme, Theme } from "@fluentui/react-components";
 
-export type ThemeType = "light" | "dark" | "high-contrast";
+type ThemeType = "light" | "dark" | "high-contrast";
 
 interface ThemeContextValue {
   themeType: ThemeType;
 }
 
-export const ThemeContext = React.createContext<ThemeContextValue>({ themeType: "light" });
+const ThemeContext = React.createContext<ThemeContextValue>({ themeType: "light" });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeType, setThemeType] = React.useState<ThemeType>("light");
@@ -132,5 +132,3 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     </ThemeContext.Provider>
   );
 };
-
-export const useThemeContext = () => React.useContext(ThemeContext);

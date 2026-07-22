@@ -3,7 +3,7 @@ import { DiagnosticError } from "./diagnostic-framework";
 /**
  * @issue #68
  */
-export type OfficeErrorClass =
+type OfficeErrorClass =
   | "excelBusy"
   | "workbookNotReady"
   | "sheetOrRangeMissing"

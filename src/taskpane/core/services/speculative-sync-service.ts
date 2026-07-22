@@ -16,7 +16,7 @@ import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { ChunkingEngine, ExecutionPlan } from "../engine/chunking-engine";
 import { createRetryMiddleware } from "../engine/middlewares";
 
-export interface SpeculativeSyncOperation {
+interface SpeculativeSyncOperation {
   id: string;
   plans: ExecutionPlan<string[]>[];
   predictedStudy: StudyDesign;
@@ -26,7 +26,7 @@ export interface SpeculativeSyncOperation {
 
 export type SyncState = "idle" | "syncing" | "conflict" | "error";
 
-export interface SyncStatePayload {
+interface SyncStatePayload {
   state: SyncState;
   details?: any;
 }

@@ -10,8 +10,6 @@
 
 import { z } from "zod";
 import {
-  systemTriggerSchema,
-  dataPipeSourceSchema,
   crfItemSchema,
   crfDisplayBlockSchema,
   crfDisplayBlockElementSchema,
@@ -20,15 +18,11 @@ import {
   crfFormSchema,
   eventFormRefSchema,
   studyEventSchema,
-  studyMetadataSchema,
   studyDesignSchema,
 } from "./schemas";
-
-export type SystemTrigger = z.infer<typeof systemTriggerSchema>;
-export type DataPipeSource = z.infer<typeof dataPipeSourceSchema>;
 export type CrfItem = z.infer<typeof crfItemSchema>;
 export type CrfDisplayBlock = z.infer<typeof crfDisplayBlockSchema>;
-export type CrfDisplayBlockElement = z.infer<typeof crfDisplayBlockElementSchema>;
+type CrfDisplayBlockElement = z.infer<typeof crfDisplayBlockElementSchema>;
 export type CrfFormElement = z.infer<typeof crfFormElementSchema>;
 
 export function isCrfDisplayBlock(
@@ -45,5 +39,4 @@ export type ItemGroup = z.infer<typeof itemGroupSchema>;
 export type CrfForm = z.infer<typeof crfFormSchema>;
 export type EventFormRef = z.infer<typeof eventFormRefSchema>;
 export type StudyEvent = z.infer<typeof studyEventSchema>;
-export type StudyMetadata = z.infer<typeof studyMetadataSchema>;
 export type StudyDesign = z.infer<typeof studyDesignSchema>;

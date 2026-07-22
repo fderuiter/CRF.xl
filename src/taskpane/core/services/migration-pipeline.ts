@@ -27,11 +27,7 @@
 // Diagnostic model
 // ---------------------------------------------------------------------------
 
-import { Diagnostic, DiagnosticSeverity } from "./diagnostic-framework";
-
-/** Normalised severity used across all import flows. */
-export type ImportSeverity = DiagnosticSeverity;
-
+import { Diagnostic } from "./diagnostic-framework";
 /**
  * Shared diagnostic record emitted by every ingestion/migration service.
  * Service-specific interfaces (OdmImportDiagnostic, IngestionDiagnostic)

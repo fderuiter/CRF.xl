@@ -3,7 +3,7 @@
  */
 import { useState, useMemo } from "react";
 
-export interface UseUnifiedListOptions<T> {
+interface UseUnifiedListOptions<T> {
   data: T[];
   mode: "paginated" | "capped";
   itemsPerPage?: number;

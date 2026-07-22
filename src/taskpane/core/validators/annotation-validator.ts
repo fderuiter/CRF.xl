@@ -29,7 +29,7 @@ export interface AnnotationValidationIssue {
   location?: string;
 }
 
-export interface RepairPolicy {
+interface RepairPolicy {
   action: "AutoHeal" | "Warn" | "Block";
   description: string;
 }

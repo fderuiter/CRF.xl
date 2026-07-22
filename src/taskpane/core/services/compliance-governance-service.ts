@@ -27,7 +27,7 @@ export interface EnvironmentComplianceStatus {
   isCompliant: boolean;
 }
 
-export class ComplianceGovernanceService {
+class ComplianceGovernanceService {
   private msalInstance: PublicClientApplication;
   private graphClient: Client | null = null;
   private account: any = null;

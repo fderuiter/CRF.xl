@@ -8,17 +8,7 @@
 export enum TranslationStatus {
   COMPLETE = "COMPLETE",
   MISSING = "MISSING",
-  OUTDATED = "OUTDATED",
   PARTIAL = "PARTIAL",
-}
-
-/**
- * Shared infrastructure for language-aware content behavior.
- */
-export interface LinguisticMetadata {
-  baseLocale: string;
-  supportedLocales: string[];
-  fallbackChain: string[];
 }
 
 /**

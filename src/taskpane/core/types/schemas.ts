@@ -29,34 +29,34 @@ import {
   DateImputationRule,
 } from "./enums";
 
-export const translatedTextSchema = z.record(z.string(), z.string());
+const translatedTextSchema = z.record(z.string(), z.string());
 
-export const rolePermissionsSchema = z.object({
+const rolePermissionsSchema = z.object({
   read: z.array(z.string()).optional(),
   write: z.array(z.string()).optional(),
   blindedRoles: z.array(z.string()).optional(),
 });
 
-export const systemTriggerSchema = z.object({
+const systemTriggerSchema = z.object({
   triggerType: z.nativeEnum(SystemTriggerType),
   triggerTiming: z.enum(["OnSave", "OnSign"]),
   payloadMap: z.record(z.string(), z.string()).optional(),
 });
 
-export const dataPipeSourceSchema = z.object({
+const dataPipeSourceSchema = z.object({
   eventOid: z.string().optional(),
   formOid: z.string().optional(),
   itemOid: z.string(),
 });
 
 // UI
-export const assetConfigSchema = z.object({
+const assetConfigSchema = z.object({
   url: z.string(),
   altText: translatedTextSchema.optional(),
   mimeType: z.string().optional(),
 });
 
-export const vasConfigSchema = z.object({
+const vasConfigSchema = z.object({
   orientation: z.nativeEnum(VasOrientation),
   rangeMin: z.number(),
   rangeMax: z.number(),
@@ -67,7 +67,7 @@ export const vasConfigSchema = z.object({
   rightLabel: translatedTextSchema.optional(),
 });
 
-export const partialDateConfigSchema = z.object({
+const partialDateConfigSchema = z.object({
   allowPartialDD: z.boolean().optional(),
   allowPartialMMM: z.boolean().optional(),
   allowPartialYYYY: z.boolean().optional(),
@@ -83,7 +83,7 @@ export const partialDateConfigSchema = z.object({
 });
 
 // Validation
-export const derivationConfigSchema = z.object({
+const derivationConfigSchema = z.object({
   expression: z.string().optional(),
   dependencyItemOids: z.array(z.string()),
   isAggregate: z.boolean().optional(),
@@ -92,12 +92,12 @@ export const derivationConfigSchema = z.object({
   targetItemOid: z.string().optional(),
 });
 
-export const missingDataConfigSchema = z.object({
+const missingDataConfigSchema = z.object({
   allowMissingCodes: z.boolean(),
   allowedCodes: z.array(z.string()).optional(),
 });
 
-export const rangeCheckSchema = z.object({
+const rangeCheckSchema = z.object({
   comparator: z.enum(["<", "<=", ">", ">=", "==", "!="]),
   value: z.union([z.string(), z.number()]),
   valueType: z.nativeEnum(RangeValueType),
@@ -105,7 +105,7 @@ export const rangeCheckSchema = z.object({
   errorMessage: translatedTextSchema.optional(),
 });
 
-export const itemValidationSchema = z.object({
+const itemValidationSchema = z.object({
   required: z.boolean(),
   requireIf: z.string().optional(),
   requiredErrorMessage: translatedTextSchema.optional(),
@@ -126,14 +126,14 @@ export const itemValidationSchema = z.object({
   dateImputationRule: z.nativeEnum(DateImputationRule).optional(),
 });
 
-export const editCheckSchema = z.object({
+const editCheckSchema = z.object({
   logic: z.string(),
   severity: z.nativeEnum(QuerySeverity),
   queryMessage: translatedTextSchema,
 });
 
 // Clinical
-export const clinicalVariableBaseSchema = z.object({
+const clinicalVariableBaseSchema = z.object({
   variable: z.string().optional(),
   nciVariableCode: z.string().optional(),
   sasFieldName: z.string().optional(),
@@ -144,7 +144,7 @@ export const clinicalVariableBaseSchema = z.object({
   isVlm: z.boolean().optional(),
 });
 
-export const clinicalDatasetBaseSchema = z.object({
+const clinicalDatasetBaseSchema = z.object({
   label: z.string(),
   structure: z.string(),
   keyVariables: z.array(z.string()).optional(),
@@ -157,19 +157,19 @@ export const clinicalDatasetBaseSchema = z.object({
   hasNoData: z.boolean().optional(),
 });
 
-export const sensorConfigSchema = z.object({
+const sensorConfigSchema = z.object({
   deviceType: z.string(),
   metricId: z.string(),
   frequency: z.string().optional(),
 });
 
-export const labConfigSchema = z.object({
+const labConfigSchema = z.object({
   labType: z.nativeEnum(LabType),
   labTestCode: z.string(),
   nciLabCode: z.string().optional(),
 });
 
-export const medicalCodingLinkSchema = z.object({
+const medicalCodingLinkSchema = z.object({
   termType: z.nativeEnum(CodingTermType),
   linkedItemOid: z.string(),
   dictionaryLevel: z.string().optional(),
@@ -214,7 +214,7 @@ export const codelistSchema = z.object({
   customProperties: z.record(z.string(), z.any()).optional(),
 });
 
-export const methodDefinitionSchema = z.object({
+const methodDefinitionSchema = z.object({
   methodOid: z.string(),
   name: z.string(),
   type: z.string(),
@@ -236,7 +236,7 @@ export const adamDatasetMetadataSchema = clinicalDatasetBaseSchema.extend({
   analysisType: z.string().optional(),
 });
 
-export const submissionDerivationSchema = z.object({
+const submissionDerivationSchema = z.object({
   derivationId: z.string(),
   label: z.string(),
   description: z.string(),
@@ -248,27 +248,27 @@ export const submissionDerivationSchema = z.object({
   type: z.enum(["Computation", "Imputation", "Transpose", "Other"]).optional(),
 });
 
-export const submissionCommentSchema = z.object({
+const submissionCommentSchema = z.object({
   commentOid: z.string(),
   text: z.string(),
   translatedText: translatedTextSchema.optional(),
 });
 
-export const submissionStandardSchema = z.object({
+const submissionStandardSchema = z.object({
   standardOid: z.string(),
   name: z.string(),
   version: z.string(),
   status: z.enum(["Draft", "Final"]).optional(),
 });
 
-export const sdtmVariableMetadataSchema = z.object({
+const sdtmVariableMetadataSchema = z.object({
   vlmOid: z.string(),
   parentItemOid: z.string(),
   whereClause: z.string().optional(),
   sdtmMapping: sdtmMappingSchema,
 });
 
-export const adamVariableMetadataSchema = z.object({
+const adamVariableMetadataSchema = z.object({
   vlmOid: z.string(),
   parentItemOid: z.string(),
   whereClause: z.string().optional(),
@@ -484,7 +484,7 @@ export const studyEventSchema = z.object({
   customProperties: z.record(z.string(), z.any()).optional(),
 });
 
-export const studyMetadataSchema = z.object({
+const studyMetadataSchema = z.object({
   protocolId: z.string(),
   studyName: z.string(),
   phase: z.string().optional(),

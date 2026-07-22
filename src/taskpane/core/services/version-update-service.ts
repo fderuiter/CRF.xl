@@ -2,15 +2,15 @@
  * @issue #68
  */
 
-export const VERSION_ENDPOINT_FALLBACK = "/assets/version.json";
+const VERSION_ENDPOINT_FALLBACK = "/assets/version.json";
 export const VERSION_DISMISSAL_STORAGE_KEY = "crf-xl-version-update-dismissed-v1";
 
-export interface StorageLike {
+interface StorageLike {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }
 
-export interface VersionHttpClient {
+interface VersionHttpClient {
   fetch(input: string, init?: RequestInit): Promise<Response>;
 }
 
@@ -20,7 +20,7 @@ export interface VersionUpdateMetadata {
   changelogUrl?: string;
 }
 
-export type VersionCheckResult =
+type VersionCheckResult =
   | { status: "update-available"; update: VersionUpdateMetadata }
   | { status: "dismissed"; update: VersionUpdateMetadata }
   | { status: "up-to-date" }

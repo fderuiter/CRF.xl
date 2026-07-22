@@ -18,7 +18,7 @@ export interface SelectionContext {
   fieldName?: string;
 }
 
-export type SelectionChangeListener = (context: SelectionContext) => void;
+type SelectionChangeListener = (context: SelectionContext) => void;
 
 class BindingService {
   private selectionManager = new SubscriptionManager<SelectionContext>(
