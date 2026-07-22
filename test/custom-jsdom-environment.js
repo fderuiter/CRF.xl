@@ -13,6 +13,20 @@ class CustomJSDOMEnvironment extends JSDOMEnvironment {
     this.global.Request = Request;
     this.global.Response = Response;
   }
+
+  async teardown() {
+    if (this.global) {
+      if (typeof this.global.Event === 'function' && typeof this.global.dispatchEvent === 'function') {
+        const unloadEvent = new this.global.Event('unload');
+        this.global.dispatchEvent(unloadEvent);
+      }
+      delete this.global.fetch;
+      delete this.global.Headers;
+      delete this.global.Request;
+      delete this.global.Response;
+    }
+    await super.teardown();
+  }
 }
 
 module.exports = CustomJSDOMEnvironment;
