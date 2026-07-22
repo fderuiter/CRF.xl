@@ -13,18 +13,19 @@ test.describe('Visual Regression Tests - Dictionary Sidecar & Integrity Hub', ()
 
       test.beforeEach(async ({ page }) => {
         await page.addInitScript((mockOfficeTheme) => {
-          window['Office'] = window['Office'] || {
-            onReady: (cb) => setTimeout(() => cb({ host: 'Excel' }), 0),
+          const win = window as any;
+          win.Office = win.Office || {
+            onReady: (cb: any) => setTimeout(() => { if (cb) cb({ host: 'Excel' }); }, 0),
             context: {
               officeTheme: mockOfficeTheme,
               displayLanguage: "en-US",
               document: {
-                getFilePropertiesAsync: (cb) => cb({ status: 'Succeeded', value: { url: 'local' } })
+                getFilePropertiesAsync: (cb: any) => { if (cb) cb({ status: 'Succeeded', value: { url: 'local' } }); }
               }
             }
           };
           
-          window['matchMedia'] = (query) => {
+          win.matchMedia = (query: any) => {
              return {
                matches: query === "(forced-colors: active)" && mockOfficeTheme === null,
                addEventListener: () => {},

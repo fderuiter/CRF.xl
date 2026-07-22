@@ -398,7 +398,11 @@ const useStyles = makeStyles({
   },
   marginTop4: { marginTop: "4px" },
   headerBtn: {
-    color: tokens.colorNeutralForegroundOnBrand, borderColor: tokens.colorNeutralForegroundOnBrand,
+    color: tokens.colorNeutralForegroundOnBrand,
+    borderTopColor: tokens.colorNeutralForegroundOnBrand,
+    borderBottomColor: tokens.colorNeutralForegroundOnBrand,
+    borderLeftColor: tokens.colorNeutralForegroundOnBrand,
+    borderRightColor: tokens.colorNeutralForegroundOnBrand,
   },
   flexGrowColumnGap8: {
     flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden",
