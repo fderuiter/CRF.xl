@@ -3,7 +3,7 @@ import { RuleDefinition, RuleType } from "../types/rules-ast";
 import { parseRuleExpression } from "./rules-parser";
 import { ClinicalIterator, SortStrategy } from "../generators/clinical-iterator";
 
-export function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
+function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
   if (!target) return false;
   const targetLower = target.trim().toLowerCase();
   const itemLower = itemOid.trim().toLowerCase();

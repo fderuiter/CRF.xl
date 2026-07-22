@@ -18,7 +18,7 @@ import {
 } from "../types/index";
 import { validateExpression, inferExpressionType } from "./expression-validator";
 
-export interface RuleValidationError {
+interface RuleValidationError {
   level: "Error" | "Warning";
   ruleId: string;
   message: string;
