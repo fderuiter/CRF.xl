@@ -2,7 +2,6 @@
 /**
  * @issue #84
  */
-/* global Excel */
 import { Annotation } from "../types";
 
 export enum RepairConfidence {
@@ -48,9 +47,7 @@ export interface ExcelRangeData {
  * @param rangeData
  * @returns
  */
-export function validateAnnotationTarget(
-  rangeData: ExcelRangeData
-): AnnotationValidationIssue[] {
+export function validateAnnotationTarget(rangeData: ExcelRangeData): AnnotationValidationIssue[] {
   const issues: AnnotationValidationIssue[] = [];
 
   if (rangeData.isWorksheetProtected && rangeData.isLocked) {

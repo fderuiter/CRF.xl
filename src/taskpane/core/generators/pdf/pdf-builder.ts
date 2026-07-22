@@ -9,11 +9,11 @@ import { DataType } from "../../types/enums";
 import * as CryptoJS from "crypto-js";
 import { formatDate } from "../../utils/locale-utils";
 import { StudyDiffReport } from "../../types/diff";
-import { buildStudyDiffList } from "../../../components/views/study-diff-view-utils";
+import { buildStudyDiffList } from "../../utils/study-diff-utils";
 import { generatePdfBlobFromHtml } from "../../services/pdf-export-adapter";
 import { getTranslation } from "../shared-localization";
 
-export interface PdfThemeColors {
+interface PdfThemeColors {
   primary: string;
   success: string;
   warning: string;

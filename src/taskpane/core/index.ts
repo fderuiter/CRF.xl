@@ -4,13 +4,9 @@
 export {
   AdamDatasetClass,
   type AdamDatasetMetadata,
-  type CodelistDiffEntry,
   DatasetPurpose,
   ExportMode,
   type ExportOptions,
-  type FormDiffEntry,
-  type ItemDiffEntry,
-  type RuleDiffEntry,
   SdtmDatasetClass,
   type SdtmDatasetMetadata,
   type StudyDesign,

@@ -18,7 +18,7 @@ jest.mock("../../services/pdf-export-adapter", () => ({
   generatePdfBlobFromHtml: jest.fn(),
 }));
 jest.mock("html-to-docx", () => jest.fn());
-jest.mock("../../../components/views/study-diff-view-utils", () => ({
+jest.mock("../../utils/study-diff-utils", () => ({
   buildStudyDiffList: jest.fn(() => []),
 }));
 

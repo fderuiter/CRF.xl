@@ -588,6 +588,7 @@ async function applyAnnotationInternal(
 
   range.load(["format/protection/locked", "address", "worksheet/protection/protected"]);
   let mergedAreas: any = null;
+  // eslint-disable-next-line office-addins/load-object-before-read
   if (typeof (range as any).getMergedAreasOrNullObject === "function") {
     mergedAreas = (range as any).getMergedAreasOrNullObject();
     mergedAreas.load(["address", "isNullObject"]);
