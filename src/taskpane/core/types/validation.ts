@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 export interface ValidationIssue {
   level: "Error" | "Warning";
   message: string;
