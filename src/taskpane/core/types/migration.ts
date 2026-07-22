@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 export interface RowChange {
   sheet: string;
   rowIndex: number;
