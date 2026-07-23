@@ -205,6 +205,7 @@ export const codelistItemSchema = z.object({
 
 export const codelistSchema = z.object({
   codelistId: z.string(),
+  originalOid: z.string().optional(),
   codelistName: z.string(),
   dataType: z.union([z.string(), z.nativeEnum(DataType)]).optional(),
   nciCodelistCode: z.string().optional(),
@@ -299,6 +300,7 @@ export const crfItemSchema = z.object({
   formOid: z.string(),
   groupOid: z.string().optional(),
   itemOid: z.string(),
+  originalOid: z.string().optional(),
   orderNumber: z.number().optional(),
   effectiveVersion: z.string().optional(),
   name: z.string(),
@@ -439,6 +441,7 @@ export const itemGroupSchema = z.object({
 
 export const crfFormSchema = z.object({
   formOid: z.string(),
+  originalOid: z.string().optional(),
   formName: z.string(),
   repeating: z.boolean(),
   formType: z.nativeEnum(FormType).optional(),

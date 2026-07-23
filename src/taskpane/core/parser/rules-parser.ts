@@ -18,6 +18,7 @@ import {
   SourcePosition,
 } from "../types/index";
 import { getLocaleConfig } from "../locale-config";
+import { normalizeOid, normalizeExpression } from "./metadata-utils";
 
 /**
  * Tokenizes a raw rule expression string.
@@ -629,8 +630,11 @@ export function parseRulesSheetRows(
 
     if (!ruleId) continue;
 
+    const normRuleId = normalizeOid(ruleId);
+    const normExpr = normalizeExpression(rawExpr);
+
     if (!rawExpr) {
-      const err = new ParseError(`Rule '${ruleId}' is missing an expression.`, {
+      const err = new ParseError(`Rule '${normRuleId}' is missing an expression.`, {
         start: { offset: 0, line: i + 1, column: 1 },
         end: { offset: 0, line: i + 1, column: 1 },
       });
@@ -645,19 +649,26 @@ export function parseRulesSheetRows(
       else if (rawType === "SHOW_IF" || rawType === "SHOW IF") ruleType = RuleType.SHOW_IF;
     }
 
+    const targetVal =
+      targetIdx !== -1 && row[targetIdx] ? String(row[targetIdx]).trim() : undefined;
+    const normTarget = targetVal ? normalizeOid(targetVal) : undefined;
+
     const definition: RuleDefinition = {
-      ruleId,
+      ruleId: normRuleId,
+      originalRuleId: ruleId,
       name: nameIdx !== -1 && row[nameIdx] ? String(row[nameIdx]).trim() : undefined,
       ruleType,
-      target: targetIdx !== -1 && row[targetIdx] ? String(row[targetIdx]).trim() : undefined,
-      expression: rawExpr,
+      target: normTarget,
+      originalTarget: targetVal,
+      expression: normExpr,
+      originalExpression: rawExpr,
       errorMessage: msgIdx !== -1 && row[msgIdx] ? String(row[msgIdx]).trim() : undefined,
       description: descIdx !== -1 && row[descIdx] ? String(row[descIdx]).trim() : undefined,
       _sourceRowIndex: i + 1,
     };
 
     try {
-      definition.ast = parseRuleExpression(rawExpr);
+      definition.ast = parseRuleExpression(normExpr);
     } catch (err) {
       if (err instanceof ParseError) {
         definition.parseError = err.message;

@@ -17,6 +17,7 @@ import {
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
+import { normalizeDataType } from "../../parser/metadata-utils";
 import { LinguisticService } from "../../services/linguistics-service";
 import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 
@@ -43,10 +44,7 @@ class OdmSerializationError extends Error {
  */
 function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
   if (!target) return false;
-  const targetLower = target.trim().toLowerCase();
-  const itemLower = itemOid.trim().toLowerCase();
-  if (targetLower === itemLower) return true;
-  return targetLower.endsWith("." + itemLower);
+  return target.trim().toLowerCase() === itemOid.trim().toLowerCase();
 }
 
 interface OdmExportResult {
@@ -115,7 +113,7 @@ export async function generateOdmXml(
   const preCachedVariables = new Map<string, DataType>();
   for (const { item } of iterator.walkForms(study)) {
     if (isCrfItem(item) && item.itemOid) {
-      preCachedVariables.set(item.itemOid, item.dataType as DataType);
+      preCachedVariables.set(item.itemOid, normalizeDataType(item.dataType));
     }
     if (!isCrfItem(item)) continue;
     if (item.showIf) {

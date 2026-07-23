@@ -50,9 +50,31 @@ export function normalizeOid(oid: unknown): string {
   if (typeof oid !== "string") {
     return String(oid || "").trim();
   }
-  const trimmed = oid.trim();
-  // Strip namespace prefixes (e.g., "CDISC:") and version prefixes (e.g., "MV.")
-  return trimmed.replace(/^([^:]+:|MV\.)/i, "").trim();
+  let current = oid.trim();
+  let updated = true;
+  while (updated) {
+    const next = current.replace(/^([^:]+:|MV\.)/i, "");
+    if (next === current) {
+      updated = false;
+    } else {
+      current = next;
+    }
+  }
+  return current.trim();
+}
+
+export function normalizeExpression(expr: string): string {
+  let current = expr;
+  let updated = true;
+  while (updated) {
+    const next = current.replace(/\b([a-zA-Z0-9_]+:|MV\.)(?=[a-zA-Z_])/gi, "");
+    if (next === current) {
+      updated = false;
+    } else {
+      current = next;
+    }
+  }
+  return current;
 }
 
 export function normalizeDataType(value: unknown): DataType {

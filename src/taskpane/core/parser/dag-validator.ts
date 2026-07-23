@@ -17,6 +17,7 @@ import {
   isCrfItem,
 } from "../types/index";
 import { validateExpression, inferExpressionType } from "./expression-validator";
+import { normalizeDataType } from "./metadata-utils";
 
 export interface RuleValidationError {
   level: "Error" | "Warning";
@@ -178,7 +179,11 @@ function matchesRef(identifier: string, ref: string): boolean {
   const identLower = identifier.toLowerCase();
   const refLower = ref.toLowerCase();
   if (identLower === refLower) return true;
-  return identLower.endsWith("." + refLower);
+  const segments = identLower.split(".");
+  if (segments.length > 1 && segments[segments.length - 1] === refLower) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -328,7 +333,7 @@ export async function validateRules(
                 continue;
               }
               if (item.itemOid) {
-                variablesMap.set(item.itemOid, item.dataType as any);
+                variablesMap.set(item.itemOid, normalizeDataType(item.dataType));
               }
             }
           }

@@ -57,11 +57,14 @@ export function inferExpressionType(
         return variables.get(node.name)!;
       }
 
-      // Check end segment for qualified paths (e.g. VISIT_1.VS.WT -> WT)
+      // Check exact match in variables
       let resolvedType: DataType | "Unknown" = "Unknown";
+      const segments = nameLower.split(".");
+      const baseNameLower = segments[segments.length - 1];
+
       variables.forEach((value, key) => {
         const keyLower = key.toLowerCase();
-        if (keyLower === nameLower || nameLower.endsWith("." + keyLower)) {
+        if (keyLower === baseNameLower) {
           resolvedType = value;
         }
       });
@@ -72,7 +75,7 @@ export function inferExpressionType(
       // If it matches a known rule ID (e.g. R_001), it evaluates to a boolean validation status
       let matchesRule = false;
       knownRules.forEach((r) => {
-        if (r.toLowerCase() === nameLower || nameLower.endsWith("." + r.toLowerCase())) {
+        if (r.toLowerCase() === baseNameLower) {
           matchesRule = true;
         }
       });
@@ -212,12 +215,15 @@ export function validateExpression(
         const nameLower = n.name.toLowerCase();
         let foundType: DataType | "Unknown" = "Unknown";
 
+        const segments = nameLower.split(".");
+        const baseNameLower = segments[segments.length - 1];
+
         if (variables.has(n.name)) {
           foundType = variables.get(n.name)!;
         } else {
           variables.forEach((value, key) => {
             const keyLower = key.toLowerCase();
-            if (keyLower === nameLower || nameLower.endsWith("." + keyLower)) {
+            if (keyLower === baseNameLower) {
               foundType = value;
             }
           });
@@ -227,7 +233,7 @@ export function validateExpression(
         if (foundType === "Unknown") {
           knownRules.forEach((r) => {
             const rLower = r.toLowerCase();
-            if (rLower === nameLower || nameLower.endsWith("." + rLower)) {
+            if (rLower === baseNameLower) {
               matchesRule = true;
             }
           });

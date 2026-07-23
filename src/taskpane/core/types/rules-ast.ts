@@ -103,10 +103,13 @@ export enum RuleType {
 
 export interface RuleDefinition {
   ruleId: string;
+  originalRuleId?: string;
   name?: string;
   ruleType: RuleType;
   target?: string;
+  originalTarget?: string;
   expression: string;
+  originalExpression?: string;
   errorMessage?: string;
   description?: string;
   ast?: ASTNode;

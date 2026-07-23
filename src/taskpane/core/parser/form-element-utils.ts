@@ -126,6 +126,7 @@ function mapRowToItem(
     if (normalizedHeader === "variable name") {
       item.itemOid = normalizeOid(value);
       item.name = item.itemOid;
+      item.originalOid = String(value).trim();
     }
     if (
       normalizedHeader === "label" ||

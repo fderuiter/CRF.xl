@@ -157,6 +157,7 @@ export async function parseRawDataToStudyDesign(
       if (!study.codelists[strId]) {
         study.codelists[strId] = {
           codelistId: strId,
+          originalOid: String(id).trim(),
           codelistName: String(name || ""),
           dataType: DataType.TEXT,
           items: [],
@@ -227,6 +228,7 @@ export async function parseRawDataToStudyDesign(
 
       study.forms[strId] = {
         formOid: strId,
+        originalOid: String(id).trim(),
         formName: String(name),
         orderNumber: i,
         repeating: String(rep).toLowerCase() === "yes",
@@ -267,7 +269,22 @@ export async function parseRawDataToStudyDesign(
       message: `Reading form sheet ${oid} (${formIndex + 1}/${activeFormOids.length})`,
     });
 
-    const crfSheetVals = rawData[oid];
+    const rawForm = study.forms[oid];
+    let crfSheetVals = rawData[oid];
+    if (!crfSheetVals && rawForm && rawForm.originalOid) {
+      crfSheetVals = rawData[rawForm.originalOid];
+    }
+    if (!crfSheetVals) {
+      const lowerOid = oid.toLowerCase();
+      const lowerOrig = rawForm?.originalOid?.toLowerCase();
+      for (const key of Object.keys(rawData)) {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey === lowerOid || (lowerOrig && lowerKey === lowerOrig)) {
+          crfSheetVals = rawData[key];
+          break;
+        }
+      }
+    }
     if (!crfSheetVals) {
       runtime.reportProgress({
         phase: "items",
