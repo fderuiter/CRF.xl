@@ -289,6 +289,9 @@ class ComplianceGovernanceService {
   }
 
   public async loadJustificationsFromWorkbook(): Promise<Record<string, AuditJustification>> {
+    if (typeof Excel === "undefined") {
+      return {};
+    }
     return await Excel.run(async (context) => {
       const sheet = context.workbook.worksheets.getItemOrNullObject("_Justifications");
       sheet.load(["name", "isNullObject"]);

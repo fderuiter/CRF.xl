@@ -75,10 +75,34 @@ const TOUR_STEPS: TourStep[] = [
 export const OnboardingTour: React.FC = () => {
   const styles = useStyles();
   const [state, setState] = React.useState<OnboardingState>(onboardingService.getState());
+  const prevActiveElementRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     return onboardingService.subscribe(setState);
   }, []);
+
+  React.useEffect(() => {
+    if (state.isActive) {
+      const active = document.activeElement as HTMLElement;
+      if (
+        active &&
+        !active.closest(".fui-TeachingPopoverSurface") &&
+        !active.closest(".fui-DialogSurface")
+      ) {
+        prevActiveElementRef.current = active;
+      }
+    } else {
+      const el =
+        prevActiveElementRef.current ||
+        (document.querySelector('button[title="Start Guided Tour"]') as HTMLElement);
+      prevActiveElementRef.current = null;
+      if (el) {
+        setTimeout(() => {
+          el.focus();
+        }, 50);
+      }
+    }
+  }, [state.isActive]);
 
   if (!state.isActive) {
     return null;
@@ -115,6 +139,7 @@ export const OnboardingTour: React.FC = () => {
     <TeachingPopover
       open={state.isActive}
       positioning={{ target: document.getElementById(currentStep.anchorId) }}
+      trapFocus
     >
       <TeachingPopoverSurface className={styles.surface}>
         <TeachingPopoverHeader>

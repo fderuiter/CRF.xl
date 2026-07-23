@@ -63,10 +63,20 @@ export const AuditOrchestratorModal: React.FC<AuditOrchestratorModalProps> = ({
 }) => {
   const styles = useStyles();
   const [localJustifs, setLocalJustifs] = React.useState<Record<string, AuditJustification>>({});
+  const prevActiveElementRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
       setLocalJustifs(justifications);
+      if (!prevActiveElementRef.current) {
+        prevActiveElementRef.current = document.activeElement as HTMLElement;
+      }
+    } else {
+      if (prevActiveElementRef.current) {
+        const el = prevActiveElementRef.current;
+        prevActiveElementRef.current = null;
+        el.focus();
+      }
     }
   }, [isOpen, justifications]);
 

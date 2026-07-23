@@ -1,3 +1,4 @@
+/** @issue #435 */
 import { AnnotationType, AnnotationTargetType, Annotation } from "../../types";
 import { ReviewerComment } from "../../types/reviewer";
 import { applyAnnotation } from "../annotation-service";

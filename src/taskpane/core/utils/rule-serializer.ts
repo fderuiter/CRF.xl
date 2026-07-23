@@ -1,3 +1,4 @@
+/** @issue #440 */
 import { ASTNode } from "../types";
 
 /**
