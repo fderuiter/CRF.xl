@@ -2,6 +2,6 @@
 
 This directory contains the root core taskpane logic, including main exports and configuration.
 
-- `index`
+- `index` (root module exports)
 - `localeConfig`
 
