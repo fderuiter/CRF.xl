@@ -649,10 +649,11 @@ Shared utility types: localized strings, OID references, generic result wrappers
 
 ## Legacy flat-file modules
 
-These files at `src/taskpane/core/` root are superseded by modular implementations.
+These files at `src/taskpane/core/` root are superseded by modular implementations, with `core/index.ts` serving as the main public barrel file.
 
-| File | Superseded by |
+| File | Superseded by / Purpose |
 | --- | --- |
+| `core/index.ts` | Main barrel file re-exporting clean modular services and public API contracts. |
 | `core/parser.ts` | `core/parser/excel-parser.ts` |
 | `core/generator.ts` | `core/generators/docx/docx-builder.ts`, `core/generators/cdisc/odm-builder.ts` |
 

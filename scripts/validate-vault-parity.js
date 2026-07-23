@@ -3,7 +3,7 @@ const path = require("path");
 
 function verifyParity() {
   const projectRoot = "/app";
-  const servicePath = path.join(projectRoot, "src/taskpane/core/services/vault-service.ts");
+  const servicePath = path.join(projectRoot, "packages/vault-sdk/src/client.ts");
   const yamlPath = path.join(projectRoot, "docs/specification/unified-api.yaml");
 
   if (!fs.existsSync(servicePath)) {
@@ -25,13 +25,13 @@ function verifyParity() {
   for (const name of methodNames) {
     const startIdx = serviceCode.indexOf(`${name}(`);
     if (startIdx === -1) {
-      console.error(`Method ${name} not found in VaultService class.`);
+      console.error(`Method ${name} not found in VaultClient class.`);
       process.exit(1);
     }
     const bodyCode = serviceCode.substring(startIdx, startIdx + 1500);
 
     // Find fetch path
-    const pathMatch = bodyCode.match(/fetch\(\`\$\{this\.apiUrl\}([^`]+)\`/);
+    const pathMatch = bodyCode.match(/const url\s*=\s*\`\$\{this\.apiUrl\}([^`]+)\`/);
     if (!pathMatch) {
       console.error(`Could not find fetch path for method ${name}`);
       process.exit(1);

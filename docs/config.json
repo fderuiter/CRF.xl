@@ -1,6 +1,7 @@
 {
   "mappings": {
-    "src/taskpane/components": "docs/architecture/docs-information-architecture.md"
+    "src/taskpane/components": "docs/architecture/docs-information-architecture.md",
+    "src/taskpane/core": "docs/architecture/module-map.md"
   },
   "exclusions": ["src/taskpane/core/test-helpers"]
 }

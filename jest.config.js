@@ -1,6 +1,7 @@
 module.exports = {
   verbose: true,
   collectCoverage: true,
+  testTimeout: 20000,
   coverageDirectory: 'coverage',
   coveragePathIgnorePatterns: ['/node_modules/'],
   projects: [

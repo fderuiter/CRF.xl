@@ -2,9 +2,6 @@
  * @issue #130
  */
 /* global Worker, URL, MessageEvent */
-/**
- * @issue #130
- */
 import { StudyDesign } from "../types";
 import { DiagnosticError } from "./diagnostic-framework";
 
