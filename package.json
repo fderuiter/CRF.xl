@@ -31,6 +31,7 @@
     "docs:validate-code": "node ./scripts/validate-markdown-code.js",
     "docs:api-check": "node ./scripts/semantic-interface-checker.js",
     "docs:traceability": "node ./scripts/traceability-engine.js",
+    "docs:volatility": "node ./scripts/volatility-matrix.js",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "test:e2e": "playwright test",
