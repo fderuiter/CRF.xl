@@ -1,6 +1,8 @@
 /**
  * Shared escaping and decoding helpers for clinical study configurations, CDISC ODM XML, and PDF.
  * Consolidates historical character mapping quirks for bug-for-bug preservation.
+ *
+ * @issue #433
  */
 
 /**
