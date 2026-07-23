@@ -1,4 +1,5 @@
 import { getLocaleConfig } from "../locale-config";
+import { escapeRegExp } from "./escape-utils";
 
 /**
  * @issue #39
@@ -33,12 +34,12 @@ export function parseNumber(value: string | number | null | undefined): number |
   const groupSeparator = decimalSeparator === "." ? "," : ".";
 
   // Remove group separators
-  const escapedGroupSeparator = groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedGroupSeparator = escapeRegExp(groupSeparator);
   cleanValue = cleanValue.replace(new RegExp(escapedGroupSeparator, "g"), "");
 
   // Replace decimal separator with standard point
   if (decimalSeparator !== ".") {
-    const escapedDecimalSeparator = decimalSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedDecimalSeparator = escapeRegExp(decimalSeparator);
     cleanValue = cleanValue.replace(new RegExp(escapedDecimalSeparator), ".");
   }
 
