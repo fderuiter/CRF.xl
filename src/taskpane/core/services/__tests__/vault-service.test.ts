@@ -1,8 +1,4 @@
-import {
-  VaultService,
-  resetMockVaultStore,
-  mockValidationStore,
-} from "../vault-service";
+import { VaultService, resetMockVaultStore, mockValidationStore } from "../vault-service";
 import { DiagnosticError } from "../diagnostic-framework";
 
 jest.mock("../app-orchestrator", () => ({
@@ -133,25 +129,21 @@ describe("VaultService - In-Memory Simulator Mode", () => {
     it("should throw connection timeout errors for protocol IDs like FAIL, ERROR, or INVALID", async () => {
       const service = new VaultService();
 
-      await expect(
-        service.getHistory("FAIL")
-      ).rejects.toThrow(DiagnosticError);
+      await expect(service.getHistory("FAIL")).rejects.toThrow(DiagnosticError);
 
-      await expect(
-        service.freezeVersion("ERROR", "1.0.0", "hash", [])
-      ).rejects.toThrow(DiagnosticError);
+      await expect(service.freezeVersion("ERROR", "1.0.0", "hash", [])).rejects.toThrow(
+        DiagnosticError
+      );
 
-      await expect(
-        service.syncValidationResults("INVALID", "1.0.0", [], "hash")
-      ).rejects.toThrow(DiagnosticError);
+      await expect(service.syncValidationResults("INVALID", "1.0.0", [], "hash")).rejects.toThrow(
+        DiagnosticError
+      );
     });
 
     it("should throw simulated sync errors if critical validation issues are present", async () => {
       const service = new VaultService();
 
-      const criticalIssues = [
-        { level: "Error", message: "Missing required Variable Name" },
-      ];
+      const criticalIssues = [{ level: "Error", message: "Missing required Variable Name" }];
 
       // syncValidationResults check
       await expect(

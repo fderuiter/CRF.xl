@@ -1,6 +1,7 @@
 import { logger } from "../utils/logger";
 import { appOrchestrator } from "./app-orchestrator";
 import { DiagnosticError } from "./diagnostic-framework";
+import { VaultClient } from "../../../../packages/vault-sdk/src/client";
 
 /**
  * @issue #28
@@ -41,11 +42,13 @@ export function resetMockVaultStore() {
 export class VaultService {
   private apiUrl: string;
   private apiKey: string;
+  private client: VaultClient;
 
   constructor(credentials?: VaultCredentials) {
     this.apiUrl =
       credentials?.apiUrl || readEnv("VAULT_API_URL") || "https://api.vault.example.com";
     this.apiKey = credentials?.apiKey || readEnv("VAULT_API_KEY") || "";
+    this.client = new VaultClient({ apiUrl: this.apiUrl, apiKey: this.apiKey });
   }
 
   isSimulatorMode(): boolean {
@@ -113,20 +116,7 @@ export class VaultService {
 
     if (!this.apiUrl) return;
     try {
-      const response = await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/validation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          version,
-          issues,
-          studyHash,
-          timestamp: new Date().toISOString(),
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      await this.client.syncValidationResults(protocolId, version, issues, studyHash);
     } catch (e) {
       logger.error("Vault sync failed", e);
       const message = e instanceof Error ? e.message : "Network error";
@@ -195,20 +185,7 @@ export class VaultService {
 
     if (!this.apiUrl) return;
     try {
-      const response = await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/freeze`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          version,
-          studyHash,
-          validationIssues,
-          timestamp: new Date().toISOString(),
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      await this.client.freezeVersion(protocolId, version, studyHash, validationIssues);
     } catch (e) {
       logger.error("Vault freeze failed", e);
       const message = e instanceof Error ? e.message : "Network error";
@@ -266,13 +243,7 @@ export class VaultService {
 
     if (!this.apiUrl) return [];
     try {
-      const response = await fetch(`${this.apiUrl}/api/v1/studies/${protocolId}/history`, {
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
+      return await this.client.getHistory(protocolId);
     } catch (e) {
       logger.error("Vault history fetch failed", e);
       const message = e instanceof Error ? e.message : "Network error";
