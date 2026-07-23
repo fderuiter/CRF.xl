@@ -111,6 +111,21 @@ export const RegistryView: React.FC<RegistryProps> = ({
     status: "success" | "error" | null;
     message: string;
   }>({ isOpen: false, status: null, message: "" });
+  const prevActiveElementRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (!freezeDialog.isOpen) {
+      if (prevActiveElementRef.current) {
+        const el = prevActiveElementRef.current;
+        prevActiveElementRef.current = null;
+        setTimeout(() => {
+          if (el && typeof el.focus === "function") {
+            el.focus();
+          }
+        }, 50);
+      }
+    }
+  }, [freezeDialog.isOpen]);
 
   React.useEffect(() => {
     if (freezeDialog.isOpen && freezeDialog.message) {
@@ -125,6 +140,7 @@ export const RegistryView: React.FC<RegistryProps> = ({
 
   const handleFreeze = async () => {
     if (!study) return;
+    prevActiveElementRef.current = document.activeElement as HTMLElement;
     try {
       const vaultService = new VaultService();
       const studyHash = await sha256Native(JSON.stringify(study));

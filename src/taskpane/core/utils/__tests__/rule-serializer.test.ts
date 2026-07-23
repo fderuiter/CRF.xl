@@ -1,3 +1,4 @@
+/** @issue #440 */
 import { serializeAST } from "../rule-serializer";
 import { ASTNode } from "../../types";
 
@@ -242,9 +243,7 @@ describe("Rule Serializer Utility (serializeAST)", () => {
       const node: ASTNode = {
         type: "CallExpression",
         callee: "NOT",
-        arguments: [
-          { type: "Identifier", name: "A", loc: {} as any },
-        ],
+        arguments: [{ type: "Identifier", name: "A", loc: {} as any }],
         loc: {} as any,
       };
       expect(serializeAST(node)).toBe("!(A)");

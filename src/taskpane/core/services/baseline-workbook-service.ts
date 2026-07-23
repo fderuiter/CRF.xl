@@ -5,14 +5,21 @@
 import ExcelJS from "exceljs";
 import { parseRawDataToStudyDesign } from "../parser/parser-engine";
 import { StudyDesign } from "../types";
+import { DiagnosticError } from "./diagnostic-framework";
+import { runBaselineParserInWorker } from "./baseline-worker-helper";
 
 const MAX_BASELINE_WORKBOOK_BYTES = 20 * 1024 * 1024;
 
-export class BaselineWorkbookParseError extends Error {
+export class BaselineWorkbookParseError extends DiagnosticError {
   public readonly userMessage: string;
 
   constructor(message: string, userMessage?: string) {
-    super(message);
+    super({
+      severity: "error",
+      category: "BASELINE_WORKBOOK_PARSE",
+      message: message,
+      recoveryAction: userMessage,
+    });
     this.name = "BaselineWorkbookParseError";
     Object.setPrototypeOf(this, BaselineWorkbookParseError.prototype);
     this.userMessage = userMessage ?? message;
@@ -89,9 +96,14 @@ export async function parseBaselineWorkbookBuffer(
     rawData[worksheet.name] = worksheetToValues(worksheet);
   }
 
-  const study = await parseRawDataToStudyDesign(rawData, {
-    chunkSize: 50,
-  });
+  let study: StudyDesign;
+  if (typeof window !== "undefined" && typeof Worker !== "undefined") {
+    study = await runBaselineParserInWorker(rawData);
+  } else {
+    study = await parseRawDataToStudyDesign(rawData, {
+      chunkSize: 50,
+    });
+  }
 
   if (Object.keys(study.forms).length === 0) {
     throw new BaselineWorkbookParseError(
