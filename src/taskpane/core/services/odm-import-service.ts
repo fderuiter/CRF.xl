@@ -2,6 +2,7 @@
  * @issue #63, #76
  */
 import ExcelJS from "exceljs";
+import { decodeXml, escapeRegExp } from "../utils/escape-utils";
 import { validateStudyDesign } from "../parser/validator";
 import { Codelist, StudyDesign } from "../types";
 import {
@@ -651,15 +652,6 @@ function extractInnerText(xml: string): string {
   );
 }
 
-function decodeXml(value: string): string {
-  return value
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&");
-}
-
 function writeWorksheetRows(
   workbook: ExcelJS.Workbook,
   sheetName: "_Study" | "_Forms" | "_Codelists",
@@ -692,8 +684,4 @@ function nonEmpty(value: string | undefined): string | undefined {
 function getLocalName(qualifiedName: string): string {
   const parts = qualifiedName.split(":");
   return parts[parts.length - 1];
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

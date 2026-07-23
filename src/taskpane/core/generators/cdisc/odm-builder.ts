@@ -1,4 +1,5 @@
 import { logger } from "../../utils/logger";
+import { escapeXml } from "../../utils/escape-utils";
 /**
  * @issue #44, #139, #28
  */
@@ -796,35 +797,4 @@ function renderTranslatedText(
   }
 
   return output;
-}
-
-/**
- * Robust XML escaping for clinical labels.
- * @param unsafe
- * @returns
- */
-function escapeXml(unsafe: string): string {
-  if (!unsafe) return "";
-
-  // 1. Strip prohibited control characters in U+0000-U+001F (excluding allowed XML 1.0 whitespace)
-  // eslint-disable-next-line no-control-regex
-  const stripped = unsafe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
-
-  // 2. Escape the 5 standard XML entities
-  return stripped.replace(/[<>&"']/g, (c) => {
-    switch (c) {
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case "&":
-        return "&amp;";
-      case '"':
-        return "&quot;";
-      case "'":
-        return "&apos;";
-      default:
-        return c;
-    }
-  });
 }

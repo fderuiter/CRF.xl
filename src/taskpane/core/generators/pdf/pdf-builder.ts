@@ -8,6 +8,7 @@ import { ExportOptions } from "../../types/linguistics";
 import { DataType } from "../../types/enums";
 import { sha256Native } from "../../utils/crypto-utils";
 import { formatDate } from "../../utils/locale-utils";
+import { escapeHtml } from "../../utils/escape-utils";
 import { StudyDiffReport } from "../../types/diff";
 import { buildStudyDiffList } from "../../utils/study-diff-utils";
 import { generatePdfBlobFromHtml } from "../../services/pdf-export-adapter";
@@ -40,23 +41,6 @@ export async function generatePdfBlob(
 
   const studyHashInput = JSON.stringify(study);
   const studyHash = await sha256Native(studyHashInput);
-
-  const escapeHtml = (unsafe: string): string => {
-    return (unsafe || "").toString().replace(/[&<"']/g, function (m) {
-      switch (m) {
-        case "&":
-          return "&amp;";
-        case "<":
-          return "&lt;";
-        case '"':
-          return "&quot;";
-        case "'":
-          return "&#039;";
-        default:
-          return m;
-      }
-    });
-  };
 
   let html = `<div style="font-family: sans-serif; font-size: 10px;">`;
 
