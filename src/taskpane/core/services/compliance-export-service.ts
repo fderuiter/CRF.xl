@@ -3,6 +3,7 @@
  */
 import { ZipWriter } from "../utils/zip-writer";
 import { sha256Native } from "../utils/crypto-utils";
+import { sanitizePathSafety } from "../utils/escape-utils";
 import { StudyDesign } from "../types/hierarchy";
 import { ExportOptions } from "../types/linguistics";
 import { StudyDiffReport } from "../types/diff";
@@ -79,7 +80,7 @@ export class ComplianceExportService {
   ): Promise<Blob> {
     const zip = new ZipWriter();
     const rawProtocolId = currentStudy.metadata.protocolId || "UNKNOWN";
-    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    const protocolId = sanitizePathSafety(rawProtocolId);
 
     let auditSummary: StudyDiffReport;
     if (baselineStudy) {

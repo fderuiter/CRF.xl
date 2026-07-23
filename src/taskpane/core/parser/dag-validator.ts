@@ -17,7 +17,7 @@ import {
   isCrfItem,
 } from "../types/index";
 import { validateExpression, inferExpressionType } from "./expression-validator";
-import { normalizeDataType } from "./metadata-utils";
+import { normalizeDataType, normalizeOid } from "./metadata-utils";
 
 export interface RuleValidationError {
   level: "Error" | "Warning";
@@ -176,14 +176,10 @@ export function collectIdentifiers(node: ASTNode): string[] {
  * @returns
  */
 function matchesRef(identifier: string, ref: string): boolean {
-  const identLower = identifier.toLowerCase();
-  const refLower = ref.toLowerCase();
-  if (identLower === refLower) return true;
-  const segments = identLower.split(".");
-  if (segments.length > 1 && segments[segments.length - 1] === refLower) {
-    return true;
-  }
-  return false;
+  const normIdentifier = normalizeOid(identifier).toLowerCase();
+  const normRef = normalizeOid(ref).toLowerCase();
+  if (normIdentifier === normRef) return true;
+  return normIdentifier.endsWith("." + normRef);
 }
 
 /**

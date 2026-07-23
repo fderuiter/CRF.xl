@@ -112,6 +112,8 @@ describe("recovery-storage", () => {
   });
 
   it("expires old snapshots based on TTL", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2023-01-01T12:00:00Z"));
     const storage = createMockStorage();
     const snapshot = createRecoverySnapshot({
       issues,
@@ -128,6 +130,7 @@ describe("recovery-storage", () => {
     const restored = await readRecoverySnapshot({ storage });
     expect(restored).toBeNull();
     expect(storage.getItem(RECOVERY_STORAGE_KEY)).toBeNull();
+    jest.useRealTimers();
   });
 
   it("reports quota failures without throwing", async () => {

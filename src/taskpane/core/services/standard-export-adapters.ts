@@ -4,6 +4,7 @@
 import { generateOdmXml } from "../generators/cdisc/odm-builder";
 import { generateDocxBlob } from "../generators/docx/docx-builder";
 import { generatePdfBlob } from "../generators/pdf/pdf-builder";
+import { sanitizePathSafety } from "../utils/escape-utils";
 import {
   ExportAdapter,
   ExportAdapterContext,
@@ -15,7 +16,7 @@ export class DocxExportAdapter implements ExportAdapter {
     const blob = await generateDocxBlob(context.currentStudy, context.options?.exportOptions);
     const data = await blob.arrayBuffer();
     const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
-    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    const protocolId = sanitizePathSafety(rawProtocolId);
     return [
       {
         fileName: `${protocolId}_Annotated_CRF.docx`,
@@ -35,7 +36,7 @@ export class PdfExportAdapter implements ExportAdapter {
     );
     const data = await blob.arrayBuffer();
     const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
-    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    const protocolId = sanitizePathSafety(rawProtocolId);
     return [
       {
         fileName: `${protocolId}_Annotated_CRF.pdf`,
@@ -52,7 +53,7 @@ export class OdmXmlExportAdapter implements ExportAdapter {
       exportOptions: context.options?.exportOptions,
     });
     const rawProtocolId = context.currentStudy.metadata.protocolId || "UNKNOWN";
-    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+    const protocolId = sanitizePathSafety(rawProtocolId);
     const results: ExportAdapterResult[] = [
       {
         fileName: `${protocolId}_ODM_Specification.xml`,
