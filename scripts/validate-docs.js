@@ -2,19 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const https = require("https");
+const { scanMarkdownFiles } = require("./docs-scanner");
 
 const projectRoot = "/app";
 const docsDir = path.join(projectRoot, "docs");
 
 const CHECK_EXTERNAL = process.argv.includes("--check-external");
 
-const REGULATORY_DOMAINS = [
-  "fda.gov",
-  "ema.europa.eu",
-  "cdisc.org",
-  "nih.gov",
-  "loinc.org"
-];
+const REGULATORY_DOMAINS = ["fda.gov", "ema.europa.eu", "cdisc.org", "nih.gov", "loinc.org"];
 
 function isWhitelisted(hostname) {
   return REGULATORY_DOMAINS.some(
@@ -29,17 +24,24 @@ let outOfBoundsCount = 0;
 let supersededErrorsCount = 0;
 let unescapedTagsCount = 0;
 
-const APPROVED_DOCS_FOLDERS = ["architecture", "specification", "compliance", "deployment", "qa-testing", "github"];
+const APPROVED_DOCS_FOLDERS = [
+  "architecture",
+  "specification",
+  "compliance",
+  "deployment",
+  "qa-testing",
+  "github",
+];
 
 let registryEntries = new Map();
 const registryPath = path.join(docsDir, "github", "superseded-registry.md");
 if (fs.existsSync(registryPath)) {
   const content = fs.readFileSync(registryPath, "utf8");
-  const lines = content.split('\n');
-  lines.forEach(line => {
-    if (line.startsWith('|')) {
-      const parts = line.split('|').map(s => s.trim());
-      if (parts.length > 2 && parts[1] !== 'File Path' && !parts[1].startsWith('---')) {
+  const lines = content.split("\n");
+  lines.forEach((line) => {
+    if (line.startsWith("|")) {
+      const parts = line.split("|").map((s) => s.trim());
+      if (parts.length > 2 && parts[1] !== "File Path" && !parts[1].startsWith("---")) {
         registryEntries.set(parts[1], parts[2]);
       }
     }
@@ -47,7 +49,116 @@ if (fs.existsSync(registryPath)) {
 }
 
 const allowedHtmlTags = new Set([
-  "a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend", "li", "link", "main", "map", "mark", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"
+  "a",
+  "abbr",
+  "address",
+  "area",
+  "article",
+  "aside",
+  "audio",
+  "b",
+  "base",
+  "bdi",
+  "bdo",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "canvas",
+  "caption",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "data",
+  "datalist",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "dialog",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "embed",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "head",
+  "header",
+  "hgroup",
+  "hr",
+  "html",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "label",
+  "legend",
+  "li",
+  "link",
+  "main",
+  "map",
+  "mark",
+  "meta",
+  "meter",
+  "nav",
+  "noscript",
+  "object",
+  "ol",
+  "optgroup",
+  "option",
+  "output",
+  "p",
+  "picture",
+  "pre",
+  "progress",
+  "q",
+  "rp",
+  "rt",
+  "ruby",
+  "s",
+  "samp",
+  "script",
+  "section",
+  "select",
+  "slot",
+  "small",
+  "source",
+  "span",
+  "strong",
+  "style",
+  "sub",
+  "summary",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "template",
+  "textarea",
+  "tfoot",
+  "th",
+  "thead",
+  "time",
+  "title",
+  "tr",
+  "track",
+  "u",
+  "ul",
+  "var",
+  "video",
+  "wbr",
 ]);
 
 const externalLinksToCheck = [];
@@ -63,23 +174,6 @@ function success(message) {
 
 function info(message) {
   console.log(`[INFO] ${message}`);
-}
-
-function findMarkdownFiles(dir, filesList = []) {
-  if (!fs.existsSync(dir)) {
-    return filesList;
-  }
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
-    if (stat.isDirectory()) {
-      findMarkdownFiles(filePath, filesList);
-    } else if (filePath.endsWith(".md")) {
-      filesList.push(filePath);
-    }
-  }
-  return filesList;
 }
 
 function extractLinks(content) {
@@ -117,13 +211,13 @@ function normalizeLink(link, currentFilePath) {
         if (isWhitelisted(urlObj.hostname)) {
           return { type: "external", url: link };
         }
-      } catch (e) {
+      } catch {
         // Invalid URL, ignore
       }
     }
     return null;
   }
-  
+
   if (/^(mailto|ftp):/i.test(link)) {
     return null;
   }
@@ -132,7 +226,11 @@ function normalizeLink(link, currentFilePath) {
   let cleanLink = hashIndex !== -1 ? link.slice(0, hashIndex) : link;
   if (!cleanLink) return null;
 
-  try { cleanLink = decodeURIComponent(cleanLink); } catch (e) {}
+  try {
+    cleanLink = decodeURIComponent(cleanLink);
+  } catch {
+    // Ignore decode errors
+  }
 
   if (cleanLink.startsWith("file://")) {
     cleanLink = cleanLink.slice(7);
@@ -179,7 +277,7 @@ function checkSuperseded(relativePath, content) {
     fail(`Retired document not in a superseded directory: ${relativePath}`);
     supersededErrorsCount++;
   }
-  
+
   if (isSupersededDir) {
     if (!isSupersededStatus) {
       fail(`File in superseded directory missing warning banner: ${relativePath}`);
@@ -191,7 +289,7 @@ function checkSuperseded(relativePath, content) {
         fail(`Superseded file missing 'Replaced by:' in banner: ${relativePath}`);
         supersededErrorsCount++;
       }
-      
+
       if (!registryEntries.has(relativePath)) {
         fail(`Superseded file not registered in central registry: ${relativePath}`);
         supersededErrorsCount++;
@@ -206,8 +304,8 @@ function getLineNumber(content, index) {
 
 function validateTags(content, filePath, relativePath) {
   // Strip fenced code blocks and inline code, preserving line numbers by replacing non-newlines with space
-  let cleanContent = content.replace(/```[\s\S]*?```/g, match => match.replace(/[^\n]/g, " "));
-  cleanContent = cleanContent.replace(/`[^`\n]+`/g, match => match.replace(/[^\n]/g, " "));
+  let cleanContent = content.replace(/```[\s\S]*?```/g, (match) => match.replace(/[^\n]/g, " "));
+  cleanContent = cleanContent.replace(/`[^`\n]+`/g, (match) => match.replace(/[^\n]/g, " "));
 
   const tagRegex = /<\/?[A-Za-z][A-Za-z0-9-]*(?:\s+[^>]*)?>/g;
   let match;
@@ -219,7 +317,9 @@ function validateTags(content, filePath, relativePath) {
       if (!allowedHtmlTags.has(tagName)) {
         unescapedTagsCount++;
         const lineNum = getLineNumber(content, match.index);
-        fail(`Unescaped XML/HTML tag "${fullTag}" found in "${relativePath}" at line ${lineNum}. Please wrap it in backticks.`);
+        fail(
+          `Unescaped XML/HTML tag "${fullTag}" found in "${relativePath}" at line ${lineNum}. Please wrap it in backticks.`
+        );
       }
     }
   }
@@ -227,8 +327,8 @@ function validateTags(content, filePath, relativePath) {
 
 function validateFile(filePath) {
   scannedFilesCount++;
-  const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/');
-  
+  const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
+
   if (!fs.existsSync(filePath)) {
     fail(`File does not exist: ${relativePath}`);
     return;
@@ -254,10 +354,8 @@ function validateFile(filePath) {
       const resolvedPath = resolved.path;
       if (!fs.existsSync(resolvedPath)) {
         brokenLinksCount++;
-        const resolvedRelative = path.relative(projectRoot, resolvedPath).replace(/\\/g, '/');
-        fail(
-          `Broken link in "${relativePath}": "${rawLink}" (Resolved to: "${resolvedRelative}")`
-        );
+        const resolvedRelative = path.relative(projectRoot, resolvedPath).replace(/\\/g, "/");
+        fail(`Broken link in "${relativePath}": "${rawLink}" (Resolved to: "${resolvedRelative}")`);
       }
     }
   }
@@ -268,27 +366,31 @@ function checkExternalUrl(urlStr, retries = 3) {
     const parsedUrl = new URL(urlStr);
     const client = parsedUrl.protocol === "https:" ? https : http;
 
-    const req = client.request(parsedUrl, { 
-      method: "GET", 
-      timeout: 5000,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Node.js) DocumentationValidator/1.0"
+    const req = client.request(
+      parsedUrl,
+      {
+        method: "GET",
+        timeout: 5000,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Node.js) DocumentationValidator/1.0",
+        },
+      },
+      (res) => {
+        res.resume(); // Free memory
+        if (res.statusCode >= 200 && res.statusCode < 400) {
+          resolve(true);
+        } else {
+          retry();
+        }
       }
-    }, (res) => {
-      res.resume(); // Free memory
-      if (res.statusCode >= 200 && res.statusCode < 400) {
-        resolve(true);
-      } else {
-        retry();
-      }
-    });
+    );
 
     req.on("error", retry);
     req.on("timeout", () => {
       req.destroy();
       retry();
     });
-    
+
     req.end();
 
     function retry() {
@@ -322,9 +424,13 @@ async function main() {
           isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
         } else {
           // compare git commit times
-          const yamlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiYamlPath}"`).toString().trim();
-          const htmlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiHtmlPath}"`).toString().trim();
-          
+          const yamlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiYamlPath}"`)
+            .toString()
+            .trim();
+          const htmlTimeStr = execSync(`git log -1 --format="%ct" -- "${apiHtmlPath}"`)
+            .toString()
+            .trim();
+
           if (yamlTimeStr && htmlTimeStr) {
             isOutOfSync = parseInt(yamlTimeStr, 10) > parseInt(htmlTimeStr, 10);
           } else {
@@ -332,29 +438,22 @@ async function main() {
             isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
           }
         }
-      } catch (e) {
+      } catch {
         // Fallback to mtime if git fails
         isOutOfSync = fs.statSync(apiYamlPath).mtime > fs.statSync(apiHtmlPath).mtime;
       }
 
       if (isOutOfSync) {
-        fail("Compiled HTML API documentation is out of sync with the source YAML. Please run `npm run docs:build-api`.");
+        fail(
+          "Compiled HTML API documentation is out of sync with the source YAML. Please run `npm run docs:build-api`."
+        );
       }
     }
   }
   // -----------------------------------------------
 
   // Find all documentation files
-  const srcDir = path.join(projectRoot, "src");
-  const markdownFiles = [
-    ...findMarkdownFiles(docsDir),
-    ...findMarkdownFiles(srcDir)
-  ];
-  const rootReadme = path.join(projectRoot, "README.md");
-
-  if (fs.existsSync(rootReadme)) {
-    markdownFiles.push(rootReadme);
-  }
+  const markdownFiles = scanMarkdownFiles(projectRoot);
 
   // Validate each file
   for (const file of markdownFiles) {
@@ -375,7 +474,8 @@ async function main() {
   }
 
   // Report results
-  const totalErrors = brokenLinksCount + outOfBoundsCount + supersededErrorsCount + unescapedTagsCount;
+  const totalErrors =
+    brokenLinksCount + outOfBoundsCount + supersededErrorsCount + unescapedTagsCount;
   if (totalErrors > 0 || process.exitCode === 1) {
     fail(
       `Documentation validation FAILED. Scanned ${scannedFilesCount} files, checked ${totalLinksCount} links. Errors found: ${brokenLinksCount} broken link(s), ${outOfBoundsCount} out-of-bounds file(s), ${supersededErrorsCount} superseded rule violation(s), ${unescapedTagsCount} unescaped tag(s).`
