@@ -6,3 +6,8 @@ This directory contains utility functions.
 - `ZipWriter`
   - `addFile(name, data): Promise<void>`
   - `generate(): Blob`
+- `escape-utils`
+  - `escapeRegExp(value: string): string`
+  - `escapeXml(unsafe: string): string`
+  - `escapeHtml(unsafe: string): string`
+  - `decodeXml(value: string): string`

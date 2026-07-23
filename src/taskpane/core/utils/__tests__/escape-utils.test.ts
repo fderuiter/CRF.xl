@@ -1,3 +1,7 @@
+/**
+ * @issue #433
+ */
+
 import { escapeRegExp, escapeXml, escapeHtml, decodeXml } from "../escape-utils";
 
 describe("escape-utils", () => {

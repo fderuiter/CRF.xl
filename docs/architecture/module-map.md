@@ -556,6 +556,21 @@ Related:
 
 ## Utility modules (`src/taskpane/core/utils/`)
 
+### `escape-utils.ts`
+
+**Purpose:** Centralized escaping and decoding helpers for clinical study configurations, CDISC ODM XML, and HTML/PDF exports. Consolidates historical character mapping quirks for bug-for-bug preservation.
+
+**Public interface:**
+
+- `escapeRegExp(value: string): string`
+- `escapeXml(unsafe: string): string`
+- `escapeHtml(unsafe: string): string`
+- `decodeXml(value: string): string`
+
+**Owning issues:** #433
+
+---
+
 ## UI Component modules (`src/taskpane/components/ui/`)
 
 ### `Button.tsx`
