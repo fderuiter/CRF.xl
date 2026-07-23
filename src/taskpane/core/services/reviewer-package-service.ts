@@ -4,6 +4,7 @@
  * @issue #56
  */
 import { ZipWriter } from "../utils/zip-writer";
+import { sanitizePathSafety } from "../utils/escape-utils";
 import { AnnotatedCrfPipelineResult } from "../types/annotated-crf";
 
 export class ReviewerPackageService {
@@ -17,10 +18,8 @@ export class ReviewerPackageService {
     const encoder = new TextEncoder();
 
     const rawProtocolId = result.document.protocolId || "UNKNOWN";
-    const protocolId = rawProtocolId.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
-    const version = (result.document.version || "v1.0")
-      .replace(/[\/\\]/g, "_")
-      .replace(/\.\./g, "__");
+    const protocolId = sanitizePathSafety(rawProtocolId);
+    const version = sanitizePathSafety(result.document.version || "v1.0");
     const baseFilename = `${protocolId}_AnnotatedCRF_${version}`;
 
     // 1. Add PDF Artifact

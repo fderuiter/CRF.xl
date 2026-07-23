@@ -2,7 +2,13 @@
  * @issue #433
  */
 
-import { escapeRegExp, escapeXml, escapeHtml, decodeXml } from "../escape-utils";
+import {
+  escapeRegExp,
+  escapeXml,
+  escapeHtml,
+  decodeXml,
+  sanitizePathSafety,
+} from "../escape-utils";
 
 describe("escape-utils", () => {
   describe("escapeRegExp", () => {
@@ -70,6 +76,34 @@ describe("escape-utils", () => {
     it("should handle empty values gracefully", () => {
       expect(decodeXml("")).toBe("");
       expect(decodeXml(null as any)).toBe("");
+    });
+  });
+
+  describe("sanitizePathSafety", () => {
+    it("should replace forward and backward slashes with underscores", () => {
+      expect(sanitizePathSafety("study/protocol/id")).toBe("study_protocol_id");
+      expect(sanitizePathSafety("study\\protocol\\id")).toBe("study_protocol_id");
+      expect(sanitizePathSafety("a/b\\c")).toBe("a_b_c");
+    });
+
+    it("should replace double dots with double underscores", () => {
+      expect(sanitizePathSafety("study..version")).toBe("study__version");
+      expect(sanitizePathSafety("..")).toBe("__");
+    });
+
+    it("should prevent directory traversal combinations", () => {
+      expect(sanitizePathSafety("../../etc/passwd")).toBe("______etc_passwd");
+      expect(sanitizePathSafety("..\\..\\etc\\passwd")).toBe("______etc_passwd");
+    });
+
+    it("should preserve safe characters", () => {
+      expect(sanitizePathSafety("Protocol-123_v1.0")).toBe("Protocol-123_v1.0");
+    });
+
+    it("should handle empty or null/undefined values gracefully", () => {
+      expect(sanitizePathSafety("")).toBe("");
+      expect(sanitizePathSafety(null as any)).toBe("");
+      expect(sanitizePathSafety(undefined as any)).toBe("");
     });
   });
 });
