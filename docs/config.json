@@ -1,0 +1,6 @@
+{
+  "mappings": {
+    "src/taskpane/components": "docs/architecture/docs-information-architecture.md"
+  },
+  "exclusions": ["src/taskpane/core/test-helpers"]
+}
