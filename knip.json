@@ -5,14 +5,38 @@
   "webpack": true,
   "jest": true,
   "playwright": true,
+  "ignoreDependencies": [
+    "core-js",
+    "regenerator-runtime",
+    "@testing-library/user-event",
+    "@types/office-runtime",
+    "@types/webpack",
+    "assert",
+    "buffer",
+    "eslint-plugin-jsdoc",
+    "eslint-plugin-jsx-a11y",
+    "eslint-plugin-office-addins",
+    "eslint-plugin-react",
+    "eslint-plugin-react-hooks",
+    "office-addin-cli",
+    "office-addin-manifest",
+    "office-addin-prettier-config",
+    "process",
+    "scheduler",
+    "source-map-loader",
+    "ts-morph",
+    "url",
+    "util"
+  ],
+  "ignoreBinaries": ["office-addin-dev-settings", "eslint", "prettier"],
   "rules": {
     "files": "error",
     "exports": "error",
     "types": "error",
-    "dependencies": "off",
-    "devDependencies": "off",
-    "unlisted": "off",
-    "binaries": "off",
-    "unresolved": "off"
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "binaries": "error",
+    "unresolved": "error"
   }
 }
