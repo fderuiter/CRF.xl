@@ -102,5 +102,6 @@ export {
   speculativeSyncManager,
 } from "./services/speculative-sync-service";
 export { formatDate } from "./utils/locale-utils";
+export { serializeAST } from "./utils/rule-serializer";
 export { onboardingService, type OnboardingState } from "./services/onboarding-service";
 export {} from "./services/review-service";
