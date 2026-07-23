@@ -52,6 +52,7 @@ export class VaultService {
   }
 
   isSimulatorMode(): boolean {
+    // Simulator mode is active if we are not in production and the URL matches one of the sandbox/mock identifiers
     if (process.env.NODE_ENV === "production") {
       return false;
     }
