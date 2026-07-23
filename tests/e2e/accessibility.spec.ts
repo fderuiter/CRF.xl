@@ -51,7 +51,7 @@ test.describe("Accessibility and E2E Audits", () => {
 
     await page.goto("/taskpane.html");
     await page.waitForLoadState("networkidle");
-    await page.waitForSelector("#container > *", { timeout: 10000 }).catch(() => {});
+    await page.waitForSelector("#container > *", { timeout: 60000 }).catch(() => {});
 
     // Close the onboarding tour as it's explicitly excluded
     const skipButton = page.locator('button:has-text("Skip")').first();

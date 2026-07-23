@@ -1,7 +1,7 @@
 /**
  * @issue #349
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { appOrchestrator, OrchestratorState } from "../core/services/app-orchestrator";
 import { speculativeSyncManager } from "../core/services/speculative-sync-service";
 import { ValidationIssue, SubmissionMetadata } from "../core/types";
@@ -39,21 +39,25 @@ export function useAppOrchestrator() {
     };
   }, []);
 
-  const actions = {
-    dismissRecoverySnapshot: () => appOrchestrator.dismissRecoverySnapshot(),
-    restoreRecoverySnapshot: () => appOrchestrator.restoreRecoverySnapshot(),
-    dismissUiError: () => appOrchestrator.dismissUiError(),
-    updateJustifications: (j: any) => appOrchestrator.updateJustifications(j),
-    resolveConflict: (keepManualEdits: boolean) =>
-      speculativeSyncManager.resolveConflict(keepManualEdits),
-    rollbackSync: () => speculativeSyncManager.rollback(),
-    requestValidation: (activeSheet?: string) => appOrchestrator.requestValidation(activeSheet),
-    injectValidationIssue: (issue: ValidationIssue) => appOrchestrator.injectValidationIssue(issue),
-    clearValidationIssueByLocation: (location: string) =>
-      appOrchestrator.clearValidationIssueByLocation(location),
-    updateStudySubmissionMetadata: (metadata: SubmissionMetadata) =>
-      appOrchestrator.updateStudySubmissionMetadata(metadata),
-  };
+  const actions = useMemo(
+    () => ({
+      dismissRecoverySnapshot: () => appOrchestrator.dismissRecoverySnapshot(),
+      restoreRecoverySnapshot: () => appOrchestrator.restoreRecoverySnapshot(),
+      dismissUiError: () => appOrchestrator.dismissUiError(),
+      updateJustifications: (j: any) => appOrchestrator.updateJustifications(j),
+      resolveConflict: (keepManualEdits: boolean) =>
+        speculativeSyncManager.resolveConflict(keepManualEdits),
+      rollbackSync: () => speculativeSyncManager.rollback(),
+      requestValidation: (activeSheet?: string) => appOrchestrator.requestValidation(activeSheet),
+      injectValidationIssue: (issue: ValidationIssue) =>
+        appOrchestrator.injectValidationIssue(issue),
+      clearValidationIssueByLocation: (location: string) =>
+        appOrchestrator.clearValidationIssueByLocation(location),
+      updateStudySubmissionMetadata: (metadata: SubmissionMetadata) =>
+        appOrchestrator.updateStudySubmissionMetadata(metadata),
+    }),
+    []
+  );
 
   return { state, actions };
 }

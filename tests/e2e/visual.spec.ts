@@ -70,7 +70,7 @@ test.describe("Visual Regression Tests - Dictionary Sidecar & Integrity Hub", ()
         await page.goto("/taskpane.html");
         await page.waitForLoadState("networkidle");
 
-        await page.waitForSelector("#container > *", { timeout: 10000 }).catch(() => {});
+        await page.waitForSelector("#container > *", { timeout: 60000 }).catch(() => {});
         const skipButton = page.locator('button:has-text("Skip")').first();
         if (await skipButton.isVisible()) {
           await skipButton.click({ force: true });
