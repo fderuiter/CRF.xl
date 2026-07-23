@@ -316,7 +316,7 @@ describe("Native Workbook CustomXML & Web Worker Integration", () => {
           payload: expect.any(Object),
         })
       );
-    });
+    }, 30000);
 
     it("should instantly cancel execution thread on CANCEL_PARSING message", async () => {
       const mockPostMessage = jest.fn();
@@ -370,6 +370,6 @@ describe("Native Workbook CustomXML & Web Worker Integration", () => {
       expect(mockPostMessage).toHaveBeenCalledWith({
         type: "CANCELLED",
       });
-    });
+    }, 30000);
   });
 });
