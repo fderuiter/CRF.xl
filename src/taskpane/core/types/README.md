@@ -11,7 +11,8 @@ This directory contains type definitions across the core domains.
 - `Linguistics`
 - `Migration`
 - `Reviewer`
-- `RulesAST`
-- `Schemas`
+- `RulesAST` (includes enhancements for original rule/target/expression preservation during canonical OID normalization)
+- `Schemas` (includes enhancements for original OID tracking on forms and item schemas)
 - `UI`
 - `Validation`
+

@@ -112,6 +112,22 @@ Related:
 
 ---
 
+### `metadata-utils.ts`
+
+**Purpose:** Provides utility helpers for parsing and validating clinical metadata and variable OID normalization.
+
+**Public interface:**
+- `normalizeOid(oid: unknown): string`
+- `normalizeExpression(expr: string): string`
+- `normalizeDataType(value: unknown): DataType`
+
+**Upstream:** None
+**Downstream:** Parser modules
+**Owning issues:** #437
+
+
+---
+
 ## Generator modules (`src/taskpane/core/generators/`)
 
 ### `annotated-crf-pipeline.ts`
@@ -628,7 +644,10 @@ Types for the aCRF pipeline: `AnnotatedCrfDocument`, `PipelineDiagnostic`, `Acrf
 Clinical annotation interfaces (SDTM, ADAM, Origin) and target types.
 
 ### `rules-ast.ts`
-AST node types for the rules logic grammar.
+AST node types for the rules logic grammar and preservation of original OID / expression metadata.
+
+### `schemas.ts`
+Zod validation schemas defining the structure of clinical entities, rules, codelists and metadata records.
 
 ### `diff.ts`
 Diff payload contracts: `StudyDiffReport`, `FormDiffEntry`.
