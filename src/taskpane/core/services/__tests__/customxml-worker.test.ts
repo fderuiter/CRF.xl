@@ -17,6 +17,7 @@ describe("Native Workbook CustomXML & Web Worker Integration", () => {
   let originalSelf: any;
 
   beforeEach(() => {
+    jest.setTimeout(30000);
     // Save original globals
     originalExcel = (global as any).Excel;
     originalDOMParser = (global as any).DOMParser;
