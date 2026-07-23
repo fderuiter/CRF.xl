@@ -17,14 +17,14 @@ function readEnv(name: string): string | undefined {
   return processRef?.env?.[name];
 }
 
-export interface MockHistoryItem {
+interface MockHistoryItem {
   version: string;
   studyHash: string;
   timestamp: string;
   validationIssues: any[];
 }
 
-export const mockHistoryStore: Record<string, MockHistoryItem[]> = {};
+const mockHistoryStore: Record<string, MockHistoryItem[]> = {};
 export const mockValidationStore: Record<
   string,
   { version: string; issues: any[]; studyHash: string; timestamp: string }[]

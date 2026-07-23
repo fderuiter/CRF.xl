@@ -1,3 +1,6 @@
+/**
+ * @issue #28
+ */
 import { VaultService, resetMockVaultStore, mockValidationStore } from "../vault-service";
 import { DiagnosticError } from "../diagnostic-framework";
 

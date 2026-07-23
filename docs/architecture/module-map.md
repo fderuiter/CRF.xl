@@ -498,6 +498,21 @@ Related:
 
 ---
 
+### `vault-service.ts`
+
+**Purpose:** Isomorphic SDK wrapper and in-memory simulator mode support for local development. Intercepts Vault requests in-memory if unconfigured or explicitly configured with mock parameters, and otherwise proxies requests to the Vault service.
+
+**Public interface:**
+
+- `VaultService`
+- `resetMockVaultStore()`
+
+**Upstream:** `packages/vault-sdk`, `DiagnosticError`, `appOrchestrator`, `logger`
+**Downstream:** `RegistryView.tsx`, `App.tsx`
+**Owning issues:** #28
+
+---
+
 ## Registry and Factory modules (`src/taskpane/core/registry/`, `src/taskpane/core/factory/`)
 
 ### `sheet-metadata-registry.ts`

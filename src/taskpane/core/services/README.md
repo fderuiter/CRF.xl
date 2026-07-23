@@ -11,3 +11,4 @@ This directory contains service-layer public exports.
 - `RecoveryStorage`
 - `ReviewService`
 - `StandardExportAdapters`
+- `VaultService`
