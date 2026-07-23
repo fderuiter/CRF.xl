@@ -2,7 +2,7 @@
  * @issue #28
  */
 /** @jest-environment node */
-/* global describe, it, expect, process */
+/* global describe, it, expect, process, jest */
 import ExcelJS from "exceljs";
 import path from "path";
 import {
@@ -10,8 +10,44 @@ import {
   parseBaselineWorkbookBuffer,
   parseBaselineWorkbookFile,
 } from "../baseline-workbook-service";
+import { DiagnosticError } from "../diagnostic-framework";
+
+jest.mock("../baseline-worker-helper", () => ({
+  runBaselineParserInWorker: jest.fn(),
+}));
 
 describe("baseline-workbook-service", () => {
+  it("should serialize and deserialize BaselineWorkbookParseError correctly", () => {
+    const originalError = new BaselineWorkbookParseError(
+      "Detailed system error description",
+      "Friendly user message to fix the workbook"
+    );
+
+    // Verify it inherits from DiagnosticError
+    expect(originalError).toBeInstanceOf(DiagnosticError);
+
+    // Verify properties
+    expect(originalError.severity).toBe("error");
+    expect(originalError.category).toBe("BASELINE_WORKBOOK_PARSE");
+    expect(originalError.message).toBe("Detailed system error description");
+    expect(originalError.userMessage).toBe("Friendly user message to fix the workbook");
+    expect(originalError.recoveryAction).toBe("Friendly user message to fix the workbook");
+
+    // Serialize
+    const json = originalError.toJSON();
+    expect(json.name).toBe("BaselineWorkbookParseError");
+    expect(json.category).toBe("BASELINE_WORKBOOK_PARSE");
+    expect(json.recoveryAction).toBe("Friendly user message to fix the workbook");
+
+    // Deserialize/Reconstruct using DiagnosticError.fromJSON
+    const reconstructed = DiagnosticError.fromJSON(json);
+    expect(reconstructed).toBeInstanceOf(BaselineWorkbookParseError);
+    expect(reconstructed.message).toBe("Detailed system error description");
+    expect((reconstructed as BaselineWorkbookParseError).userMessage).toBe(
+      "Friendly user message to fix the workbook"
+    );
+  });
+
   it("parses a valid CRF.xl workbook fixture into StudyDesign", async () => {
     const fixturePath = path.resolve(
       process.cwd(),
