@@ -308,6 +308,12 @@ async function main() {
   }
 
   fs.writeFileSync(REPORT_PATH, md, "utf8");
+  try {
+    const { execSync } = require("child_process");
+    execSync(`npx prettier --write "${REPORT_PATH}"`, { stdio: "ignore" });
+  } catch (err) {
+    // ignore formatting errors if prettier is not available
+  }
   console.log("Successfully generated alignment matrix at docs/github/codebase-alignment.md");
 }
 
