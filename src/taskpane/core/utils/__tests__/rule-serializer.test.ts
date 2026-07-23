@@ -1,3 +1,6 @@
+/**
+ * @issue #44, #139, #28
+ */
 import { serializeAST } from "../rule-serializer";
 import { ASTNode } from "../../types";
 
