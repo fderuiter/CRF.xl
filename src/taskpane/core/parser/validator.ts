@@ -725,7 +725,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
     if (study.submissionMetadata.sdtmDerivations) {
       study.submissionMetadata.sdtmDerivations.forEach((der) => {
         if (der.derivationId) {
-          sdtmDerivationIds.add(der.derivationId.toUpperCase());
+          sdtmDerivationIds.add(normalizeOid(der.derivationId).toUpperCase());
           if (!der.description) {
             issues.push({
               level: "Error",
@@ -740,7 +740,7 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
     if (study.submissionMetadata.adamDerivations) {
       study.submissionMetadata.adamDerivations.forEach((der) => {
         if (der.derivationId) {
-          adamDerivationIds.add(der.derivationId.toUpperCase());
+          adamDerivationIds.add(normalizeOid(der.derivationId).toUpperCase());
           if (!der.description) {
             issues.push({
               level: "Error",
@@ -826,9 +826,14 @@ export function validateSubmissionMetadataForRelease(study: StudyDesign): Valida
           if (item.origin === DataOrigin.DERIVED) {
             // If item has a methodOid, it must be defined in central derivations/methods
             if (item.methodOid) {
-              const hasCoreMethod = study.methods && study.methods[item.methodOid];
-              const hasSdtmDer = sdtmDerivationIds.has(item.methodOid.toUpperCase());
-              const hasAdamDer = adamDerivationIds.has(item.methodOid.toUpperCase());
+              const normalizedMethodOid = normalizeOid(item.methodOid);
+              const hasCoreMethod =
+                study.methods &&
+                Object.keys(study.methods).some(
+                  (k) => normalizeOid(k).toLowerCase() === normalizedMethodOid.toLowerCase()
+                );
+              const hasSdtmDer = sdtmDerivationIds.has(normalizedMethodOid.toUpperCase());
+              const hasAdamDer = adamDerivationIds.has(normalizedMethodOid.toUpperCase());
 
               if (!hasCoreMethod && !hasSdtmDer && !hasAdamDer) {
                 issues.push({

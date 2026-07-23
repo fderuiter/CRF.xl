@@ -132,6 +132,16 @@ describe("CRF.xl Rules Dependency & Graph Validator", () => {
       // Canonicalized sequence contains all participating rules
       expect(cycleError?.message).toContain("R_001 -> R_002 -> R_003 -> R_001");
     });
+
+    it("should correctly handle prefixes and suffixes without triggering false cycles", async () => {
+      // A rule targeting "cdisc:WT" which depends on an independent variable "HT".
+      // Let's verify it validates successfully and does not flag any false cycles.
+      const r1 = makeRule("R_001", "HT > 0", RuleType.DERIVATION, "cdisc:WT");
+
+      const result = await validateRules([r1]);
+      expect(result.isValid).toBe(true);
+      expect(result.errors.filter((e) => e.type === "CYCLE").length).toBe(0);
+    });
   });
 
   describe("Broken & Unresolved Dependency References", () => {
