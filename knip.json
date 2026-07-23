@@ -1,12 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["src/taskpane/index.tsx"],
-  "project": [
-    "src/taskpane/components/**/*.{ts,tsx}",
-    "src/taskpane/core/**/*.{ts,tsx}",
-    "src/taskpane/hooks/**/*.{ts,tsx}",
-    "src/taskpane/providers/**/*.{ts,tsx}"
-  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "webpack": true,
+  "jest": true,
+  "playwright": true,
   "rules": {
     "files": "error",
     "exports": "error",
