@@ -84,3 +84,17 @@ export function decodeXml(value: string): string {
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
 }
+
+/**
+ * Sanitizes a string for use as a safe filename or path segment,
+ * removing/replacing directory-traversal indicators.
+ *
+ * Slashes (\ or /) are replaced with '_' and double dots (..) are replaced with '__'.
+ *
+ * @param input The unsafe filename or path segment string.
+ * @returns The sanitized safe path string.
+ */
+export function sanitizePathSafety(input: string): string {
+  if (!input) return "";
+  return input.replace(/[\/\\]/g, "_").replace(/\.\./g, "__");
+}

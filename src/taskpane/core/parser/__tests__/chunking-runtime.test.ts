@@ -5,6 +5,25 @@
 import { createParseRuntime, processRowsInChunks } from "../chunking-runtime";
 
 describe("chunking runtime", () => {
+  let originalTimeout: typeof AbortSignal.timeout;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    originalTimeout = AbortSignal.timeout;
+    AbortSignal.timeout = (ms) => {
+      const controller = new AbortController();
+      const error = new Error("TimeoutError");
+      error.name = "TimeoutError";
+      setTimeout(() => controller.abort(error), ms);
+      return controller.signal;
+    };
+  });
+
+  afterEach(() => {
+    AbortSignal.timeout = originalTimeout;
+    jest.useRealTimers();
+  });
+
   it("processes all rows in deterministic order for chunked and single-pass chunk sizes", async () => {
     const rows = Array.from({ length: 9 }, (_, i) => i + 1);
     const chunkedResult: number[] = [];
@@ -30,16 +49,6 @@ describe("chunking runtime", () => {
   });
 
   it("emits cancellation and timeout errors from runtime checks", () => {
-    jest.useFakeTimers();
-    const originalTimeout = AbortSignal.timeout;
-    AbortSignal.timeout = (ms) => {
-      const controller = new AbortController();
-      const error = new Error("TimeoutError");
-      error.name = "TimeoutError";
-      setTimeout(() => controller.abort(error), ms);
-      return controller.signal;
-    };
-
     const controller = new AbortController();
     controller.abort();
     const cancelledRuntime = createParseRuntime({
@@ -56,8 +65,5 @@ describe("chunking runtime", () => {
     expect(() => timedOutRuntime.throwIfStopped("items")).toThrow(
       "Parsing timed out during items after 1ms"
     );
-
-    AbortSignal.timeout = originalTimeout;
-    jest.useRealTimers();
   });
 });

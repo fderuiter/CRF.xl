@@ -1,5 +1,6 @@
 import { logger } from "../../utils/logger";
 import { escapeXml } from "../../utils/escape-utils";
+import { serializeAST } from "../../utils/rule-serializer";
 /**
  * @issue #44, #139, #28
  */
@@ -11,13 +12,12 @@ import {
   CrfItem,
   RuleType,
   isCrfItem,
-  ASTNode,
   RuleDefinition,
   ExportOptions,
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
-import { normalizeDataType } from "../../parser/metadata-utils";
+import { normalizeDataType, normalizeOid } from "../../parser/metadata-utils";
 import { LinguisticService } from "../../services/linguistics-service";
 import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 
@@ -44,47 +44,15 @@ class OdmSerializationError extends Error {
  */
 function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
   if (!target) return false;
-  return target.trim().toLowerCase() === itemOid.trim().toLowerCase();
+  const normTarget = normalizeOid(target).toLowerCase();
+  const normItem = normalizeOid(itemOid).toLowerCase();
+  if (normTarget === normItem) return true;
+  return normTarget.endsWith("." + normItem);
 }
 
 interface OdmExportResult {
   xml: string;
   diagnostics?: string;
-}
-
-function serializeAST(node: ASTNode): string {
-  if (!node) return "";
-  switch (node.type) {
-    case "Literal":
-      if (typeof node.value === "string") return `'${node.value}'`;
-      if (node.value === null) return "null";
-      return String(node.value);
-    case "Identifier":
-      return node.name;
-    case "UnaryExpression":
-      return `${node.operator} ${serializeAST(node.argument)}`.trim();
-    case "BinaryExpression":
-      return `${serializeAST(node.left)} ${node.operator} ${serializeAST(node.right)}`;
-    case "ConditionalExpression":
-      return `(${serializeAST(node.test)} ? ${serializeAST(node.consequent)} : ${serializeAST(node.alternate)})`;
-    case "GroupedExpression":
-      return `(${serializeAST(node.expression)})`;
-    case "CallExpression": {
-      const callee = node.callee.toUpperCase();
-      if (callee === "IF" && node.arguments.length === 3) {
-        return `(${serializeAST(node.arguments[0])} ? ${serializeAST(node.arguments[1])} : ${serializeAST(node.arguments[2])})`;
-      } else if (callee === "AND" && node.arguments.length > 0) {
-        return `(${node.arguments.map(serializeAST).join(" && ")})`;
-      } else if (callee === "OR" && node.arguments.length > 0) {
-        return `(${node.arguments.map(serializeAST).join(" || ")})`;
-      } else if (callee === "NOT" && node.arguments.length === 1) {
-        return `!(${serializeAST(node.arguments[0])})`;
-      }
-      return `${node.callee}(${node.arguments.map(serializeAST).join(", ")})`;
-    }
-    default:
-      return "";
-  }
 }
 
 /**
@@ -509,8 +477,9 @@ export async function generateOdmXml(
 
     sortedRules.forEach((rule) => {
       if (rule.ruleType === RuleType.DERIVATION) {
-        if (processedMethods.has(rule.ruleId)) return;
-        processedMethods.add(rule.ruleId);
+        const methodKey = normalizeOid(rule.ruleId).toLowerCase();
+        if (processedMethods.has(methodKey)) return;
+        processedMethods.add(methodKey);
 
         let descElement = "";
         if (rule.description) {
@@ -540,8 +509,9 @@ export async function generateOdmXml(
   if (study.methods) {
     Object.values(study.methods).forEach((method) => {
       const cleanOid = method.methodOid.trim();
-      if (processedMethods.has(cleanOid)) return;
-      processedMethods.add(cleanOid);
+      const methodKey = normalizeOid(cleanOid).toLowerCase();
+      if (processedMethods.has(methodKey)) return;
+      processedMethods.add(methodKey);
 
       let descElement = "";
       if (method.description) {
