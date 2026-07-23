@@ -179,7 +179,7 @@ export const ComplianceGovernanceView: React.FC = () => {
           )}
         </div>
 
-        {status && !status.isCloudHosted && (
+        {status && !status.isCloudHosted && !status.isCompliant && (
           <MessageBar intent="error">
             <MessageBarBody>
               File is saved to a local drive. Move it to a compliant SharePoint location to ensure

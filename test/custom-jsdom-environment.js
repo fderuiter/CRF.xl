@@ -1,4 +1,5 @@
-const JSDOMEnvironment = require('jest-environment-jsdom').default || require('jest-environment-jsdom');
+const JSDOMEnvironment =
+  require("jest-environment-jsdom").default || require("jest-environment-jsdom");
 
 class CustomJSDOMEnvironment extends JSDOMEnvironment {
   constructor(config, context) {
@@ -12,12 +13,22 @@ class CustomJSDOMEnvironment extends JSDOMEnvironment {
     this.global.Headers = Headers;
     this.global.Request = Request;
     this.global.Response = Response;
+
+    // Expose native JSDOM URL reconfigure helper
+    this.global.changeJSDOMURL = (url) => {
+      if (this.dom) {
+        this.dom.reconfigure({ url });
+      }
+    };
   }
 
   async teardown() {
     if (this.global) {
-      if (typeof this.global.Event === 'function' && typeof this.global.dispatchEvent === 'function') {
-        const unloadEvent = new this.global.Event('unload');
+      if (
+        typeof this.global.Event === "function" &&
+        typeof this.global.dispatchEvent === "function"
+      ) {
+        const unloadEvent = new this.global.Event("unload");
         this.global.dispatchEvent(unloadEvent);
       }
       delete this.global.fetch;

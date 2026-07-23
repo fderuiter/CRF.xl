@@ -374,7 +374,9 @@ const App: React.FC<{ title?: string }> = () => {
                 const issue: ValidationIssue = {
                   level: "Error",
                   message: envStatus.isCloudHosted
-                    ? "SharePoint location is not configured for GxP version history."
+                    ? envStatus.isAdmin
+                      ? "SharePoint location is not configured for GxP version history."
+                      : "Required compliance columns are missing. Please contact an administrator to configure compliance metadata columns."
                     : "Workbook is saved locally. Move to a SharePoint location to meet audit trail requirements.",
                   location: "Host Environment",
                 };
@@ -382,6 +384,7 @@ const App: React.FC<{ title?: string }> = () => {
                 if (
                   !issues.some((i) => i.location === issue.location && i.message === issue.message)
                 ) {
+                  actions.clearValidationIssueByLocation("Host Environment");
                   actions.injectValidationIssue(issue);
                 }
               } else {
@@ -814,7 +817,7 @@ const App: React.FC<{ title?: string }> = () => {
         await import("../core/services/compliance-export-service");
       const { DocxExportAdapter, PdfExportAdapter, OdmXmlExportAdapter } =
         await import("../core/services/standard-export-adapters");
-      
+
       if ((ComplianceExportService as any).adapters.length === 0) {
         ComplianceExportService.registerAdapter(new DocxExportAdapter());
         ComplianceExportService.registerAdapter(new PdfExportAdapter());
