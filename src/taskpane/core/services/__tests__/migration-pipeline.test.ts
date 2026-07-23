@@ -50,7 +50,6 @@ describe("createImportProvenance", () => {
     const prov1 = createImportProvenance("a", "odm-xml");
     jest.advanceTimersByTime(5);
     const prov2 = createImportProvenance("b", "odm-xml");
-    expect(prov2.importedAt > prov1.importedAt).toBe(true);
     expect(prov1.importedAt).toBe("2023-01-01T00:00:00.000Z");
     expect(prov2.importedAt).toBe("2023-01-01T00:00:00.005Z");
     jest.useRealTimers();
