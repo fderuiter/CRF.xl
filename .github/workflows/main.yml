@@ -78,7 +78,8 @@ jobs:
           
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             cp docs/github/codebase-alignment.md /tmp/codebase-alignment.md
-            git checkout --force "$BRANCH"
+            git fetch origin "$BRANCH"
+            git checkout --force -B "$BRANCH" FETCH_HEAD
             mv /tmp/codebase-alignment.md docs/github/codebase-alignment.md
           fi
           
@@ -110,7 +111,8 @@ jobs:
           
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             cp docs/github/volatility-matrix.md /tmp/volatility-matrix.md
-            git checkout --force "$BRANCH"
+            git fetch origin "$BRANCH"
+            git checkout --force -B "$BRANCH" FETCH_HEAD
             mv /tmp/volatility-matrix.md docs/github/volatility-matrix.md
           fi
           
