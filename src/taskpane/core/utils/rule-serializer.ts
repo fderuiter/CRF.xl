@@ -3,7 +3,7 @@ import { ASTNode } from "../types";
 /**
  * Transforms tree-structured rule nodes (AST) into standard logic strings.
  * This is a pure, stateless function used across validation, parsing, and building pipelines.
- * 
+ *
  * @param node The AST node to serialize.
  * @returns The serialized logical string expression.
  */
