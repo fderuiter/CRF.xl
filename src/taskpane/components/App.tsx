@@ -242,6 +242,10 @@ const App: React.FC<{ title?: string }> = () => {
   const { announcement, announce } = useAnnouncer();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).appOrchestrator = appOrchestrator;
+      (window as any).complianceGovernanceService = complianceGovernanceService;
+    }
     const onboarding = onboardingService.getState();
     if (!onboarding.isCompleted && !onboarding.isActive) {
       onboardingService.start();
@@ -339,9 +343,11 @@ const App: React.FC<{ title?: string }> = () => {
           },
         });
 
-        applyValidationVisuals(sheetsToClear, issues, runtime)
-          .catch(console.error)
-          .finally(() => setAnnotationProgress(null));
+        if (typeof Excel !== "undefined") {
+          applyValidationVisuals(sheetsToClear, issues, runtime)
+            .catch(console.error)
+            .finally(() => setAnnotationProgress(null));
+        }
       }
 
       // 3. Vault Sync
@@ -814,7 +820,7 @@ const App: React.FC<{ title?: string }> = () => {
         await import("../core/services/compliance-export-service");
       const { DocxExportAdapter, PdfExportAdapter, OdmXmlExportAdapter } =
         await import("../core/services/standard-export-adapters");
-      
+
       if ((ComplianceExportService as any).adapters.length === 0) {
         ComplianceExportService.registerAdapter(new DocxExportAdapter());
         ComplianceExportService.registerAdapter(new PdfExportAdapter());
