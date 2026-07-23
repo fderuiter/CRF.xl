@@ -34,7 +34,7 @@
     "docs:volatility": "node ./scripts/volatility-matrix.js",
     "watch": "webpack --mode development --watch",
     "test": "jest",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test tests/e2e/accessibility.spec.ts",
     "benchmark:mega-study": "jest test/serialization/mega-study.benchmark.test.ts --runInBand",
     "audit": "npm audit",
     "audit:json": "npm audit --json",
