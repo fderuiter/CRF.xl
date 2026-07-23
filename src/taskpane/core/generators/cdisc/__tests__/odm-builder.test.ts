@@ -457,5 +457,56 @@ describe("CDISC ODM XML Builder", () => {
       expect(xml).toContain('MethodOID="M_EXPLICIT_BMI"');
       expect(xml).not.toContain('MethodOID="M_RULE_BMI"');
     });
+
+    it("should correctly serialize MethodOID when rules target prefixed items", async () => {
+      // Rule targets CDISC:IT_WT (prefixed)
+      mockStudy.rules = [
+        {
+          ruleId: "M_PREFIX_BMI",
+          ruleType: RuleType.DERIVATION,
+          target: "CDISC:IT_WT",
+          expression: "100",
+          _sourceRowIndex: 2,
+        },
+      ];
+      const { parseRuleExpression } = require("../../../parser/rules-parser");
+      mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
+
+      const { xml } = await generateOdmXml(mockStudy);
+      // It should correctly link MethodOID on IT_WT (which is without prefix, i.e., IT_WT)
+      expect(xml).toContain('MethodOID="M_PREFIX_BMI"');
+    });
+
+    it("should deduplicate MethodDef elements with varying casing and prefixes", async () => {
+      // study.methods has "M_BMI"
+      // mockStudy.rules has derivation with ruleId "m_bmi" (lowercase) targeting IT_WT (valid target)
+      mockStudy.methods = {
+        M_BMI: {
+          methodOid: "M_BMI",
+          name: "BMI Derivation",
+          type: "Computation",
+          description: "Calculates BMI",
+          expression: "100",
+        },
+      };
+
+      mockStudy.rules = [
+        {
+          ruleId: "m_bmi",
+          ruleType: RuleType.DERIVATION,
+          target: "IT_WT",
+          expression: "100",
+          _sourceRowIndex: 2,
+        },
+      ];
+      const { parseRuleExpression } = require("../../../parser/rules-parser");
+      mockStudy.rules[0].ast = parseRuleExpression(mockStudy.rules[0].expression);
+
+      const { xml } = await generateOdmXml(mockStudy);
+
+      // Count occurrences of MethodDef in generated XML
+      const count = (xml.match(/<MethodDef OID=/g) || []).length;
+      expect(count).toBe(1);
+    });
   });
 });

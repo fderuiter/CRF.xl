@@ -882,5 +882,25 @@ describe("Clinical Validator Engine", () => {
       );
       expect(error).toBeUndefined();
     });
+
+    it("should pass when Derived variable has varying casing or namespace prefixes during validation", async () => {
+      mockStudy.forms["F1"].itemGroups[0].items[0].origin = "Derived" as any;
+      // prefixed and lowercase Method OID
+      mockStudy.forms["F1"].itemGroups[0].items[0].methodOid = "cdisc:der_test_case";
+      mockStudy.methods = {};
+      mockStudy.submissionMetadata!.sdtmDerivations = [
+        {
+          // uppercase and different prefix or no prefix
+          derivationId: "DER_TEST_CASE",
+          label: "Test Derivation Case",
+          description: "This is a test derivation",
+        },
+      ];
+      const issues = validateSubmissionMetadataForRelease(mockStudy);
+      const error = (await issues).find(
+        (i) => i.level === "Error" && i.message.toLowerCase().includes("der_test_case")
+      );
+      expect(error).toBeUndefined();
+    });
   });
 });

@@ -17,6 +17,7 @@ import {
 } from "../../types/index";
 import { validateRules, RuleValidationError } from "../../parser/dag-validator";
 import { parseRuleExpression } from "../../parser/rules-parser";
+import { normalizeOid } from "../../parser/metadata-utils";
 import { LinguisticService } from "../../services/linguistics-service";
 import { ClinicalIterator, SortStrategy } from "../clinical-iterator";
 
@@ -43,10 +44,10 @@ class OdmSerializationError extends Error {
  */
 function targetMatchesItem(target: string | undefined, itemOid: string): boolean {
   if (!target) return false;
-  const targetLower = target.trim().toLowerCase();
-  const itemLower = itemOid.trim().toLowerCase();
-  if (targetLower === itemLower) return true;
-  return targetLower.endsWith("." + itemLower);
+  const normTarget = normalizeOid(target).toLowerCase();
+  const normItem = normalizeOid(itemOid).toLowerCase();
+  if (normTarget === normItem) return true;
+  return normTarget.endsWith("." + normItem);
 }
 
 interface OdmExportResult {
@@ -511,8 +512,9 @@ export async function generateOdmXml(
 
     sortedRules.forEach((rule) => {
       if (rule.ruleType === RuleType.DERIVATION) {
-        if (processedMethods.has(rule.ruleId)) return;
-        processedMethods.add(rule.ruleId);
+        const methodKey = normalizeOid(rule.ruleId).toLowerCase();
+        if (processedMethods.has(methodKey)) return;
+        processedMethods.add(methodKey);
 
         let descElement = "";
         if (rule.description) {
@@ -542,8 +544,9 @@ export async function generateOdmXml(
   if (study.methods) {
     Object.values(study.methods).forEach((method) => {
       const cleanOid = method.methodOid.trim();
-      if (processedMethods.has(cleanOid)) return;
-      processedMethods.add(cleanOid);
+      const methodKey = normalizeOid(cleanOid).toLowerCase();
+      if (processedMethods.has(methodKey)) return;
+      processedMethods.add(methodKey);
 
       let descElement = "";
       if (method.description) {
