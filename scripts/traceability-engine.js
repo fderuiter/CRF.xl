@@ -21,8 +21,12 @@ function fetchPage(url) {
       res.on("end", () => {
         try {
           resolve(JSON.parse(data));
-        } catch {
-          reject(new Error("Failed to parse JSON response"));
+        } catch (err) {
+          reject(
+            new Error(
+              "Failed to parse JSON response: " + (err instanceof Error ? err.message : String(err))
+            )
+          );
         }
       });
     });
@@ -296,8 +300,11 @@ async function main() {
   try {
     const { execSync } = require("child_process");
     execSync(`npx prettier --write "${REPORT_PATH}"`, { stdio: "ignore" });
-  } catch {
-    // ignore formatting errors if prettier is not available
+  } catch (err) {
+    console.warn(
+      "Warning: Failed to run prettier on the generated report:",
+      err instanceof Error ? err.message : String(err)
+    );
   }
   console.log("Successfully generated alignment matrix at docs/github/codebase-alignment.md");
 }
