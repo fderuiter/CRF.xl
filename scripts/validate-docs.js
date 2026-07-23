@@ -408,8 +408,19 @@ async function main() {
   info("Starting markdown documentation link validation...");
 
   // --- OpenAPI Documentation Compilation Check ---
-  const apiYamlPath = path.join(docsDir, "specification", "cdisc-library-api.yaml");
-  const apiHtmlPath = path.join(docsDir, "specification", "cdisc-library-api.html");
+  const apiYamlPath = path.join(docsDir, "specification", "unified-api.yaml");
+  const apiHtmlPath = path.join(docsDir, "specification", "unified-api.html");
+
+  // Run the Vault API Contract Parity check to ensure schema-to-portal parity
+  try {
+    const { execSync } = require("child_process");
+    info("Running Vault API Contract Parity check...");
+    execSync("node ./scripts/validate-vault-parity.js", { stdio: "inherit", cwd: projectRoot });
+  } catch {
+    fail(
+      "Vault API Contract Parity check failed. Please ensure the unified OpenAPI spec matches the TypeScript client implementation."
+    );
+  }
 
   if (fs.existsSync(apiYamlPath)) {
     if (!fs.existsSync(apiHtmlPath)) {
