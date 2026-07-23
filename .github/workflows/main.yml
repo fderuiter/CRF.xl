@@ -63,7 +63,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         npm run docs:traceability
-        if ! git diff --quiet docs/github/codebase-alignment.md; then
+        if ! git diff --ignore-space-at-eol --quiet docs/github/codebase-alignment.md; then
           echo "Drift detected in docs/github/codebase-alignment.md."
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "::error::Traceability matrix drift detected! Please run 'npm run docs:traceability' locally and commit the updated docs/github/codebase-alignment.md file."
@@ -89,7 +89,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         npm run docs:volatility
-        if ! git diff --quiet docs/github/volatility-matrix.md; then
+        if ! git diff --ignore-space-at-eol --quiet docs/github/volatility-matrix.md; then
           echo "Drift detected in docs/github/volatility-matrix.md."
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "::error::Volatility matrix drift detected! Please run 'npm run docs:volatility' locally and commit the updated docs/github/volatility-matrix.md file."
