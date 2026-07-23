@@ -247,6 +247,14 @@ test.describe("Accessibility and E2E Audits", () => {
 
     // Set active sheet to _Study and set a mock study design so RegistryView renders and is fully active
     await page.evaluate(() => {
+      if (!(window as any).process) {
+        (window as any).process = { env: {} };
+      }
+      if (!(window as any).process.env) {
+        (window as any).process.env = {};
+      }
+      (window as any).process.env.VAULT_API_URL = "https://real-api.vault.com";
+
       const orchestrator = (window as any).appOrchestrator;
       orchestrator.requestValidation = () => {};
 
