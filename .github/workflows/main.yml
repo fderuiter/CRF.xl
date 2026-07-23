@@ -86,6 +86,39 @@ jobs:
           git commit -m "chore: auto-regenerate traceability report [skip ci]"
           git push origin HEAD:"refs/heads/$BRANCH"
         fi
+
+    - name: 📊 Validate Volatility Matrix and CI Gate
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        npm run docs:volatility
+        if ! git diff --quiet docs/github/volatility-matrix.md; then
+          echo "Drift detected in docs/github/volatility-matrix.md."
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.head_ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          
+          if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "develop" ]; then
+            echo "Cannot automatically commit to protected branch $BRANCH. Failing loudly."
+            exit 1
+          fi
+          
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            cp docs/github/volatility-matrix.md /tmp/volatility-matrix.md
+            git checkout --force "$BRANCH"
+            mv /tmp/volatility-matrix.md docs/github/volatility-matrix.md
+          fi
+          
+          git add docs/github/volatility-matrix.md
+          git commit -m "chore: auto-regenerate volatility matrix [skip ci]"
+          git push origin HEAD:"refs/heads/$BRANCH"
+        fi
+
     - name: 🔎 Type Checking
       run: npx tsc --noEmit
 

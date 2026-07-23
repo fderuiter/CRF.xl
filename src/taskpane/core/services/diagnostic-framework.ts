@@ -66,6 +66,13 @@ export class DiagnosticError extends Error implements Diagnostic {
    * @returns
    */
   static fromJSON(data: any): DiagnosticError {
+    if (data && data.category === "BASELINE_WORKBOOK_PARSE") {
+      const { BaselineWorkbookParseError } = require("./baseline-workbook-service");
+      return new BaselineWorkbookParseError(
+        data.message ?? "Baseline parsing error",
+        data.recoveryAction
+      );
+    }
     return new DiagnosticError({
       severity: data.severity ?? "error",
       category: data.category ?? "UNKNOWN_ERROR",

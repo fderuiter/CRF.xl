@@ -31,6 +31,7 @@
     "docs:validate-code": "node ./scripts/validate-markdown-code.js",
     "docs:api-check": "node ./scripts/semantic-interface-checker.js",
     "docs:traceability": "node ./scripts/traceability-engine.js",
+    "docs:volatility": "node ./scripts/volatility-matrix.js",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "test:e2e": "playwright test",
@@ -80,7 +81,6 @@
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^14.0.0",
     "crypto-browserify": "^3.12.1",
-    "depcheck": "^1.4.7",
     "eslint-plugin-jsdoc": "^63.2.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-office-addins": "^4.0.10",
@@ -131,12 +131,6 @@
   "browserslist": [
     "last 2 versions"
   ],
-  "depcheck": {
-    "ignores": [
-      "core-js",
-      "regenerator-runtime"
-    ]
-  },
   "overrides": {
     "brace-expansion": "2.1.2",
     "minimatch": {
