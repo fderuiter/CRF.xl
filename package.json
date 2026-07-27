@@ -132,7 +132,7 @@
     "last 2 versions"
   ],
   "overrides": {
-    "brace-expansion": "5.0.8",
+    "minimatch": "10.2.5",
     "uuid": "11.1.1"
   }
 }
