@@ -1,0 +1,5278 @@
+[
+  {
+    "number": 449,
+    "title": "Weekly Backlog Review — 2026-W31",
+    "state": "open",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:07Z",
+    "created_at": "2026-07-27T16:34:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 448,
+    "title": "Implement local dev bypass and resilient non-admin permission fallback",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:15Z",
+    "created_at": "2026-07-23T18:35:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 447,
+    "title": "feat: add offline in-memory Vault simulator mode for local dev",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:14Z",
+    "created_at": "2026-07-23T18:09:02Z",
+    "pull_request": true
+  },
+  {
+    "number": 446,
+    "title": "feat: introduce isomorphic TypeScript SDK and refactor VaultService",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T19:30:39Z",
+    "created_at": "2026-07-23T18:02:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 445,
+    "title": "Add Unified API Portal and Compile-Checked TS Quickstart Guide",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:13Z",
+    "created_at": "2026-07-23T17:56:58Z",
+    "pull_request": true
+  },
+  {
+    "number": 444,
+    "title": "Integrate baseline workbook errors into diagnostic hierarchy",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:50:05Z",
+    "created_at": "2026-07-23T17:43:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 443,
+    "title": "feat: add automated volatility matrix and CI traceability gate",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:50:01Z",
+    "created_at": "2026-07-23T17:43:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 442,
+    "title": "Unify dependency validation under Knip and remove depcheck",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:49:54Z",
+    "created_at": "2026-07-23T17:41:30Z",
+    "pull_request": true
+  },
+  {
+    "number": 441,
+    "title": "Add continuous accessibility audits and fix interactive focus issues",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:49:48Z",
+    "created_at": "2026-07-23T17:33:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 440,
+    "title": "Refactor: Extract stateless AST rule serialization utility",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:24:48Z",
+    "created_at": "2026-07-23T17:18:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 439,
+    "title": "Refactor: Centralize directory-traversal filename sanitization",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:24:40Z",
+    "created_at": "2026-07-23T17:06:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 438,
+    "title": "Implement full-codebase plugin-driven dead-code detection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:41:13Z",
+    "created_at": "2026-07-23T17:06:23Z",
+    "pull_request": true
+  },
+  {
+    "number": 437,
+    "title": "Implement ingestion-time canonical OID normalization",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:13Z",
+    "created_at": "2026-07-23T17:01:23Z",
+    "pull_request": true
+  },
+  {
+    "number": 436,
+    "title": "test: use Jest fake timers for deterministic and leak-free tests",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:31:48Z",
+    "created_at": "2026-07-23T16:54:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 435,
+    "title": "Implement CustomXML persistence and Web Worker background processing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:27:43Z",
+    "created_at": "2026-07-23T16:53:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 434,
+    "title": "fix: targeted OID normalization for CDISC validation and export",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T17:23:56Z",
+    "created_at": "2026-07-23T15:46:59Z",
+    "pull_request": true
+  },
+  {
+    "number": 433,
+    "title": "refactor: centralize escaping helpers with bug-for-bug preservation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T16:45:03Z",
+    "created_at": "2026-07-23T15:22:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 432,
+    "title": "feat: implement canonical folder-to-doc mapping and exclusions",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T04:23:03Z",
+    "created_at": "2026-07-23T03:33:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 431,
+    "title": "Implement .docsignore support and unify markdown file scanning",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T02:39:52Z",
+    "created_at": "2026-07-23T02:25:02Z",
+    "pull_request": true
+  },
+  {
+    "number": 430,
+    "title": "Add Dockerized Playwright visual regression tests and refactor views",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:35:58Z",
+    "created_at": "2026-07-22T21:54:57Z",
+    "pull_request": true
+  },
+  {
+    "number": 429,
+    "title": "feat: automate traceability sync & fail loudly on API rate limits",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:25:57Z",
+    "created_at": "2026-07-22T21:35:28Z",
+    "pull_request": true
+  },
+  {
+    "number": 428,
+    "title": "feat: programmatic sheet protection and cell-level rollback",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:26:07Z",
+    "created_at": "2026-07-22T21:33:44Z",
+    "pull_request": true
+  },
+  {
+    "number": 427,
+    "title": "Move rule compilation upstream to prevent CDISC XML export failures",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-23T15:12:26Z",
+    "created_at": "2026-07-22T21:30:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 426,
+    "title": "refactor: decouple core modules and enforce architecture boundaries",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:29:38Z",
+    "created_at": "2026-07-22T21:29:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 425,
+    "title": "Optimize ODM export and validation with caching and fused pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:30:28Z",
+    "created_at": "2026-07-22T21:25:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 424,
+    "title": "feat: implement unified compliance export interface and adapters",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T23:13:23Z",
+    "created_at": "2026-07-22T21:25:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 423,
+    "title": "Fix regulatory export defects and improve packaging reliability",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T23:01:45Z",
+    "created_at": "2026-07-22T21:25:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 422,
+    "title": "Refactor UI buttons, native async crypto, and update CODEOWNERS",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:30:09Z",
+    "created_at": "2026-07-22T21:24:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 421,
+    "title": "Implement JSDOM teardown to prevent test leaks and global pollution",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:27:02Z",
+    "created_at": "2026-07-22T21:23:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 420,
+    "title": "Setup Husky and lint-staged for fast pre-commit checks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:27:10Z",
+    "created_at": "2026-07-22T21:23:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 419,
+    "title": "feat: introduce state-driven loading transition in ThemeProvider",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T22:27:45Z",
+    "created_at": "2026-07-22T21:21:10Z",
+    "pull_request": true
+  },
+  {
+    "number": 418,
+    "title": "Migrate to Knip for taskpane dead code and unused file detection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T20:49:30Z",
+    "created_at": "2026-07-22T15:53:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 417,
+    "title": "refactor: relocate test-proxy helper to centralized test-helpers",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T15:51:02Z",
+    "created_at": "2026-07-22T15:22:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 416,
+    "title": "Modernize TypeScript module resolution to 'bundler'",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T15:00:54Z",
+    "created_at": "2026-07-22T14:50:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 415,
+    "title": "Implement type-checked markdown validator and align AST contracts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:38:24Z",
+    "created_at": "2026-07-21T21:18:57Z",
+    "pull_request": true
+  },
+  {
+    "number": 414,
+    "title": "feat: enforce automated JSDoc compliance in core services",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:29:29Z",
+    "created_at": "2026-07-21T21:16:08Z",
+    "pull_request": true
+  },
+  {
+    "number": 413,
+    "title": "feat: compile CDISC Library OpenAPI spec to interactive local HTML",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:38:06Z",
+    "created_at": "2026-07-21T21:13:01Z",
+    "pull_request": true
+  },
+  {
+    "number": 412,
+    "title": "Enforce documentation taxonomy and superseded registry guard",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-22T14:41:02Z",
+    "created_at": "2026-07-21T21:09:31Z",
+    "pull_request": true
+  },
+  {
+    "number": 411,
+    "title": "Validate unescaped XML tags in documentation and fix rendering issues",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:29:18Z",
+    "created_at": "2026-07-21T21:09:03Z",
+    "pull_request": true
+  },
+  {
+    "number": 410,
+    "title": "feat: implement semantic interface change detection in CI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:14:52Z",
+    "created_at": "2026-07-21T21:07:25Z",
+    "pull_request": true
+  },
+  {
+    "number": 409,
+    "title": "Support multi-line @issue tag parsing in traceability engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:14:45Z",
+    "created_at": "2026-07-21T21:06:41Z",
+    "pull_request": true
+  },
+  {
+    "number": 408,
+    "title": "Implement selective regulatory domain validation via CLI flag",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T21:14:34Z",
+    "created_at": "2026-07-21T21:05:56Z",
+    "pull_request": true
+  },
+  {
+    "number": 407,
+    "title": "UI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:43:13Z",
+    "created_at": "2026-07-21T20:35:18Z",
+    "pull_request": true
+  },
+  {
+    "number": 406,
+    "title": "feat: Dynamic Excel host theme synchronization and preview styling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:05:12Z",
+    "created_at": "2026-07-21T19:55:19Z",
+    "pull_request": true
+  },
+  {
+    "number": 405,
+    "title": "feat: implement reactive theme synchronization with Excel host",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:34:55Z",
+    "created_at": "2026-07-21T19:43:41Z",
+    "pull_request": true
+  },
+  {
+    "number": 404,
+    "title": "Refactor Dictionary Cards to Fluent UI and Remove AccessibleWrapper",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:05:21Z",
+    "created_at": "2026-07-21T19:40:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 403,
+    "title": "chore(deps-dev): bump fast-uri from 3.1.2 to 3.1.4 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-27T16:48:21Z",
+    "created_at": "2026-07-21T19:37:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 402,
+    "title": "Implement design system build guardrails and refactor core views",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:05:28Z",
+    "created_at": "2026-07-21T19:37:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 401,
+    "title": "refactor: unify component styling and migrate stepper inline styles",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:20:51Z",
+    "created_at": "2026-07-21T19:37:13Z",
+    "pull_request": true
+  },
+  {
+    "number": 400,
+    "title": "Implement accessible Fluent UI Dialog for Excel version freezing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:05:39Z",
+    "created_at": "2026-07-21T19:35:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 399,
+    "title": "refactor: migrate dictionary sidecar to Fluent UI v9 OverlayDrawer",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T20:05:49Z",
+    "created_at": "2026-07-21T19:34:06Z",
+    "pull_request": true
+  },
+  {
+    "number": 398,
+    "title": "Consolidate CDISC test fixtures and align QA regression policy",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:28:10Z",
+    "created_at": "2026-07-21T19:10:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 397,
+    "title": "Replace legacy annotation counter with chunk-based orphan detector",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:26:29Z",
+    "created_at": "2026-07-21T19:03:23Z",
+    "pull_request": true
+  },
+  {
+    "number": 396,
+    "title": "refactor: remove deprecated applyToRange from paintbrush service",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:26:20Z",
+    "created_at": "2026-07-21T19:02:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 395,
+    "title": "chore: optimize production dependencies and integrate CI guardrails",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:26:11Z",
+    "created_at": "2026-07-21T18:58:51Z",
+    "pull_request": true
+  },
+  {
+    "number": 394,
+    "title": "chore: remove obsolete boilerplate and update webpack config",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:57Z",
+    "created_at": "2026-07-21T18:57:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 393,
+    "title": "Standardize compliance sheet generation and governance styling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:48Z",
+    "created_at": "2026-07-21T18:56:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 392,
+    "title": "refactor: prune untested and unused formatCurrency utility",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:41Z",
+    "created_at": "2026-07-21T18:56:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 391,
+    "title": "Prune unused logger configs and dictionary filtering helper",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:33Z",
+    "created_at": "2026-07-21T18:56:13Z",
+    "pull_request": true
+  },
+  {
+    "number": 390,
+    "title": "Clean up obsolete documentation and update links to active specs",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:23Z",
+    "created_at": "2026-07-21T18:56:08Z",
+    "pull_request": true
+  },
+  {
+    "number": 389,
+    "title": "Remove unreferenced image assets to optimize build size",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:25:13Z",
+    "created_at": "2026-07-21T18:54:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 388,
+    "title": "Implement local dev bypass and resilient permission fallbacks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T18:47:59Z",
+    "created_at": "2026-07-21T17:29:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 387,
+    "title": "Decouple compliance service with mock auth and Graph providers",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T19:28:10Z",
+    "created_at": "2026-07-21T17:22:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 386,
+    "title": "Add token auth and markdown fallback to traceability engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T17:14:23Z",
+    "created_at": "2026-07-21T14:56:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 385,
+    "title": "test: implement Jest fake timers for deterministic execution",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-21T18:47:52Z",
+    "created_at": "2026-07-21T14:53:59Z",
+    "pull_request": true
+  },
+  {
+    "number": 384,
+    "title": "Weekly Backlog Review — 2026-W30",
+    "state": "open",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-20T14:59:54Z",
+    "created_at": "2026-07-20T14:59:16Z",
+    "pull_request": false
+  },
+  {
+    "number": 383,
+    "title": "chore(deps): bump the npm_and_yarn group across 1 directory with 1 update",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-17T22:59:28Z",
+    "created_at": "2026-07-17T22:27:25Z",
+    "pull_request": true
+  },
+  {
+    "number": 382,
+    "title": "refactor: expand dead-code detection & clean up legacy files",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:22:25Z",
+    "created_at": "2026-07-17T14:31:29Z",
+    "pull_request": true
+  },
+  {
+    "number": 381,
+    "title": "chore: remove dormant .hintrc and unused issue-manager script",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:11:30Z",
+    "created_at": "2026-07-17T14:24:30Z",
+    "pull_request": true
+  },
+  {
+    "number": 380,
+    "title": "feat: centralize vault error orchestration and add E2E tests",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:11:49Z",
+    "created_at": "2026-07-17T14:24:14Z",
+    "pull_request": true
+  },
+  {
+    "number": 379,
+    "title": "refactor: remove obsolete taskpane boilerplate components and hooks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T16:26:24Z",
+    "created_at": "2026-07-17T14:23:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 378,
+    "title": "chore: remove unused os-browserify and less-loader dependencies",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:11:24Z",
+    "created_at": "2026-07-17T14:22:26Z",
+    "pull_request": true
+  },
+  {
+    "number": 377,
+    "title": "Unify TS compilation and implement build-time validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T21:20:39Z",
+    "created_at": "2026-07-17T14:20:36Z",
+    "pull_request": true
+  },
+  {
+    "number": 376,
+    "title": "Clean up duplicate type-checking flags in tsconfig.json",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:11:14Z",
+    "created_at": "2026-07-17T14:19:03Z",
+    "pull_request": true
+  },
+  {
+    "number": 375,
+    "title": "Persist recovery state via CustomXML and compute with Web Workers",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T15:11:40Z",
+    "created_at": "2026-07-17T13:57:18Z",
+    "pull_request": true
+  },
+  {
+    "number": 374,
+    "title": "Make Save Justifications button accessible when inactive",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T13:36:52Z",
+    "created_at": "2026-07-17T13:24:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 373,
+    "title": "feat: implement ARIA labels and dynamic value prefixes for filters",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T13:38:02Z",
+    "created_at": "2026-07-17T13:23:42Z",
+    "pull_request": true
+  },
+  {
+    "number": 372,
+    "title": "Implement CI accessibility gates and keyboard focus loop tests",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T12:58:13Z",
+    "created_at": "2026-07-16T15:42:06Z",
+    "pull_request": true
+  },
+  {
+    "number": 371,
+    "title": "feat: add fail-fast inline Zod validation for spreadsheet imports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T12:57:57Z",
+    "created_at": "2026-07-16T15:41:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 370,
+    "title": "Segment test environments and restrict global Office.js types",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-16T15:20:32Z",
+    "created_at": "2026-07-16T14:26:00Z",
+    "pull_request": true
+  },
+  {
+    "number": 369,
+    "title": "feat: Enforce Office JS static safety, chunking, and test-time proxies",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T13:50:53Z",
+    "created_at": "2026-07-15T20:54:17Z",
+    "pull_request": true
+  },
+  {
+    "number": 368,
+    "title": "fix: implement render-phase list resets and warn-only hook linter",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T20:49:47Z",
+    "created_at": "2026-07-15T20:22:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 367,
+    "title": "refactor: split codebase into core and taskpane npm workspaces",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T16:43:22Z",
+    "created_at": "2026-07-15T20:12:43Z",
+    "pull_request": true
+  },
+  {
+    "number": 366,
+    "title": "Unify services with central ChunkingEngine to prevent timeouts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T19:42:58Z",
+    "created_at": "2026-07-15T16:08:05Z",
+    "pull_request": true
+  },
+  {
+    "number": 365,
+    "title": "feat: implement framework-level accessible wizard transitions",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T19:43:04Z",
+    "created_at": "2026-07-15T16:04:23Z",
+    "pull_request": true
+  },
+  {
+    "number": 364,
+    "title": "Unify workbook parsing with cooperative asynchronous engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T19:42:51Z",
+    "created_at": "2026-07-15T16:03:31Z",
+    "pull_request": true
+  },
+  {
+    "number": 363,
+    "title": "refactor: unify document localization helpers for Word and PDF",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T15:39:05Z",
+    "created_at": "2026-07-15T14:44:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 362,
+    "title": "Implement custom JSDOM environment for native Node 20 web globals",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T15:38:51Z",
+    "created_at": "2026-07-15T14:37:15Z",
+    "pull_request": true
+  },
+  {
+    "number": 361,
+    "title": "fix(a11y): add ARIA labels to ingestion wizard and audit modal",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T15:38:30Z",
+    "created_at": "2026-07-15T14:35:03Z",
+    "pull_request": true
+  },
+  {
+    "number": 360,
+    "title": "Hotfix: Fix React Hook violations and optimize state in taskpane",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T15:39:18Z",
+    "created_at": "2026-07-15T13:38:11Z",
+    "pull_request": true
+  },
+  {
+    "number": 359,
+    "title": "Restore targeted unused variable lint checks and clean up dead code",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T14:27:17Z",
+    "created_at": "2026-07-15T13:33:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 358,
+    "title": "chore: remove legacy .eslintrc.json in favor of flat config",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T14:05:21Z",
+    "created_at": "2026-07-15T13:27:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 357,
+    "title": "Optimize workspace, streamline setup, and enforce CI linting",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T14:27:34Z",
+    "created_at": "2026-07-14T21:42:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 356,
+    "title": "Clean up redundant configurations and unify manifest validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T13:04:59Z",
+    "created_at": "2026-07-14T21:41:00Z",
+    "pull_request": true
+  },
+  {
+    "number": 355,
+    "title": "Migrate review session identifiers to native Web Crypto API",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T21:30:42Z",
+    "created_at": "2026-07-14T20:13:19Z",
+    "pull_request": true
+  },
+  {
+    "number": 354,
+    "title": "feat: adopt native Node 20 web APIs via custom JSDOM environment",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T21:30:48Z",
+    "created_at": "2026-07-14T20:10:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 353,
+    "title": "Improve MatrixView accessibility with standard ARIA labeling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T21:31:02Z",
+    "created_at": "2026-07-14T20:07:40Z",
+    "pull_request": true
+  },
+  {
+    "number": 352,
+    "title": "feat: migrate async hashing to native Web Crypto API",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-15T13:04:49Z",
+    "created_at": "2026-07-14T18:57:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 351,
+    "title": "Consolidate document localization helpers for PDF and Word exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T19:23:08Z",
+    "created_at": "2026-07-14T18:54:51Z",
+    "pull_request": true
+  },
+  {
+    "number": 350,
+    "title": "Standardize OID normalization and centralize uniqueness validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T18:48:07Z",
+    "created_at": "2026-07-13T20:50:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 349,
+    "title": "Implement Unified Application Orchestrator Service",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T19:14:49Z",
+    "created_at": "2026-07-13T20:00:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 348,
+    "title": "refactor: unify state subscription management across six core services",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T18:47:24Z",
+    "created_at": "2026-07-13T19:56:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 347,
+    "title": "Implement standardized, stage-based clinical validation pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-14T18:47:35Z",
+    "created_at": "2026-07-13T19:54:15Z",
+    "pull_request": true
+  },
+  {
+    "number": 346,
+    "title": "refactor: standardize core types via Zod type inference",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-13T19:40:31Z",
+    "created_at": "2026-07-13T19:03:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 345,
+    "title": "Add GxP Contract Compliance & Annotation Lifecycle Engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-13T18:46:04Z",
+    "created_at": "2026-07-13T18:09:10Z",
+    "pull_request": true
+  },
+  {
+    "number": 344,
+    "title": "feat: implement native Table-First Architecture for accessibility",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-13T18:13:14Z",
+    "created_at": "2026-07-13T18:01:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 343,
+    "title": "docs: implement unified sidecar documentation and core engine specs",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-13T17:50:41Z",
+    "created_at": "2026-07-13T17:03:13Z",
+    "pull_request": true
+  },
+  {
+    "number": 342,
+    "title": "Clean up 19 unused React styles across five taskpane layout files",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-13T16:50:02Z",
+    "created_at": "2026-07-13T15:40:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 341,
+    "title": "Weekly Backlog Review — 2026-W29",
+    "state": "open",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-13T15:16:57Z",
+    "created_at": "2026-07-13T15:15:50Z",
+    "pull_request": false
+  },
+  {
+    "number": 340,
+    "title": "chore(deps): bump http-proxy-middleware from 2.0.9 to 4.2.0 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-13T19:41:43Z",
+    "created_at": "2026-07-09T21:46:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 339,
+    "title": "feat: implement standardized logging and event management utilities",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-09T21:45:03Z",
+    "created_at": "2026-07-09T21:20:15Z",
+    "pull_request": true
+  },
+  {
+    "number": 338,
+    "title": "Weekly Backlog Review ��� 2026-W28",
+    "state": "open",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-06T15:30:07Z",
+    "created_at": "2026-07-06T15:27:20Z",
+    "pull_request": false
+  },
+  {
+    "number": 337,
+    "title": "Implement Unified Global OID Registry for cross-entity validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-03T00:38:18Z",
+    "created_at": "2026-07-02T20:58:14Z",
+    "pull_request": true
+  },
+  {
+    "number": 336,
+    "title": "Implement Unified Issue Service Bridge for centralized error state",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-17T16:43:27Z",
+    "created_at": "2026-07-02T20:54:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 335,
+    "title": "Centralize list state management with useUnifiedList hook",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T23:56:35Z",
+    "created_at": "2026-07-02T20:46:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 334,
+    "title": "Implement Chunking Middleware Engine for unified background processing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T21:31:41Z",
+    "created_at": "2026-07-02T20:45:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 333,
+    "title": "Implement Fluent UI v9 TabList for accessible sheet selection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T21:31:31Z",
+    "created_at": "2026-07-02T20:45:03Z",
+    "pull_request": true
+  },
+  {
+    "number": 332,
+    "title": "Refactor aCRF preview to use semantic design tokens and improve contrast",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T20:30:28Z",
+    "created_at": "2026-07-02T20:26:11Z",
+    "pull_request": true
+  },
+  {
+    "number": 331,
+    "title": "Implement semantic PDF/UA export and E2E accessibility auditing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T19:50:03Z",
+    "created_at": "2026-07-02T18:14:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 330,
+    "title": "Implement centralized ARIA live region for background task announcements",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T18:02:04Z",
+    "created_at": "2026-07-02T17:59:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 329,
+    "title": "Implement focus-managed error zone for Excel Busy recovery",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T18:01:53Z",
+    "created_at": "2026-07-02T17:57:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 328,
+    "title": "Implement Governance Dashboard for accessibility and environment readiness",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T18:01:41Z",
+    "created_at": "2026-07-02T17:56:14Z",
+    "pull_request": true
+  },
+  {
+    "number": 327,
+    "title": "Enforce strict schema alignment and Zod validation in migrations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:47:16Z",
+    "created_at": "2026-07-02T17:04:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 326,
+    "title": "Refactor migration logic to a type-safe, non-mutative pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:27:12Z",
+    "created_at": "2026-07-02T16:51:51Z",
+    "pull_request": true
+  },
+  {
+    "number": 325,
+    "title": "[Governance] Normalize Issue Taxonomy and GitHub Sub-Issue Structure",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:29:37Z",
+    "created_at": "2026-07-02T16:46:16Z",
+    "pull_request": true
+  },
+  {
+    "number": 324,
+    "title": "Create End-to-End Quality Matrix by Subsystem",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:30:17Z",
+    "created_at": "2026-07-02T16:37:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 323,
+    "title": "Standardized Release Signoff Checklist and Traceability Enhancement",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:31:07Z",
+    "created_at": "2026-07-02T16:36:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 322,
+    "title": "Define Non-Functional Acceptance Criteria for Excel Runtime Interactions",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T17:30:52Z",
+    "created_at": "2026-07-02T16:31:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 321,
+    "title": "[Docs] Create Module Map for Core Engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:29:17Z",
+    "created_at": "2026-07-02T16:26:43Z",
+    "pull_request": true
+  },
+  {
+    "number": 320,
+    "title": "Create Dependency Management Guide",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:25:32Z",
+    "created_at": "2026-07-02T16:24:26Z",
+    "pull_request": true
+  },
+  {
+    "number": 319,
+    "title": "Align README Architecture with Modular Codebase",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:25:15Z",
+    "created_at": "2026-07-02T16:23:48Z",
+    "pull_request": true
+  },
+  {
+    "number": 318,
+    "title": "Create Roadmap Operations Guide",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:25:07Z",
+    "created_at": "2026-07-02T16:18:13Z",
+    "pull_request": true
+  },
+  {
+    "number": 317,
+    "title": "[Docs] Create Definition of Ready and Done (docs/github/definition-of-ready-done.md)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:24:55Z",
+    "created_at": "2026-07-02T16:18:01Z",
+    "pull_request": true
+  },
+  {
+    "number": 316,
+    "title": "Create Architecture Decision Record Index",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:24:46Z",
+    "created_at": "2026-07-02T16:16:43Z",
+    "pull_request": true
+  },
+  {
+    "number": 315,
+    "title": "Document Office.js Runtime Risk Surfaces and Q2 NFR Criteria",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:24:39Z",
+    "created_at": "2026-07-02T16:12:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 314,
+    "title": "Implement unified ClinicalIterator for consistent export sorting",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T16:24:24Z",
+    "created_at": "2026-07-02T15:09:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 313,
+    "title": "Implement Universal Navigation Architecture for multi-step flows",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T15:33:01Z",
+    "created_at": "2026-07-02T15:03:58Z",
+    "pull_request": true
+  },
+  {
+    "number": 312,
+    "title": "Unify clinical metadata logic for OID, DataType, and translations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T15:32:50Z",
+    "created_at": "2026-07-02T15:01:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 311,
+    "title": "Reviewer-Ready Exports & User Enablement (Epic #56)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T14:50:42Z",
+    "created_at": "2026-07-02T13:15:59Z",
+    "pull_request": true
+  },
+  {
+    "number": 310,
+    "title": "build: perform manifest hygiene and dependency cleanup",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T12:39:55Z",
+    "created_at": "2026-07-01T21:47:25Z",
+    "pull_request": true
+  },
+  {
+    "number": 309,
+    "title": "Consolidate PDF generation stack and remove pdfmake dependency",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T02:27:32Z",
+    "created_at": "2026-07-01T21:43:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 308,
+    "title": "Modernize build configuration and align compiler targets",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-02T02:27:09Z",
+    "created_at": "2026-07-01T21:42:39Z",
+    "pull_request": true
+  },
+  {
+    "number": 307,
+    "title": "PDF Annotated CRF Generator & Review Mode",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T21:32:59Z",
+    "created_at": "2026-07-01T20:53:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 306,
+    "title": "feat: implement keyboard navigation for validation log entries",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T20:38:31Z",
+    "created_at": "2026-07-01T20:25:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 305,
+    "title": "refactor: unify domain derivations and centralize core types",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:57:14Z",
+    "created_at": "2026-07-01T19:36:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 304,
+    "title": "Implement GxP compliance hardening for recovery storage",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:57:04Z",
+    "created_at": "2026-07-01T19:32:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 303,
+    "title": "Unify PDF and DOCX generation via a single HTML-to-Doc pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:56:54Z",
+    "created_at": "2026-07-01T19:29:06Z",
+    "pull_request": true
+  },
+  {
+    "number": 302,
+    "title": "Adopt native ES2024 collection grouping and update compiler settings",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T20:07:25Z",
+    "created_at": "2026-07-01T19:25:01Z",
+    "pull_request": true
+  },
+  {
+    "number": 301,
+    "title": "Implement native AbortSignal for unified task cancellation and timeouts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:56:40Z",
+    "created_at": "2026-07-01T19:20:10Z",
+    "pull_request": true
+  },
+  {
+    "number": 300,
+    "title": "Implement Review Mode Workflow & UI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:29:15Z",
+    "created_at": "2026-07-01T19:17:30Z",
+    "pull_request": true
+  },
+  {
+    "number": 299,
+    "title": "Annotated CRF Output Verification",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T18:52:05Z",
+    "created_at": "2026-07-01T17:24:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 298,
+    "title": "Weekly Backlog Review — 2026-W27",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T16:58:32Z",
+    "created_at": "2026-07-01T16:37:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 297,
+    "title": "[Feature] Annotated CRF Generation Pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T16:56:30Z",
+    "created_at": "2026-07-01T16:29:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 296,
+    "title": "Refactor export pipeline to use native APIs and lazy loading",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T16:12:49Z",
+    "created_at": "2026-07-01T15:37:38Z",
+    "pull_request": true
+  },
+  {
+    "number": 295,
+    "title": "[Feature] aCRF PDF Rendering Engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T16:15:28Z",
+    "created_at": "2026-07-01T15:30:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 294,
+    "title": "Implement Unified Diagnostic Framework for structured error handling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T15:04:26Z",
+    "created_at": "2026-06-30T23:32:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 293,
+    "title": "[Feature] Annotation Paintbrush (System Logic & Feedback)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T15:07:39Z",
+    "created_at": "2026-06-30T23:26:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 292,
+    "title": "Implement Unified Sheet Metadata Registry and Factory",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-30T23:01:11Z",
+    "created_at": "2026-06-30T22:23:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 291,
+    "title": "Implement deterministic ODM exports and SAS metadata alignment",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-30T22:08:29Z",
+    "created_at": "2026-06-30T19:36:52Z",
+    "pull_request": true
+  },
+  {
+    "number": 290,
+    "title": "Contextual Onboarding & In-App Guided Tour",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-30T23:02:40Z",
+    "created_at": "2026-06-30T19:33:16Z",
+    "pull_request": true
+  },
+  {
+    "number": 289,
+    "title": "feat: implement standardized accessible framework and semantic exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-30T18:53:56Z",
+    "created_at": "2026-06-30T14:33:26Z",
+    "pull_request": true
+  },
+  {
+    "number": 288,
+    "title": "Weekly Backlog Review — 2026-W27",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": null,
+    "updated_at": "2026-07-01T16:56:09Z",
+    "created_at": "2026-06-29T15:28:58Z",
+    "pull_request": false
+  },
+  {
+    "number": 287,
+    "title": "Annotation Validation & Edge Case Handling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-30T14:20:01Z",
+    "created_at": "2026-06-25T19:37:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 286,
+    "title": "[Feature] Annotation UI Affordances & Visual Feedback",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-25T19:21:47Z",
+    "created_at": "2026-06-25T19:12:52Z",
+    "pull_request": true
+  },
+  {
+    "number": 285,
+    "title": "[Feature] Annotation Model & Persistence",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-25T18:47:18Z",
+    "created_at": "2026-06-25T17:51:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 284,
+    "title": "Add SharePoint Compliance Configuration Guide for deployments",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-25T17:35:48Z",
+    "created_at": "2026-06-25T15:43:05Z",
+    "pull_request": true
+  },
+  {
+    "number": 283,
+    "title": "Annotation Model & Persistence Implementation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:05:30Z",
+    "created_at": "2026-06-25T15:08:56Z",
+    "pull_request": true
+  },
+  {
+    "number": 282,
+    "title": "[Feature] Locale-Aware Format & Parsing Handling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-25T14:54:29Z",
+    "created_at": "2026-06-24T20:31:15Z",
+    "pull_request": true
+  },
+  {
+    "number": 281,
+    "title": "[Feature] Multilingual Export & Rendering",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T22:57:03Z",
+    "created_at": "2026-06-24T20:24:01Z",
+    "pull_request": true
+  },
+  {
+    "number": 280,
+    "title": "Dictionary Sidecar UX States & Error Handling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T20:04:37Z",
+    "created_at": "2026-06-24T17:36:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 279,
+    "title": "Implement Unified Accessibility Pipeline for Section 508 compliance",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T17:04:27Z",
+    "created_at": "2026-06-24T15:46:06Z",
+    "pull_request": true
+  },
+  {
+    "number": 278,
+    "title": "Migrate Dependency Matrix to Fluent UI v9 DataGrid",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T17:04:38Z",
+    "created_at": "2026-06-24T15:40:38Z",
+    "pull_request": true
+  },
+  {
+    "number": 277,
+    "title": "Implement Workbook Annotation Interaction Semantics",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T17:04:53Z",
+    "created_at": "2026-06-24T15:07:36Z",
+    "pull_request": true
+  },
+  {
+    "number": 276,
+    "title": "Refactor Core API encapsulation and automate dead-code detection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T14:41:07Z",
+    "created_at": "2026-06-24T01:54:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 275,
+    "title": "[Feature] Intelligent Dictionary Sidecar (UX/UI & Logic)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-24T01:24:16Z",
+    "created_at": "2026-06-23T21:54:36Z",
+    "pull_request": true
+  },
+  {
+    "number": 274,
+    "title": "[Feature] Workbook Binding & Selection Synchronization",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T19:29:09Z",
+    "created_at": "2026-06-23T19:06:36Z",
+    "pull_request": true
+  },
+  {
+    "number": 273,
+    "title": "Implement Standardized Accessible Framework and semantic exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-07-01T19:05:31Z",
+    "created_at": "2026-06-23T18:15:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 272,
+    "title": "Terminology Search and Result Model",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T18:08:36Z",
+    "created_at": "2026-06-23T16:53:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 271,
+    "title": "chore(deps): bump the npm_and_yarn group across 1 directory with 9 updates",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-23T16:31:11Z",
+    "created_at": "2026-06-23T16:19:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 270,
+    "title": "feat: implement Administrative Setup Wizard for automated compliance",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T16:15:27Z",
+    "created_at": "2026-06-23T15:56:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 269,
+    "title": "[Feature] Dictionary Sidecar Information Architecture & Interaction Model",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T15:07:07Z",
+    "created_at": "2026-06-23T14:59:38Z",
+    "pull_request": true
+  },
+  {
+    "number": 268,
+    "title": "Translation UI for Dictionary Sidecar",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T14:46:11Z",
+    "created_at": "2026-06-23T14:39:17Z",
+    "pull_request": true
+  },
+  {
+    "number": 267,
+    "title": "[Feature] Translation Management UI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T14:11:23Z",
+    "created_at": "2026-06-23T05:30:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 266,
+    "title": "Weekly Backlog Review 2026-W26 and Traceability Hygiene",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T05:04:39Z",
+    "created_at": "2026-06-23T04:57:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 265,
+    "title": "Maintain and Operate Roadmap Dashboard (#28)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T05:05:26Z",
+    "created_at": "2026-06-23T04:49:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 264,
+    "title": "docs: encode and document dependency graph for epic #53",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T05:06:52Z",
+    "created_at": "2026-06-23T04:41:15Z",
+    "pull_request": true
+  },
+  {
+    "number": 263,
+    "title": "Linguistic Engine for Multi-Language Support",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T14:11:31Z",
+    "created_at": "2026-06-23T04:39:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 262,
+    "title": "Implement Multilingual Content Model and Fallback Logic",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T04:31:41Z",
+    "created_at": "2026-06-23T04:30:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 261,
+    "title": "Implement Locale-Aware Parsing in Excel Parser",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-23T04:12:49Z",
+    "created_at": "2026-06-23T03:50:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 260,
+    "title": "Weekly Backlog Review — 2026-W26",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-23T05:04:46Z",
+    "created_at": "2026-06-22T15:57:19Z",
+    "pull_request": false
+  },
+  {
+    "number": 259,
+    "title": "chore(deps): bump the npm_and_yarn group across 1 directory with 3 updates",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-23T04:17:26Z",
+    "created_at": "2026-06-17T11:27:11Z",
+    "pull_request": true
+  },
+  {
+    "number": 258,
+    "title": "Weekly Backlog Review — 2026-W25",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-23T15:08:06Z",
+    "created_at": "2026-06-15T16:08:46Z",
+    "pull_request": false
+  },
+  {
+    "number": 257,
+    "title": "Standardize Excel source tracking and enforce TypeScript strict mode",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-12T20:57:11Z",
+    "created_at": "2026-06-12T14:38:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 256,
+    "title": "Standardize Web Worker orchestration with typed protocols",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-12T20:57:12Z",
+    "created_at": "2026-06-12T14:31:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 255,
+    "title": "Implement centralized Office.js simulation library for Excel tests",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-12T20:57:12Z",
+    "created_at": "2026-06-12T14:27:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 254,
+    "title": "Implement standardized RPC framework with Comlink and worker pooling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-12T20:57:11Z",
+    "created_at": "2026-06-12T14:26:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 253,
+    "title": "chore(deps): bump shell-quote from 1.8.3 to 1.8.4 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-10T20:03:33Z",
+    "created_at": "2026-06-10T17:58:40Z",
+    "pull_request": true
+  },
+  {
+    "number": 252,
+    "title": "Implement standardized chunked processing for annotation services",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-09T20:15:54Z",
+    "created_at": "2026-06-09T20:09:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 251,
+    "title": "Unify validation logic and implement native RangeChecks in ODM export",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-09T20:13:27Z",
+    "created_at": "2026-06-09T20:07:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 250,
+    "title": "Fix build-and-test CI failures in traceability and typecheck",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-12T20:57:10Z",
+    "created_at": "2026-06-09T20:06:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 249,
+    "title": "Implement Unified Multi-Host Bridge for host-based E2E testing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:50Z",
+    "created_at": "2026-06-09T20:03:52Z",
+    "pull_request": true
+  },
+  {
+    "number": 248,
+    "title": "Implement Stable OID Anchoring Engine for Clinical Annotations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:50Z",
+    "created_at": "2026-06-09T19:58:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 247,
+    "title": "Weekly Backlog Review — 2026-W24",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-23T15:07:54Z",
+    "created_at": "2026-06-08T15:29:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 246,
+    "title": "chore(deps-dev): bump hono from 4.12.18 to 4.12.23 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-06-06T06:43:27Z",
+    "created_at": "2026-06-04T21:39:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 245,
+    "title": "Implement Unified Bootstrap Architecture to automate workbook setup",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:51Z",
+    "created_at": "2026-06-03T03:24:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 244,
+    "title": "Implement Multi-Layer Governance Sync for clinical audit compliance",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-02T22:00:36Z",
+    "created_at": "2026-06-02T21:48:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 243,
+    "title": "Implement UAT Environment and Automated CI/CD Variable Injection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-02T21:41:53Z",
+    "created_at": "2026-06-02T21:31:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 242,
+    "title": "Implement hardened local protection for GxP compliance audit trails",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-02T21:16:45Z",
+    "created_at": "2026-06-02T20:31:02Z",
+    "pull_request": true
+  },
+  {
+    "number": 241,
+    "title": "Implement AST-powered ODM compiler for logic-aware exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-02T18:31:54Z",
+    "created_at": "2026-06-02T02:05:41Z",
+    "pull_request": true
+  },
+  {
+    "number": 240,
+    "title": "Implement Unified Ingestion Engine and decouple legacy bridge logic",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:51Z",
+    "created_at": "2026-06-01T23:20:16Z",
+    "pull_request": true
+  },
+  {
+    "number": 239,
+    "title": "Weekly Backlog Review — 2026-W23",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-06-23T15:07:40Z",
+    "created_at": "2026-06-01T16:19:20Z",
+    "pull_request": false
+  },
+  {
+    "number": 238,
+    "title": "Implement Unified Ingestion Engine and decommission legacy bridge",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:55Z",
+    "created_at": "2026-05-30T03:46:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 237,
+    "title": "Implement direct CDISC Library integration for automated CT imports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-30T01:39:11Z",
+    "created_at": "2026-05-30T00:26:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 236,
+    "title": "Implement multi-layer governance sync for change justifications",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-30T00:10:47Z",
+    "created_at": "2026-05-29T23:40:19Z",
+    "pull_request": true
+  },
+  {
+    "number": 235,
+    "title": "Refactor spreadsheet ingestion to incremental stream sync",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T20:36:04Z",
+    "created_at": "2026-05-29T20:26:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 234,
+    "title": "Sync DAG validation architecture and enhance variable type resolution",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T20:14:32Z",
+    "created_at": "2026-05-29T20:06:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 233,
+    "title": "Implement GxP Continuity Bridge and automated compliance exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T18:51:59Z",
+    "created_at": "2026-05-29T18:32:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 232,
+    "title": "Implement automated traceability engine and CI alignment checks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T18:18:11Z",
+    "created_at": "2026-05-29T16:08:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 231,
+    "title": "Implement 21 CFR Part 11 compliant audit-ready regulatory exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T15:15:48Z",
+    "created_at": "2026-05-29T07:30:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 230,
+    "title": "Implement headless browser rendering for accurate aCRF annotations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T07:03:39Z",
+    "created_at": "2026-05-29T06:59:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 229,
+    "title": "Implement Integrity Hub: Unified audit feed and signed-off exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T07:03:12Z",
+    "created_at": "2026-05-29T05:58:44Z",
+    "pull_request": true
+  },
+  {
+    "number": 228,
+    "title": "Offload study validation to Web Workers with iterative refactoring",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T05:33:22Z",
+    "created_at": "2026-05-29T04:55:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 227,
+    "title": "perf: implement graph-based dependency engine for O(1) lookups",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:56Z",
+    "created_at": "2026-05-29T03:40:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 226,
+    "title": "feat: implement unified clinical compiler and async rule validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T03:38:15Z",
+    "created_at": "2026-05-29T03:25:29Z",
+    "pull_request": true
+  },
+  {
+    "number": 225,
+    "title": "Implement context-aware severity for unresolved variable validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T03:09:39Z",
+    "created_at": "2026-05-29T03:00:33Z",
+    "pull_request": true
+  },
+  {
+    "number": 224,
+    "title": "Implement background validation engine using Web Workers",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T02:57:38Z",
+    "created_at": "2026-05-29T02:31:40Z",
+    "pull_request": true
+  },
+  {
+    "number": 223,
+    "title": "Implement Enterprise Compliance Governance Center for M365 GxP",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T01:29:17Z",
+    "created_at": "2026-05-29T01:24:17Z",
+    "pull_request": true
+  },
+  {
+    "number": 222,
+    "title": "Implement transactional engine to optimize bulk Excel annotations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T01:17:05Z",
+    "created_at": "2026-05-29T01:13:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 221,
+    "title": "Implement Speculative Design Workflow for non-blocking Excel sync",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T01:08:53Z",
+    "created_at": "2026-05-29T01:06:19Z",
+    "pull_request": true
+  },
+  {
+    "number": 220,
+    "title": "feat: implement Modal Audit Orchestrator for GxP audit compliance",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-29T01:08:35Z",
+    "created_at": "2026-05-29T01:06:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 219,
+    "title": "Normalize study design repository and implement flat data structure",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:56Z",
+    "created_at": "2026-05-28T23:16:57Z",
+    "pull_request": true
+  },
+  {
+    "number": 218,
+    "title": "Implement Enterprise GxP Vault for cloud persistence and PDF reporting",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:56:54Z",
+    "created_at": "2026-05-28T22:35:23Z",
+    "pull_request": true
+  },
+  {
+    "number": 217,
+    "title": "Implement runtime formula localization for non-US Excel locales",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:56:36Z",
+    "created_at": "2026-05-28T22:32:42Z",
+    "pull_request": true
+  },
+  {
+    "number": 216,
+    "title": "Fix XML injection and corruption in CDISC export engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:56:22Z",
+    "created_at": "2026-05-28T22:32:20Z",
+    "pull_request": true
+  },
+  {
+    "number": 215,
+    "title": "feat: implement durable audit traceability for data migrations",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-06-10T21:20:57Z",
+    "created_at": "2026-05-28T22:32:19Z",
+    "pull_request": true
+  },
+  {
+    "number": 214,
+    "title": "Implement incremental stream sync for spreadsheet ingestion",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:56:00Z",
+    "created_at": "2026-05-28T22:31:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 213,
+    "title": "Implement Paged Cooperative Ingestion to prevent UI thread freezing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:26:21Z",
+    "created_at": "2026-05-28T21:55:39Z",
+    "pull_request": true
+  },
+  {
+    "number": 212,
+    "title": "Implement GxP Continuity Bridge for automated compliance exports",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T22:26:55Z",
+    "created_at": "2026-05-28T21:50:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 211,
+    "title": "Implement Headless Worker Engine for non-blocking data ingestion",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-28T21:43:42Z",
+    "created_at": "2026-05-28T21:35:54Z",
+    "pull_request": true
+  },
+  {
+    "number": 210,
+    "title": "chore(deps): bump tmp from 0.2.5 to 0.2.7 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-28T20:21:44Z",
+    "created_at": "2026-05-28T02:50:17Z",
+    "pull_request": true
+  },
+  {
+    "number": 209,
+    "title": "Epic #85: Metadata Diff & Comparison (Clinical Time Machine) — docs and test coverage",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T18:23:09Z",
+    "created_at": "2026-05-26T18:02:17Z",
+    "pull_request": true
+  },
+  {
+    "number": 208,
+    "title": "Add taskpane StudyDiffReport visualization with grouped filters, pagination, and drill-down",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T18:01:16Z",
+    "created_at": "2026-05-26T17:37:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 207,
+    "title": "feat(diff-engine): Core Metadata Diff Engine",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:37:07Z",
+    "created_at": "2026-05-26T15:47:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 206,
+    "title": "🎨 Palette: Add localized loading states to AuthoringView tools",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T14:46:00Z",
+    "created_at": "2026-05-26T06:38:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 205,
+    "title": "🎨 Palette: Add localized loading spinners for AuthoringView inserts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:53:43Z",
+    "created_at": "2026-05-25T06:37:58Z",
+    "pull_request": true
+  },
+  {
+    "number": 204,
+    "title": "🎨 Palette: Add async feedback for Authoring macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:40:19Z",
+    "created_at": "2026-05-24T06:51:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 203,
+    "title": "chore(deps): bump qs from 6.15.1 to 6.15.2 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:53:57Z",
+    "created_at": "2026-05-23T14:41:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 202,
+    "title": "🎨 Palette: Add standalone loading state for AuthoringView Smart Macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:40:20Z",
+    "created_at": "2026-05-23T06:17:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 201,
+    "title": "🎨 Palette: Add async loading feedback to AuthoringView Smart Macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:40:20Z",
+    "created_at": "2026-05-22T07:10:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 200,
+    "title": "🎨 Palette: Add loading states and double-click protection to Smart Macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-26T17:40:21Z",
+    "created_at": "2026-05-21T06:21:46Z",
+    "pull_request": true
+  },
+  {
+    "number": 199,
+    "title": "[WIP] Create core metadata diff engine for StudyDesign objects",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T18:20:04Z",
+    "created_at": "2026-05-20T18:06:35Z",
+    "pull_request": true
+  },
+  {
+    "number": 198,
+    "title": "feat(#76): shared migration pipeline contract + ODM import wizard",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T18:05:37Z",
+    "created_at": "2026-05-20T17:04:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 197,
+    "title": "docs(#44): fix stale module-map entries for CDISC API integration layer",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T17:00:37Z",
+    "created_at": "2026-05-20T16:25:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 196,
+    "title": "Add baseline workbook selection + in-memory StudyDesign ingestion for comparison flows",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T17:03:58Z",
+    "created_at": "2026-05-20T16:25:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 195,
+    "title": "feat(#64): Spreadsheet Ingestion Wizard — 7-stage legacy CRF import pipeline",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T16:24:06Z",
+    "created_at": "2026-05-20T15:47:40Z",
+    "pull_request": true
+  },
+  {
+    "number": 194,
+    "title": "[WIP] Implement interactive wizard for spreadsheet ingestion",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:47:38Z",
+    "created_at": "2026-05-20T15:46:14Z",
+    "pull_request": true
+  },
+  {
+    "number": 193,
+    "title": "feat(#46): Controlled Terminology Import — CT import service + Dictionary Sidecar UI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T16:24:29Z",
+    "created_at": "2026-05-20T15:44:00Z",
+    "pull_request": true
+  },
+  {
+    "number": 192,
+    "title": "Add isolated CDISC CT → _Codelists mapping layer with typed warnings/errors and lifecycle decisions",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:42:56Z",
+    "created_at": "2026-05-20T15:22:45Z",
+    "pull_request": true
+  },
+  {
+    "number": 191,
+    "title": "Align CDISC API service to OpenAPI CT payloads and package-scoped terms endpoint",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:22:05Z",
+    "created_at": "2026-05-20T15:02:38Z",
+    "pull_request": true
+  },
+  {
+    "number": 190,
+    "title": "Add ODM XML reverse parser with workbook projections and import diagnostics",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:19:37Z",
+    "created_at": "2026-05-20T14:54:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 189,
+    "title": "Align VLM origin metadata with canonical vocabulary and structure method references",
+    "state": "closed",
+    "labels": [],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T14:52:48Z",
+    "created_at": "2026-05-20T14:35:56Z",
+    "pull_request": true
+  },
+  {
+    "number": 188,
+    "title": "🎨 Palette: Improve DictionarySidecar UX and accessibility",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:03:40Z",
+    "created_at": "2026-05-20T06:57:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 187,
+    "title": "Add `_Study` submission metadata authoring surface for SDTM/ADaM with inline draft validation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T07:46:42Z",
+    "created_at": "2026-05-20T06:07:12Z",
+    "pull_request": true
+  },
+  {
+    "number": 186,
+    "title": "Add display-only CRF form blocks across parsing, validation, and export",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-20T07:46:59Z",
+    "created_at": "2026-05-20T06:06:25Z",
+    "pull_request": true
+  },
+  {
+    "number": 185,
+    "title": "milestone-1",
+    "state": "closed",
+    "labels": [],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:47:19Z",
+    "created_at": "2026-05-20T03:24:26Z",
+    "pull_request": true
+  },
+  {
+    "number": 184,
+    "title": "feat: updates docs + issues #137, #138, #54, #139, #55, #150, and EPIC #53",
+    "state": "closed",
+    "labels": [],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:18:00Z",
+    "created_at": "2026-05-20T02:50:42Z",
+    "pull_request": true
+  },
+  {
+    "number": 183,
+    "title": "[Feature] Locale-Aware Format & Parsing Handling",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:internationalization",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-25T14:51:59Z",
+    "created_at": "2026-05-19T23:22:52Z",
+    "pull_request": false
+  },
+  {
+    "number": 181,
+    "title": "[Feature] Translation Management UI",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:internationalization",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T13:58:11Z",
+    "created_at": "2026-05-19T23:22:44Z",
+    "pull_request": false
+  },
+  {
+    "number": 180,
+    "title": "[Feature] Multilingual Content Model",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:internationalization",
+      "area:import-export",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T04:32:16Z",
+    "created_at": "2026-05-19T23:22:44Z",
+    "pull_request": false
+  },
+  {
+    "number": 179,
+    "title": "[Feature] Annotated CRF Output Verification",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:reviewer-exports",
+      "priority:p2",
+      "status:verify",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-01T18:48:43Z",
+    "created_at": "2026-05-19T23:22:27Z",
+    "pull_request": false
+  },
+  {
+    "number": 178,
+    "title": "[Feature] Annotation Validation & Edge Case Handling",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-30T14:18:46Z",
+    "created_at": "2026-05-19T23:22:27Z",
+    "pull_request": false
+  },
+  {
+    "number": 177,
+    "title": "[Feature] Annotation UI Affordances & Visual Feedback",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-25T19:21:53Z",
+    "created_at": "2026-05-19T23:22:27Z",
+    "pull_request": false
+  },
+  {
+    "number": 176,
+    "title": "[Feature] Dictionary Sidecar UX States & Error Handling",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-24T20:02:22Z",
+    "created_at": "2026-05-19T23:22:06Z",
+    "pull_request": false
+  },
+  {
+    "number": 175,
+    "title": "[Feature] Annotation Model & Persistence",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-25T18:44:49Z",
+    "created_at": "2026-05-19T23:22:06Z",
+    "pull_request": false
+  },
+  {
+    "number": 174,
+    "title": "[Feature] Terminology Search and Result Model",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T18:20:00Z",
+    "created_at": "2026-05-19T23:22:06Z",
+    "pull_request": false
+  },
+  {
+    "number": 173,
+    "title": "[Feature] Multilingual Export & Rendering",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:internationalization",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-24T22:57:11Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 167,
+    "title": "[Feature] Annotated CRF Generation Pipeline",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:reviewer-exports",
+      "priority:p2",
+      "status:verify",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-01T16:56:35Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 166,
+    "title": "[Feature] Submission Metadata Validation Rules",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "priority:p2",
+      "status:ready",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:47:20Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 165,
+    "title": "[Feature] Workbook Binding & Selection Synchronization",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T19:29:21Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 161,
+    "title": "[Feature] Review Mode Workflow & UI",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:reviewer-exports",
+      "priority:p2",
+      "status:verify",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-01T19:30:22Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 160,
+    "title": "[Feature] Submission Metadata Model Additions (SDTM/ADaM)",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "priority:p2",
+      "status:ready",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:47:19Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 159,
+    "title": "[Feature] Dictionary Sidecar Information Architecture & Interaction Model",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T15:07:33Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 157,
+    "title": "[Feature] Workbook Annotation Interaction Semantics",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "status:verify",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-24T17:04:57Z",
+    "created_at": "2026-05-19T23:21:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 156,
+    "title": "[Feature] Submission Metadata UX Entry & Edit Surfaces",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "priority:p2",
+      "status:ready",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T07:46:41Z",
+    "created_at": "2026-05-19T23:21:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 155,
+    "title": "[Task] Document Office.js Runtime Risk Surfaces",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:excel-integration",
+      "priority:p1",
+      "status:verify",
+      "risk:excel-runtime",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T16:59:29Z",
+    "created_at": "2026-05-19T19:30:21Z",
+    "pull_request": false
+  },
+  {
+    "number": 154,
+    "title": "[Task] Create Release Signoff Checklist",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:security-compliance",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:enterprise-hardening",
+      "jules"
+    ],
+    "milestone": "M6 — Enterprise Hardening & Deployment",
+    "updated_at": "2026-07-02T18:25:05Z",
+    "created_at": "2026-05-19T19:30:19Z",
+    "pull_request": false
+  },
+  {
+    "number": 153,
+    "title": "[Task] Define Non-Functional Acceptance Criteria for Excel Runtime Interactions",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:excel-integration",
+      "priority:p1",
+      "status:verify",
+      "risk:excel-runtime",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T18:25:28Z",
+    "created_at": "2026-05-19T19:29:46Z",
+    "pull_request": false
+  },
+  {
+    "number": 152,
+    "title": "[Task] Create End-to-End Quality Matrix by Subsystem",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:validation-rules",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T18:27:08Z",
+    "created_at": "2026-05-19T19:29:43Z",
+    "pull_request": false
+  },
+  {
+    "number": 151,
+    "title": "[Task] Define and Encode Dependency Graph for Diff/Comparison Cluster (#85)",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "priority:p1",
+      "status:in-progress",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-05-26T18:01:57Z",
+    "created_at": "2026-05-19T19:29:16Z",
+    "pull_request": false
+  },
+  {
+    "number": 150,
+    "title": "[Task] Define and Encode Dependency Graph for Advanced Logic Epic (#53)",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:validation-rules",
+      "priority:p1",
+      "status:verify",
+      "stream:core-metadata",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-06-23T05:06:58Z",
+    "created_at": "2026-05-19T19:29:15Z",
+    "pull_request": false
+  },
+  {
+    "number": 149,
+    "title": "[Docs] Create Architecture Decision Record Index (docs/architecture/adr-index.md)",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "priority:p2",
+      "status:verify",
+      "area:core-schema",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:10:43Z",
+    "created_at": "2026-05-19T19:28:50Z",
+    "pull_request": false
+  },
+  {
+    "number": 148,
+    "title": "[Docs] Create Definition of Ready and Done (docs/github/definition-of-ready-done.md)",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:12:08Z",
+    "created_at": "2026-05-19T19:28:48Z",
+    "pull_request": false
+  },
+  {
+    "number": 147,
+    "title": "[Docs] Create Roadmap Operations Guide (docs/github/roadmap-operations.md)",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:13:45Z",
+    "created_at": "2026-05-19T19:28:47Z",
+    "pull_request": false
+  },
+  {
+    "number": 146,
+    "title": "[Docs] Create Dependency Management Guide (docs/github/dependency-management.md)",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "area:devops",
+      "priority:p1",
+      "status:verify",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:17:26Z",
+    "created_at": "2026-05-19T19:28:14Z",
+    "pull_request": false
+  },
+  {
+    "number": 145,
+    "title": "[Docs] Create Module Map (docs/architecture/module-map.md)",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "priority:p1",
+      "status:verify",
+      "area:core-schema",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:18:56Z",
+    "created_at": "2026-05-19T19:28:12Z",
+    "pull_request": false
+  },
+  {
+    "number": 144,
+    "title": "[Docs] Align README Architecture Section with Current Codebase",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "priority:p1",
+      "status:verify",
+      "area:core-schema",
+      "stream:audit-governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T17:16:00Z",
+    "created_at": "2026-05-19T19:27:46Z",
+    "pull_request": false
+  },
+  {
+    "number": 143,
+    "title": "[Governance] Maintain and Operate Roadmap Dashboard (#28)",
+    "state": "open",
+    "labels": [
+      "area:devops",
+      "priority:p1",
+      "status:in-progress",
+      "stream:audit-governance",
+      "type:governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-27T12:08:15Z",
+    "created_at": "2026-05-19T19:27:28Z",
+    "pull_request": false
+  },
+  {
+    "number": 141,
+    "title": "[Governance] Normalize Issue Taxonomy and GitHub Sub-Issue Structure",
+    "state": "closed",
+    "labels": [
+      "area:devops",
+      "priority:p0",
+      "status:verify",
+      "stream:audit-governance",
+      "type:governance",
+      "jules"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-07-02T18:28:16Z",
+    "created_at": "2026-05-19T19:26:48Z",
+    "pull_request": false
+  },
+  {
+    "number": 140,
+    "title": "Reorganize Tickets",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-19T17:54:01Z",
+    "created_at": "2026-05-19T17:29:00Z",
+    "pull_request": false
+  },
+  {
+    "number": 139,
+    "title": "[Feature] ODM Serialization for ConditionDef and MethodDef",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:cdisc-standards",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:18:00Z",
+    "created_at": "2026-05-19T17:19:53Z",
+    "pull_request": false
+  },
+  {
+    "number": 138,
+    "title": "[Feature] DAG Topological Sort & Cycle Detection Validator",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:18:00Z",
+    "created_at": "2026-05-19T17:19:53Z",
+    "pull_request": false
+  },
+  {
+    "number": 137,
+    "title": "[Feature] Rules Parser & AST Generator",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:17:59Z",
+    "created_at": "2026-05-19T17:19:52Z",
+    "pull_request": false
+  },
+  {
+    "number": 136,
+    "title": "[Task] OpenAPI Type Generation & Integration",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-19T17:12:59Z",
+    "created_at": "2026-05-19T17:12:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 135,
+    "title": "[Task] Finalize Deployment Environment URLs & Provisioning",
+    "state": "open",
+    "labels": [
+      "type:task",
+      "area:security-compliance",
+      "area:devops",
+      "priority:p0",
+      "status:blocked",
+      "stream:enterprise-hardening"
+    ],
+    "milestone": "M6 — Enterprise Hardening & Deployment",
+    "updated_at": "2026-05-19T23:16:45Z",
+    "created_at": "2026-05-19T17:07:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 134,
+    "title": "chore: resolve transitive protobufjs vulns via overrides; upload manifests as CI artifacts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-19T18:31:08Z",
+    "created_at": "2026-05-19T17:04:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 133,
+    "title": "Feature: Diff Visualization UI (Clinical Time Machine)",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p1",
+      "status:needs-more-information"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:26Z",
+    "created_at": "2026-05-19T16:52:31Z",
+    "pull_request": false
+  },
+  {
+    "number": 132,
+    "title": "Feature: Baseline Workbook Ingestion UX",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "priority:p1",
+      "status:needs-triage"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:26Z",
+    "created_at": "2026-05-19T16:52:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 131,
+    "title": "Feature: Core Metadata Diff Engine (`diff-engine.ts`)",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "priority:p1",
+      "status:needs-more-information",
+      "area:core-schema"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:26Z",
+    "created_at": "2026-05-19T16:52:19Z",
+    "pull_request": false
+  },
+  {
+    "number": 130,
+    "title": "[Feature] Baseline Workbook Ingestion UX",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M3 — Metadata Diff & Comparison",
+    "updated_at": "2026-05-20T17:03:57Z",
+    "created_at": "2026-05-19T16:48:26Z",
+    "pull_request": false
+  },
+  {
+    "number": 129,
+    "title": "[Feature] Core Metadata Diff Engine",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M3 — Metadata Diff & Comparison",
+    "updated_at": "2026-05-26T17:37:06Z",
+    "created_at": "2026-05-19T16:48:21Z",
+    "pull_request": false
+  },
+  {
+    "number": 128,
+    "title": "[Feature] Diff Visualization UI",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M3 — Metadata Diff & Comparison",
+    "updated_at": "2026-05-26T18:01:15Z",
+    "created_at": "2026-05-19T16:48:17Z",
+    "pull_request": false
+  },
+  {
+    "number": 127,
+    "title": "Align weekly backlog review issue template with 2026-W21 governance checklist format",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-19T16:07:03Z",
+    "created_at": "2026-05-19T15:53:02Z",
+    "pull_request": true
+  },
+  {
+    "number": 126,
+    "title": "🎨 Palette: Fix task pane text wrapping and prevent horizontal scrolling in DictionarySidecar",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-19T15:53:42Z",
+    "created_at": "2026-05-19T06:39:52Z",
+    "pull_request": true
+  },
+  {
+    "number": 125,
+    "title": "Weekly Backlog Review — 2026-W21",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "status:ready"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T16:07:02Z",
+    "created_at": "2026-05-18T15:28:32Z",
+    "pull_request": false
+  },
+  {
+    "number": 124,
+    "title": "🎨 Palette: [Accessibility] Add labels to ValidationLog navigation button",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-18T15:59:15Z",
+    "created_at": "2026-05-18T07:04:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 123,
+    "title": "🎨 Palette: Fix DictionarySidecar horizontal scrolling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-18T16:03:54Z",
+    "created_at": "2026-05-17T06:56:06Z",
+    "pull_request": true
+  },
+  {
+    "number": 122,
+    "title": "🎨 Palette: Refactor DictionarySidecar layout to prevent horizontal scrolling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-18T16:03:54Z",
+    "created_at": "2026-05-16T06:19:36Z",
+    "pull_request": true
+  },
+  {
+    "number": 121,
+    "title": "Add startup version-update notification service with session dismissal and changelog link",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-18T15:59:02Z",
+    "created_at": "2026-05-16T03:30:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 120,
+    "title": "Establish environment-specific Office manifests with CI guardrails and deployment runbook",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T03:27:01Z",
+    "created_at": "2026-05-16T03:14:40Z",
+    "pull_request": true
+  },
+  {
+    "number": 119,
+    "title": "Implement typed CDISC Library API fetcher with OAuth2, retry/rate-limit handling, fixtures, and service contract docs",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T03:25:43Z",
+    "created_at": "2026-05-16T03:05:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 118,
+    "title": "Support Non-Question / Display-Only CRF Content Blocks",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "area:core-schema",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T07:46:59Z",
+    "created_at": "2026-05-16T01:05:51Z",
+    "pull_request": false
+  },
+  {
+    "number": 117,
+    "title": "Harden local recovery snapshot reads against blocked localStorage access",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:51:53Z",
+    "created_at": "2026-05-16T00:38:53Z",
+    "pull_request": true
+  },
+  {
+    "number": 116,
+    "title": "Finalize mega-study performance budget wording and remove stale blocker references",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:47:52Z",
+    "created_at": "2026-05-16T00:38:28Z",
+    "pull_request": true
+  },
+  {
+    "number": 115,
+    "title": "Add VLM Length/Significant Digits validation and ODM SignificantDigits serialization",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:29:14Z",
+    "created_at": "2026-05-16T00:17:32Z",
+    "pull_request": true
+  },
+  {
+    "number": 114,
+    "title": "Refactor Excel parser to chunked runtime with progress, cancellation, timeout, and partial-failure handling",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:34:25Z",
+    "created_at": "2026-05-16T00:15:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 113,
+    "title": "Add quick search and filter functionality to Matrix View",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:37:09Z",
+    "created_at": "2026-05-16T00:13:42Z",
+    "pull_request": true
+  },
+  {
+    "number": 112,
+    "title": "Add centralized Office.js error boundary with typed user-safe recovery prompts",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:00:48Z",
+    "created_at": "2026-05-15T23:48:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 111,
+    "title": "Add taskpane localStorage recovery snapshots with restore/dismiss flow and safe degradation",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:12:06Z",
+    "created_at": "2026-05-15T23:47:28Z",
+    "pull_request": true
+  },
+  {
+    "number": 110,
+    "title": "Add mega-study performance fixture, numeric budget, and reproducible benchmark harness",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:00:24Z",
+    "created_at": "2026-05-15T23:46:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 109,
+    "title": "[WIP] Refactor excel-parser to implement chunking and background processing",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:47:58Z",
+    "created_at": "2026-05-15T23:45:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 108,
+    "title": "Establish deterministic ODM serialization proofing with canonical reference fixtures",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:44:46Z",
+    "created_at": "2026-05-15T23:29:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 107,
+    "title": "Strengthen regulatory doc discoverability by cross-linking security posture and Part 11 mapping",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:26:35Z",
+    "created_at": "2026-05-15T23:21:07Z",
+    "pull_request": true
+  },
+  {
+    "number": 106,
+    "title": "Validate QA epic scope is already satisfied (Jest setup, validator coverage, ODM schema proofing)",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:31:26Z",
+    "created_at": "2026-05-15T23:20:59Z",
+    "pull_request": true
+  },
+  {
+    "number": 105,
+    "title": "Define Mega-Study Performance Fixture and Benchmark Harness",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:performance",
+      "priority:p0",
+      "phase:2",
+      "status:ready"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-16T00:00:23Z",
+    "created_at": "2026-05-15T23:18:39Z",
+    "pull_request": false
+  },
+  {
+    "number": 104,
+    "title": "Add 21 CFR Part 11 compliance mapping guide for Excel version history audit trails",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:13:47Z",
+    "created_at": "2026-05-15T23:06:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 103,
+    "title": "[WIP] Configure GitHub Actions for automated quality gating",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:12:18Z",
+    "created_at": "2026-05-15T23:06:08Z",
+    "pull_request": true
+  },
+  {
+    "number": 102,
+    "title": "Expand SECURITY.md with CIS v16 posture mapping for access control, data protection, and audit traceability",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:18:18Z",
+    "created_at": "2026-05-15T23:05:49Z",
+    "pull_request": true
+  },
+  {
+    "number": 101,
+    "title": "Add canonical ODM serialization proofing with CDISC XSD validation in CI",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:20:37Z",
+    "created_at": "2026-05-15T23:05:29Z",
+    "pull_request": true
+  },
+  {
+    "number": 100,
+    "title": "Expand `validator.ts` clinical rule coverage and document implemented edge-case behavior",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:10:21Z",
+    "created_at": "2026-05-15T23:03:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 99,
+    "title": "Weekly Backlog Review — 2026-W20",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:24:10Z",
+    "created_at": "2026-05-15T22:58:54Z",
+    "pull_request": false
+  },
+  {
+    "number": 98,
+    "title": "feat: per-environment manifest management with CI validation and deployment docs",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:16:10Z",
+    "created_at": "2026-05-15T22:49:21Z",
+    "pull_request": true
+  },
+  {
+    "number": 97,
+    "title": "Establish dependency audit trail and harden baseline by upgrading vulnerable webpack plugin",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:02:44Z",
+    "created_at": "2026-05-15T22:46:44Z",
+    "pull_request": true
+  },
+  {
+    "number": 96,
+    "title": "fix: correct YAML indentation in workflow `--body` multi-line strings",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:38:08Z",
+    "created_at": "2026-05-15T22:37:22Z",
+    "pull_request": true
+  },
+  {
+    "number": 95,
+    "title": "Harden `_Forms`/`_Schedule` sheet protection by enforcing full lock baseline before editable unlocks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:27:22Z",
+    "created_at": "2026-05-15T22:15:59Z",
+    "pull_request": true
+  },
+  {
+    "number": 94,
+    "title": "test: complete Fluent UI v9 epic — add missing filter coverage for Dictionary Sidecar",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T23:16:07Z",
+    "created_at": "2026-05-15T22:15:08Z",
+    "pull_request": true
+  },
+  {
+    "number": 93,
+    "title": "CDISC API Response to _Codelists Mapping Layer",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:cdisc-standards",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T15:42:55Z",
+    "created_at": "2026-05-15T22:06:38Z",
+    "pull_request": false
+  },
+  {
+    "number": 92,
+    "title": "Spike: Resolve VLM & Submission Metadata Canonical Scope",
+    "state": "closed",
+    "labels": [
+      "area:cdisc-standards",
+      "priority:p0",
+      "phase:3",
+      "type:spike"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:27Z",
+    "created_at": "2026-05-15T21:58:24Z",
+    "pull_request": false
+  },
+  {
+    "number": 91,
+    "title": "Spike: Define Migration Import Strategy",
+    "state": "closed",
+    "labels": [
+      "area:import-export",
+      "priority:p0",
+      "phase:3",
+      "type:spike"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:25Z",
+    "created_at": "2026-05-15T21:58:19Z",
+    "pull_request": false
+  },
+  {
+    "number": 90,
+    "title": "Spike: Define aCRF PDF Rendering Architecture",
+    "state": "closed",
+    "labels": [
+      "area:import-export",
+      "area:reviewer-exports",
+      "priority:p0",
+      "phase:3",
+      "type:spike"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:22Z",
+    "created_at": "2026-05-15T21:58:13Z",
+    "pull_request": false
+  },
+  {
+    "number": 89,
+    "title": "Spike: Define Audit Lifecycle and Governed Field Model",
+    "state": "closed",
+    "labels": [
+      "area:security-compliance",
+      "area:audit-trail",
+      "priority:p0",
+      "phase:3",
+      "risk:compliance",
+      "type:spike"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:25Z",
+    "created_at": "2026-05-15T21:58:05Z",
+    "pull_request": false
+  },
+  {
+    "number": 88,
+    "title": "Spike: Define CRF.xl Rule Expression Model",
+    "state": "closed",
+    "labels": [
+      "area:validation-rules",
+      "priority:p0",
+      "phase:3",
+      "type:spike"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:25Z",
+    "created_at": "2026-05-15T21:58:00Z",
+    "pull_request": false
+  },
+  {
+    "number": 87,
+    "title": "Add searchable Fluent DataGrid codelist browser to Dictionary Sidecar",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T21:44:36Z",
+    "created_at": "2026-05-15T20:13:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 86,
+    "title": "[Feature] Linguistic Engine",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "area:internationalization",
+      "priority:p2",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T14:13:12Z",
+    "created_at": "2026-05-15T20:07:02Z",
+    "pull_request": false
+  },
+  {
+    "number": 85,
+    "title": "[Epic] Metadata Diff & Comparison (Clinical Time Machine)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:ui-ux",
+      "area:excel-integration",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:core-metadata"
+    ],
+    "milestone": "M3 — Metadata Diff & Comparison",
+    "updated_at": "2026-05-26T18:23:08Z",
+    "created_at": "2026-05-15T20:06:56Z",
+    "pull_request": false
+  },
+  {
+    "number": 84,
+    "title": "[Feature] Annotation Paintbrush",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "area:excel-integration",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "risk:excel-runtime",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-07-01T15:04:47Z",
+    "created_at": "2026-05-15T20:06:47Z",
+    "pull_request": false
+  },
+  {
+    "number": 83,
+    "title": "[Feature] Intelligent Dictionary Sidecar",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "area:excel-integration",
+      "priority:p1",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-24T01:24:24Z",
+    "created_at": "2026-05-15T20:06:42Z",
+    "pull_request": false
+  },
+  {
+    "number": 82,
+    "title": "Enforce PR quality gates for type-check and test, and document required branch protection",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T19:58:11Z",
+    "created_at": "2026-05-15T19:33:08Z",
+    "pull_request": true
+  },
+  {
+    "number": 81,
+    "title": "Add worksheet protection guardrails for `_Forms` and `_Schedule` with explicit editable ranges",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T19:41:36Z",
+    "created_at": "2026-05-15T19:32:43Z",
+    "pull_request": true
+  },
+  {
+    "number": 80,
+    "title": "Redesign contextual views with Fluent v9 Cards/Typography and add ValidationLog skeleton states",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T19:41:06Z",
+    "created_at": "2026-05-15T19:31:50Z",
+    "pull_request": true
+  },
+  {
+    "number": 79,
+    "title": "Establish Fluent v9 root provider consistency and semantic status token mapping",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:13:11Z",
+    "created_at": "2026-05-15T19:24:09Z",
+    "pull_request": true
+  },
+  {
+    "number": 78,
+    "title": "[Feature] aCRF PDF Rendering Engine",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:import-export",
+      "area:reviewer-exports",
+      "priority:p1",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-01T16:16:27Z",
+    "created_at": "2026-05-15T19:22:14Z",
+    "pull_request": false
+  },
+  {
+    "number": 77,
+    "title": "[Epic] Advanced Submission Metadata: Variable Level Metadata & Methods",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:cdisc-standards",
+      "priority:p1",
+      "phase:3",
+      "relation:duplicate-candidate",
+      "relation:superseded"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:26Z",
+    "created_at": "2026-05-15T19:22:04Z",
+    "pull_request": false
+  },
+  {
+    "number": 76,
+    "title": "[Epic] Ingestion & Migration Wizards: Reverse ODM Parser & Legacy Mapping Tool",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T18:05:36Z",
+    "created_at": "2026-05-15T19:22:00Z",
+    "pull_request": false
+  },
+  {
+    "number": 75,
+    "title": "[Epic] Audit Trail & Change Control Compliance",
+    "state": "open",
+    "labels": [
+      "type:epic",
+      "area:security-compliance",
+      "area:audit-trail",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:audit-governance"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-05-20T02:12:10Z",
+    "created_at": "2026-05-15T19:21:54Z",
+    "pull_request": false
+  },
+  {
+    "number": 74,
+    "title": "Migrate UI components and iconography to Fluent UI v9",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:13:11Z",
+    "created_at": "2026-05-15T19:20:13Z",
+    "pull_request": true
+  },
+  {
+    "number": 73,
+    "title": "Graceful Office.js Error Handling",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "priority:p1",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:excel-runtime"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:34Z",
+    "created_at": "2026-05-15T19:18:35Z",
+    "pull_request": false
+  },
+  {
+    "number": 72,
+    "title": "LocalStorage State Recovery",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:state-management",
+      "priority:p1",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:data-loss"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:33Z",
+    "created_at": "2026-05-15T19:18:35Z",
+    "pull_request": false
+  },
+  {
+    "number": 71,
+    "title": "[Epic] State Persistence & Recovery",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:state-management",
+      "priority:p1",
+      "phase:2",
+      "status:ready"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:33Z",
+    "created_at": "2026-05-15T19:18:34Z",
+    "pull_request": false
+  },
+  {
+    "number": 70,
+    "title": "Version Update Notification Service",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:devops",
+      "priority:p2",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:enterprise-hardening"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:09Z",
+    "created_at": "2026-05-15T19:18:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 69,
+    "title": "Production Manifest Management",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:security-compliance",
+      "area:devops",
+      "priority:p1",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:29Z",
+    "created_at": "2026-05-15T19:18:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 68,
+    "title": "[Epic] Enterprise Distribution & Security",
+    "state": "open",
+    "labels": [
+      "type:epic",
+      "area:security-compliance",
+      "area:devops",
+      "priority:p0",
+      "phase:2",
+      "status:ready",
+      "stream:enterprise-hardening"
+    ],
+    "milestone": "M6 — Enterprise Hardening & Deployment",
+    "updated_at": "2026-05-19T23:31:35Z",
+    "created_at": "2026-05-15T19:18:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 67,
+    "title": "Length & Precision Validation",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:clinical-validation"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:33Z",
+    "created_at": "2026-05-15T19:18:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 66,
+    "title": "[Feature] Submission Metadata (SDTM/ADaM) Extension",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:cdisc-standards",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:47:19Z",
+    "created_at": "2026-05-15T19:18:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 65,
+    "title": "[Epic] Variable Level Metadata (VLM) & Methods",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:cdisc-standards",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T14:52:47Z",
+    "created_at": "2026-05-15T19:18:22Z",
+    "pull_request": false
+  },
+  {
+    "number": 64,
+    "title": "[Feature] Spreadsheet Ingestion Wizard",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T16:24:06Z",
+    "created_at": "2026-05-15T19:18:17Z",
+    "pull_request": false
+  },
+  {
+    "number": 63,
+    "title": "[Feature] ODM-to-Excel Reverse Parser",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:cdisc-standards",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T15:19:36Z",
+    "created_at": "2026-05-15T19:18:16Z",
+    "pull_request": false
+  },
+  {
+    "number": 62,
+    "title": "[Epic] Reverse Engineering & Import Workflows",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "relation:duplicate-candidate"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:25Z",
+    "created_at": "2026-05-15T19:18:16Z",
+    "pull_request": false
+  },
+  {
+    "number": 61,
+    "title": "Matrix View: Quick Search & Filter",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:33Z",
+    "created_at": "2026-05-15T19:15:54Z",
+    "pull_request": false
+  },
+  {
+    "number": 60,
+    "title": "Excel Parsing: Chunking & Background Worker",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "area:performance",
+      "priority:p0",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:performance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:33Z",
+    "created_at": "2026-05-15T19:15:54Z",
+    "pull_request": false
+  },
+  {
+    "number": 59,
+    "title": "[Epic] Performance Optimization for Mega-Studies",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:performance",
+      "priority:p0",
+      "phase:2",
+      "status:needs-more-information"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:32Z",
+    "created_at": "2026-05-15T19:15:54Z",
+    "pull_request": false
+  },
+  {
+    "number": 58,
+    "title": "[Feature] Contextual Onboarding & In-App Guided Tour",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p2",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-30T23:01:40Z",
+    "created_at": "2026-05-15T19:15:49Z",
+    "pull_request": false
+  },
+  {
+    "number": 57,
+    "title": "[Feature] PDF Annotated CRF Generator & Review Mode",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:import-export",
+      "area:reviewer-exports",
+      "priority:p1",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-01T21:35:22Z",
+    "created_at": "2026-05-15T19:15:48Z",
+    "pull_request": false
+  },
+  {
+    "number": 56,
+    "title": "[Epic] Reviewer-Ready Exports & User Enablement",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:ui-ux",
+      "area:reviewer-exports",
+      "priority:p1",
+      "phase:3",
+      "status:verify",
+      "stream:reviewer-export",
+      "jules"
+    ],
+    "milestone": "M5 — Reviewer Export & aCRF",
+    "updated_at": "2026-07-02T14:50:52Z",
+    "created_at": "2026-05-15T19:15:48Z",
+    "pull_request": false
+  },
+  {
+    "number": 55,
+    "title": "[Feature] Derived Variables & Calculation Expressions",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:17:59Z",
+    "created_at": "2026-05-15T19:15:44Z",
+    "pull_request": false
+  },
+  {
+    "number": 54,
+    "title": "[Feature] Cross-Form Logic Validation & Dependency Map",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:17:58Z",
+    "created_at": "2026-05-15T19:15:43Z",
+    "pull_request": false
+  },
+  {
+    "number": 53,
+    "title": "[Epic] Advanced Logic & Dynamic Branching",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:core-metadata"
+    ],
+    "milestone": "M1 — Core Metadata Foundations",
+    "updated_at": "2026-05-20T03:17:58Z",
+    "created_at": "2026-05-15T19:15:43Z",
+    "pull_request": false
+  },
+  {
+    "number": 52,
+    "title": "Study Version Comparison and Change Impact Report",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:audit-trail",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:25Z",
+    "created_at": "2026-05-15T19:15:37Z",
+    "pull_request": false
+  },
+  {
+    "number": 51,
+    "title": "Internal Change Request Workflow & Lock for Review",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:security-compliance",
+      "area:audit-trail",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:compliance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:24Z",
+    "created_at": "2026-05-15T19:15:36Z",
+    "pull_request": false
+  },
+  {
+    "number": 50,
+    "title": "[Epic] Audit Trail & Data Provenance",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:audit-trail",
+      "priority:p1",
+      "phase:3",
+      "relation:superseded"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:24Z",
+    "created_at": "2026-05-15T19:15:36Z",
+    "pull_request": false
+  },
+  {
+    "number": 49,
+    "title": "Compliance Mapping: CFR Part 11 via Excel Versioning",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:security-compliance",
+      "priority:p0",
+      "phase:2",
+      "relation:child-of-epic",
+      "risk:compliance"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:36Z",
+    "created_at": "2026-05-15T18:58:35Z",
+    "pull_request": false
+  },
+  {
+    "number": 48,
+    "title": "Security Posture: CIS 16 Documentation",
+    "state": "closed",
+    "labels": [
+      "type:docs",
+      "area:security-compliance",
+      "priority:p1",
+      "phase:2",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:36Z",
+    "created_at": "2026-05-15T18:58:35Z",
+    "pull_request": false
+  },
+  {
+    "number": 47,
+    "title": "[Epic] Regulatory Documentation: Security & Compliance",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:security-compliance",
+      "priority:p1",
+      "phase:2",
+      "status:ready"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:36Z",
+    "created_at": "2026-05-15T18:58:34Z",
+    "pull_request": false
+  },
+  {
+    "number": 46,
+    "title": "[Feature] Controlled Terminology Import: Sidecar UI & Excel Sync",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:cdisc-standards",
+      "area:import-export",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T16:24:28Z",
+    "created_at": "2026-05-15T18:58:34Z",
+    "pull_request": false
+  },
+  {
+    "number": 45,
+    "title": "Standards Fetcher Service: cdisc-api-service.ts",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:cdisc-standards",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-20T15:02:03Z",
+    "created_at": "2026-05-15T18:58:33Z",
+    "pull_request": false
+  },
+  {
+    "number": 44,
+    "title": "[Epic] CDISC Library API Integration & Standards Import",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:cdisc-standards",
+      "priority:p1",
+      "phase:3",
+      "status:ready",
+      "stream:ingestion-migration"
+    ],
+    "milestone": "M2 — Standards Import & Reverse Ingestion",
+    "updated_at": "2026-05-20T17:00:37Z",
+    "created_at": "2026-05-15T18:58:33Z",
+    "pull_request": false
+  },
+  {
+    "number": 43,
+    "title": "Sheet Protection API for Excel Integration",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "area:security-compliance",
+      "priority:p1",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:36Z",
+    "created_at": "2026-05-15T18:58:32Z",
+    "pull_request": false
+  },
+  {
+    "number": 42,
+    "title": "[Epic] Structural Guardrails: Sheet & Range Protection",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:excel-integration",
+      "area:security-compliance",
+      "priority:p1",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:32Z",
+    "pull_request": false
+  },
+  {
+    "number": 41,
+    "title": "[Feature] Translation UI for Dictionary Sidecar",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "area:internationalization",
+      "priority:p2",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T14:47:13Z",
+    "created_at": "2026-05-15T18:58:31Z",
+    "pull_request": false
+  },
+  {
+    "number": 40,
+    "title": "[Feature] Locale-Aware Parsing in Excel Parser",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:excel-integration",
+      "area:internationalization",
+      "priority:p2",
+      "phase:3",
+      "status:verify",
+      "relation:child-of-epic",
+      "stream:authoring-ux",
+      "jules"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T04:12:58Z",
+    "created_at": "2026-05-15T18:58:31Z",
+    "pull_request": false
+  },
+  {
+    "number": 39,
+    "title": "[Epic] Multi-Language Dictionary Support (eCOA)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:internationalization",
+      "priority:p2",
+      "phase:3",
+      "status:ready",
+      "stream:authoring-ux"
+    ],
+    "milestone": "M4 — Authoring UX & Internationalization",
+    "updated_at": "2026-06-23T13:57:55Z",
+    "created_at": "2026-05-15T18:58:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 38,
+    "title": "Dictionary Sidecar Evolution: Searchable Codelist Browser",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "area:cdisc-standards",
+      "priority:p2",
+      "phase:3",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:22Z",
+    "created_at": "2026-05-15T18:58:30Z",
+    "pull_request": false
+  },
+  {
+    "number": 37,
+    "title": "Contextual View Redesign: Registry, Matrix & Authoring",
+    "state": "closed",
+    "labels": [
+      "type:feature",
+      "area:ui-ux",
+      "priority:p1",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:32Z",
+    "created_at": "2026-05-15T18:58:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 36,
+    "title": "Fluent UI v9 Design System Infrastructure",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:ui-ux",
+      "priority:p1",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:32Z",
+    "created_at": "2026-05-15T18:58:29Z",
+    "pull_request": false
+  },
+  {
+    "number": 35,
+    "title": "[Epic] Fluent UI v9 UX Migration",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:ui-ux",
+      "priority:p1",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:32Z",
+    "created_at": "2026-05-15T18:58:28Z",
+    "pull_request": false
+  },
+  {
+    "number": 34,
+    "title": "Serialization Proofing: Reference Study & CDISC Validation",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:cdisc-standards",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:2",
+      "status:ready",
+      "relation:child-of-epic",
+      "risk:clinical-validation"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:28Z",
+    "pull_request": false
+  },
+  {
+    "number": 33,
+    "title": "Mathematical Unit Testing: Clinical Rules & Validator",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:2",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:27Z",
+    "pull_request": false
+  },
+  {
+    "number": 32,
+    "title": "[Epic] Quality Assurance Suite: Mathematical Reliability & Serialization",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:validation-rules",
+      "priority:p1",
+      "phase:2",
+      "status:ready"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:27Z",
+    "pull_request": false
+  },
+  {
+    "number": 31,
+    "title": "Dependency Lifecycle Management & Upgrade Path",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p1",
+      "phase:2",
+      "relation:child-of-epic"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:26Z",
+    "pull_request": false
+  },
+  {
+    "number": 30,
+    "title": "Automated Quality Gating with CI & Branch Protection",
+    "state": "closed",
+    "labels": [
+      "type:task",
+      "area:devops",
+      "priority:p0",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:35Z",
+    "created_at": "2026-05-15T18:58:26Z",
+    "pull_request": false
+  },
+  {
+    "number": 29,
+    "title": "[Epic] Modernization & CI/CD Automation",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:devops",
+      "priority:p0",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:34Z",
+    "created_at": "2026-05-15T18:58:25Z",
+    "pull_request": false
+  },
+  {
+    "number": 28,
+    "title": "[Roadmap] CRF.xl Strategic Delivery Dashboard",
+    "state": "open",
+    "labels": [
+      "type:roadmap",
+      "priority:p0",
+      "phase:2",
+      "status:ready"
+    ],
+    "milestone": "M7 — Audit & Governance",
+    "updated_at": "2026-05-19T23:14:15Z",
+    "created_at": "2026-05-15T18:58:25Z",
+    "pull_request": false
+  },
+  {
+    "number": 27,
+    "title": "feat: Migrate frontend to Fluent UI v9",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:13:12Z",
+    "created_at": "2026-05-15T18:50:30Z",
+    "pull_request": true
+  },
+  {
+    "number": 26,
+    "title": "Migrate UI from Tailwind CSS to Fluent UI v9",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:13:12Z",
+    "created_at": "2026-05-15T18:38:34Z",
+    "pull_request": true
+  },
+  {
+    "number": 25,
+    "title": "Bump serialize-javascript from 6.0.2 to 7.0.5 in the npm_and_yarn group across 1 directory",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-15T22:10:29Z",
+    "created_at": "2026-05-15T17:37:24Z",
+    "pull_request": true
+  },
+  {
+    "number": 24,
+    "title": "CRF.xl: Architecture Review & Phase 2 Roadmap",
+    "state": "closed",
+    "labels": [
+      "type:roadmap",
+      "area:devops",
+      "priority:p1"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:38Z",
+    "created_at": "2026-05-15T17:05:48Z",
+    "pull_request": false
+  },
+  {
+    "number": 23,
+    "title": "Epic 10: CDISC Library API Integration (The Stretch Goal)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:cdisc-standards",
+      "phase:3"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:58Z",
+    "created_at": "2026-05-15T16:41:56Z",
+    "pull_request": false
+  },
+  {
+    "number": 22,
+    "title": "Epic 4: Compliance & Regulatory Documentation",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:security-compliance",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:40Z",
+    "created_at": "2026-05-15T16:41:41Z",
+    "pull_request": false
+  },
+  {
+    "number": 21,
+    "title": "Epic 3: The Quality Assurance (QA) Testing Suite",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:validation-rules",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:42Z",
+    "created_at": "2026-05-15T16:41:32Z",
+    "pull_request": false
+  },
+  {
+    "number": 20,
+    "title": "Epic 2: Modernization & DevOps (CI/CD)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:devops",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:44Z",
+    "created_at": "2026-05-15T16:41:23Z",
+    "pull_request": false
+  },
+  {
+    "number": 19,
+    "title": "Epic 1: The UI/UX Overhaul (The \"Looks Bad\" Fix)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:ui-ux",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:51Z",
+    "created_at": "2026-05-15T16:41:14Z",
+    "pull_request": false
+  },
+  {
+    "number": 18,
+    "title": "Epic 8: Ribbon Integration",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:excel-integration",
+      "phase:3"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:51Z",
+    "created_at": "2026-05-15T16:36:31Z",
+    "pull_request": false
+  },
+  {
+    "number": 17,
+    "title": "Epic 7: Structural Protection (The Guardrails)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:excel-integration",
+      "area:security-compliance",
+      "phase:2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:51Z",
+    "created_at": "2026-05-15T16:36:19Z",
+    "pull_request": false
+  },
+  {
+    "number": 16,
+    "title": "Epic 6: Multi-Language Localization (eCOA Readiness)",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:internationalization",
+      "phase:3"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:22Z",
+    "created_at": "2026-05-15T16:36:10Z",
+    "pull_request": false
+  },
+  {
+    "number": 15,
+    "title": "Epic 5: The \"Self-Healing\" Canvas & Dashboard",
+    "state": "closed",
+    "labels": [
+      "type:epic",
+      "area:ui-ux",
+      "area:state-management",
+      "phase:3"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:22Z",
+    "created_at": "2026-05-15T16:35:51Z",
+    "pull_request": false
+  },
+  {
+    "number": 14,
+    "title": "Fix useExcelTelemetry parameter and eslint issues",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T16:20:39Z",
+    "created_at": "2026-05-15T00:40:11Z",
+    "pull_request": true
+  },
+  {
+    "number": 13,
+    "title": "feat: Implement Authoring Service Macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T00:36:15Z",
+    "created_at": "2026-05-15T00:23:37Z",
+    "pull_request": true
+  },
+  {
+    "number": 12,
+    "title": "Implement Authoring Service for UI connectivity",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T00:35:11Z",
+    "created_at": "2026-05-15T00:09:39Z",
+    "pull_request": true
+  },
+  {
+    "number": 11,
+    "title": "feat: Add Authoring Service for Smart Macros",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T16:20:42Z",
+    "created_at": "2026-05-15T00:06:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 10,
+    "title": "feat: wire visual annotation to App.tsx",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T23:55:42Z",
+    "created_at": "2026-05-14T23:38:00Z",
+    "pull_request": true
+  },
+  {
+    "number": 9,
+    "title": "Bump the npm_and_yarn group across 1 directory with 2 updates",
+    "state": "closed",
+    "labels": [
+      "dependencies",
+      "javascript"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-15T17:37:22Z",
+    "created_at": "2026-05-14T23:33:28Z",
+    "pull_request": true
+  },
+  {
+    "number": 8,
+    "title": "feat: Add Annotation Service",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T23:26:49Z",
+    "created_at": "2026-05-14T23:19:04Z",
+    "pull_request": true
+  },
+  {
+    "number": 7,
+    "title": "feat: Add explicit Welcome Screen for new, blank workbooks",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T22:13:30Z",
+    "created_at": "2026-05-14T22:12:05Z",
+    "pull_request": true
+  },
+  {
+    "number": 6,
+    "title": "fix: Add Welcome Screen to prevent router misidentifying blank canvas as Authoring View",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-15T16:20:46Z",
+    "created_at": "2026-05-14T22:11:27Z",
+    "pull_request": true
+  },
+  {
+    "number": 5,
+    "title": "Refactor",
+    "state": "closed",
+    "labels": [
+      "type:refactor",
+      "priority:p2"
+    ],
+    "milestone": null,
+    "updated_at": "2026-05-19T23:20:37Z",
+    "created_at": "2026-05-14T20:12:38Z",
+    "pull_request": false
+  },
+  {
+    "number": 4,
+    "title": "Format and rename documentation files",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T19:45:02Z",
+    "created_at": "2026-05-14T19:18:55Z",
+    "pull_request": true
+  },
+  {
+    "number": 3,
+    "title": "docs: Add QA Testing Requirements",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T18:40:03Z",
+    "created_at": "2026-05-14T18:07:42Z",
+    "pull_request": true
+  },
+  {
+    "number": 2,
+    "title": "Add MVP Specification Document",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T17:53:50Z",
+    "created_at": "2026-05-14T17:34:57Z",
+    "pull_request": true
+  },
+  {
+    "number": 1,
+    "title": "chore: Phase 0 automated CLI scaffolding with CRF engine structure",
+    "state": "closed",
+    "labels": [],
+    "milestone": null,
+    "updated_at": "2026-05-14T16:59:16Z",
+    "created_at": "2026-05-14T16:40:58Z",
+    "pull_request": true
+  }
+]

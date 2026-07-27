@@ -54,10 +54,10 @@ Status legend:
 - 🔵 #90 [Feature] aCRF PDF Rendering Architecture — (Implemented in pdf-builder.ts)
 
 ### stream:enterprise-hardening
-- [Empty]
+- 🟡 #68 [Epic] Enterprise Distribution & Security — (Active in M6, blocked on IT provisioning #135)
 
 ### stream:audit-governance
-- [Empty]
+- 🔵 #75 [Epic] Audit Trail & Change Control Compliance — (Active in M7)
 
 ---
 
